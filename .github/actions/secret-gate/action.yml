@@ -1,0 +1,57 @@
+name: Secret-Gate
+description: >
+  Wertet vorab berechnete Verfuegbarkeits-Flags aus (Secrets lassen sich in
+  Job-if-Ausdruecken nicht direkt pruefen). Der aufrufende Job uebergibt je Zeile
+  NAME=true|false, z. B. "ANDROID_KEYSTORE_BASE64=${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}".
+  Ergebnis: Output "ready" (alle vorhanden) und eine Zeile pro fehlendem Secret in
+  der Job-Zusammenfassung. Werte werden nie ausgegeben, nur Namen.
+
+inputs:
+  label:
+    description: Name des abgesicherten Schritts (fuer die Zusammenfassung)
+    required: true
+  checks:
+    description: Mehrzeilig, je Zeile NAME=true oder NAME=false
+    required: true
+
+outputs:
+  ready:
+    description: "'true', wenn alle genannten Secrets/Variablen gesetzt sind"
+    value: ${{ steps.eval.outputs.ready }}
+  missing:
+    description: Kommagetrennte Namen der fehlenden Secrets/Variablen
+    value: ${{ steps.eval.outputs.missing }}
+
+runs:
+  using: composite
+  steps:
+    - name: Secrets pruefen
+      id: eval
+      shell: bash
+      env:
+        GATE_LABEL: ${{ inputs.label }}
+        GATE_CHECKS: ${{ inputs.checks }}
+      run: |
+        set -euo pipefail
+        missing=()
+        while IFS= read -r line; do
+          line="${line//$'\r'/}"
+          line="$(echo "$line" | xargs)"
+          [ -z "$line" ] && continue
+          name="${line%%=*}"
+          value="${line#*=}"
+          if [ "$value" != "true" ]; then
+            missing+=("$name")
+          fi
+        done <<< "$GATE_CHECKS"
+        if [ "${#missing[@]}" -eq 0 ]; then
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+          echo "missing=" >> "$GITHUB_OUTPUT"
+          echo "- $GATE_LABEL: aktiv" >> "$GITHUB_STEP_SUMMARY"
+        else
+          joined="$(IFS=, ; echo "${missing[*]}")"
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+          echo "missing=$joined" >> "$GITHUB_OUTPUT"
+          echo "- $GATE_LABEL: übersprungen, fehlt: ${joined//,/, }" >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=$GATE_LABEL übersprungen::fehlt: ${joined//,/, }"
+        fi

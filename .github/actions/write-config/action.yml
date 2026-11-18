@@ -1,0 +1,94 @@
+name: Build-Konfiguration schreiben
+description: >
+  Erzeugt config/app.json aus config/app.example.json und ueberschreibt nur die
+  Werte, die als Eingabe (aus Repository-Variablen/-Secrets) gesetzt sind.
+  Leere Eingaben lassen den Standard aus der Beispieldatei stehen. Alle Werte
+  landen im Binary und sind oeffentlich lesbar: nur oeffentliche IDs uebergeben.
+
+inputs:
+  app-env:
+    description: dev oder prod
+    required: false
+    default: prod
+  web-base-url:
+    required: false
+    default: ""
+  umami-url:
+    required: false
+    default: ""
+  umami-website-id:
+    required: false
+    default: ""
+  sentry-dsn:
+    required: false
+    default: ""
+  sentry-environment:
+    required: false
+    default: ""
+  gsc-verification:
+    required: false
+    default: ""
+  trust-gridinsoft-url:
+    required: false
+    default: ""
+  trust-trustpilot-url:
+    required: false
+    default: ""
+  firebase-config-json:
+    description: >
+      Optionales JSON-Objekt mit FIREBASE_*-Schluesseln (z. B. aus dem Secret
+      FIREBASE_CONFIG_JSON). Ist es gesetzt, wird FIREBASE_ENABLED=true.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: config/app.json schreiben
+      shell: pwsh
+      env:
+        CFG_APP_ENV: ${{ inputs.app-env }}
+        CFG_WEB_BASE_URL: ${{ inputs.web-base-url }}
+        CFG_UMAMI_URL: ${{ inputs.umami-url }}
+        CFG_UMAMI_WEBSITE_ID: ${{ inputs.umami-website-id }}
+        CFG_SENTRY_DSN: ${{ inputs.sentry-dsn }}
+        CFG_SENTRY_ENVIRONMENT: ${{ inputs.sentry-environment }}
+        CFG_GSC_VERIFICATION: ${{ inputs.gsc-verification }}
+        CFG_TRUST_GRIDINSOFT_URL: ${{ inputs.trust-gridinsoft-url }}
+        CFG_TRUST_TRUSTPILOT_URL: ${{ inputs.trust-trustpilot-url }}
+        CFG_FIREBASE_CONFIG_JSON: ${{ inputs.firebase-config-json }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $cfg = Get-Content -Raw -Path 'config/app.example.json' | ConvertFrom-Json -AsHashtable
+        $map = [ordered]@{
+          'APP_ENV'              = $env:CFG_APP_ENV
+          'WEB_BASE_URL'         = $env:CFG_WEB_BASE_URL
+          'UMAMI_URL'            = $env:CFG_UMAMI_URL
+          'UMAMI_WEBSITE_ID'     = $env:CFG_UMAMI_WEBSITE_ID
+          'SENTRY_DSN'           = $env:CFG_SENTRY_DSN
+          'SENTRY_ENVIRONMENT'   = $env:CFG_SENTRY_ENVIRONMENT
+          'GSC_VERIFICATION'     = $env:CFG_GSC_VERIFICATION
+          'TRUST_GRIDINSOFT_URL' = $env:CFG_TRUST_GRIDINSOFT_URL
+          'TRUST_TRUSTPILOT_URL' = $env:CFG_TRUST_TRUSTPILOT_URL
+        }
+        $set = @()
+        foreach ($k in $map.Keys) {
+          if (-not [string]::IsNullOrWhiteSpace($map[$k])) {
+            $cfg[$k] = $map[$k].Trim()
+            $set += $k
+          }
+        }
+        if (-not [string]::IsNullOrWhiteSpace($env:CFG_FIREBASE_CONFIG_JSON)) {
+          $fb = $env:CFG_FIREBASE_CONFIG_JSON | ConvertFrom-Json -AsHashtable
+          foreach ($k in $fb.Keys) {
+            if ($k -like 'FIREBASE_*') { $cfg[$k] = $fb[$k]; $set += $k }
+          }
+          $cfg['FIREBASE_ENABLED'] = $true
+          $set += 'FIREBASE_ENABLED'
+        }
+        New-Item -ItemType Directory -Force -Path 'config' | Out-Null
+        $cfg | ConvertTo-Json -Depth 5 | Set-Content -Path 'config/app.json' -Encoding utf8NoBOM
+        # Nur Schluesselnamen protokollieren, nie Werte.
+        $list = if ($set.Count -gt 0) { ($set | Sort-Object -Unique) -join ', ' } else { 'keine (nur Standardwerte)' }
+        "config/app.json geschrieben. Gesetzte Schluessel: $list"
+        "**Build-Konfiguration:** gesetzte Schluessel: $list" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8

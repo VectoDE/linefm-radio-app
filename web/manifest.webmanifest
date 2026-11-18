@@ -1,0 +1,22 @@
+{
+  "id": "/",
+  "name": "LINEFM Radio",
+  "short_name": "LINEFM",
+  "description": "LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM und FobFM live hören.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f1221",
+  "theme_color": "#0f1221",
+  "lang": "de",
+  "dir": "ltr",
+  "categories": ["music", "entertainment"],
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "icons/Icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/Icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/Icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/Icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

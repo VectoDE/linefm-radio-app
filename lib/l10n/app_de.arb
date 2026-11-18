@@ -32,7 +32,9 @@
     "description": "Teil 3 von creditsMadeBy (Herz farbig)"
   },
   "creditsOfferedBy": "Ein Angebot von",
-  "creditsDevelopedBy": "Entwickelt von Tim Hauke (VectoDE)",
+  "creditsDevelopedBy": "Entwickelt von Tim Hauke (VectoDE) für jaybelife",
+  "creditsOwnership": "LINEFM und die App gehören jaybelife.",
+  "creditsDeveloperOpen": "Tim Hauke auf GitHub öffnen",
   "radioGruppeName": "Radiogruppe",
   "radioGruppeOpen": "Radiogruppe öffnen",
   "storageNoticeBodyWeb": "Wir speichern kleine Daten in diesem Browser, um dein Nutzungserlebnis zu verbessern.",
@@ -272,6 +274,14 @@
   "legalImprintTitle": "Impressum",
   "legalPrivacyTitle": "Datenschutz",
   "legalOpenInBrowser": "Im Browser öffnen",
+  "legalUpdated": "Stand: {date}",
+  "@legalUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "legalLoadError": "Der Text konnte nicht geladen werden.",
   "aboutTitle": "Über LINEFM Radio",
   "aboutVersion": "Version {version} ({build})",
@@ -314,6 +324,8 @@
     }
   },
   "alarmNone": "Kein Wecker gestellt.",
+  "alarmAdd": "Wecker hinzufügen",
+  "alarmDelete": "Wecker löschen",
   "alarmNoteIos": "Auf iPhone und iPad weckt dich eine Mitteilung. Tippe darauf, um das Radio zu starten.",
   "alarmNoteDesktop": "Der Wecker klingelt nur, solange LINEFM Radio läuft (auch im Tray).",
   "alarmNoteWeb": "Der Wecker klingelt nur, solange dieser Tab geöffnet ist.",

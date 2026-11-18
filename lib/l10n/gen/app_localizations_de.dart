@@ -52,7 +52,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get creditsOfferedBy => 'Ein Angebot von';
 
   @override
-  String get creditsDevelopedBy => 'Entwickelt von Tim Hauke (VectoDE)';
+  String get creditsDevelopedBy =>
+      'Entwickelt von Tim Hauke (VectoDE) für jaybelife';
+
+  @override
+  String get creditsOwnership => 'LINEFM und die App gehören jaybelife.';
+
+  @override
+  String get creditsDeveloperOpen => 'Tim Hauke auf GitHub öffnen';
 
   @override
   String get radioGruppeName => 'Radiogruppe';
@@ -480,6 +487,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get legalOpenInBrowser => 'Im Browser öffnen';
 
   @override
+  String legalUpdated(String date) {
+    return 'Stand: $date';
+  }
+
+  @override
   String get legalLoadError => 'Der Text konnte nicht geladen werden.';
 
   @override
@@ -544,6 +556,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get alarmNone => 'Kein Wecker gestellt.';
+
+  @override
+  String get alarmAdd => 'Wecker hinzufügen';
+
+  @override
+  String get alarmDelete => 'Wecker löschen';
 
   @override
   String get alarmNoteIos =>

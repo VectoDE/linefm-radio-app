@@ -1,0 +1,123 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/features/legal/legal_document.dart';
+import 'package:linefm_radio/features/legal/legal_screen.dart';
+import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/ui/theme/tokens.dart';
+import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:material_ui/material_ui.dart';
+
+/// Soll der Einwilligungsdialog erscheinen? Nur wenn Telemetrie konfiguriert
+/// ist (`telemetry.consentRequired`) und noch nichts entschieden wurde.
+bool shouldAskTelemetryConsent({
+  required bool consentRequired,
+  required bool? decision,
+}) => consentRequired && decision == null;
+
+/// Rahmen um die App: zeigt den Einwilligungsdialog "Statistik und
+/// Fehlerberichte" einmalig, sobald der erste Frame steht.
+///
+/// Ohne konfigurierte Telemetrie passiert nichts (kein Dialog, kein Aufruf).
+/// Schliesst der Nutzer den Dialog ohne Wahl (Zurueck/Esc), gilt das als
+/// "nicht entschieden": es wird nichts gesendet, beim naechsten Start wird
+/// erneut gefragt. Die Shell setzt das Widget als Eltern von [child] ein.
+class TelemetryConsentGate extends ConsumerStatefulWidget {
+  const TelemetryConsentGate({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  ConsumerState<TelemetryConsentGate> createState() =>
+      _TelemetryConsentGateState();
+}
+
+class _TelemetryConsentGateState extends ConsumerState<TelemetryConsentGate> {
+  bool _asked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeAsk());
+  }
+
+  Future<void> _maybeAsk() async {
+    if (!mounted || _asked) return;
+    final ask = shouldAskTelemetryConsent(
+      consentRequired: ref.read(telemetryProvider).consentRequired,
+      decision: ref.read(telemetryConsentProvider),
+    );
+    if (!ask) return;
+    _asked = true;
+    final answer = await showTelemetryConsentDialog(context);
+    if (answer == null || !mounted) return;
+    await ref.read(telemetryConsentProvider.notifier).set(value: answer);
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+/// Zeigt den Dialog. Ergebnis: `true` = erlaubt, `false` = abgelehnt,
+/// `null` = ohne Wahl geschlossen.
+///
+/// Beide Antworten sind gleichwertig gestaltet (gleicher Knopftyp, gleiche
+/// Groesse, keine Vorauswahl, kein Hervorheben).
+Future<bool?> showTelemetryConsentDialog(BuildContext context) =>
+    showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const TelemetryConsentDialog(),
+    );
+
+class TelemetryConsentDialog extends ConsumerWidget {
+  const TelemetryConsentDialog({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final c = context.linefm;
+    final decline = OutlinedButton(
+      onPressed: () => Navigator.of(context).pop(false),
+      child: Text(l10n.consentDecline),
+    );
+    final allow = OutlinedButton(
+      onPressed: () => Navigator.of(context).pop(true),
+      child: Text(l10n.consentAllow),
+    );
+    return AlertDialog(
+      scrollable: true,
+      title: Semantics(header: true, child: Text(l10n.consentTitle)),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              l10n.consentBody,
+              style: LinefmText.listTitle.copyWith(color: c.text, height: 1.55),
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () => openLegal(context, LegalKind.privacy),
+                child: Text(l10n.consentPrivacyLink),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+      actions: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(child: decline),
+            const SizedBox(width: 12),
+            Expanded(child: allow),
+          ],
+        ),
+      ],
+    );
+  }
+}

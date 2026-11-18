@@ -14,7 +14,9 @@
   "creditsMadeByAuthor": ".jaybelife",
   "creditsMadeByTail": " with ♥",
   "creditsOfferedBy": "A service of",
-  "creditsDevelopedBy": "Developed by Tim Hauke (VectoDE)",
+  "creditsDevelopedBy": "Developed by Tim Hauke (VectoDE) for jaybelife",
+  "creditsOwnership": "LINEFM and this app belong to jaybelife.",
+  "creditsDeveloperOpen": "Open Tim Hauke on GitHub",
   "radioGruppeName": "Radiogruppe",
   "radioGruppeOpen": "Open Radiogruppe",
   "storageNoticeBodyWeb": "We store small bits of data in this browser to make the app work better for you.",
@@ -136,6 +138,14 @@
   "legalImprintTitle": "Imprint",
   "legalPrivacyTitle": "Privacy policy",
   "legalOpenInBrowser": "Open in browser",
+  "legalUpdated": "As of: {date}",
+  "@legalUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "legalLoadError": "The text couldn’t be loaded.",
   "aboutTitle": "About LINEFM Radio",
   "aboutVersion": "Version {version} ({build})",
@@ -154,6 +164,8 @@
   "alarmSnoozeMinutes": "{minutes, plural, =1{1 minute} other{{minutes} minutes}}",
   "alarmNext": "Next alarm: {when}",
   "alarmNone": "No alarm set.",
+  "alarmAdd": "Add alarm",
+  "alarmDelete": "Delete alarm",
   "alarmNoteIos": "On iPhone and iPad a notification wakes you. Tap it to start the radio.",
   "alarmNoteDesktop": "The alarm only rings while LINEFM Radio is running (the tray counts).",
   "alarmNoteWeb": "The alarm only rings while this tab is open.",

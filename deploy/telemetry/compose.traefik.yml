@@ -1,0 +1,33 @@
+# Override fuer Betrieb hinter einem bestehenden Traefik (v3):
+#   docker compose -f compose.yml -f compose.traefik.yml up -d
+# Setzt voraus: externes Docker-Netz ${TRAEFIK_NETWORK} (Standard "traefik"),
+# Entrypoint ${TRAEFIK_ENTRYPOINT} (Standard "websecure") und Certresolver
+# ${TRAEFIK_CERT_RESOLVER}. Die lokalen Ports werden entfernt.
+
+services:
+  umami:
+    ports: !reset []
+    networks: [default, umami-internal, traefik]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: ${TRAEFIK_NETWORK:-traefik}
+      traefik.http.routers.umami.rule: Host(`${UMAMI_HOST:?UMAMI_HOST in .env setzen}`)
+      traefik.http.routers.umami.entrypoints: ${TRAEFIK_ENTRYPOINT:-websecure}
+      traefik.http.routers.umami.tls.certresolver: ${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      traefik.http.services.umami.loadbalancer.server.port: "3000"
+
+  glitchtip:
+    ports: !reset []
+    networks: [default, glitchtip-internal, traefik]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: ${TRAEFIK_NETWORK:-traefik}
+      traefik.http.routers.glitchtip.rule: Host(`${GLITCHTIP_HOST:?GLITCHTIP_HOST in .env setzen}`)
+      traefik.http.routers.glitchtip.entrypoints: ${TRAEFIK_ENTRYPOINT:-websecure}
+      traefik.http.routers.glitchtip.tls.certresolver: ${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      traefik.http.services.glitchtip.loadbalancer.server.port: "8000"
+
+networks:
+  traefik:
+    name: ${TRAEFIK_NETWORK:-traefik}
+    external: true

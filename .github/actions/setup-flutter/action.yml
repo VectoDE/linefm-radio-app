@@ -1,0 +1,43 @@
+name: Flutter einrichten
+description: >
+  Installiert die festgelegte Flutter-Version mit SDK- und Pub-Cache und holt die
+  Abhaengigkeiten. Plattformspezifische Systempakete installieren die Jobs selbst.
+
+inputs:
+  flutter-version:
+    description: Exakte Flutter-Version (stable). Muss zu pubspec.yaml (environment.flutter) passen.
+    required: false
+    default: "3.50.0"
+  pub-get:
+    description: "'true' fuehrt flutter pub get aus."
+    required: false
+    default: "true"
+
+outputs:
+  version:
+    description: Installierte Flutter-Version
+    value: ${{ steps.flutter.outputs.VERSION }}
+
+runs:
+  using: composite
+  steps:
+    - name: Flutter-SDK installieren
+      id: flutter
+      uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+      with:
+        channel: stable
+        flutter-version: ${{ inputs.flutter-version }}
+        cache: true
+        pub-cache: true
+
+    - name: Flutter-Version ausgeben
+      shell: bash
+      run: |
+        flutter --version
+        flutter config --no-analytics >/dev/null
+        dart --disable-analytics >/dev/null 2>&1 || true
+
+    - name: Abhaengigkeiten holen
+      if: inputs.pub-get == 'true'
+      shell: bash
+      run: flutter pub get --enforce-lockfile

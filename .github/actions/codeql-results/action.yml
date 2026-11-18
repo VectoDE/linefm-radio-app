@@ -1,0 +1,43 @@
+name: CodeQL-Ergebnisse auswerten
+description: >
+  Zaehlt die Befunde in sarif-results/, schreibt sie als Annotationen und in die
+  Job-Zusammenfassung, laedt die SARIF-Dateien als Artefakt hoch und laesst den Job
+  scheitern, wenn Befunde vorliegen und kein Code Scanning verfuegbar ist (upload=never).
+
+inputs:
+  language:
+    required: true
+  upload:
+    description: Wert, der an codeql-action/analyze uebergeben wurde (always oder never)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: SARIF als Artefakt
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: codeql-${{ inputs.language }}
+        path: sarif-results/
+        if-no-files-found: ignore
+        retention-days: 30
+
+    - name: Befunde auswerten
+      shell: bash
+      env:
+        LANGUAGE: ${{ inputs.language }}
+        UPLOAD: ${{ inputs.upload }}
+      run: |
+        set -euo pipefail
+        count=0
+        for f in sarif-results/*.sarif; do
+          [ -f "$f" ] || continue
+          n=$(jq '[.runs[].results[]? | select((.suppressions // []) | length == 0)] | length' "$f")
+          count=$((count + n))
+          jq -r '.runs[].results[]? | select((.suppressions // []) | length == 0) | "::warning file=\(.locations[0].physicalLocation.artifactLocation.uri // "unbekannt"),line=\(.locations[0].physicalLocation.region.startLine // 1)::\(.ruleId): \(.message.text | split("\n")[0])"' "$f"
+        done
+        echo "### CodeQL $LANGUAGE: $count Befund(e), Upload an Code Scanning: $UPLOAD" >> "$GITHUB_STEP_SUMMARY"
+        if [ "$UPLOAD" = "never" ] && [ "$count" -gt 0 ]; then
+          echo "::error::CodeQL meldet $count Befund(e) fuer $LANGUAGE (Artefakt codeql-$LANGUAGE)"
+          exit 1
+        fi

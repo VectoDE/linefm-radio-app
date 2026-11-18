@@ -233,6 +233,17 @@ jobs:
         with:
           persist-credentials: false
 
+      # Der Release-Build laedt NDK und CMake nach; ohne Aufraeumen lief der Runner
+      # voll und wurde abgebrochen ("runner has received a shutdown signal").
+      - name: Plattenplatz freigeben
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost \
+            /usr/share/swift /opt/hostedtoolcache/CodeQL \
+            /opt/hostedtoolcache/PyPy /opt/hostedtoolcache/go /usr/local/julia* || true
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          df -h /
+
       - name: Java 17
         uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:

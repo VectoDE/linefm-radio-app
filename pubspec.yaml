@@ -1,0 +1,75 @@
+name: linefm_radio
+description: "LINEFM Radio - Live-Radio der LINEFM-Sender (LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM, FobFM)."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.14.0
+  flutter: ">=3.50.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  material_ui: ^1.1.0
+  cupertino_icons: ^1.0.8
+  just_audio: ^0.10.6
+  audio_service: ^0.18.19
+  just_audio_media_kit: ^2.1.0
+  media_kit_libs_windows_audio: ^1.0.9
+  media_kit_libs_linux: ^1.2.1
+  flutter_riverpod: ^3.5.0
+  shared_preferences: ^2.5.6
+  intl: ^0.20.3
+  flutter_chrome_cast: ^2.0.0
+  home_widget: ^0.10.0
+  alarm: ^5.15.0
+  tray_manager: ^0.9.0
+  window_manager: ^0.7.0
+  hotkey_manager: ^0.4.0
+  share_plus: ^13.3.1
+  url_launcher: ^6.3.3
+  web_socket_channel: ^3.0.3
+  http: ^1.6.0
+  font_awesome_flutter: ^11.0.0
+  sentry_flutter: ^10.5.0
+  web: ^1.1.2
+  flutter_localizations:
+    sdk: flutter
+  audio_service_mpris: ^0.2.1
+  smtc_windows: ^1.1.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  msix: ^3.18.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/images/stations/
+    - assets/images/brand/
+    - assets/audio/
+    - assets/legal/de/
+    - assets/legal/en/
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+    - family: Syncopate
+      fonts:
+        - asset: assets/fonts/Syncopate-Bold.ttf
+          weight: 700
+
+# Windows-Paket (MSIX). Publisher wird spaeter aus dem Partner Center uebernommen.
+msix_config:
+  display_name: LINEFM Radio
+  publisher_display_name: LINEFM
+  identity_name: de.linefm.app
+  msix_version: 1.0.0.0
+  logo_path: assets/branding/icon_1024.png
+  capabilities: internetClient

@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'LINEFM | Radio'**
   String get appTitle;
 
+  /// Markenname im Header
+  ///
+  /// In de, this message translates to:
+  /// **'LINEFM'**
+  String get brandName;
+
   /// No description provided for @navStations.
   ///
   /// In de, this message translates to:
@@ -121,6 +127,1140 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Verlauf'**
   String get navHistory;
+
+  /// No description provided for @navFavorites.
+  ///
+  /// In de, this message translates to:
+  /// **'Favoriten'**
+  String get navFavorites;
+
+  /// No description provided for @navSettings.
+  ///
+  /// In de, this message translates to:
+  /// **'Einstellungen'**
+  String get navSettings;
+
+  /// No description provided for @navMain.
+  ///
+  /// In de, this message translates to:
+  /// **'Hauptnavigation'**
+  String get navMain;
+
+  /// No description provided for @loaderSemantics.
+  ///
+  /// In de, this message translates to:
+  /// **'LINEFM wird geladen'**
+  String get loaderSemantics;
+
+  /// Wörtlich, in allen Sprachen gleich
+  ///
+  /// In de, this message translates to:
+  /// **'Made by .jaybelife with ♥'**
+  String get creditsMadeBy;
+
+  /// Teil 1 von creditsMadeBy (Name wird fett gesetzt)
+  ///
+  /// In de, this message translates to:
+  /// **'Made by '**
+  String get creditsMadeByLead;
+
+  /// Teil 2 von creditsMadeBy
+  ///
+  /// In de, this message translates to:
+  /// **'.jaybelife'**
+  String get creditsMadeByAuthor;
+
+  /// Teil 3 von creditsMadeBy (Herz farbig)
+  ///
+  /// In de, this message translates to:
+  /// **' with ♥'**
+  String get creditsMadeByTail;
+
+  /// No description provided for @creditsOfferedBy.
+  ///
+  /// In de, this message translates to:
+  /// **'Ein Angebot von'**
+  String get creditsOfferedBy;
+
+  /// No description provided for @creditsDevelopedBy.
+  ///
+  /// In de, this message translates to:
+  /// **'Entwickelt von Tim Hauke (VectoDE)'**
+  String get creditsDevelopedBy;
+
+  /// No description provided for @radioGruppeName.
+  ///
+  /// In de, this message translates to:
+  /// **'Radiogruppe'**
+  String get radioGruppeName;
+
+  /// No description provided for @radioGruppeOpen.
+  ///
+  /// In de, this message translates to:
+  /// **'Radiogruppe öffnen'**
+  String get radioGruppeOpen;
+
+  /// No description provided for @storageNoticeBodyWeb.
+  ///
+  /// In de, this message translates to:
+  /// **'Wir speichern kleine Daten in diesem Browser, um dein Nutzungserlebnis zu verbessern.'**
+  String get storageNoticeBodyWeb;
+
+  /// No description provided for @storageNoticeBodyDevice.
+  ///
+  /// In de, this message translates to:
+  /// **'Wir speichern kleine Daten auf diesem Gerät, um dein Nutzungserlebnis zu verbessern.'**
+  String get storageNoticeBodyDevice;
+
+  /// No description provided for @storageNoticePrivacy.
+  ///
+  /// In de, this message translates to:
+  /// **'Datenschutz'**
+  String get storageNoticePrivacy;
+
+  /// No description provided for @storageNoticeDismiss.
+  ///
+  /// In de, this message translates to:
+  /// **'Verstanden'**
+  String get storageNoticeDismiss;
+
+  /// No description provided for @favoritesButton.
+  ///
+  /// In de, this message translates to:
+  /// **'Favoriten'**
+  String get favoritesButton;
+
+  /// No description provided for @favoritesButtonCount.
+  ///
+  /// In de, this message translates to:
+  /// **'Favoriten, {count, plural, =1{1 Song} other{{count} Songs}}'**
+  String favoritesButtonCount(int count);
+
+  /// No description provided for @settingsButton.
+  ///
+  /// In de, this message translates to:
+  /// **'Einstellungen'**
+  String get settingsButton;
+
+  /// No description provided for @stationsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Stationen'**
+  String get stationsTitle;
+
+  /// No description provided for @stationsListLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Stationen'**
+  String get stationsListLabel;
+
+  /// No description provided for @stationCardLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'{station}, läuft: {track}'**
+  String stationCardLabel(String station, String track);
+
+  /// No description provided for @stationCardLabelIdle.
+  ///
+  /// In de, this message translates to:
+  /// **'{station}'**
+  String stationCardLabelIdle(String station);
+
+  /// No description provided for @stationLongPressShare.
+  ///
+  /// In de, this message translates to:
+  /// **'Sender teilen'**
+  String get stationLongPressShare;
+
+  /// No description provided for @stationShareText.
+  ///
+  /// In de, this message translates to:
+  /// **'Hör mal rein: {station} bei LINEFM. {url}'**
+  String stationShareText(String station, String url);
+
+  /// No description provided for @playerCoverAlt.
+  ///
+  /// In de, this message translates to:
+  /// **'Albumcover'**
+  String get playerCoverAlt;
+
+  /// No description provided for @playerShuffle.
+  ///
+  /// In de, this message translates to:
+  /// **'Zufällige Station abspielen'**
+  String get playerShuffle;
+
+  /// No description provided for @playerShuffleTooltip.
+  ///
+  /// In de, this message translates to:
+  /// **'Zufällige Station'**
+  String get playerShuffleTooltip;
+
+  /// No description provided for @playerStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Stream starten'**
+  String get playerStart;
+
+  /// No description provided for @playerConnecting.
+  ///
+  /// In de, this message translates to:
+  /// **'Stream wird verbunden'**
+  String get playerConnecting;
+
+  /// No description provided for @playerStop.
+  ///
+  /// In de, this message translates to:
+  /// **'Stream stoppen'**
+  String get playerStop;
+
+  /// No description provided for @playerFavoriteAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Song merken'**
+  String get playerFavoriteAdd;
+
+  /// No description provided for @playerFavoriteRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'Aus Favoriten entfernen'**
+  String get playerFavoriteRemove;
+
+  /// No description provided for @playerNext.
+  ///
+  /// In de, this message translates to:
+  /// **'Nächster Sender'**
+  String get playerNext;
+
+  /// No description provided for @playerPrevious.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorheriger Sender'**
+  String get playerPrevious;
+
+  /// No description provided for @playerClose.
+  ///
+  /// In de, this message translates to:
+  /// **'Player schließen'**
+  String get playerClose;
+
+  /// No description provided for @playerOpen.
+  ///
+  /// In de, this message translates to:
+  /// **'Player öffnen'**
+  String get playerOpen;
+
+  /// No description provided for @playerListeners.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Person hört gerade zu} other{{count} hören gerade zu}}'**
+  String playerListeners(int count);
+
+  /// No description provided for @playerReconnecting.
+  ///
+  /// In de, this message translates to:
+  /// **'Verbindung wird wiederhergestellt …'**
+  String get playerReconnecting;
+
+  /// No description provided for @playerStreamError.
+  ///
+  /// In de, this message translates to:
+  /// **'Stream konnte nicht gestartet werden.'**
+  String get playerStreamError;
+
+  /// No description provided for @playerRetry.
+  ///
+  /// In de, this message translates to:
+  /// **'Erneut versuchen'**
+  String get playerRetry;
+
+  /// No description provided for @playerStartRadio.
+  ///
+  /// In de, this message translates to:
+  /// **'Radio starten'**
+  String get playerStartRadio;
+
+  /// No description provided for @playerPlayNow.
+  ///
+  /// In de, this message translates to:
+  /// **'Jetzt abspielen'**
+  String get playerPlayNow;
+
+  /// No description provided for @playerLive.
+  ///
+  /// In de, this message translates to:
+  /// **'LIVE'**
+  String get playerLive;
+
+  /// No description provided for @trackUnknownTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Unbekannter Titel'**
+  String get trackUnknownTitle;
+
+  /// No description provided for @trackUnknownArtist.
+  ///
+  /// In de, this message translates to:
+  /// **'Unbekannter Künstler'**
+  String get trackUnknownArtist;
+
+  /// No description provided for @trackLoading.
+  ///
+  /// In de, this message translates to:
+  /// **'Titel wird geladen …'**
+  String get trackLoading;
+
+  /// No description provided for @playerOpenSongIn.
+  ///
+  /// In de, this message translates to:
+  /// **'Song öffnen in …'**
+  String get playerOpenSongIn;
+
+  /// No description provided for @playerShareSong.
+  ///
+  /// In de, this message translates to:
+  /// **'Song teilen'**
+  String get playerShareSong;
+
+  /// No description provided for @musicAppleMusic.
+  ///
+  /// In de, this message translates to:
+  /// **'Apple Music'**
+  String get musicAppleMusic;
+
+  /// No description provided for @musicSpotify.
+  ///
+  /// In de, this message translates to:
+  /// **'Spotify'**
+  String get musicSpotify;
+
+  /// No description provided for @musicYouTubeMusic.
+  ///
+  /// In de, this message translates to:
+  /// **'YouTube Music'**
+  String get musicYouTubeMusic;
+
+  /// No description provided for @shareSongText.
+  ///
+  /// In de, this message translates to:
+  /// **'Ich höre gerade „{title}“ von {artist} auf {station}. {url}'**
+  String shareSongText(String artist, String station, String title, String url);
+
+  /// No description provided for @linkOpenError.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Link konnte nicht geöffnet werden.'**
+  String get linkOpenError;
+
+  /// No description provided for @historyTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Zuletzt gespielt'**
+  String get historyTitle;
+
+  /// No description provided for @historyListLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Zuletzt gespielte Titel'**
+  String get historyListLabel;
+
+  /// No description provided for @historyEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Titel im Verlauf.'**
+  String get historyEmpty;
+
+  /// No description provided for @favoritesTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Favoriten'**
+  String get favoritesTitle;
+
+  /// No description provided for @favoritesListLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Gespeicherte Songs'**
+  String get favoritesListLabel;
+
+  /// No description provided for @favoritesEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Favoriten gespeichert.'**
+  String get favoritesEmpty;
+
+  /// No description provided for @favoritesRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'{title} aus Favoriten entfernen'**
+  String favoritesRemove(String title);
+
+  /// No description provided for @favoritesExport.
+  ///
+  /// In de, this message translates to:
+  /// **'Favoriten exportieren'**
+  String get favoritesExport;
+
+  /// No description provided for @favoritesExportCsv.
+  ///
+  /// In de, this message translates to:
+  /// **'Als CSV-Datei'**
+  String get favoritesExportCsv;
+
+  /// No description provided for @favoritesExportText.
+  ///
+  /// In de, this message translates to:
+  /// **'Als Text'**
+  String get favoritesExportText;
+
+  /// No description provided for @favoritesExportEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Es gibt noch nichts zu exportieren.'**
+  String get favoritesExportEmpty;
+
+  /// No description provided for @favoritesExportSavedTo.
+  ///
+  /// In de, this message translates to:
+  /// **'Gespeichert unter {path}'**
+  String favoritesExportSavedTo(String path);
+
+  /// No description provided for @favoritesExportFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Export hat nicht geklappt.'**
+  String get favoritesExportFailed;
+
+  /// CSV-Spaltenkopf
+  ///
+  /// In de, this message translates to:
+  /// **'Titel'**
+  String get csvColumnTitle;
+
+  /// CSV-Spaltenkopf
+  ///
+  /// In de, this message translates to:
+  /// **'Künstler'**
+  String get csvColumnArtist;
+
+  /// CSV-Spaltenkopf
+  ///
+  /// In de, this message translates to:
+  /// **'Sender'**
+  String get csvColumnStation;
+
+  /// CSV-Spaltenkopf
+  ///
+  /// In de, this message translates to:
+  /// **'Gemerkt am'**
+  String get csvColumnSavedAt;
+
+  /// No description provided for @miniOpenPlayer.
+  ///
+  /// In de, this message translates to:
+  /// **'Player öffnen'**
+  String get miniOpenPlayer;
+
+  /// No description provided for @volumeOpen.
+  ///
+  /// In de, this message translates to:
+  /// **'Lautstärke öffnen'**
+  String get volumeOpen;
+
+  /// No description provided for @volumeClose.
+  ///
+  /// In de, this message translates to:
+  /// **'Lautstärke schließen'**
+  String get volumeClose;
+
+  /// No description provided for @volumeLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Lautstärke'**
+  String get volumeLabel;
+
+  /// No description provided for @volumePercent.
+  ///
+  /// In de, this message translates to:
+  /// **'Lautstärke {percent} Prozent'**
+  String volumePercent(int percent);
+
+  /// No description provided for @volumeSliderValue.
+  ///
+  /// In de, this message translates to:
+  /// **'{percent} Prozent'**
+  String volumeSliderValue(int percent);
+
+  /// No description provided for @sleepRemainingShort.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch {minutes} Min.'**
+  String sleepRemainingShort(int minutes);
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Einstellungen'**
+  String get settingsTitle;
+
+  /// No description provided for @settingMarqueeTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Lauftext für lange Titel'**
+  String get settingMarqueeTitle;
+
+  /// No description provided for @settingMarqueeBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Lange Songtitel als Band anzeigen.'**
+  String get settingMarqueeBody;
+
+  /// No description provided for @settingVolumeTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Lautstärke merken'**
+  String get settingVolumeTitle;
+
+  /// No description provided for @settingVolumeBodyWeb.
+  ///
+  /// In de, this message translates to:
+  /// **'Die gewählte Lautstärke in diesem Browser behalten.'**
+  String get settingVolumeBodyWeb;
+
+  /// No description provided for @settingVolumeBodyDevice.
+  ///
+  /// In de, this message translates to:
+  /// **'Die gewählte Lautstärke auf diesem Gerät behalten.'**
+  String get settingVolumeBodyDevice;
+
+  /// No description provided for @settingThemeTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Darstellung'**
+  String get settingThemeTitle;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In de, this message translates to:
+  /// **'System'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In de, this message translates to:
+  /// **'Hell'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In de, this message translates to:
+  /// **'Dunkel'**
+  String get themeDark;
+
+  /// No description provided for @settingAutoplayTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Beim Start abspielen'**
+  String get settingAutoplayTitle;
+
+  /// No description provided for @settingAutoplayBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Die zuletzt gehörte Station startet automatisch.'**
+  String get settingAutoplayBody;
+
+  /// No description provided for @settingAutoplayBodyWeb.
+  ///
+  /// In de, this message translates to:
+  /// **'Die zuletzt gehörte Station startet nach deinem ersten Tippen oder Klick.'**
+  String get settingAutoplayBodyWeb;
+
+  /// No description provided for @settingTrayTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Beim Schließen im Tray weiterlaufen'**
+  String get settingTrayTitle;
+
+  /// No description provided for @settingTrayBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Fenster verschwindet, die Wiedergabe läuft weiter.'**
+  String get settingTrayBody;
+
+  /// No description provided for @settingAlwaysOnTopTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Immer im Vordergrund'**
+  String get settingAlwaysOnTopTitle;
+
+  /// No description provided for @settingMiniWindow.
+  ///
+  /// In de, this message translates to:
+  /// **'Mini-Player'**
+  String get settingMiniWindow;
+
+  /// No description provided for @settingAlarmTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Wecker'**
+  String get settingAlarmTitle;
+
+  /// No description provided for @settingAlarmBodyOff.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Wecker gestellt.'**
+  String get settingAlarmBodyOff;
+
+  /// No description provided for @settingAboutTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Über LINEFM Radio'**
+  String get settingAboutTitle;
+
+  /// No description provided for @sleepTimerTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Sleeptimer'**
+  String get sleepTimerTitle;
+
+  /// No description provided for @sleepTimerOff.
+  ///
+  /// In de, this message translates to:
+  /// **'Aus'**
+  String get sleepTimerOff;
+
+  /// No description provided for @sleepTimerMinutes.
+  ///
+  /// In de, this message translates to:
+  /// **'{minutes} Min.'**
+  String sleepTimerMinutes(int minutes);
+
+  /// No description provided for @sleepTimerEndOfSong.
+  ///
+  /// In de, this message translates to:
+  /// **'Ende des Songs'**
+  String get sleepTimerEndOfSong;
+
+  /// No description provided for @sleepTimerStatusNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Sleeptimer aktiv.'**
+  String get sleepTimerStatusNone;
+
+  /// No description provided for @sleepTimerStatusRunning.
+  ///
+  /// In de, this message translates to:
+  /// **'{minutes, plural, =1{Wiedergabe stoppt in 1 Minute.} other{Wiedergabe stoppt in {minutes} Minuten.}}'**
+  String sleepTimerStatusRunning(int minutes);
+
+  /// No description provided for @sleepTimerStatusEndOfSong.
+  ///
+  /// In de, this message translates to:
+  /// **'Wiedergabe stoppt am Ende des Songs.'**
+  String get sleepTimerStatusEndOfSong;
+
+  /// No description provided for @sleepTimerExpired.
+  ///
+  /// In de, this message translates to:
+  /// **'Sleeptimer abgelaufen.'**
+  String get sleepTimerExpired;
+
+  /// No description provided for @settingStorageTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Speicher'**
+  String get settingStorageTitle;
+
+  /// No description provided for @settingStorageBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Zuletzt gehörte Station, Favoriten, Lautstärke und Einstellungen werden lokal gespeichert.'**
+  String get settingStorageBody;
+
+  /// No description provided for @settingStorageClear.
+  ///
+  /// In de, this message translates to:
+  /// **'Speicher löschen'**
+  String get settingStorageClear;
+
+  /// No description provided for @clearStorageConfirmTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Speicher löschen?'**
+  String get clearStorageConfirmTitle;
+
+  /// No description provided for @clearStorageConfirmBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Favoriten, Lautstärke, letzte Station und Einstellungen werden entfernt. Das lässt sich nicht rückgängig machen.'**
+  String get clearStorageConfirmBody;
+
+  /// No description provided for @clearStorageDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Speicher gelöscht.'**
+  String get clearStorageDone;
+
+  /// No description provided for @actionCancel.
+  ///
+  /// In de, this message translates to:
+  /// **'Abbrechen'**
+  String get actionCancel;
+
+  /// No description provided for @actionDelete.
+  ///
+  /// In de, this message translates to:
+  /// **'Löschen'**
+  String get actionDelete;
+
+  /// No description provided for @actionClose.
+  ///
+  /// In de, this message translates to:
+  /// **'Schließen'**
+  String get actionClose;
+
+  /// No description provided for @actionOk.
+  ///
+  /// In de, this message translates to:
+  /// **'OK'**
+  String get actionOk;
+
+  /// No description provided for @footerWebsite.
+  ///
+  /// In de, this message translates to:
+  /// **'Website'**
+  String get footerWebsite;
+
+  /// No description provided for @footerImprint.
+  ///
+  /// In de, this message translates to:
+  /// **'Impressum'**
+  String get footerImprint;
+
+  /// No description provided for @footerPrivacy.
+  ///
+  /// In de, this message translates to:
+  /// **'Datenschutz'**
+  String get footerPrivacy;
+
+  /// No description provided for @footerLinksLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'LINEFM Links'**
+  String get footerLinksLabel;
+
+  /// No description provided for @settingTelemetryTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Statistik und Fehlerberichte'**
+  String get settingTelemetryTitle;
+
+  /// No description provided for @settingTelemetryBodyOn.
+  ///
+  /// In de, this message translates to:
+  /// **'Erlaubt. Du kannst das jederzeit widerrufen.'**
+  String get settingTelemetryBodyOn;
+
+  /// No description provided for @settingTelemetryBodyOff.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht erlaubt. Es wird nichts gesendet.'**
+  String get settingTelemetryBodyOff;
+
+  /// No description provided for @consentTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Statistik und Fehlerberichte'**
+  String get consentTitle;
+
+  /// No description provided for @consentBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Damit wir sehen, was gut läuft und wo die App hakt, würden wir gern Angaben zur Nutzung und zu Fehlern auswerten, ohne Namen und ohne Konto. Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.'**
+  String get consentBody;
+
+  /// No description provided for @consentAllow.
+  ///
+  /// In de, this message translates to:
+  /// **'Erlauben'**
+  String get consentAllow;
+
+  /// No description provided for @consentDecline.
+  ///
+  /// In de, this message translates to:
+  /// **'Ablehnen'**
+  String get consentDecline;
+
+  /// No description provided for @consentPrivacyLink.
+  ///
+  /// In de, this message translates to:
+  /// **'Mehr in der Datenschutzerklärung'**
+  String get consentPrivacyLink;
+
+  /// No description provided for @legalImprintTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Impressum'**
+  String get legalImprintTitle;
+
+  /// No description provided for @legalPrivacyTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Datenschutz'**
+  String get legalPrivacyTitle;
+
+  /// No description provided for @legalOpenInBrowser.
+  ///
+  /// In de, this message translates to:
+  /// **'Im Browser öffnen'**
+  String get legalOpenInBrowser;
+
+  /// No description provided for @legalLoadError.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Text konnte nicht geladen werden.'**
+  String get legalLoadError;
+
+  /// No description provided for @aboutTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Über LINEFM Radio'**
+  String get aboutTitle;
+
+  /// No description provided for @aboutVersion.
+  ///
+  /// In de, this message translates to:
+  /// **'Version {version} ({build})'**
+  String aboutVersion(String build, String version);
+
+  /// No description provided for @aboutLicenses.
+  ///
+  /// In de, this message translates to:
+  /// **'Open-Source-Lizenzen'**
+  String get aboutLicenses;
+
+  /// No description provided for @trustGridinsoft.
+  ///
+  /// In de, this message translates to:
+  /// **'Website-Prüfung bei Gridinsoft'**
+  String get trustGridinsoft;
+
+  /// No description provided for @trustTrustpilot.
+  ///
+  /// In de, this message translates to:
+  /// **'Bewertungen bei Trustpilot'**
+  String get trustTrustpilot;
+
+  /// No description provided for @alarmTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Wecker'**
+  String get alarmTitle;
+
+  /// No description provided for @alarmEnabled.
+  ///
+  /// In de, this message translates to:
+  /// **'Wecker aktiv'**
+  String get alarmEnabled;
+
+  /// No description provided for @alarmTime.
+  ///
+  /// In de, this message translates to:
+  /// **'Uhrzeit'**
+  String get alarmTime;
+
+  /// No description provided for @alarmDays.
+  ///
+  /// In de, this message translates to:
+  /// **'Wochentage'**
+  String get alarmDays;
+
+  /// No description provided for @alarmOnce.
+  ///
+  /// In de, this message translates to:
+  /// **'Einmalig'**
+  String get alarmOnce;
+
+  /// No description provided for @alarmEveryDay.
+  ///
+  /// In de, this message translates to:
+  /// **'Jeden Tag'**
+  String get alarmEveryDay;
+
+  /// No description provided for @alarmStation.
+  ///
+  /// In de, this message translates to:
+  /// **'Sender'**
+  String get alarmStation;
+
+  /// No description provided for @alarmVolume.
+  ///
+  /// In de, this message translates to:
+  /// **'Lautstärke'**
+  String get alarmVolume;
+
+  /// No description provided for @alarmSnooze.
+  ///
+  /// In de, this message translates to:
+  /// **'Schlummern'**
+  String get alarmSnooze;
+
+  /// No description provided for @alarmSnoozeMinutes.
+  ///
+  /// In de, this message translates to:
+  /// **'{minutes, plural, =1{1 Minute} other{{minutes} Minuten}}'**
+  String alarmSnoozeMinutes(int minutes);
+
+  /// No description provided for @alarmNext.
+  ///
+  /// In de, this message translates to:
+  /// **'Nächster Wecker: {when}'**
+  String alarmNext(String when);
+
+  /// No description provided for @alarmNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Wecker gestellt.'**
+  String get alarmNone;
+
+  /// No description provided for @alarmNoteIos.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf iPhone und iPad weckt dich eine Mitteilung. Tippe darauf, um das Radio zu starten.'**
+  String get alarmNoteIos;
+
+  /// No description provided for @alarmNoteDesktop.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Wecker klingelt nur, solange LINEFM Radio läuft (auch im Tray).'**
+  String get alarmNoteDesktop;
+
+  /// No description provided for @alarmNoteWeb.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Wecker klingelt nur, solange dieser Tab geöffnet ist.'**
+  String get alarmNoteWeb;
+
+  /// No description provided for @alarmNoteAndroid.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Radio startet zur eingestellten Zeit, auch wenn die App geschlossen ist. Klappt der Stream nicht, klingelt ein Weckton.'**
+  String get alarmNoteAndroid;
+
+  /// No description provided for @alarmPermissionTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Wecker braucht eine Freigabe'**
+  String get alarmPermissionTitle;
+
+  /// No description provided for @alarmPermissionBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Damit der Wecker pünktlich klingelt, muss Android genaue Alarme erlauben. Das stellst du in den Systemeinstellungen ein.'**
+  String get alarmPermissionBody;
+
+  /// No description provided for @alarmOpenSettings.
+  ///
+  /// In de, this message translates to:
+  /// **'Einstellungen öffnen'**
+  String get alarmOpenSettings;
+
+  /// No description provided for @alarmRingingTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Guten Morgen'**
+  String get alarmRingingTitle;
+
+  /// No description provided for @alarmRingingBody.
+  ///
+  /// In de, this message translates to:
+  /// **'{station} läuft gleich los.'**
+  String alarmRingingBody(String station);
+
+  /// No description provided for @alarmDismiss.
+  ///
+  /// In de, this message translates to:
+  /// **'Ausschalten'**
+  String get alarmDismiss;
+
+  /// No description provided for @alarmSnoozeAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Schlummern'**
+  String get alarmSnoozeAction;
+
+  /// No description provided for @alarmNotificationTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'LINEFM Wecker'**
+  String get alarmNotificationTitle;
+
+  /// No description provided for @alarmNotificationBody.
+  ///
+  /// In de, this message translates to:
+  /// **'{station} startet jetzt.'**
+  String alarmNotificationBody(String station);
+
+  /// Wochentag kurz, 1 = Montag
+  ///
+  /// In de, this message translates to:
+  /// **'Mo'**
+  String get weekdayShort1;
+
+  /// Wochentag kurz, 1 = Montag
+  ///
+  /// In de, this message translates to:
+  /// **'Di'**
+  String get weekdayShort2;
+
+  /// Wochentag kurz, 1 = Montag
+  ///
+  /// In de, this message translates to:
+  /// **'Mi'**
+  String get weekdayShort3;
+
+  /// Wochentag kurz, 1 = Montag
+  ///
+  /// In de, this message translates to:
+  /// **'Do'**
+  String get weekdayShort4;
+
+  /// Wochentag kurz, 1 = Montag
+  ///
+  /// In de, this message translates to:
+  /// **'Fr'**
+  String get weekdayShort5;
+
+  /// Wochentag kurz, 1 = Montag
+  ///
+  /// In de, this message translates to:
+  /// **'Sa'**
+  String get weekdayShort6;
+
+  /// Wochentag kurz, 1 = Montag
+  ///
+  /// In de, this message translates to:
+  /// **'So'**
+  String get weekdayShort7;
+
+  /// No description provided for @offlineBanner.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Verbindung. LINEFM versucht es weiter.'**
+  String get offlineBanner;
+
+  /// No description provided for @genericError.
+  ///
+  /// In de, this message translates to:
+  /// **'Da ist etwas schiefgelaufen.'**
+  String get genericError;
+
+  /// No description provided for @actionRetry.
+  ///
+  /// In de, this message translates to:
+  /// **'Erneut versuchen'**
+  String get actionRetry;
+
+  /// No description provided for @loading.
+  ///
+  /// In de, this message translates to:
+  /// **'Wird geladen …'**
+  String get loading;
+
+  /// No description provided for @stationsOffline.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Titelinfos sind gerade nicht erreichbar.'**
+  String get stationsOffline;
+
+  /// No description provided for @castButton.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf Gerät übertragen'**
+  String get castButton;
+
+  /// No description provided for @castSearching.
+  ///
+  /// In de, this message translates to:
+  /// **'Suche nach Geräten …'**
+  String get castSearching;
+
+  /// No description provided for @castNoDevices.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Geräte gefunden.'**
+  String get castNoDevices;
+
+  /// No description provided for @castConnectedTo.
+  ///
+  /// In de, this message translates to:
+  /// **'Verbunden mit {device}'**
+  String castConnectedTo(String device);
+
+  /// No description provided for @castDisconnect.
+  ///
+  /// In de, this message translates to:
+  /// **'Übertragung beenden'**
+  String get castDisconnect;
+
+  /// No description provided for @airplayButton.
+  ///
+  /// In de, this message translates to:
+  /// **'AirPlay'**
+  String get airplayButton;
+
+  /// No description provided for @notificationChannelName.
+  ///
+  /// In de, this message translates to:
+  /// **'Wiedergabe'**
+  String get notificationChannelName;
+
+  /// Android-Auto-/CarPlay-Ordner
+  ///
+  /// In de, this message translates to:
+  /// **'Favoriten'**
+  String get browseFavorites;
+
+  /// No description provided for @widgetIdle.
+  ///
+  /// In de, this message translates to:
+  /// **'Zum Abspielen tippen'**
+  String get widgetIdle;
+
+  /// No description provided for @trayShowWindow.
+  ///
+  /// In de, this message translates to:
+  /// **'Fenster zeigen'**
+  String get trayShowWindow;
+
+  /// No description provided for @trayPlay.
+  ///
+  /// In de, this message translates to:
+  /// **'Abspielen'**
+  String get trayPlay;
+
+  /// No description provided for @trayStop.
+  ///
+  /// In de, this message translates to:
+  /// **'Stoppen'**
+  String get trayStop;
+
+  /// No description provided for @trayStations.
+  ///
+  /// In de, this message translates to:
+  /// **'Sender'**
+  String get trayStations;
+
+  /// No description provided for @trayMiniPlayer.
+  ///
+  /// In de, this message translates to:
+  /// **'Mini-Player'**
+  String get trayMiniPlayer;
+
+  /// No description provided for @trayQuit.
+  ///
+  /// In de, this message translates to:
+  /// **'Beenden'**
+  String get trayQuit;
 }
 
 class _AppLocalizationsDelegate

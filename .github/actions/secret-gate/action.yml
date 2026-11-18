@@ -2,7 +2,7 @@ name: Secret-Gate
 description: >
   Wertet vorab berechnete Verfuegbarkeits-Flags aus (Secrets lassen sich in
   Job-if-Ausdruecken nicht direkt pruefen). Der aufrufende Job uebergibt je Zeile
-  NAME=true|false, z. B. "ANDROID_KEYSTORE_BASE64=${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}".
+  NAME=true|false (Ausdruck "secrets.NAME != leer" im aufrufenden Workflow ausgewertet).
   Ergebnis: Output "ready" (alle vorhanden) und eine Zeile pro fehlendem Secret in
   der Job-Zusammenfassung. Werte werden nie ausgegeben, nur Namen.
 

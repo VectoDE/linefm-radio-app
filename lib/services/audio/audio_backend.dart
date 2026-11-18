@@ -10,9 +10,8 @@ import 'package:linefm_radio/services/audio/playback_service.dart';
 /// Kanal-ID der Android-Wiedergabe-Benachrichtigung.
 const String audioNotificationChannelId = 'de.linefm.app.audio';
 
-/// Benachrichtigungs-Icon (Android-Ressource). Platzhalter bis P05 ein
-/// eigenes einfarbiges Statusleisten-Icon liefert (z. B. drawable/ic_stat_linefm).
-const String audioNotificationIcon = 'mipmap/ic_launcher';
+/// Einfarbiges Statusleisten-Icon (Android-Ressource aus P05).
+const String audioNotificationIcon = 'drawable/ic_stat_linefm';
 
 /// Haelt die Desktop-Medienbruecke (Windows-SMTC) am Leben.
 Object? _desktopMediaControls;

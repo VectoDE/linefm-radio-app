@@ -34,7 +34,7 @@ Wichtig: **Nach jeder Änderung der Telemetrie-Einstellungen neu bauen und die g
 |---|---|---|
 | `/`, `/index.html`, `/flutter_bootstrap.js`, `/sw.js`, `/manifest.webmanifest`, `/version.json`, `/asset-manifest.txt`, `/impressum/`, `/datenschutz/` | `no-cache` | Immer beim Server nachfragen. Mit ETag ist die Antwort meist ein billiges 304. |
 | `/main.<hash>.dart.js|mjs|wasm`, `/canvaskit/<revision>/**` | `public, max-age=31536000, immutable` | Der Hash steht im Dateinamen. Neue Version heißt neuer Name. |
-| `/assets/**`, `/icons/**`, `/favicon.png`, `/og.png` | `public, max-age=86400, stale-while-revalidate=604800` | Nicht gehasht, ändert sich selten. |
+| `/assets/**`, `/icons/**`, `/favicon.png` | `public, max-age=86400, stale-while-revalidate=604800` | Nicht gehasht, ändert sich selten. |
 | `/robots.txt`, `/sitemap.xml`, `/llms.txt` | `public, max-age=3600` | Crawler sollen Änderungen innerhalb einer Stunde sehen. |
 
 ETag setzen nginx (`etag on`), Apache (`FileETag MTime Size`) und Cloudflare Pages selbst. Komprimiert werden `html`, `js`, `mjs`, `wasm`, `json`, `css`, `svg`, `txt`, `xml` und das Manifest. Wichtig sind die MIME-Typen `application/wasm` für `.wasm` und ein JavaScript-Typ für `.mjs`. Die mitgelieferten Konfigurationen setzen beides.
@@ -60,7 +60,7 @@ Die CSP erlaubt nur die eigene Herkunft, dazu gezielt:
 
 - Skripte: `'self'` und `'wasm-unsafe-eval'` (nötig, damit der Browser das Wasm-Modul kompiliert). Kein `unsafe-inline`, kein `unsafe-eval`.
 - Stile: `'self'` und `'unsafe-inline'`, weil Flutter-Web Inline-Stile setzt.
-- Bilder und Abrufe: `api.laut.fm` (auch `wss:`), `itunes.apple.com`, `*.mzstatic.com` (Cover), `cdn.linefm.de` (Senderlogos), `assets.laut.fm`.
+- Bilder und Abrufe: `api.laut.fm` (auch `wss:`), `itunes.apple.com`, `*.mzstatic.com` (Cover), `cdn.linefm.de` (Senderlogos), `assets.laut.fm`, `radiogruppe.de` (RadioGruppe-Logo).
 - Audio: `*.laut.fm` (Streams laufen über `<sender>.stream.laut.fm`).
 - Zusätzlich je nach Konfiguration die Telemetrie-Domains.
 

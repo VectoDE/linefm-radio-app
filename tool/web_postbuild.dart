@@ -117,13 +117,19 @@ String sha256Hex(List<int> data) {
 String deriveCspConnectExtra(Map<String, dynamic> config) {
   final sources = <String>[];
   void add(String? s) {
-    if (s != null && s.isNotEmpty && !sources.contains(s)) sources.add(s);
+    if (s != null && s.isNotEmpty && !sources.contains(s)) {
+      sources.add(s);
+    }
   }
 
   String? origin(Object? value) {
-    if (value is! String || value.trim().isEmpty) return null;
+    if (value is! String || value.trim().isEmpty) {
+      return null;
+    }
     final uri = Uri.tryParse(value.trim());
-    if (uri == null || !uri.hasScheme || uri.host.isEmpty) return null;
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      return null;
+    }
     return '${uri.scheme}://${uri.host}${uri.hasPort ? ':${uri.port}' : ''}';
   }
 
@@ -144,12 +150,15 @@ String deriveCspConnectExtra(Map<String, dynamic> config) {
 /// Ersetzt `__CSP_CONNECT_EXTRA__` (inklusive des vorangehenden Leerzeichens).
 String renderCspPlaceholder(String text, String extra) {
   final replacement = extra.trim().isEmpty ? '' : ' ${extra.trim()}';
-  return text.replaceAll(' $cspPlaceholder', replacement).replaceAll(cspPlaceholder, extra.trim());
+  return text
+      .replaceAll(' $cspPlaceholder', replacement)
+      .replaceAll(cspPlaceholder, extra.trim());
 }
 
 /// Setzt das Search-Console-Token ein oder entfernt das Meta-Tag, wenn leer.
 String renderGscVerification(String html, String token) {
-  const tag = '<meta name="google-site-verification" content="__GSC_VERIFICATION__">';
+  const tag =
+      '<meta name="google-site-verification" content="__GSC_VERIFICATION__">';
   if (token.trim().isEmpty) {
     return html.replaceAll(RegExp('[ \\t]*${RegExp.escape(tag)}\\r?\\n?'), '');
   }
@@ -165,39 +174,63 @@ String rewriteBootstrap(
   required Map<String, String> renamedMain,
   required String engineRevision,
 }) {
-  final pattern = RegExp(r'^_flutter\.buildConfig = (\{.*\});$', multiLine: true);
+  final pattern = RegExp(
+    r'^_flutter\.buildConfig = (\{.*\});$',
+    multiLine: true,
+  );
   final match = pattern.firstMatch(bootstrap);
   if (match == null) {
-    throw PostbuildException('_flutter.buildConfig in flutter_bootstrap.js nicht gefunden');
+    throw PostbuildException(
+      '_flutter.buildConfig in flutter_bootstrap.js nicht gefunden',
+    );
   }
   final cfg = jsonDecode(match.group(1)!) as Map<String, dynamic>;
   final builds = (cfg['builds'] as List<dynamic>).cast<Map<String, dynamic>>();
   for (final b in builds) {
-    for (final key in <String>['mainJsPath', 'mainWasmPath', 'jsSupportRuntimePath']) {
+    for (final key in <String>[
+      'mainJsPath',
+      'mainWasmPath',
+      'jsSupportRuntimePath',
+    ]) {
       final old = b[key];
-      if (old is String && renamedMain.containsKey(old)) b[key] = renamedMain[old];
+      if (old is String && renamedMain.containsKey(old)) {
+        b[key] = renamedMain[old];
+      }
     }
   }
   final hashes = cfg['wasmHashes'];
   if (hashes is Map<String, dynamic>) {
     for (final e in renamedMain.entries) {
-      if (hashes.containsKey(e.key)) hashes[e.value] = hashes.remove(e.key);
+      if (hashes.containsKey(e.key)) {
+        hashes[e.value] = hashes.remove(e.key);
+      }
     }
   }
-  var out = bootstrap.replaceRange(match.start, match.end, '_flutter.buildConfig = ${jsonEncode(cfg)};');
+  var out = bootstrap.replaceRange(
+    match.start,
+    match.end,
+    '_flutter.buildConfig = ${jsonEncode(cfg)};',
+  );
   if (!out.contains(canvasKitMarker)) {
     throw PostbuildException(
       'Marke $canvasKitMarker fehlt: web/flutter_bootstrap.js muss das eigene Template sein',
     );
   }
-  out = out.replaceFirst(canvasKitMarker, "config.canvasKitBaseUrl = 'canvaskit/$engineRevision/';");
+  out = out.replaceFirst(
+    canvasKitMarker,
+    "config.canvasKitBaseUrl = 'canvaskit/$engineRevision/';",
+  );
   return out;
 }
 
 /// Ersetzt die Standard-Domain durch eine andere Basis-URL (nur Textdateien).
 String rewriteBaseUrl(String text, String baseUrl) {
-  final clean = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
-  return clean == defaultBaseUrl ? text : text.replaceAll(defaultBaseUrl, clean);
+  final clean = baseUrl.endsWith('/')
+      ? baseUrl.substring(0, baseUrl.length - 1)
+      : baseUrl;
+  return clean == defaultBaseUrl
+      ? text
+      : text.replaceAll(defaultBaseUrl, clean);
 }
 
 // ---------------------------------------------------------------------------
@@ -232,14 +265,27 @@ String _rel(Directory root, FileSystemEntity e) {
   return p.substring(rootPath.length).replaceFirst(RegExp('^/'), '');
 }
 
-List<File> _filesIn(Directory dir) => dir.listSync(recursive: true).whereType<File>().toList()
-  ..sort((a, b) => a.path.compareTo(b.path));
+List<File> _filesIn(Directory dir) =>
+    dir.listSync(recursive: true).whereType<File>().toList()
+      ..sort((a, b) => a.path.compareTo(b.path));
 
-const Set<String> _textExt = <String>{'html', 'txt', 'xml', 'js', 'json', 'webmanifest', 'conf', 'yml', 'yaml'};
+const Set<String> _textExt = <String>{
+  'html',
+  'txt',
+  'xml',
+  'js',
+  'json',
+  'webmanifest',
+  'conf',
+  'yml',
+  'yaml',
+};
 
 bool _isText(String path) {
   final name = path.split('/').last;
-  if (name == '_headers' || name == '_redirects' || name == '.htaccess') return true;
+  if (name == '_headers' || name == '_redirects' || name == '.htaccess') {
+    return true;
+  }
   final dot = name.lastIndexOf('.');
   return dot >= 0 && _textExt.contains(name.substring(dot + 1));
 }
@@ -247,27 +293,40 @@ bool _isText(String path) {
 /// Fuehrt alle Schritte aus; liefert die geschriebenen Hosting-Dateien (relativ).
 List<String> runPostbuild(PostbuildOptions o) {
   final web = o.webDir;
-  if (!web.existsSync()) throw PostbuildException('${web.path} existiert nicht (zuerst flutter build web)');
+  if (!web.existsSync()) {
+    throw PostbuildException(
+      '${web.path} existiert nicht (zuerst flutter build web)',
+    );
+  }
   final bootstrapFile = File('${web.path}/flutter_bootstrap.js');
-  if (!bootstrapFile.existsSync()) throw PostbuildException('flutter_bootstrap.js fehlt');
+  if (!bootstrapFile.existsSync()) {
+    throw PostbuildException('flutter_bootstrap.js fehlt');
+  }
 
   // 1. main.dart.* umbenennen
   final renamed = <String, String>{};
   for (final ext in <String>['js', 'wasm', 'mjs']) {
     final f = File('${web.path}/main.dart.$ext');
-    if (!f.existsSync()) continue;
+    if (!f.existsSync()) {
+      continue;
+    }
     final hash = sha256Hex(f.readAsBytesSync()).substring(0, 8);
     final name = 'main.$hash.dart.$ext';
     f.renameSync('${web.path}/$name');
     renamed['main.dart.$ext'] = name;
   }
   if (renamed.isEmpty) {
-    throw PostbuildException('keine main.dart.* gefunden (Postbuild schon gelaufen?)');
+    throw PostbuildException(
+      'keine main.dart.* gefunden (Postbuild schon gelaufen?)',
+    );
   }
 
   final bootstrap = bootstrapFile.readAsStringSync();
-  final revMatch = RegExp(r'"engineRevision":"([0-9a-f]{40})"').firstMatch(bootstrap);
-  if (revMatch == null) throw PostbuildException('engineRevision nicht gefunden');
+  final revMatch = RegExp(r'"engineRevision":"([0-9a-f]{40})"')
+      .firstMatch(bootstrap);
+  if (revMatch == null) {
+    throw PostbuildException('engineRevision nicht gefunden');
+  }
   final revision = revMatch.group(1)!;
   bootstrapFile.writeAsStringSync(
     rewriteBootstrap(bootstrap, renamedMain: renamed, engineRevision: revision),
@@ -277,22 +336,33 @@ List<String> runPostbuild(PostbuildOptions o) {
   final canvasKit = Directory('${web.path}/canvaskit');
   if (canvasKit.existsSync()) {
     final tmp = Directory('${web.path}/.canvaskit_tmp');
-    if (tmp.existsSync()) tmp.deleteSync(recursive: true);
+    if (tmp.existsSync()) {
+      tmp.deleteSync(recursive: true);
+    }
     canvasKit.renameSync(tmp.path);
     Directory('${web.path}/canvaskit').createSync();
     tmp.renameSync('${web.path}/canvaskit/$revision');
   }
 
   // 3. Platzhalter
-  final baseUrl = o.baseUrl ?? (o.config['WEB_BASE_URL'] as String?) ?? defaultBaseUrl;
+  final baseUrl =
+      o.baseUrl ?? (o.config['WEB_BASE_URL'] as String?) ?? defaultBaseUrl;
   final gsc = o.gsc ?? (o.config['GSC_VERIFICATION'] as String?) ?? '';
   for (final name in <String>[
-    'index.html', 'sitemap.xml', 'robots.txt', 'llms.txt', 'manifest.webmanifest',
+    'index.html',
+    'sitemap.xml',
+    'robots.txt',
+    'llms.txt',
+    'manifest.webmanifest',
   ]) {
     final f = File('${web.path}/$name');
-    if (!f.existsSync()) continue;
+    if (!f.existsSync()) {
+      continue;
+    }
     var text = rewriteBaseUrl(f.readAsStringSync(), baseUrl);
-    if (name == 'index.html') text = renderGscVerification(text, gsc);
+    if (name == 'index.html') {
+      text = renderGscVerification(text, gsc);
+    }
     f.writeAsStringSync(text);
   }
 
@@ -306,7 +376,8 @@ List<String> runPostbuild(PostbuildOptions o) {
       for (final n in <String>['_headers', '_redirects']) {
         final src = File('${deploy.path}/cloudflare/$n');
         if (src.existsSync()) {
-          File('${web.path}/$n').writeAsStringSync(renderHosting(src.readAsStringSync()));
+          File('${web.path}/$n')
+              .writeAsStringSync(renderHosting(src.readAsStringSync()));
           written.add(n);
         }
       }
@@ -314,15 +385,20 @@ List<String> runPostbuild(PostbuildOptions o) {
     if (o.targets.contains('plesk')) {
       final src = File('${deploy.path}/plesk/.htaccess');
       if (src.existsSync()) {
-        File('${web.path}/.htaccess').writeAsStringSync(renderHosting(src.readAsStringSync()));
+        File('${web.path}/.htaccess')
+            .writeAsStringSync(renderHosting(src.readAsStringSync()));
         written.add('.htaccess');
       }
     }
     final out = Directory(o.hostingOut);
-    if (out.existsSync()) out.deleteSync(recursive: true);
+    if (out.existsSync()) {
+      out.deleteSync(recursive: true);
+    }
     for (final target in <String>['nginx', 'traefik', 'plesk', 'cloudflare']) {
       final dir = Directory('${deploy.path}/$target');
-      if (!dir.existsSync()) continue;
+      if (!dir.existsSync()) {
+        continue;
+      }
       for (final f in _filesIn(dir)) {
         final rel = _rel(deploy, f);
         final dst = File('${out.path}/$rel')..createSync(recursive: true);
@@ -340,12 +416,16 @@ List<String> runPostbuild(PostbuildOptions o) {
   final entries = <String, (String, int)>{};
   for (final f in _filesIn(web)) {
     final rel = _rel(web, f);
-    if (rel == 'asset-manifest.txt' || rel == 'sw.js') continue;
+    if (rel == 'asset-manifest.txt' || rel == 'sw.js') {
+      continue;
+    }
     final bytes = f.readAsBytesSync();
     entries[rel] = (sha256Hex(bytes), bytes.length);
   }
   final buildId = sha256Hex(
-    utf8.encode(entries.entries.map((e) => '${e.key}:${e.value.$1}').join('\n')),
+    utf8.encode(
+      entries.entries.map((e) => '${e.key}:${e.value.$1}').join('\n'),
+    ),
   ).substring(0, 12);
   final sw = File('${web.path}/sw.js');
   if (sw.existsSync()) {
@@ -366,8 +446,12 @@ Map<String, dynamic> _readConfig(String? path) {
   final candidates = <String>[?path, if (path == null) 'config/app.json'];
   for (final c in candidates) {
     final f = File(c);
-    if (f.existsSync()) return jsonDecode(f.readAsStringSync()) as Map<String, dynamic>;
-    if (path != null) throw PostbuildException('Konfiguration $path nicht gefunden');
+    if (f.existsSync()) {
+      return jsonDecode(f.readAsStringSync()) as Map<String, dynamic>;
+    }
+    if (path != null) {
+      throw PostbuildException('Konfiguration $path nicht gefunden');
+    }
   }
   return <String, dynamic>{};
 }
@@ -376,10 +460,19 @@ void main(List<String> args) => exitCode = runCli(args);
 
 /// Kommandozeilen-Einstieg; liefert den Exit-Code.
 int runCli(List<String> args) {
-  String? webPath, configPath, extra, deployDir, hostingOut, baseUrl, gsc, targets;
+  String? webPath,
+      configPath,
+      extra,
+      deployDir,
+      hostingOut,
+      baseUrl,
+      gsc,
+      targets;
   for (var i = 0; i < args.length; i++) {
     String next() {
-      if (i + 1 >= args.length) throw PostbuildException('Wert fuer ${args[i]} fehlt');
+      if (i + 1 >= args.length) {
+        throw PostbuildException('Wert fuer ${args[i]} fehlt');
+      }
       return args[++i];
     }
 
@@ -406,23 +499,33 @@ int runCli(List<String> args) {
     }
   }
   if (webPath == null) {
-    stderr.writeln('Aufruf: dart run tool/web_postbuild.dart build/web [Optionen]');
+    stderr.writeln(
+      'Aufruf: dart run tool/web_postbuild.dart build/web [Optionen]',
+    );
     return 64;
   }
   try {
-    final written = runPostbuild(PostbuildOptions(
-      webDir: Directory(webPath),
-      config: _readConfig(configPath),
-      cspConnectExtra: extra ?? Platform.environment['CSP_CONNECT_EXTRA'],
-      targets: targets == null
-          ? const <String>{'cloudflare', 'plesk'}
-          : targets.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty && s != 'none').toSet(),
-      deployDir: deployDir ?? 'deploy',
-      hostingOut: hostingOut ?? 'build/hosting',
-      baseUrl: baseUrl,
-      gsc: gsc,
-    ));
-    stdout.writeln('web_postbuild: fertig (${written.length} Hosting-Dateien geschrieben)');
+    final written = runPostbuild(
+      PostbuildOptions(
+        webDir: Directory(webPath),
+        config: _readConfig(configPath),
+        cspConnectExtra: extra ?? Platform.environment['CSP_CONNECT_EXTRA'],
+        targets: targets == null
+            ? const <String>{'cloudflare', 'plesk'}
+            : targets
+                  .split(',')
+                  .map((s) => s.trim())
+                  .where((s) => s.isNotEmpty && s != 'none')
+                  .toSet(),
+        deployDir: deployDir ?? 'deploy',
+        hostingOut: hostingOut ?? 'build/hosting',
+        baseUrl: baseUrl,
+        gsc: gsc,
+      ),
+    );
+    stdout.writeln(
+      'web_postbuild: fertig (${written.length} Hosting-Dateien geschrieben)',
+    );
     return 0;
   } on PostbuildException catch (e) {
     stderr.writeln(e);

@@ -2,7 +2,7 @@
 # Mehrere passende Regeln werden zusammengefuehrt; Cache-Control steht darum nur in den Pfadregeln,
 # die Security-Header nur in /*. __CSP_CONNECT_EXTRA__ ersetzt tool/web_postbuild.dart.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cdn.linefm.de https://*.mzstatic.com https://assets.laut.fm; connect-src 'self' https://api.laut.fm wss://api.laut.fm https://itunes.apple.com https://*.mzstatic.com https://cdn.linefm.de https://assets.laut.fm __CSP_CONNECT_EXTRA__; media-src https://*.laut.fm blob:; font-src 'self'; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cdn.linefm.de https://*.mzstatic.com https://assets.laut.fm https://radiogruppe.de; connect-src 'self' https://api.laut.fm wss://api.laut.fm https://itunes.apple.com https://*.mzstatic.com https://cdn.linefm.de https://assets.laut.fm https://radiogruppe.de __CSP_CONNECT_EXTRA__; media-src https://*.laut.fm blob:; font-src 'self'; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
@@ -53,8 +53,6 @@
 /favicon.png
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
-/og.png
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
 /robots.txt
   Cache-Control: public, max-age=3600

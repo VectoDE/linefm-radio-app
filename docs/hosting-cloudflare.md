@@ -7,7 +7,7 @@
 Der Postbuild legt `_headers` und `_redirects` in `build/web` (aus `deploy/cloudflare/`). Pages liest sie beim Deploy und liefert sie nicht aus. `deploy/cloudflare/wrangler.toml` enthält Projektname und Ausgabeordner.
 
 - `_headers`: Security-Header für alle Pfade (`/*`), Cache-Control je Pfadgruppe nach der Cache-Strategie. Cache-Control steht absichtlich nur in den Pfadregeln, weil Pages die Header mehrerer passender Regeln zusammenführt.
-- `_redirects`: `/* /index.html 200` für das SPA-Routing. Vorhandene Dateien liefert Pages zuerst, auch `/impressum/` und `/datenschutz/`.
+- `_redirects`: enthält absichtlich keine Regeln. Ohne `404.html` schaltet Pages automatisch in den SPA-Modus und liefert für unbekannte Pfade `index.html`. Die Regel `/* /index.html 200` würde Pages als Endlosschleife ablehnen. Vorhandene Dateien, auch `/impressum/` und `/datenschutz/`, gehen vor.
 - ETags setzt Pages selbst.
 
 ## Einmalige Einrichtung (Betreiber)
@@ -34,7 +34,7 @@ curl -sI http://localhost:8788/ | grep -iE 'content-security|cache-control'
 
 ## Grenzen
 
-- Fehlende Pfade unter `/impressum/` und `/datenschutz/` liefern über `/* /index.html 200` die App statt eines 404. Pages kann einzelne Pfade nicht per `_redirects` auf 404 setzen. Das betrifft nur falsch eingetippte Adressen.
+- Fehlende Pfade unter `/impressum/` und `/datenschutz/` liefern im SPA-Modus die App statt eines 404. Pages kann einzelne Pfade nicht auf 404 setzen, solange der SPA-Modus aktiv ist. Das betrifft nur falsch eingetippte Adressen.
 - Ebenso liefert eine fehlende Datei mit Endung die App. Browser-Folgen gibt es nicht, weil die App ihre Dateien nur über die gehashten Namen lädt.
 - `_headers` erlaubt höchstens 100 Regeln mit je 2000 Zeichen. Die CSP liegt deutlich darunter. Kommen viele Telemetrie-Domains dazu, Länge prüfen.
 - Pages entscheidet über Kompression selbst (Brotli/gzip). Einstellen lässt sich das nicht.

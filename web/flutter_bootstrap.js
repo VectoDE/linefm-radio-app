@@ -6,7 +6,8 @@
 // Dateinamen in _flutter.buildConfig, verschiebt canvaskit/ nach
 // canvaskit/<engineRevision>/ und ersetzt die Marke in der naechsten Zeile.
 (function () {
-  var config = {};
+  // COEP bleibt bewusst aus (Fremdbilder), Skwasm laeuft einthreadig; Warnung daher stumm.
+  var config = { suppressMultithreadingWarning: true };
   /*__CANVASKIT_BASE_URL__*/
 
   function showApp() {
@@ -24,7 +25,7 @@
   });
 
   // Minimaler Service Worker nur fuer Installierbarkeit und Offline-Huelle.
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  if ('serviceWorker' in navigator && window.isSecureContext) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function () { /* ohne SW weiterlaufen */ });
     });

@@ -91,6 +91,7 @@ jobs:
       build_name: ${{ steps.version.outputs.build_name }}
       build_number: ${{ steps.version.outputs.build_number }}
       app_env: ${{ steps.version.outputs.app_env }}
+      legal_strict: ${{ steps.version.outputs.legal_strict }}
       sign_android: ${{ steps.android.outputs.ready == 'true' && steps.version.outputs.may_sign == 'true' }}
       sign_windows: ${{ steps.windows.outputs.ready == 'true' && steps.version.outputs.may_sign == 'true' }}
       sign_macos: ${{ steps.macos.outputs.ready == 'true' && steps.version.outputs.may_sign == 'true' }}
@@ -150,7 +151,13 @@ jobs:
           may_sign=false
           if [ "$EVENT_NAME" != "pull_request" ]; then may_sign=true; fi
 
+          # Endgueltige Releases (Tag ohne Suffix) brauchen vollstaendige Rechtstexte;
+          # Vorabversionen und Dev-Builds melden offene Platzhalter nur.
+          legal_strict=false
+          if [ "$app_env" = "prod" ] && [[ "$label" != *-* ]]; then legal_strict=true; fi
+
           {
+            echo "legal_strict=$legal_strict"
             echo "run=$run"
             echo "apple=$apple"
             echo "label=$label"
@@ -164,6 +171,7 @@ jobs:
             echo "- build-name: \`$build_name\`, build-number: \`$build_number\`, APP_ENV: \`$app_env\`"
             echo "- macOS/iOS: $apple"
             echo "- Signieren erlaubt (kein PR): $may_sign"
+            echo "- Rechtstexte strikt (Pflicht-Platzhalter muessen gefuellt sein): $legal_strict"
             echo ""
             echo "#### Signatur-Gates"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -239,6 +247,9 @@ jobs:
         uses: ./.github/actions/write-config
         with:
           app-env: ${{ needs.meta.outputs.app_env }}
+          app-version: ${{ needs.meta.outputs.label }}
+          legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
+          legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
@@ -331,6 +342,9 @@ jobs:
         uses: ./.github/actions/write-config
         with:
           app-env: ${{ needs.meta.outputs.app_env }}
+          app-version: ${{ needs.meta.outputs.label }}
+          legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
+          legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
@@ -402,6 +416,9 @@ jobs:
         uses: ./.github/actions/write-config
         with:
           app-env: ${{ needs.meta.outputs.app_env }}
+          app-version: ${{ needs.meta.outputs.label }}
+          legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
+          legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
@@ -470,6 +487,9 @@ jobs:
         uses: ./.github/actions/write-config
         with:
           app-env: ${{ needs.meta.outputs.app_env }}
+          app-version: ${{ needs.meta.outputs.label }}
+          legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
+          legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
@@ -633,6 +653,9 @@ jobs:
         uses: ./.github/actions/write-config
         with:
           app-env: ${{ needs.meta.outputs.app_env }}
+          app-version: ${{ needs.meta.outputs.label }}
+          legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
+          legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
@@ -758,6 +781,9 @@ jobs:
         uses: ./.github/actions/write-config
         with:
           app-env: ${{ needs.meta.outputs.app_env }}
+          app-version: ${{ needs.meta.outputs.label }}
+          legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
+          legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
 
       - name: iOS bauen (no-codesign)

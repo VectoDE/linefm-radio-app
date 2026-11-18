@@ -4,12 +4,19 @@ description: >
   Werte, die als Eingabe (aus Repository-Variablen/-Secrets) gesetzt sind.
   Leere Eingaben lassen den Standard aus der Beispieldatei stehen. Alle Werte
   landen im Binary und sind oeffentlich lesbar: nur oeffentliche IDs uebergeben.
+  Danach optional: Firebase aktivieren (tool/enable_firebase.dart, nur mit
+  Firebase-Konfiguration) und Rechtstexte erzeugen/fuellen (tool/gen_legal_html.dart).
+  Setzt voraus, dass Flutter bereits eingerichtet ist.
 
 inputs:
   app-env:
     description: dev oder prod
     required: false
     default: prod
+  app-version:
+    description: Anzeige-Version (APP_VERSION), z. B. 1.2.3-rc.1
+    required: false
+    default: ""
   web-base-url:
     required: false
     default: ""
@@ -36,18 +43,36 @@ inputs:
     default: ""
   firebase-config-json:
     description: >
-      Optionales JSON-Objekt mit FIREBASE_*-Schluesseln (z. B. aus dem Secret
-      FIREBASE_CONFIG_JSON). Ist es gesetzt, wird FIREBASE_ENABLED=true.
+      Optionales JSON-Objekt mit FIREBASE_*-Schluesseln (aus dem Secret
+      FIREBASE_CONFIG_JSON). Ist es gesetzt, wird FIREBASE_ENABLED=true und das
+      Firebase-Paket per tool/enable_firebase.dart eingebunden.
     required: false
     default: ""
+  legal-values-json:
+    description: >
+      JSON-Objekt Platzhalter -> Wert fuer Impressum/Datenschutz (z. B. BETREIBER_NAME),
+      aus der Repository-Variable LEGAL_VALUES_JSON. Leer = Platzhalter bleiben offen.
+    required: false
+    default: ""
+  legal-strict:
+    description: "'true' laesst den Build scheitern, solange Pflicht-Platzhalter offen sind."
+    required: false
+    default: "false"
+
+outputs:
+  providers:
+    description: Aktive Telemetrie-Anbieter (kommagetrennt)
+    value: ${{ steps.cfg.outputs.providers }}
 
 runs:
   using: composite
   steps:
     - name: config/app.json schreiben
+      id: cfg
       shell: pwsh
       env:
         CFG_APP_ENV: ${{ inputs.app-env }}
+        CFG_APP_VERSION: ${{ inputs.app-version }}
         CFG_WEB_BASE_URL: ${{ inputs.web-base-url }}
         CFG_UMAMI_URL: ${{ inputs.umami-url }}
         CFG_UMAMI_WEBSITE_ID: ${{ inputs.umami-website-id }}
@@ -62,6 +87,7 @@ runs:
         $cfg = Get-Content -Raw -Path 'config/app.example.json' | ConvertFrom-Json -AsHashtable
         $map = [ordered]@{
           'APP_ENV'              = $env:CFG_APP_ENV
+          'APP_VERSION'          = $env:CFG_APP_VERSION
           'WEB_BASE_URL'         = $env:CFG_WEB_BASE_URL
           'UMAMI_URL'            = $env:CFG_UMAMI_URL
           'UMAMI_WEBSITE_ID'     = $env:CFG_UMAMI_WEBSITE_ID
@@ -88,7 +114,57 @@ runs:
         }
         New-Item -ItemType Directory -Force -Path 'config' | Out-Null
         $cfg | ConvertTo-Json -Depth 5 | Set-Content -Path 'config/app.json' -Encoding utf8NoBOM
+
+        # Aktive Telemetrie-Anbieter fuer die Rechtstexte ableiten.
+        $providers = @()
+        if ($cfg['UMAMI_URL'] -and $cfg['UMAMI_WEBSITE_ID']) { $providers += 'umami' }
+        if ($cfg['SENTRY_DSN']) { $providers += 'sentry' }
+        if ($cfg['FIREBASE_ENABLED'] -eq $true) { $providers += 'firebase' }
+        "providers=$($providers -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+        "firebase=$(if ($cfg['FIREBASE_ENABLED'] -eq $true) { 'true' } else { 'false' })" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
         # Nur Schluesselnamen protokollieren, nie Werte.
         $list = if ($set.Count -gt 0) { ($set | Sort-Object -Unique) -join ', ' } else { 'keine (nur Standardwerte)' }
-        "config/app.json geschrieben. Gesetzte Schluessel: $list"
-        "**Build-Konfiguration:** gesetzte Schluessel: $list" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+        $prov = if ($providers.Count -gt 0) { $providers -join ', ' } else { 'keine' }
+        "config/app.json geschrieben. Gesetzte Schluessel: $list. Telemetrie: $prov"
+        "- Build-Konfiguration: gesetzte Schluessel: $list; Telemetrie-Anbieter: $prov" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+    - name: Firebase einbinden
+      if: steps.cfg.outputs.firebase == 'true' && hashFiles('tool/enable_firebase.dart') != ''
+      shell: bash
+      # Skript ausserhalb des Pakets starten (nur dart:-Importe): sonst baut "dart run"
+      # erst alle Native-Asset-Hooks des Projekts (GTK usw. auf dem Host noetig).
+      run: |
+        cp tool/enable_firebase.dart "$RUNNER_TEMP/enable_firebase.dart"
+        dart run "$RUNNER_TEMP/enable_firebase.dart"
+
+    - name: Rechtstexte erzeugen
+      if: hashFiles('tool/gen_legal_html.dart') != ''
+      shell: bash
+      env:
+        PROVIDERS: ${{ steps.cfg.outputs.providers }}
+        LEGAL_VALUES_JSON: ${{ inputs.legal-values-json }}
+        LEGAL_STRICT: ${{ inputs.legal-strict }}
+        BASE_URL: ${{ inputs.web-base-url }}
+      run: |
+        set -euo pipefail
+        args=("--providers=$PROVIDERS" "--fill-assets")
+        if [ -n "${LEGAL_VALUES_JSON// /}" ]; then
+          values="$RUNNER_TEMP/legal_values.json"
+          printf '%s' "$LEGAL_VALUES_JSON" > "$values"
+          args+=("--values=$values")
+        fi
+        if [ -n "$BASE_URL" ]; then args+=("--base-url=$BASE_URL"); fi
+        if [ "$LEGAL_STRICT" = "true" ]; then args+=("--strict"); fi
+        set +e
+        # Ausserhalb des Pakets starten (siehe Firebase-Schritt), Arbeitsverzeichnis bleibt das Repo.
+        cp tool/gen_legal_html.dart "$RUNNER_TEMP/gen_legal_html.dart"
+        dart run "$RUNNER_TEMP/gen_legal_html.dart" "${args[@]}" 2>&1 | tee "$RUNNER_TEMP/legal.log"
+        status=${PIPESTATUS[0]}
+        set -e
+        if grep -q "Offene Platzhalter" "$RUNNER_TEMP/legal.log"; then
+          echo "- Rechtstexte: $(grep 'Offene Platzhalter' "$RUNNER_TEMP/legal.log") (Variable LEGAL_VALUES_JSON)" >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo "- Rechtstexte: alle Platzhalter gefuellt" >> "$GITHUB_STEP_SUMMARY"
+        fi
+        exit "$status"

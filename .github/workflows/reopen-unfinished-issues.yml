@@ -1,0 +1,92 @@
+name: Unfertige Issues wieder oeffnen
+
+# Hausregel F470: Ein Issue wird erst geschlossen, wenn alle Aufgaben (Checkboxen) und
+# Sub-Issues erledigt sind. Wird es mit offenen "- [ ]"-Aufgaben oder offenen Sub-Issues
+# geschlossen, oeffnet dieser Workflow es sofort wieder und begruendet das im Kommentar.
+# Checkboxen in Code-Bloecken (``` bzw. ~~~) zaehlen nicht.
+
+on:
+  issues:
+    types: [closed]
+
+permissions: {}
+
+concurrency:
+  group: reopen-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  reopen:
+    name: Offene Aufgaben pruefen
+    if: ${{ !github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Pruefen und ggf. wieder oeffnen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          # Aktuellen Stand per API lesen (nicht aus dem Event, falls inzwischen bearbeitet).
+          issue_json="$(gh api "repos/$REPO/issues/$NUMBER")"
+          state="$(jq -r '.state' <<< "$issue_json")"
+          if [ "$state" != "closed" ]; then
+            echo "Issue #$NUMBER ist nicht mehr geschlossen, nichts zu tun."
+            exit 0
+          fi
+
+          # Offene Checkboxen ausserhalb von Code-Bloecken sammeln.
+          jq -r '.body // ""' <<< "$issue_json" | tr -d '\r' | awk '
+            /^[[:space:]]*(```|~~~)/ { fence = !fence; next }
+            fence { next }
+            /^[[:space:]]*([-*+]|[0-9]+[.)])[[:space:]]+\[ \][[:space:]]/ {
+              line = $0
+              sub(/^[[:space:]]*([-*+]|[0-9]+[.)])[[:space:]]+\[ \][[:space:]]*/, "", line)
+              if (length(line) > 160) line = substr(line, 1, 157) "..."
+              print line
+            }
+          ' > open_tasks.txt
+          open_tasks=$(grep -c . open_tasks.txt || true)
+
+          sub_total="$(jq -r '.sub_issues_summary.total // 0' <<< "$issue_json")"
+          sub_done="$(jq -r '.sub_issues_summary.completed // 0' <<< "$issue_json")"
+          open_subs=$(( sub_total - sub_done ))
+
+          echo "Offene Aufgaben: $open_tasks, offene Sub-Issues: $open_subs"
+          if [ "$open_tasks" -eq 0 ] && [ "$open_subs" -le 0 ]; then
+            echo "Alle Aufgaben erledigt, Issue bleibt geschlossen." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          {
+            echo "Automatisch wieder geöffnet: Dieses Issue wurde geschlossen, obwohl noch nicht alles erledigt ist."
+            echo ""
+            if [ "$open_tasks" -gt 0 ]; then
+              echo "**Offene Aufgaben ($open_tasks):**"
+              echo ""
+              head -n 25 open_tasks.txt | sed 's/^/- /'
+              if [ "$open_tasks" -gt 25 ]; then echo "- … und $((open_tasks - 25)) weitere"; fi
+              echo ""
+            fi
+            if [ "$open_subs" -gt 0 ]; then
+              echo "**Offene Sub-Issues:** $open_subs von $sub_total"
+              echo ""
+            fi
+            echo "Regel: Ein Issue wird erst geschlossen, wenn alle Aufgaben mit Beleg (Commit, PR, CI-Lauf, Messwert) abgehakt und alle Sub-Issues erledigt sind. Unerledigte Aufgaben werden nachgeholt, nicht gestrichen. Bitte erledigen, abhaken und danach erneut schließen."
+          } > comment.md
+
+          gh issue reopen "$NUMBER" --repo "$REPO" --comment "$(cat comment.md)"
+          {
+            echo "Issue #$NUMBER wieder geöffnet."
+            echo ""
+            cat comment.md
+          } >> "$GITHUB_STEP_SUMMARY"

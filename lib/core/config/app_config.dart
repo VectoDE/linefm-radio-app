@@ -3,6 +3,7 @@
 class AppConfig {
   const AppConfig({
     this.appEnv = 'dev',
+    this.appVersion = '1.0.0',
     this.webBaseUrl = 'https://app.linefm.de',
     this.umamiUrl = '',
     this.umamiWebsiteId = '',
@@ -18,6 +19,7 @@ class AppConfig {
   /// Liest die per --dart-define gesetzten Werte.
   factory AppConfig.fromEnvironment() => const AppConfig(
     appEnv: String.fromEnvironment('APP_ENV', defaultValue: 'dev'),
+    appVersion: String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0'),
     webBaseUrl: String.fromEnvironment(
       'WEB_BASE_URL',
       defaultValue: 'https://app.linefm.de',
@@ -34,6 +36,9 @@ class AppConfig {
   );
 
   final String appEnv;
+
+  /// Wird von Telemetrie (Release, User-Agent) genutzt; CI setzt APP_VERSION.
+  final String appVersion;
   final String webBaseUrl;
   final String umamiUrl;
   final String umamiWebsiteId;
@@ -55,6 +60,7 @@ class AppConfig {
 
   AppConfig copyWith({
     String? appEnv,
+    String? appVersion,
     String? webBaseUrl,
     String? umamiUrl,
     String? umamiWebsiteId,
@@ -67,6 +73,7 @@ class AppConfig {
     String? trustTrustpilotUrl,
   }) => AppConfig(
     appEnv: appEnv ?? this.appEnv,
+    appVersion: appVersion ?? this.appVersion,
     webBaseUrl: webBaseUrl ?? this.webBaseUrl,
     umamiUrl: umamiUrl ?? this.umamiUrl,
     umamiWebsiteId: umamiWebsiteId ?? this.umamiWebsiteId,

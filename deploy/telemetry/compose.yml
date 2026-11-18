@@ -1,0 +1,122 @@
+# Selbst gehostete Telemetrie fuer LINEFM Radio: Umami (Statistik) + GlitchTip
+# (Absturzberichte, Sentry-kompatibel). Anleitung: docs/telemetry.md
+#
+#   cp .env.example .env     # Werte setzen, siehe Kommentare dort
+#   docker compose up -d
+#
+# Sichere Defaults: Ports nur auf 127.0.0.1, keine Secrets in dieser Datei
+# (alles aus .env, fehlende Pflichtwerte brechen den Start ab), Datenbanken
+# ohne Port-Freigabe in einem internen Netz, Images per Digest gepinnt.
+# Updates: Digest bewusst anheben (Vorgehen in docs/telemetry.md).
+
+name: linefm-telemetry
+
+x-hardening: &hardening
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  # ---------------------------------------------------------------- Umami
+  umami:
+    <<: *hardening
+    # umami:postgresql-latest (v3), Stand 18.11.2026
+    image: ghcr.io/umami-software/umami:postgresql-latest@sha256:b64f40400d77bcadd39cf5c62a1e368c99524ca442024f96e1133355a19a5dbc
+    init: true
+    ports:
+      - "127.0.0.1:${UMAMI_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgresql://umami:${UMAMI_DB_PASSWORD:?UMAMI_DB_PASSWORD in .env setzen}@umami-db:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET:?UMAMI_APP_SECRET in .env setzen (openssl rand -hex 32)}
+      DISABLE_TELEMETRY: "1"
+    depends_on:
+      umami-db:
+        condition: service_healthy
+    networks: [default, umami-internal]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/api/heartbeat || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  umami-db:
+    <<: *hardening
+    # postgres:18-alpine, Stand 18.11.2026
+    image: postgres:18-alpine@sha256:b6972e1115a4ff8eba5d7f7d19184926d1e16d7d1136ae1e1a7ebf286da0f015
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${UMAMI_DB_PASSWORD:?UMAMI_DB_PASSWORD in .env setzen}
+    volumes:
+      - umami-db:/var/lib/postgresql
+    networks: [umami-internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umami -d umami"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------------------------------------- GlitchTip
+  glitchtip:
+    <<: *hardening
+    # glitchtip/glitchtip 7.x (all-in-one), Stand 18.11.2026
+    image: glitchtip/glitchtip:latest@sha256:c245745b4179667da3aebd73fb8d4f1fd918f7d68ba07d1fd73ea688933b6e01
+    ports:
+      - "127.0.0.1:${GLITCHTIP_PORT:-8000}:8000"
+    environment:
+      DATABASE_URL: postgres://glitchtip:${GLITCHTIP_DB_PASSWORD:?GLITCHTIP_DB_PASSWORD in .env setzen}@glitchtip-db:5432/glitchtip
+      VALKEY_URL: redis://glitchtip-valkey:6379/0
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY:?GLITCHTIP_SECRET_KEY in .env setzen (openssl rand -hex 32)}
+      GLITCHTIP_DOMAIN: ${GLITCHTIP_DOMAIN:-http://localhost:8000}
+      DEFAULT_FROM_EMAIL: ${GLITCHTIP_FROM_EMAIL:-glitchtip@localhost}
+      # consolemail:// schreibt Mails ins Log; fuer Produktion SMTP-URL setzen.
+      EMAIL_URL: ${GLITCHTIP_EMAIL_URL:-consolemail://}
+      # Nach dem Anlegen des ersten Kontos auf "false" stellen.
+      ENABLE_USER_REGISTRATION: ${GLITCHTIP_ENABLE_USER_REGISTRATION:-true}
+      ENABLE_ORGANIZATION_CREATION: ${GLITCHTIP_ENABLE_ORGANIZATION_CREATION:-true}
+    volumes:
+      - glitchtip-uploads:/code/uploads
+    depends_on:
+      glitchtip-db:
+        condition: service_healthy
+      glitchtip-valkey:
+        condition: service_started
+    networks: [default, glitchtip-internal]
+
+  glitchtip-db:
+    <<: *hardening
+    image: postgres:18-alpine@sha256:b6972e1115a4ff8eba5d7f7d19184926d1e16d7d1136ae1e1a7ebf286da0f015
+    # GlitchTip nutzt partitionierte Tabellen und braucht mehr Sperren.
+    command: ["postgres", "-c", "max_locks_per_transaction=512"]
+    environment:
+      POSTGRES_DB: glitchtip
+      POSTGRES_USER: glitchtip
+      POSTGRES_PASSWORD: ${GLITCHTIP_DB_PASSWORD:?GLITCHTIP_DB_PASSWORD in .env setzen}
+    volumes:
+      - glitchtip-db:/var/lib/postgresql
+    networks: [glitchtip-internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glitchtip -d glitchtip"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  glitchtip-valkey:
+    <<: *hardening
+    # valkey/valkey:9-alpine, Stand 18.11.2026
+    image: valkey/valkey:9-alpine@sha256:bf09d58e96d6b4524a15396b65b242bbe18beebbcc15a04d8ee75ddac62fae0b
+    networks: [glitchtip-internal]
+
+networks:
+  default: {}
+  # internal: kein Zugriff von aussen, nur Container untereinander
+  umami-internal:
+    internal: true
+  glitchtip-internal:
+    internal: true
+
+volumes:
+  umami-db:
+  glitchtip-db:
+  glitchtip-uploads:

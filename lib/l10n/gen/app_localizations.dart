@@ -185,8 +185,20 @@ abstract class AppLocalizations {
   /// No description provided for @creditsDevelopedBy.
   ///
   /// In de, this message translates to:
-  /// **'Entwickelt von Tim Hauke (VectoDE)'**
+  /// **'Entwickelt von Tim Hauke (VectoDE) für jaybelife'**
   String get creditsDevelopedBy;
+
+  /// No description provided for @creditsOwnership.
+  ///
+  /// In de, this message translates to:
+  /// **'LINEFM und die App gehören jaybelife.'**
+  String get creditsOwnership;
+
+  /// No description provided for @creditsDeveloperOpen.
+  ///
+  /// In de, this message translates to:
+  /// **'Tim Hauke auf GitHub öffnen'**
+  String get creditsDeveloperOpen;
 
   /// No description provided for @radioGruppeName.
   ///
@@ -914,6 +926,12 @@ abstract class AppLocalizations {
   /// **'Im Browser öffnen'**
   String get legalOpenInBrowser;
 
+  /// No description provided for @legalUpdated.
+  ///
+  /// In de, this message translates to:
+  /// **'Stand: {date}'**
+  String legalUpdated(String date);
+
   /// No description provided for @legalLoadError.
   ///
   /// In de, this message translates to:
@@ -1021,6 +1039,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Kein Wecker gestellt.'**
   String get alarmNone;
+
+  /// No description provided for @alarmAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Wecker hinzufügen'**
+  String get alarmAdd;
+
+  /// No description provided for @alarmDelete.
+  ///
+  /// In de, this message translates to:
+  /// **'Wecker löschen'**
+  String get alarmDelete;
 
   /// No description provided for @alarmNoteIos.
   ///

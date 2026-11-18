@@ -1,0 +1,8 @@
+{
+  "@@locale": "de",
+  "appTitle": "LINEFM | Radio",
+  "@appTitle": {"description": "App-Titel, Fenstertitel"},
+  "navStations": "Stationen",
+  "navPlayer": "Player",
+  "navHistory": "Verlauf"
+}

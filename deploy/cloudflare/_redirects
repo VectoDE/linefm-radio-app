@@ -1,0 +1,3 @@
+# SPA-Fallback (Pfad-Strategie). Pages liefert vorhandene statische Dateien zuerst
+# (auch /impressum/ und /datenschutz/); nur der Rest geht auf index.html.
+/*  /index.html  200

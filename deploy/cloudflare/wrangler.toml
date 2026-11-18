@@ -1,0 +1,5 @@
+# Cloudflare Pages: wrangler pages deploy build/web --project-name linefm-app
+# (im Repo-Wurzelordner ausfuehren, nach Build + Postbuild)
+name = "linefm-app"
+pages_build_output_dir = "build/web"
+compatibility_date = "2026-11-01"

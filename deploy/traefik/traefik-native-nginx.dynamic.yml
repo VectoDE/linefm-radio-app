@@ -1,0 +1,33 @@
+# Alternative: Traefik vor einem NATIVEN nginx (siehe deploy/nginx). Datei in das
+# Verzeichnis des Traefik-File-Providers legen (providers.file.directory).
+# Der native nginx lauscht dafuer zusaetzlich auf 127.0.0.1:8080 (Klartext) oder
+# man zeigt auf https://127.0.0.1:443 mit serversTransport (siehe Kommentar).
+# Header und Cache kommen weiterhin aus nginx; Traefik setzt keine eigenen Header.
+http:
+  routers:
+    linefm-app:
+      rule: Host(`app.linefm.de`)
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      service: linefm-app-nginx
+    linefm-app-http:
+      rule: Host(`app.linefm.de`)
+      entryPoints:
+        - web
+      middlewares:
+        - linefm-https
+      service: linefm-app-nginx
+  middlewares:
+    linefm-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+  services:
+    linefm-app-nginx:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          # nginx-Server ohne TLS auf dem Host, z. B. listen 127.0.0.1:8080;
+          - url: http://host.docker.internal:8080

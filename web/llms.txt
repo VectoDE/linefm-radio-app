@@ -1,0 +1,26 @@
+# LINEFM Radio
+
+> LINEFM Radio ist die Web-App zum Live-Hören der LINEFM-Sender. Sie läuft im Browser, ist als App installierbar und kostet nichts. Ein Angebot von RadioGruppe Deutschland, die Sender werden über laut.fm ausgespielt.
+
+Die App hat Favoriten ("Song merken"), einen Verlauf der zuletzt gespielten Titel, Lautstärkeregelung und einen Sleeptimer (15, 30, 45 oder 60 Minuten). Sprachen: Deutsch und Englisch. Native Apps für Android, Windows, Linux, macOS und iOS sind geplant.
+
+## Sender
+
+- LineFM +MAIN: https://linefm.stream.laut.fm/linefm
+- LineFM +RAP: https://linefmrap.stream.laut.fm/linefmrap
+- LineFM +GAMING: https://linefmgaming.stream.laut.fm/linefmgaming
+- LineFM +LOFI: https://linefmlofi.stream.laut.fm/linefmlofi
+- Radio3FM: https://radio3fm.stream.laut.fm/radio3fm
+- FobFM: https://fobfm.stream.laut.fm/fobfm
+
+## Links
+
+- [Web-App](https://app.linefm.de/): Radio hören
+- [Website LINEFM](https://linefm.de): Informationen zu den Sendern
+- [Impressum](https://app.linefm.de/impressum/)
+- [Datenschutz](https://app.linefm.de/datenschutz/)
+- [RadioGruppe Deutschland](https://radiogruppe.de)
+
+## Hinweis für Crawler
+
+Die Oberfläche ist eine Flutter-Web-App und wird per JavaScript gezeichnet. Die Sender und die Kerninformationen stehen deshalb zusätzlich als statischer HTML-Text und als JSON-LD auf der Startseite.

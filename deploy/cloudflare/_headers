@@ -1,0 +1,66 @@
+# Cloudflare Pages (Spec 6.2/6.3). Pages setzt ETags selbst.
+# Mehrere passende Regeln werden zusammengefuehrt; Cache-Control steht darum nur in den Pfadregeln,
+# die Security-Header nur in /*. __CSP_CONNECT_EXTRA__ ersetzt tool/web_postbuild.dart.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cdn.linefm.de https://*.mzstatic.com https://assets.laut.fm; connect-src 'self' https://api.laut.fm wss://api.laut.fm https://itunes.apple.com https://*.mzstatic.com https://cdn.linefm.de https://assets.laut.fm __CSP_CONNECT_EXTRA__; media-src https://*.laut.fm blob:; font-src 'self'; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  X-Frame-Options: DENY
+
+/
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
+
+/flutter_bootstrap.js
+  Cache-Control: no-cache
+
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+/version.json
+  Cache-Control: no-cache
+
+/asset-manifest.txt
+  Cache-Control: no-cache
+
+/impressum/*
+  Cache-Control: no-cache
+
+/datenschutz/*
+  Cache-Control: no-cache
+
+/main.*
+  Cache-Control: public, max-age=31536000, immutable
+
+/canvaskit/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/icons/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/favicon.png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/og.png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/robots.txt
+  Cache-Control: public, max-age=3600
+
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+
+/llms.txt
+  Cache-Control: public, max-age=3600

@@ -2,7 +2,7 @@ name: Linux-Systempakete
 description: >
   Installiert die Entwicklungspakete fuer den Linux-Desktop-Build. Auch fuer
   "flutter test" noetig, weil Native-Asset-Hooks (z. B. cnativeapi ueber tray_manager)
-  auf dem Host gegen GTK 3, X11 und Xi bauen.
+  auf dem Host gegen GTK 3, X11 und Xi bauen. libcurl braucht sentry-native.
 
 runs:
   using: composite
@@ -13,4 +13,4 @@ runs:
         sudo apt-get update -q
         sudo apt-get install -y -q --no-install-recommends \
           clang cmake ninja-build pkg-config libgtk-3-dev libx11-dev libxi-dev \
-          libmpv-dev libayatana-appindicator3-dev libkeybinder-3.0-dev
+          libmpv-dev libayatana-appindicator3-dev libkeybinder-3.0-dev libcurl4-openssl-dev

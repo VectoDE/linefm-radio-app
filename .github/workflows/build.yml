@@ -1,0 +1,772 @@
+name: Build
+
+# Baut alle sechs Plattformen und legt die Ergebnisse als Artefakte "dist-<plattform>" ab.
+# macOS/iOS laufen (wegen 10-facher Actions-Minuten im privaten Repo) nur bei Release-Tags,
+# bei manuellem Start mit apple=true oder in PRs mit dem Label "ci:apple".
+# Signaturschritte laufen nur ausserhalb von PRs und nur, wenn die Secrets gesetzt sind;
+# ohne Secrets entstehen unsignierte Artefakte und die Zusammenfassung nennt, was fehlt.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    paths:
+      - android/**
+      - ios/**
+      - macos/**
+      - windows/**
+      - linux/**
+      - web/**
+      - pubspec.yaml
+      - pubspec.lock
+      - packaging/**
+      - .github/workflows/build.yml
+      - .github/actions/**
+  workflow_dispatch:
+    inputs:
+      apple:
+        description: macOS- und iOS-Build einschliessen (macOS-Minuten zaehlen 10-fach)
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      version:
+        description: Versions-Tag (z. B. v1.2.3 oder v1.2.3-rc.1)
+        type: string
+        required: false
+        default: ""
+      apple:
+        description: macOS- und iOS-Build einschliessen
+        type: boolean
+        required: false
+        default: true
+    # Alle optional: fehlt ein Secret, wird der zugehoerige Signaturschritt uebersprungen.
+    secrets:
+      ANDROID_KEYSTORE_BASE64:
+        required: false
+      ANDROID_KEYSTORE_PASSWORD:
+        required: false
+      ANDROID_KEY_ALIAS:
+        required: false
+      ANDROID_KEY_PASSWORD:
+        required: false
+      WINDOWS_CERT_PFX_BASE64:
+        required: false
+      WINDOWS_CERT_PASSWORD:
+        required: false
+      APPLE_TEAM_ID:
+        required: false
+      APPLE_DEVELOPER_ID_CERT_P12_BASE64:
+        required: false
+      APPLE_DEVELOPER_ID_CERT_PASSWORD:
+        required: false
+      APP_STORE_CONNECT_API_KEY_ID:
+        required: false
+      APP_STORE_CONNECT_API_KEY_ISSUER_ID:
+        required: false
+      APP_STORE_CONNECT_API_KEY_P8:
+        required: false
+      FIREBASE_CONFIG_JSON:
+        required: false
+
+permissions: {}
+
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.ref }}-${{ inputs.version || 'dev' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  FLUTTER_BUILD_FLAGS: --release --dart-define-from-file=config/app.json
+
+jobs:
+  meta:
+    name: Version und Secret-Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.version.outputs.run }}
+      apple: ${{ steps.version.outputs.apple }}
+      label: ${{ steps.version.outputs.label }}
+      build_name: ${{ steps.version.outputs.build_name }}
+      build_number: ${{ steps.version.outputs.build_number }}
+      app_env: ${{ steps.version.outputs.app_env }}
+      sign_android: ${{ steps.android.outputs.ready == 'true' && steps.version.outputs.may_sign == 'true' }}
+      sign_windows: ${{ steps.windows.outputs.ready == 'true' && steps.version.outputs.may_sign == 'true' }}
+      sign_macos: ${{ steps.macos.outputs.ready == 'true' && steps.version.outputs.may_sign == 'true' }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Version bestimmen
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_APPLE: ${{ inputs.apple }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          LABEL_NAME: ${{ github.event.label.name }}
+          HAS_APPLE_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'ci:apple') }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          RUN_NUMBER: ${{ github.run_number }}
+          BUILD_NUMBER_OFFSET: ${{ vars.BUILD_NUMBER_OFFSET }}
+        run: |
+          set -euo pipefail
+          run=true
+          # Ein neues Label loest den Lauf nur aus, wenn es ci:apple ist.
+          if [ "$EVENT_NAME" = "pull_request" ] && [ "$EVENT_ACTION" = "labeled" ] && [ "$LABEL_NAME" != "ci:apple" ]; then
+            run=false
+          fi
+
+          version="$INPUT_VERSION"
+          if [ -z "$version" ] && [ "$REF_TYPE" = "tag" ]; then version="$REF_NAME"; fi
+          if [ -n "$version" ]; then
+            if ! [[ "$version" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+              echo "::error::Ungueltige Version: $version (erwartet vX.Y.Z oder vX.Y.Z-suffix)"
+              exit 1
+            fi
+            label="${version#v}"
+            app_env=prod
+          else
+            base="$(sed -n 's/^version:[[:space:]]*\([0-9.]*\).*/\1/p' pubspec.yaml | head -n1)"
+            label="${base}-dev.${RUN_NUMBER}"
+            app_env=dev
+          fi
+          build_name="${label%%-*}"
+          offset="${BUILD_NUMBER_OFFSET:-100}"
+          build_number=$(( RUN_NUMBER + offset ))
+
+          apple=false
+          if [ "$INPUT_APPLE" = "true" ] || [ "$HAS_APPLE_LABEL" = "true" ]; then apple=true; fi
+
+          may_sign=false
+          if [ "$EVENT_NAME" != "pull_request" ]; then may_sign=true; fi
+
+          {
+            echo "run=$run"
+            echo "apple=$apple"
+            echo "label=$label"
+            echo "build_name=$build_name"
+            echo "build_number=$build_number"
+            echo "app_env=$app_env"
+            echo "may_sign=$may_sign"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### Build $label"
+            echo "- build-name: \`$build_name\`, build-number: \`$build_number\`, APP_ENV: \`$app_env\`"
+            echo "- macOS/iOS: $apple"
+            echo "- Signieren erlaubt (kein PR): $may_sign"
+            echo ""
+            echo "#### Signatur-Gates"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Gate Android-Signatur
+        id: android
+        uses: ./.github/actions/secret-gate
+        with:
+          label: Android-Signatur (Upload-Key)
+          checks: |
+            ANDROID_KEYSTORE_BASE64=${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+            ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD != '' }}
+            ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS != '' }}
+            ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD != '' }}
+
+      - name: Gate Windows-Code-Signing
+        id: windows
+        uses: ./.github/actions/secret-gate
+        with:
+          label: Windows-Code-Signing
+          checks: |
+            WINDOWS_CERT_PFX_BASE64=${{ secrets.WINDOWS_CERT_PFX_BASE64 != '' }}
+            WINDOWS_CERT_PASSWORD=${{ secrets.WINDOWS_CERT_PASSWORD != '' }}
+
+      - name: Gate macOS-Signatur und Notarisierung
+        id: macos
+        uses: ./.github/actions/secret-gate
+        with:
+          label: macOS Developer-ID-Signatur + Notarisierung
+          checks: |
+            APPLE_PUBLISHING_ENABLED=${{ vars.APPLE_PUBLISHING_ENABLED == 'true' }}
+            APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID != '' }}
+            APPLE_DEVELOPER_ID_CERT_P12_BASE64=${{ secrets.APPLE_DEVELOPER_ID_CERT_P12_BASE64 != '' }}
+            APPLE_DEVELOPER_ID_CERT_PASSWORD=${{ secrets.APPLE_DEVELOPER_ID_CERT_PASSWORD != '' }}
+            APP_STORE_CONNECT_API_KEY_ID=${{ secrets.APP_STORE_CONNECT_API_KEY_ID != '' }}
+            APP_STORE_CONNECT_API_KEY_ISSUER_ID=${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID != '' }}
+            APP_STORE_CONNECT_API_KEY_P8=${{ secrets.APP_STORE_CONNECT_API_KEY_P8 != '' }}
+
+  android:
+    name: Android (APK + AAB)
+    needs: meta
+    if: needs.meta.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      LABEL: ${{ needs.meta.outputs.label }}
+      BUILD_NAME: ${{ needs.meta.outputs.build_name }}
+      BUILD_NUMBER: ${{ needs.meta.outputs.build_number }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Java 17
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Konfiguration schreiben
+        uses: ./.github/actions/write-config
+        with:
+          app-env: ${{ needs.meta.outputs.app_env }}
+          web-base-url: ${{ vars.WEB_BASE_URL }}
+          umami-url: ${{ vars.UMAMI_URL }}
+          umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
+          sentry-dsn: ${{ vars.SENTRY_DSN }}
+          sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
+          gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
+          trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
+          firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
+
+      - name: Upload-Keystore bereitstellen
+        if: needs.meta.outputs.sign_android == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          umask 077
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          {
+            echo "storeFile=upload-keystore.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > android/key.properties
+
+      - name: APK bauen (universal)
+        run: flutter build apk $FLUTTER_BUILD_FLAGS --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
+
+      - name: AAB bauen
+        run: flutter build appbundle $FLUTTER_BUILD_FLAGS --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
+
+      - name: Keystore entfernen
+        if: always()
+        run: rm -f android/app/upload-keystore.jks android/key.properties
+
+      - name: Artefakte einsammeln
+        env:
+          SIGNED: ${{ needs.meta.outputs.sign_android }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          apk="$(ls build/app/outputs/flutter-apk/app-release*.apk | head -n1)"
+          cp "$apk" "dist/linefm-radio-${LABEL}-android.apk"
+          cp build/app/outputs/bundle/release/app-release.aab "dist/linefm-radio-${LABEL}-android.aab"
+          ls -la dist
+          if [ "$SIGNED" = "true" ]; then
+            echo "- Android: mit Upload-Key signiert" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- Android: **unsigniert** (kein Upload-Key bzw. PR-Build)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Hochladen
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-android
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  web:
+    name: Web
+    needs: meta
+    if: needs.meta.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      LABEL: ${{ needs.meta.outputs.label }}
+      BUILD_NAME: ${{ needs.meta.outputs.build_name }}
+      BUILD_NUMBER: ${{ needs.meta.outputs.build_number }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Konfiguration schreiben
+        uses: ./.github/actions/write-config
+        with:
+          app-env: ${{ needs.meta.outputs.app_env }}
+          web-base-url: ${{ vars.WEB_BASE_URL }}
+          umami-url: ${{ vars.UMAMI_URL }}
+          umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
+          sentry-dsn: ${{ vars.SENTRY_DSN }}
+          sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
+          gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
+          trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
+          firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
+
+      - name: Web bauen
+        run: >-
+          flutter build web $FLUTTER_BUILD_FLAGS --wasm --no-web-resources-cdn --base-href /
+          --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
+
+      - name: Postbuild (Hashes, Header-Dateien)
+        run: |
+          if [ -f tool/web_postbuild.dart ]; then
+            dart run tool/web_postbuild.dart build/web
+          else
+            echo "- Web: tool/web_postbuild.dart fehlt (P22), Postbuild uebersprungen" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: ZIP erstellen
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          (cd build/web && zip -q -r -9 "../../dist/linefm-radio-${LABEL}-web.zip" .)
+          ls -la dist
+
+      - name: Hochladen
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-web
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  linux:
+    name: Linux (x64 tar.gz)
+    needs: meta
+    if: needs.meta.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    env:
+      LABEL: ${{ needs.meta.outputs.label }}
+      BUILD_NAME: ${{ needs.meta.outputs.build_name }}
+      BUILD_NUMBER: ${{ needs.meta.outputs.build_number }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Systempakete
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends \
+            clang cmake ninja-build pkg-config libgtk-3-dev libx11-dev libxi-dev \
+            libmpv-dev libayatana-appindicator3-dev libkeybinder-3.0-dev
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Konfiguration schreiben
+        uses: ./.github/actions/write-config
+        with:
+          app-env: ${{ needs.meta.outputs.app_env }}
+          web-base-url: ${{ vars.WEB_BASE_URL }}
+          umami-url: ${{ vars.UMAMI_URL }}
+          umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
+          sentry-dsn: ${{ vars.SENTRY_DSN }}
+          sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
+          gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
+          trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
+          firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
+
+      - name: Linux bauen
+        run: flutter build linux $FLUTTER_BUILD_FLAGS --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
+
+      - name: tar.gz erstellen
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          # Inhalt des Bundles liegt direkt im Archiv-Wurzelverzeichnis (Flatpak/Snap entpacken dorthin).
+          tar -C build/linux/x64/release/bundle -czf "dist/linefm-radio-${LABEL}-linux-x64.tar.gz" .
+          ls -la dist
+
+      - name: Hochladen
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-linux
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  windows:
+    name: Windows (ZIP, MSIX, Installer)
+    needs: meta
+    if: needs.meta.outputs.run == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      LABEL: ${{ needs.meta.outputs.label }}
+      BUILD_NAME: ${{ needs.meta.outputs.build_name }}
+      BUILD_NUMBER: ${{ needs.meta.outputs.build_number }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Rust-Toolchain (fuer smtc_windows)
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install stable --profile minimal --no-self-update
+          rustup default stable
+          rustc --version
+          cargo --version
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Konfiguration schreiben
+        uses: ./.github/actions/write-config
+        with:
+          app-env: ${{ needs.meta.outputs.app_env }}
+          web-base-url: ${{ vars.WEB_BASE_URL }}
+          umami-url: ${{ vars.UMAMI_URL }}
+          umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
+          sentry-dsn: ${{ vars.SENTRY_DSN }}
+          sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
+          gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
+          trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
+          firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
+
+      - name: Windows bauen
+        shell: bash
+        run: flutter build windows $FLUTTER_BUILD_FLAGS --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
+
+      - name: Code-Signing-Zertifikat bereitstellen
+        id: cert
+        if: needs.meta.outputs.sign_windows == 'true'
+        shell: pwsh
+        env:
+          PFX_BASE64: ${{ secrets.WINDOWS_CERT_PFX_BASE64 }}
+        run: |
+          $path = Join-Path $env:RUNNER_TEMP 'codesign.pfx'
+          [IO.File]::WriteAllBytes($path, [Convert]::FromBase64String($env:PFX_BASE64))
+          "path=$path" >> $env:GITHUB_OUTPUT
+
+      - name: EXE signieren
+        if: needs.meta.outputs.sign_windows == 'true'
+        shell: pwsh
+        env:
+          PFX_PATH: ${{ steps.cert.outputs.path }}
+          PFX_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          $files = Get-ChildItem 'build/windows/x64/runner/Release' -Recurse -Include *.exe
+          foreach ($f in $files) {
+            & $signtool.FullName sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $env:PFX_PATH /p $env:PFX_PASSWORD $f.FullName
+            if ($LASTEXITCODE -ne 0) { throw "signtool fehlgeschlagen fuer $($f.Name)" }
+          }
+
+      - name: ZIP erstellen
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Compress-Archive -Path 'build/windows/x64/runner/Release/*' -DestinationPath "dist/linefm-radio-$env:LABEL-windows-x64.zip" -CompressionLevel Optimal
+          Get-ChildItem dist
+
+      - name: MSIX erstellen (Sideload)
+        if: hashFiles('assets/branding/icon_1024.png') != ''
+        shell: pwsh
+        env:
+          PFX_PATH: ${{ steps.cert.outputs.path }}
+          PFX_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $msixArgs = @('run', 'msix:create', '--build-windows', 'false', '--version', "$env:BUILD_NAME.0",
+                    '--output-path', 'dist', '--output-name', "linefm-radio-$env:LABEL-windows-x64")
+          if ($env:PFX_PATH) {
+            $msixArgs += @('--certificate-path', $env:PFX_PATH, '--certificate-password', $env:PFX_PASSWORD)
+          } else {
+            $msixArgs += @('--sign-msix', 'false')
+            "- Windows: MSIX **unsigniert** (kein Code-Signing-Zertifikat), Sideload erst nach Signatur" | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+          }
+          dart @args
+          if ($LASTEXITCODE -ne 0) { throw 'msix:create fehlgeschlagen' }
+
+      - name: MSIX-Hinweis
+        if: hashFiles('assets/branding/icon_1024.png') == ''
+        shell: bash
+        run: |
+          echo "- Windows: MSIX uebersprungen, assets/branding/icon_1024.png fehlt noch (P05)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Installer erstellen (Inno Setup)
+        if: hashFiles('packaging/windows/*.iss') != ''
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $iscc = Get-Command iscc.exe -ErrorAction SilentlyContinue
+          if (-not $iscc) {
+            choco install innosetup -y --no-progress | Out-Null
+            $iscc = Get-Item "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          }
+          $iss = Get-ChildItem 'packaging/windows/*.iss' | Select-Object -First 1
+          # Vertrag mit packaging/windows (P26): Defines AppVersion, SourceDir, OutputDir, OutputBaseFilename.
+          & $iscc.Source "/DAppVersion=$env:BUILD_NAME" "/DSourceDir=$((Resolve-Path 'build/windows/x64/runner/Release').Path)" `
+            "/DOutputDir=$((Resolve-Path 'dist').Path)" "/DOutputBaseFilename=linefm-radio-$env:LABEL-windows-x64-setup" $iss.FullName
+          if ($LASTEXITCODE -ne 0) { throw 'ISCC fehlgeschlagen' }
+
+      - name: Installer-Hinweis
+        if: hashFiles('packaging/windows/*.iss') == ''
+        shell: bash
+        run: |
+          echo "- Windows: Installer uebersprungen, packaging/windows/*.iss fehlt noch (P26)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Installer signieren
+        if: needs.meta.outputs.sign_windows == 'true' && hashFiles('packaging/windows/*.iss') != ''
+        shell: pwsh
+        env:
+          PFX_PATH: ${{ steps.cert.outputs.path }}
+          PFX_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          Get-ChildItem dist -Filter *-setup.exe | ForEach-Object {
+            & $signtool.FullName sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $env:PFX_PATH /p $env:PFX_PASSWORD $_.FullName
+            if ($LASTEXITCODE -ne 0) { throw "signtool fehlgeschlagen fuer $($_.Name)" }
+          }
+
+      - name: Zertifikat entfernen
+        if: always()
+        shell: pwsh
+        run: Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $env:RUNNER_TEMP 'codesign.pfx')
+
+      - name: Signatur-Status
+        shell: bash
+        env:
+          SIGNED: ${{ needs.meta.outputs.sign_windows }}
+        run: |
+          if [ "$SIGNED" = "true" ]; then
+            echo "- Windows: EXE/Installer signiert" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- Windows: **unsigniert** (kein Zertifikat bzw. PR-Build), SmartScreen-Warnung moeglich" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Hochladen
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-windows
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  macos:
+    name: macOS (DMG)
+    needs: meta
+    if: needs.meta.outputs.run == 'true' && needs.meta.outputs.apple == 'true'
+    runs-on: macos-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      LABEL: ${{ needs.meta.outputs.label }}
+      BUILD_NAME: ${{ needs.meta.outputs.build_name }}
+      BUILD_NUMBER: ${{ needs.meta.outputs.build_number }}
+      APP_PATH: build/macos/Build/Products/Release/LINEFM Radio.app
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Konfiguration schreiben
+        uses: ./.github/actions/write-config
+        with:
+          app-env: ${{ needs.meta.outputs.app_env }}
+          web-base-url: ${{ vars.WEB_BASE_URL }}
+          umami-url: ${{ vars.UMAMI_URL }}
+          umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
+          sentry-dsn: ${{ vars.SENTRY_DSN }}
+          sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
+          gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
+          trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
+          firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
+
+      - name: macOS bauen
+        run: flutter build macos $FLUTTER_BUILD_FLAGS --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
+
+      - name: Developer-ID-Zertifikat importieren
+        if: needs.meta.outputs.sign_macos == 'true'
+        env:
+          CERT_P12_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_CERT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          kc="$RUNNER_TEMP/signing.keychain-db"
+          kcpw="$(openssl rand -hex 24)"
+          echo "$CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/devid.p12"
+          security create-keychain -p "$kcpw" "$kc"
+          security set-keychain-settings -lut 21600 "$kc"
+          security unlock-keychain -p "$kcpw" "$kc"
+          security import "$RUNNER_TEMP/devid.p12" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$kc"
+          security set-key-partition-list -S apple-tool:,apple: -k "$kcpw" "$kc" >/dev/null
+          security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
+          rm -f "$RUNNER_TEMP/devid.p12"
+
+      - name: App signieren (Hardened Runtime)
+        if: needs.meta.outputs.sign_macos == 'true'
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          identity="Developer ID Application"
+          ent="macos/Runner/Release.entitlements"
+          codesign --force --deep --options runtime --timestamp --entitlements "$ent" \
+            --sign "$identity" "$APP_PATH"
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+
+      - name: DMG erstellen
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          dmg="dist/linefm-radio-${LABEL}-macos.dmg"
+          if [ -f packaging/macos/create_dmg.sh ]; then
+            bash packaging/macos/create_dmg.sh "$APP_PATH" "$dmg"
+          else
+            staging="$RUNNER_TEMP/dmg"
+            rm -rf "$staging"; mkdir -p "$staging"
+            cp -R "$APP_PATH" "$staging/"
+            ln -s /Applications "$staging/Applications"
+            hdiutil create -volname "LINEFM Radio" -srcfolder "$staging" -ov -format UDZO "$dmg"
+            echo "- macOS: einfaches DMG (packaging/macos/create_dmg.sh aus P26 fehlt noch)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          hdiutil verify "$dmg"
+          ls -la dist
+
+      - name: DMG signieren, notarisieren, heften
+        if: needs.meta.outputs.sign_macos == 'true'
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+        run: |
+          set -euo pipefail
+          dmg="dist/linefm-radio-${LABEL}-macos.dmg"
+          key="$RUNNER_TEMP/AuthKey.p8"
+          umask 077
+          printf '%s' "$ASC_KEY_P8" > "$key"
+          codesign --force --timestamp --sign "Developer ID Application" "$dmg"
+          xcrun notarytool submit "$dmg" --key "$key" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" --wait
+          xcrun stapler staple "$dmg"
+          rm -f "$key"
+          echo "- macOS: signiert und notarisiert" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Signatur-Hinweis
+        if: needs.meta.outputs.sign_macos != 'true'
+        run: |
+          echo "- macOS: **unsigniert, nicht notarisiert** (Gate APPLE_PUBLISHING_ENABLED/Apple-Secrets bzw. PR-Build); Oeffnen per Rechtsklick > Oeffnen" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keychain entfernen
+        if: always()
+        run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" 2>/dev/null || true
+
+      - name: Hochladen
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-macos
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  ios:
+    name: iOS (Kompilierpruefung, ohne Signatur)
+    needs: meta
+    if: needs.meta.outputs.run == 'true' && needs.meta.outputs.apple == 'true'
+    runs-on: macos-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      BUILD_NAME: ${{ needs.meta.outputs.build_name }}
+      BUILD_NUMBER: ${{ needs.meta.outputs.build_number }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Konfiguration schreiben
+        uses: ./.github/actions/write-config
+        with:
+          app-env: ${{ needs.meta.outputs.app_env }}
+          web-base-url: ${{ vars.WEB_BASE_URL }}
+
+      - name: iOS bauen (no-codesign)
+        run: flutter build ios $FLUTTER_BUILD_FLAGS --no-codesign --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
+
+      - name: Ergebnis
+        run: |
+          echo "- iOS: Kompilierpruefung erfolgreich (unsigniert, kein Release-Artefakt; Store-Upload ueber store-apple.yml)" >> "$GITHUB_STEP_SUMMARY"

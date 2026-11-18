@@ -1,10 +1,11 @@
+import 'package:linefm_radio/data/storage/shared_prefs_store.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/favorite.dart';
 
 /// Lokale Persistenz mit Einwilligungslogik wie die Web-App (Spec 2.2):
 /// ohne Speicher-Bestaetigung wird nichts geschrieben. Implementierung auf
-/// Basis shared_preferences: P06.
+/// Basis shared_preferences: [SharedPrefsStore].
 abstract interface class PrefsStore {
   bool get storageConsent;
   Future<void> setStorageConsent({required bool value});
@@ -36,9 +37,8 @@ abstract interface class PrefsStore {
   Future<void> clearAll();
 }
 
-/// Fabrik fuer main(). P06 ersetzt den Rumpf durch die shared_preferences-
-/// Variante.
-Future<PrefsStore> createPrefsStore() async => InMemoryPrefsStore();
+/// Fabrik fuer main(): shared_preferences-Speicher (Web: localStorage).
+Future<PrefsStore> createPrefsStore() => SharedPrefsStore.open();
 
 /// Speicher im Arbeitsspeicher (Stub und Tests).
 class InMemoryPrefsStore implements PrefsStore {

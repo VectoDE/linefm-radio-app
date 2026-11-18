@@ -11,6 +11,28 @@ class AppSettings {
     this.themeMode = AppThemeMode.system,
   });
 
+  /// Tolerant: fehlende oder falsch typisierte Felder erhalten den Standard.
+  factory AppSettings.fromJson(Object? json) {
+    const defaults = AppSettings();
+    if (json is! Map) return defaults;
+    bool flag(String key, bool fallback) {
+      final value = json[key];
+      return value is bool ? value : fallback;
+    }
+
+    final theme = json['themeMode'];
+    return AppSettings(
+      marquee: flag('marquee', defaults.marquee),
+      rememberVolume: flag('rememberVolume', defaults.rememberVolume),
+      autoplay: flag('autoplay', defaults.autoplay),
+      closeToTray: flag('closeToTray', defaults.closeToTray),
+      themeMode: AppThemeMode.values.firstWhere(
+        (m) => m.name == theme,
+        orElse: () => defaults.themeMode,
+      ),
+    );
+  }
+
   /// Lauftext fuer lange Titel.
   final bool marquee;
 
@@ -37,4 +59,25 @@ class AppSettings {
     closeToTray: closeToTray ?? this.closeToTray,
     themeMode: themeMode ?? this.themeMode,
   );
+
+  Map<String, Object?> toJson() => <String, Object?>{
+    'marquee': marquee,
+    'rememberVolume': rememberVolume,
+    'autoplay': autoplay,
+    'closeToTray': closeToTray,
+    'themeMode': themeMode.name,
+  };
+
+  @override
+  bool operator ==(Object other) =>
+      other is AppSettings &&
+      other.marquee == marquee &&
+      other.rememberVolume == rememberVolume &&
+      other.autoplay == autoplay &&
+      other.closeToTray == closeToTray &&
+      other.themeMode == themeMode;
+
+  @override
+  int get hashCode =>
+      Object.hash(marquee, rememberVolume, autoplay, closeToTray, themeMode);
 }

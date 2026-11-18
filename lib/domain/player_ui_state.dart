@@ -28,4 +28,14 @@ class PlayerUiState {
     station: station ?? this.station,
     volume: volume ?? this.volume,
   );
+
+  @override
+  bool operator ==(Object other) =>
+      other is PlayerUiState &&
+      other.status == status &&
+      other.station == station &&
+      other.volume == volume;
+
+  @override
+  int get hashCode => Object.hash(status, station, volume);
 }

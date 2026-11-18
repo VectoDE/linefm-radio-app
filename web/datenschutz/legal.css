@@ -1,0 +1,50 @@
+/* Erzeugt von tool/gen_legal_html.dart, nicht von Hand aendern. */
+:root {
+  color-scheme: dark light;
+  --bg: #0f1221;
+  --text: #ffffff;
+  --muted: #a4a7b6;
+  --line: rgba(255, 255, 255, 0.12);
+  --link: #ffffff;
+  --mark: #ff4b6e;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f4f5fa;
+    --text: #0f1221;
+    --muted: #4a4e62;
+    --line: rgba(15, 18, 33, 0.14);
+    --link: #0f1221;
+    --mark: #b3002b;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.site-header, main { max-width: 46rem; margin: 0 auto; padding: 0 16px; }
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.brand { font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; }
+.site-header nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+a { color: var(--link); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+a[aria-current="page"] { font-weight: 700; }
+main { padding-top: 24px; padding-bottom: 64px; }
+h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 16px; }
+h2 { font-size: 1.2rem; margin: 32px 0 8px; }
+p, ul { margin: 0 0 14px; }
+ul { padding-left: 1.3rem; }
+.meta { color: var(--muted); margin-top: 32px; }
+mark.ph { background: transparent; color: var(--mark); font-weight: 700; }

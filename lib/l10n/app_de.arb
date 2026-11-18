@@ -1,8 +1,402 @@
 {
   "@@locale": "de",
   "appTitle": "LINEFM | Radio",
-  "@appTitle": {"description": "App-Titel, Fenstertitel"},
+  "@appTitle": {
+    "description": "App-Titel, Fenstertitel"
+  },
+  "brandName": "LINEFM",
+  "@brandName": {
+    "description": "Markenname im Header"
+  },
   "navStations": "Stationen",
   "navPlayer": "Player",
-  "navHistory": "Verlauf"
+  "navHistory": "Verlauf",
+  "navFavorites": "Favoriten",
+  "navSettings": "Einstellungen",
+  "navMain": "Hauptnavigation",
+  "loaderSemantics": "LINEFM wird geladen",
+  "creditsMadeBy": "Made by .jaybelife with ♥",
+  "@creditsMadeBy": {
+    "description": "Wörtlich, in allen Sprachen gleich"
+  },
+  "creditsMadeByLead": "Made by ",
+  "@creditsMadeByLead": {
+    "description": "Teil 1 von creditsMadeBy (Name wird fett gesetzt)"
+  },
+  "creditsMadeByAuthor": ".jaybelife",
+  "@creditsMadeByAuthor": {
+    "description": "Teil 2 von creditsMadeBy"
+  },
+  "creditsMadeByTail": " with ♥",
+  "@creditsMadeByTail": {
+    "description": "Teil 3 von creditsMadeBy (Herz farbig)"
+  },
+  "creditsOfferedBy": "Ein Angebot von",
+  "creditsDevelopedBy": "Entwickelt von Tim Hauke (VectoDE)",
+  "radioGruppeName": "Radiogruppe",
+  "radioGruppeOpen": "Radiogruppe öffnen",
+  "storageNoticeBodyWeb": "Wir speichern kleine Daten in diesem Browser, um dein Nutzungserlebnis zu verbessern.",
+  "storageNoticeBodyDevice": "Wir speichern kleine Daten auf diesem Gerät, um dein Nutzungserlebnis zu verbessern.",
+  "storageNoticePrivacy": "Datenschutz",
+  "storageNoticeDismiss": "Verstanden",
+  "favoritesButton": "Favoriten",
+  "favoritesButtonCount": "Favoriten, {count, plural, =1{1 Song} other{{count} Songs}}",
+  "@favoritesButtonCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsButton": "Einstellungen",
+  "stationsTitle": "Alle Stationen",
+  "stationsListLabel": "Alle Stationen",
+  "stationCardLabel": "{station}, läuft: {track}",
+  "@stationCardLabel": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      },
+      "track": {
+        "type": "String"
+      }
+    }
+  },
+  "stationCardLabelIdle": "{station}",
+  "@stationCardLabelIdle": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "stationLongPressShare": "Sender teilen",
+  "stationShareText": "Hör mal rein: {station} bei LINEFM. {url}",
+  "@stationShareText": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      },
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "playerCoverAlt": "Albumcover",
+  "playerShuffle": "Zufällige Station abspielen",
+  "playerShuffleTooltip": "Zufällige Station",
+  "playerStart": "Stream starten",
+  "playerConnecting": "Stream wird verbunden",
+  "playerStop": "Stream stoppen",
+  "playerFavoriteAdd": "Song merken",
+  "playerFavoriteRemove": "Aus Favoriten entfernen",
+  "playerNext": "Nächster Sender",
+  "playerPrevious": "Vorheriger Sender",
+  "playerClose": "Player schließen",
+  "playerOpen": "Player öffnen",
+  "playerListeners": "{count, plural, =1{1 Person hört gerade zu} other{{count} hören gerade zu}}",
+  "@playerListeners": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playerReconnecting": "Verbindung wird wiederhergestellt …",
+  "playerStreamError": "Stream konnte nicht gestartet werden.",
+  "playerRetry": "Erneut versuchen",
+  "playerStartRadio": "Radio starten",
+  "playerPlayNow": "Jetzt abspielen",
+  "playerLive": "LIVE",
+  "trackUnknownTitle": "Unbekannter Titel",
+  "trackUnknownArtist": "Unbekannter Künstler",
+  "trackLoading": "Titel wird geladen …",
+  "playerOpenSongIn": "Song öffnen in …",
+  "playerShareSong": "Song teilen",
+  "musicAppleMusic": "Apple Music",
+  "musicSpotify": "Spotify",
+  "musicYouTubeMusic": "YouTube Music",
+  "shareSongText": "Ich höre gerade „{title}“ von {artist} auf {station}. {url}",
+  "@shareSongText": {
+    "placeholders": {
+      "artist": {
+        "type": "String"
+      },
+      "station": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      },
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "linkOpenError": "Der Link konnte nicht geöffnet werden.",
+  "historyTitle": "Zuletzt gespielt",
+  "historyListLabel": "Zuletzt gespielte Titel",
+  "historyEmpty": "Noch keine Titel im Verlauf.",
+  "favoritesTitle": "Favoriten",
+  "favoritesListLabel": "Gespeicherte Songs",
+  "favoritesEmpty": "Noch keine Favoriten gespeichert.",
+  "favoritesRemove": "{title} aus Favoriten entfernen",
+  "@favoritesRemove": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "favoritesExport": "Favoriten exportieren",
+  "favoritesExportCsv": "Als CSV-Datei",
+  "favoritesExportText": "Als Text",
+  "favoritesExportEmpty": "Es gibt noch nichts zu exportieren.",
+  "favoritesExportSavedTo": "Gespeichert unter {path}",
+  "@favoritesExportSavedTo": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "favoritesExportFailed": "Der Export hat nicht geklappt.",
+  "csvColumnTitle": "Titel",
+  "@csvColumnTitle": {
+    "description": "CSV-Spaltenkopf"
+  },
+  "csvColumnArtist": "Künstler",
+  "@csvColumnArtist": {
+    "description": "CSV-Spaltenkopf"
+  },
+  "csvColumnStation": "Sender",
+  "@csvColumnStation": {
+    "description": "CSV-Spaltenkopf"
+  },
+  "csvColumnSavedAt": "Gemerkt am",
+  "@csvColumnSavedAt": {
+    "description": "CSV-Spaltenkopf"
+  },
+  "miniOpenPlayer": "Player öffnen",
+  "volumeOpen": "Lautstärke öffnen",
+  "volumeClose": "Lautstärke schließen",
+  "volumeLabel": "Lautstärke",
+  "volumePercent": "Lautstärke {percent} Prozent",
+  "@volumePercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "volumeSliderValue": "{percent} Prozent",
+  "@volumeSliderValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepRemainingShort": "Noch {minutes} Min.",
+  "@sleepRemainingShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTitle": "Einstellungen",
+  "settingMarqueeTitle": "Lauftext für lange Titel",
+  "settingMarqueeBody": "Lange Songtitel als Band anzeigen.",
+  "settingVolumeTitle": "Lautstärke merken",
+  "settingVolumeBodyWeb": "Die gewählte Lautstärke in diesem Browser behalten.",
+  "settingVolumeBodyDevice": "Die gewählte Lautstärke auf diesem Gerät behalten.",
+  "settingThemeTitle": "Darstellung",
+  "themeSystem": "System",
+  "themeLight": "Hell",
+  "themeDark": "Dunkel",
+  "settingAutoplayTitle": "Beim Start abspielen",
+  "settingAutoplayBody": "Die zuletzt gehörte Station startet automatisch.",
+  "settingAutoplayBodyWeb": "Die zuletzt gehörte Station startet nach deinem ersten Tippen oder Klick.",
+  "settingTrayTitle": "Beim Schließen im Tray weiterlaufen",
+  "settingTrayBody": "Das Fenster verschwindet, die Wiedergabe läuft weiter.",
+  "settingAlwaysOnTopTitle": "Immer im Vordergrund",
+  "settingMiniWindow": "Mini-Player",
+  "settingAlarmTitle": "Wecker",
+  "settingAlarmBodyOff": "Kein Wecker gestellt.",
+  "settingAboutTitle": "Über LINEFM Radio",
+  "sleepTimerTitle": "Sleeptimer",
+  "sleepTimerOff": "Aus",
+  "sleepTimerMinutes": "{minutes} Min.",
+  "@sleepTimerMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTimerEndOfSong": "Ende des Songs",
+  "sleepTimerStatusNone": "Kein Sleeptimer aktiv.",
+  "sleepTimerStatusRunning": "{minutes, plural, =1{Wiedergabe stoppt in 1 Minute.} other{Wiedergabe stoppt in {minutes} Minuten.}}",
+  "@sleepTimerStatusRunning": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTimerStatusEndOfSong": "Wiedergabe stoppt am Ende des Songs.",
+  "sleepTimerExpired": "Sleeptimer abgelaufen.",
+  "settingStorageTitle": "Speicher",
+  "settingStorageBody": "Zuletzt gehörte Station, Favoriten, Lautstärke und Einstellungen werden lokal gespeichert.",
+  "settingStorageClear": "Speicher löschen",
+  "clearStorageConfirmTitle": "Speicher löschen?",
+  "clearStorageConfirmBody": "Favoriten, Lautstärke, letzte Station und Einstellungen werden entfernt. Das lässt sich nicht rückgängig machen.",
+  "clearStorageDone": "Speicher gelöscht.",
+  "actionCancel": "Abbrechen",
+  "actionDelete": "Löschen",
+  "actionClose": "Schließen",
+  "actionOk": "OK",
+  "footerWebsite": "Website",
+  "footerImprint": "Impressum",
+  "footerPrivacy": "Datenschutz",
+  "footerLinksLabel": "LINEFM Links",
+  "settingTelemetryTitle": "Statistik und Fehlerberichte",
+  "settingTelemetryBodyOn": "Erlaubt. Du kannst das jederzeit widerrufen.",
+  "settingTelemetryBodyOff": "Nicht erlaubt. Es wird nichts gesendet.",
+  "consentTitle": "Statistik und Fehlerberichte",
+  "consentBody": "Damit wir sehen, was gut läuft und wo die App hakt, würden wir gern Angaben zur Nutzung und zu Fehlern auswerten, ohne Namen und ohne Konto. Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.",
+  "consentAllow": "Erlauben",
+  "consentDecline": "Ablehnen",
+  "consentPrivacyLink": "Mehr in der Datenschutzerklärung",
+  "legalImprintTitle": "Impressum",
+  "legalPrivacyTitle": "Datenschutz",
+  "legalOpenInBrowser": "Im Browser öffnen",
+  "legalLoadError": "Der Text konnte nicht geladen werden.",
+  "aboutTitle": "Über LINEFM Radio",
+  "aboutVersion": "Version {version} ({build})",
+  "@aboutVersion": {
+    "placeholders": {
+      "build": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutLicenses": "Open-Source-Lizenzen",
+  "trustGridinsoft": "Website-Prüfung bei Gridinsoft",
+  "trustTrustpilot": "Bewertungen bei Trustpilot",
+  "alarmTitle": "Wecker",
+  "alarmEnabled": "Wecker aktiv",
+  "alarmTime": "Uhrzeit",
+  "alarmDays": "Wochentage",
+  "alarmOnce": "Einmalig",
+  "alarmEveryDay": "Jeden Tag",
+  "alarmStation": "Sender",
+  "alarmVolume": "Lautstärke",
+  "alarmSnooze": "Schlummern",
+  "alarmSnoozeMinutes": "{minutes, plural, =1{1 Minute} other{{minutes} Minuten}}",
+  "@alarmSnoozeMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "alarmNext": "Nächster Wecker: {when}",
+  "@alarmNext": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmNone": "Kein Wecker gestellt.",
+  "alarmNoteIos": "Auf iPhone und iPad weckt dich eine Mitteilung. Tippe darauf, um das Radio zu starten.",
+  "alarmNoteDesktop": "Der Wecker klingelt nur, solange LINEFM Radio läuft (auch im Tray).",
+  "alarmNoteWeb": "Der Wecker klingelt nur, solange dieser Tab geöffnet ist.",
+  "alarmNoteAndroid": "Dein Radio startet zur eingestellten Zeit, auch wenn die App geschlossen ist. Klappt der Stream nicht, klingelt ein Weckton.",
+  "alarmPermissionTitle": "Wecker braucht eine Freigabe",
+  "alarmPermissionBody": "Damit der Wecker pünktlich klingelt, muss Android genaue Alarme erlauben. Das stellst du in den Systemeinstellungen ein.",
+  "alarmOpenSettings": "Einstellungen öffnen",
+  "alarmRingingTitle": "Guten Morgen",
+  "alarmRingingBody": "{station} läuft gleich los.",
+  "@alarmRingingBody": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmDismiss": "Ausschalten",
+  "alarmSnoozeAction": "Schlummern",
+  "alarmNotificationTitle": "LINEFM Wecker",
+  "alarmNotificationBody": "{station} startet jetzt.",
+  "@alarmNotificationBody": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "weekdayShort1": "Mo",
+  "@weekdayShort1": {
+    "description": "Wochentag kurz, 1 = Montag"
+  },
+  "weekdayShort2": "Di",
+  "@weekdayShort2": {
+    "description": "Wochentag kurz, 1 = Montag"
+  },
+  "weekdayShort3": "Mi",
+  "@weekdayShort3": {
+    "description": "Wochentag kurz, 1 = Montag"
+  },
+  "weekdayShort4": "Do",
+  "@weekdayShort4": {
+    "description": "Wochentag kurz, 1 = Montag"
+  },
+  "weekdayShort5": "Fr",
+  "@weekdayShort5": {
+    "description": "Wochentag kurz, 1 = Montag"
+  },
+  "weekdayShort6": "Sa",
+  "@weekdayShort6": {
+    "description": "Wochentag kurz, 1 = Montag"
+  },
+  "weekdayShort7": "So",
+  "@weekdayShort7": {
+    "description": "Wochentag kurz, 1 = Montag"
+  },
+  "offlineBanner": "Keine Verbindung. LINEFM versucht es weiter.",
+  "genericError": "Da ist etwas schiefgelaufen.",
+  "actionRetry": "Erneut versuchen",
+  "loading": "Wird geladen …",
+  "stationsOffline": "Die Titelinfos sind gerade nicht erreichbar.",
+  "castButton": "Auf Gerät übertragen",
+  "castSearching": "Suche nach Geräten …",
+  "castNoDevices": "Keine Geräte gefunden.",
+  "castConnectedTo": "Verbunden mit {device}",
+  "@castConnectedTo": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "castDisconnect": "Übertragung beenden",
+  "airplayButton": "AirPlay",
+  "notificationChannelName": "Wiedergabe",
+  "browseFavorites": "Favoriten",
+  "@browseFavorites": {
+    "description": "Android-Auto-/CarPlay-Ordner"
+  },
+  "widgetIdle": "Zum Abspielen tippen",
+  "trayShowWindow": "Fenster zeigen",
+  "trayPlay": "Abspielen",
+  "trayStop": "Stoppen",
+  "trayStations": "Sender",
+  "trayMiniPlayer": "Mini-Player",
+  "trayQuit": "Beenden"
 }

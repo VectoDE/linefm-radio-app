@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "lang": "de",
+  "title": "Impressum",
+  "updated": "2026-11-18",
+  "reviewNote": "ENTWURF. Muss vor Veröffentlichung von einem Anwalt geprüft und mit den Betreiberdaten befüllt werden. Quellen: § 5 DDG, § 18 Abs. 2 MStV, § 27a UStG.",
+  "blocks": [
+    {"type": "h1", "text": "Impressum"},
+    {"type": "p", "text": "Angaben nach § 5 Digitale-Dienste-Gesetz (DDG)."},
+
+    {"type": "h2", "text": "Anbieter"},
+    {"type": "p", "text": "{{BETREIBER_NAME}}\n{{BETREIBER_RECHTSFORM}}\n{{BETREIBER_STRASSE}}\n{{BETREIBER_PLZ_ORT}}"},
+    {"type": "p", "text": "Vertretungsberechtigt: {{BETREIBER_VERTRETER}}"},
+
+    {"type": "h2", "text": "Kontakt"},
+    {"type": "p", "text": "E-Mail:"},
+    {"type": "mail", "text": "{{BETREIBER_EMAIL}}", "address": "{{BETREIBER_EMAIL}}"},
+    {"type": "p", "text": "Telefon: {{BETREIBER_TELEFON}}"},
+
+    {"type": "h2", "text": "Registereintrag"},
+    {"type": "p", "text": "Register und Gericht: {{REGISTERGERICHT}}\nRegisternummer: {{REGISTERNUMMER}}"},
+
+    {"type": "h2", "text": "Umsatzsteuer"},
+    {"type": "p", "text": "Umsatzsteuer-Identifikationsnummer nach § 27a UStG: {{USTID}}"},
+
+    {"type": "h2", "text": "Aufsichtsbehörde"},
+    {"type": "p", "text": "{{AUFSICHTSBEHOERDE_MEDIEN}}"},
+
+    {"type": "h2", "text": "Verantwortlich für Inhalte nach § 18 Abs. 2 MStV"},
+    {"type": "p", "text": "{{VERANTWORTLICHER_MSTV}}"},
+
+    {"type": "h2", "text": "Über diese App"},
+    {"type": "p", "text": "LINEFM Radio spielt die Programme des Webradios LINEFM und weiterer Sender. LINEFM ist Teil der RadioGruppe Deutschland."},
+    {"type": "link", "text": "radiogruppe.de", "url": "https://radiogruppe.de"},
+    {"type": "p", "text": "Die App wurde entwickelt von Tim Hauke (VectoDE)."},
+
+    {"type": "h2", "text": "Musik und Lizenz"},
+    {"type": "p", "text": "Wir senden über die Plattform laut.fm und verfügen dafür über eine eigene Lizenz. Die App gibt den Stream von laut.fm wieder und zeigt die dort bereitgestellten Titelinformationen an. Sie speichert und vervielfältigt keine Musik."},
+
+    {"type": "h2", "text": "Rechte an Namen, Logos und Covern"},
+    {"type": "p", "text": "Namen und Logos der Sender gehören den jeweiligen Betreibern. Albumcover stammen von Apple (iTunes Search API); die Rechte daran liegen bei den jeweiligen Rechteinhabern."},
+
+    {"type": "h2", "text": "Verbraucherstreitbeilegung"},
+    {"type": "p", "text": "Wir nehmen nicht an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teil und sind dazu auch nicht verpflichtet."}
+  ]
+}

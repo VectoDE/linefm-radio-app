@@ -1,0 +1,189 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    name: Analyse (Format + Analyzer)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Formatierung pruefen
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyzer (fatal-infos)
+        run: flutter analyze --fatal-infos
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Tests mit Coverage
+        run: flutter test --coverage --reporter=expanded
+
+      - name: Coverage-Zusammenfassung
+        if: always()
+        run: |
+          if [ -f coverage/lcov.info ]; then
+            lf=$(grep -c '^DA:' coverage/lcov.info || true)
+            lh=$(grep -E '^DA:[0-9]+,[1-9]' coverage/lcov.info | wc -l || true)
+            if [ "${lf:-0}" -gt 0 ]; then
+              pct=$(awk -v h="$lh" -v f="$lf" 'BEGIN { printf "%.1f", h * 100 / f }')
+              echo "**Zeilenabdeckung:** ${pct} % (${lh}/${lf} Zeilen)" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          else
+            echo "Keine Coverage-Datei erzeugt." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Coverage hochladen
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: ignore
+          retention-days: 14
+
+  l10n-check:
+    name: Uebersetzungen pruefen
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Fehlende Schluessel in Nicht-Vorlage-Sprachen
+        run: |
+          set -euo pipefail
+          template="lib/l10n/$(sed -n 's/^template-arb-file:[[:space:]]*//p' l10n.yaml | tr -d '\r')"
+          echo "Vorlage: $template"
+          keys() { jq -r 'keys[] | select(startswith("@") | not)' "$1" | sort; }
+          keys "$template" > /tmp/template.keys
+          status=0
+          for arb in lib/l10n/app_*.arb; do
+            [ "$arb" = "$template" ] && continue
+            missing=$(comm -23 /tmp/template.keys <(keys "$arb"))
+            extra=$(comm -13 /tmp/template.keys <(keys "$arb"))
+            if [ -n "$missing" ]; then
+              status=1
+              echo "::error file=$arb::Fehlende Schluessel: $(echo "$missing" | paste -sd, -)"
+            fi
+            if [ -n "$extra" ]; then
+              echo "::warning file=$arb::Schluessel nicht in der Vorlage: $(echo "$extra" | paste -sd, -)"
+            fi
+            echo "$arb: $(keys "$arb" | wc -l) Schluessel, fehlend: $(echo -n "$missing" | grep -c . || true)"
+          done
+          exit "$status"
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Generierte Lokalisierung aktuell
+        run: |
+          flutter gen-l10n
+          if ! git diff --exit-code -- lib/l10n/gen; then
+            echo "::error::lib/l10n/gen ist veraltet. Lokal 'flutter gen-l10n' ausfuehren und committen."
+            exit 1
+          fi
+
+  web-smoke:
+    name: Web-Build (Smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Konfiguration schreiben
+        uses: ./.github/actions/write-config
+        with:
+          app-env: dev
+
+      - name: Web bauen
+        run: >-
+          flutter build web --release --wasm --no-web-resources-cdn
+          --dart-define-from-file=config/app.json --base-href /
+
+      - name: Postbuild (falls vorhanden)
+        run: |
+          if [ -f tool/web_postbuild.dart ]; then
+            dart run tool/web_postbuild.dart build/web
+          else
+            echo "tool/web_postbuild.dart fehlt noch (Paket P22), Schritt uebersprungen." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Build-Ergebnis pruefen
+        run: |
+          set -euo pipefail
+          for f in index.html flutter_bootstrap.js; do
+            test -s "build/web/$f" || { echo "::error::build/web/$f fehlt"; exit 1; }
+          done
+          ls build/web/main*.dart.js >/dev/null 2>&1 || { echo "::error::kein main*.dart.js"; exit 1; }
+          ls build/web/main*.dart.wasm >/dev/null 2>&1 || { echo "::error::kein main*.dart.wasm"; exit 1; }
+          test -d build/web/canvaskit || { echo "::error::canvaskit/ fehlt (no-web-resources-cdn)"; exit 1; }
+          if grep -rIl --include='*.js' --include='*.html' 'gstatic.com' build/web >/dev/null; then
+            echo "::warning::Verweis auf gstatic.com im Web-Build gefunden"
+          fi
+          echo "**Web-Build:** $(du -sh build/web | cut -f1), $(find build/web -type f | wc -l) Dateien" >> "$GITHUB_STEP_SUMMARY"

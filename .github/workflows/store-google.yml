@@ -1,0 +1,134 @@
+name: Store Google Play
+
+# Laedt das AAB aus dem GitHub-Release in eine Play-Spur hoch.
+# Ausloeser: release.yml (nach dem Veroeffentlichen) oder manuell mit Tag.
+# Ohne Secret PLAY_SERVICE_ACCOUNT_JSON wird sauber uebersprungen (Hinweis in der Zusammenfassung).
+# Spuren: internal (Standard) und alpha (= "Geschlossener Test"). Produktion ist absichtlich
+# nicht auswaehlbar, das gibt der Inhaber in der Play Console frei.
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Versions-Tag (vX.Y.Z oder vX.Y.Z-suffix)
+        type: string
+        required: true
+      track:
+        description: Play-Spur (internal oder alpha)
+        type: string
+        required: false
+        default: internal
+      status:
+        description: draft (Release bleibt Entwurf) oder completed
+        type: string
+        required: false
+        default: draft
+    secrets:
+      PLAY_SERVICE_ACCOUNT_JSON:
+        required: false
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Versions-Tag eines vorhandenen Releases (z. B. v1.0.0)
+        type: string
+        required: true
+      track:
+        description: Play-Spur
+        type: choice
+        options:
+          - internal
+          - alpha
+        default: internal
+      status:
+        description: Release-Status (Neue Apps muessen mit draft starten)
+        type: choice
+        options:
+          - draft
+          - completed
+        default: draft
+
+permissions: {}
+
+concurrency:
+  group: store-google-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    name: Google Play (${{ inputs.track }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ inputs.tag }}
+      TRACK: ${{ inputs.track }}
+      STATUS: ${{ inputs.status }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Eingaben pruefen
+        run: |
+          set -euo pipefail
+          case "$TRACK" in internal|alpha) ;; *) echo "::error::Spur '$TRACK' nicht erlaubt (internal, alpha)"; exit 1 ;; esac
+          case "$STATUS" in draft|completed) ;; *) echo "::error::Status '$STATUS' nicht erlaubt (draft, completed)"; exit 1 ;; esac
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Gate Google Play
+        id: gate
+        uses: ./.github/actions/secret-gate
+        with:
+          label: Google-Play-Upload (${{ inputs.tag }}, Spur ${{ inputs.track }})
+          checks: |
+            PLAY_SERVICE_ACCOUNT_JSON=${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+
+      - name: AAB aus dem Release holen
+        id: release
+        if: steps.gate.outputs.ready == 'true'
+        uses: ./.github/actions/fetch-release
+        with:
+          tag: ${{ inputs.tag }}
+          pattern: "*-android.aab"
+          token: ${{ github.token }}
+
+      - name: Signatur des AAB pruefen
+        if: steps.gate.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          aab="$(ls dist/*-android.aab | head -n1)"
+          if ! jarsigner -verify "$aab" 2>&1 | grep -q "jar verified"; then
+            echo "::error::Das AAB im Release ist nicht signiert (Upload-Key fehlte beim Build, siehe Secrets ANDROID_KEYSTORE_*). Play lehnt unsignierte Bundles ab."
+            exit 1
+          fi
+          echo "AAB: $aab (signiert)"
+          echo "AAB_PATH=$aab" >> "$GITHUB_ENV"
+
+      - name: Nach Google Play hochladen
+        if: steps.gate.outputs.ready == 'true'
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: de.linefm.app
+          releaseFiles: ${{ env.AAB_PATH }}
+          track: ${{ inputs.track }}
+          status: ${{ inputs.status }}
+          releaseName: ${{ steps.release.outputs.label }}
+
+      - name: Zusammenfassung
+        if: steps.gate.outputs.ready == 'true'
+        run: |
+          {
+            echo "### Google Play"
+            echo "- Version: $TAG, Spur: $TRACK, Status: $STATUS"
+            if [ "$STATUS" = "draft" ]; then
+              echo "- Der Release bleibt Entwurf. In der Play Console pruefen und dort zur Ueberpruefung senden."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

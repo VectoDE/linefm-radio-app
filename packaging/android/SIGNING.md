@@ -37,7 +37,7 @@ Die `.jks` nach `android/app/upload-keystore.jks` kopieren, dann `flutter build 
 | `ANDROID_KEY_ALIAS` | z. B. `upload` |
 | `ANDROID_KEY_PASSWORD` | Schluessel-Passwort |
 
-Der Upload nach Google Play (`PLAY_SERVICE_ACCOUNT_JSON`) gehoert zu P27.
+Der Upload nach Google Play (`PLAY_SERVICE_ACCOUNT_JSON`) macht `.github/workflows/store-google.yml`, siehe `docs/stores-pipelines.md`.
 
 ## Versionierung (`versionCode`)
 

@@ -1,0 +1,220 @@
+name: Store Microsoft
+
+# Baut ein MSIX mit der Store-Identitaet und reicht es ueber die Microsoft Store Developer CLI
+# (msstore) im Partner Center ein. Das MSIX aus dem Release (build.yml) traegt die Sideload-
+# Identitaet und taugt nicht fuer den Store, deshalb baut dieser Workflow es neu.
+# Ausloeser: release.yml (nur Endversionen) oder manuell mit Tag.
+# Ohne die Secrets/Variablen unten wird sauber uebersprungen. Ungetestet (kein Partner-Center-Konto).
+#
+# Secrets:    MS_STORE_TENANT_ID, MS_STORE_SELLER_ID, MS_STORE_CLIENT_ID, MS_STORE_CLIENT_SECRET
+# Variablen:  MS_STORE_PRODUCT_ID, MS_STORE_IDENTITY_NAME, MS_STORE_PUBLISHER,
+#             MS_STORE_PUBLISHER_DISPLAY_NAME (Werte aus Partner Center > Produktidentitaet)
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Versions-Tag (vX.Y.Z)
+        type: string
+        required: true
+      commit:
+        description: "true: Einreichung abschicken, false: als Entwurf im Partner Center lassen"
+        type: boolean
+        required: false
+        default: false
+    secrets:
+      MS_STORE_TENANT_ID:
+        required: false
+      MS_STORE_SELLER_ID:
+        required: false
+      MS_STORE_CLIENT_ID:
+        required: false
+      MS_STORE_CLIENT_SECRET:
+        required: false
+      FIREBASE_CONFIG_JSON:
+        required: false
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Versions-Tag eines vorhandenen Releases (z. B. v1.0.0)
+        type: string
+        required: true
+      commit:
+        description: Einreichung abschicken (aus = Entwurf im Partner Center)
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: store-microsoft-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: Secret-Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      ready: ${{ steps.gate.outputs.ready }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Gate Microsoft Store
+        id: gate
+        uses: ./.github/actions/secret-gate
+        with:
+          label: Microsoft-Store-Einreichung (${{ inputs.tag }})
+          checks: |
+            MS_STORE_TENANT_ID=${{ secrets.MS_STORE_TENANT_ID != '' }}
+            MS_STORE_SELLER_ID=${{ secrets.MS_STORE_SELLER_ID != '' }}
+            MS_STORE_CLIENT_ID=${{ secrets.MS_STORE_CLIENT_ID != '' }}
+            MS_STORE_CLIENT_SECRET=${{ secrets.MS_STORE_CLIENT_SECRET != '' }}
+            MS_STORE_PRODUCT_ID=${{ vars.MS_STORE_PRODUCT_ID != '' }}
+            MS_STORE_IDENTITY_NAME=${{ vars.MS_STORE_IDENTITY_NAME != '' }}
+            MS_STORE_PUBLISHER=${{ vars.MS_STORE_PUBLISHER != '' }}
+            MS_STORE_PUBLISHER_DISPLAY_NAME=${{ vars.MS_STORE_PUBLISHER_DISPLAY_NAME != '' }}
+
+  submit:
+    name: Microsoft Store einreichen
+    needs: gate
+    if: needs.gate.outputs.ready == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ inputs.tag }}
+      COMMIT: ${{ inputs.commit }}
+      PRODUCT_ID: ${{ vars.MS_STORE_PRODUCT_ID }}
+      IDENTITY_NAME: ${{ vars.MS_STORE_IDENTITY_NAME }}
+      PUBLISHER: ${{ vars.MS_STORE_PUBLISHER }}
+      PUBLISHER_DISPLAY_NAME: ${{ vars.MS_STORE_PUBLISHER_DISPLAY_NAME }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Version bestimmen
+        id: version
+        shell: bash
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          BUILD_NUMBER_OFFSET: ${{ vars.BUILD_NUMBER_OFFSET }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Ungueltiger Tag: $TAG"
+            exit 1
+          fi
+          if ! [[ "$PRODUCT_ID" =~ ^[A-Za-z0-9]+$ ]]; then
+            echo "::error::MS_STORE_PRODUCT_ID enthaelt unerlaubte Zeichen"
+            exit 1
+          fi
+          label="${TAG#v}"
+          build_name="${label%%-*}"
+          {
+            echo "label=$label"
+            echo "build_name=$build_name"
+            echo "build_number=$(( RUN_NUMBER + ${BUILD_NUMBER_OFFSET:-100} ))"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Rust-Toolchain (fuer smtc_windows)
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install stable --profile minimal --no-self-update
+          rustup default stable
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Konfiguration schreiben
+        uses: ./.github/actions/write-config
+        with:
+          app-env: prod
+          app-version: ${{ steps.version.outputs.label }}
+          legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
+          legal-strict: ${{ !contains(inputs.tag, '-') }}
+          web-base-url: ${{ vars.WEB_BASE_URL }}
+          umami-url: ${{ vars.UMAMI_URL }}
+          umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
+          sentry-dsn: ${{ vars.SENTRY_DSN }}
+          sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
+          gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
+          trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
+          firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
+
+      - name: Windows bauen
+        shell: bash
+        env:
+          BUILD_NAME: ${{ steps.version.outputs.build_name }}
+          BUILD_NUMBER: ${{ steps.version.outputs.build_number }}
+        run: flutter build windows --release --dart-define-from-file=config/app.json --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
+
+      - name: Store-MSIX erstellen (ohne eigene Signatur, der Store signiert)
+        id: msix
+        shell: pwsh
+        env:
+          BUILD_NAME: ${{ steps.version.outputs.build_name }}
+          LABEL: ${{ steps.version.outputs.label }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $name = "linefm-radio-$env:LABEL-windows-store"
+          dart run msix:create --build-windows false --store `
+            --identity-name $env:IDENTITY_NAME --publisher $env:PUBLISHER `
+            --publisher-display-name $env:PUBLISHER_DISPLAY_NAME `
+            --version "$env:BUILD_NAME.0" --output-path dist --output-name $name
+          if ($LASTEXITCODE -ne 0) { throw 'msix:create fehlgeschlagen' }
+          $file = Join-Path (Resolve-Path dist).Path "$name.msix"
+          if (-not (Test-Path $file)) { throw "MSIX nicht gefunden: $file" }
+          "file=$file" >> $env:GITHUB_OUTPUT
+
+      - name: msstore-CLI installieren
+        uses: microsoft/setup-msstore-cli@cc9910a8d59f2eb55cbb83df0a3800cf3b5300e0 # v1.4
+
+      - name: msstore konfigurieren
+        shell: pwsh
+        env:
+          MS_TENANT_ID: ${{ secrets.MS_STORE_TENANT_ID }}
+          MS_SELLER_ID: ${{ secrets.MS_STORE_SELLER_ID }}
+          MS_CLIENT_ID: ${{ secrets.MS_STORE_CLIENT_ID }}
+          MS_CLIENT_SECRET: ${{ secrets.MS_STORE_CLIENT_SECRET }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          msstore settings --enableTelemetry false
+          msstore reconfigure --tenantId $env:MS_TENANT_ID --sellerId $env:MS_SELLER_ID --clientId $env:MS_CLIENT_ID --clientSecret $env:MS_CLIENT_SECRET
+          if ($LASTEXITCODE -ne 0) { throw 'msstore reconfigure fehlgeschlagen' }
+
+      - name: Einreichen
+        shell: pwsh
+        env:
+          MSIX_FILE: ${{ steps.msix.outputs.file }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $publishArgs = @('publish', (Split-Path $env:MSIX_FILE), '--inputFile', $env:MSIX_FILE, '--appId', $env:PRODUCT_ID)
+          if ($env:COMMIT -ne 'true') { $publishArgs += '--noCommit' }
+          msstore @publishArgs
+          if ($LASTEXITCODE -ne 0) { throw 'msstore publish fehlgeschlagen' }
+          "### Microsoft Store" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          "- Version: $env:TAG, Produkt: $env:PRODUCT_ID" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          if ($env:COMMIT -ne 'true') {
+            "- Einreichung liegt als Entwurf im Partner Center. Dort pruefen und abschicken (oder den Workflow mit commit=true starten)." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          } else {
+            "- Einreichung abgeschickt, Zertifizierung laeuft im Partner Center." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }

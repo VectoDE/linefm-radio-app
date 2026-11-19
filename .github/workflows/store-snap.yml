@@ -1,0 +1,129 @@
+name: Store Snap
+
+# Baut das Snap aus packaging/snap/snapcraft.yaml (wird nach snap/ kopiert, wie snapcraft es
+# erwartet) und laedt es in den Snap Store hoch (Standard: Kanal edge).
+# Ausloeser: release.yml oder manuell mit Tag. Ohne Secret SNAPCRAFT_STORE_CREDENTIALS wird
+# sauber uebersprungen, der teure Build laeuft dann gar nicht erst. Ungetestet (kein Linux-Build
+# und kein Snap-Store-Konto in der Entwicklung).
+#
+# Grenzen (siehe docs/stores-pipelines.md): snapcraft baut aus dem Quelltext mit dem Flutter-Plugin
+# und nutzt dabei keine config/app.json und nicht die in pubspec.yaml festgelegte Flutter-Version.
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Versions-Tag (vX.Y.Z oder vX.Y.Z-suffix)
+        type: string
+        required: true
+      channel:
+        description: Snap-Kanal (edge, beta, candidate, stable)
+        type: string
+        required: false
+        default: edge
+    secrets:
+      SNAPCRAFT_STORE_CREDENTIALS:
+        required: false
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Versions-Tag (z. B. v1.0.0)
+        type: string
+        required: true
+      channel:
+        description: Snap-Kanal (stable nur nach Test auf edge/candidate)
+        type: choice
+        options:
+          - edge
+          - beta
+          - candidate
+          - stable
+        default: edge
+
+permissions: {}
+
+concurrency:
+  group: store-snap-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: Secret-Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      ready: ${{ steps.gate.outputs.ready }}
+    steps:
+      - name: Eingaben pruefen
+        env:
+          TAG: ${{ inputs.tag }}
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then echo "::error::Ungueltiger Tag: $TAG"; exit 1; fi
+          case "$CHANNEL" in edge|beta|candidate|stable) ;; *) echo "::error::Kanal '$CHANNEL' nicht erlaubt"; exit 1 ;; esac
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Gate Snap Store
+        id: gate
+        uses: ./.github/actions/secret-gate
+        with:
+          label: Snap-Store-Upload (${{ inputs.tag }}, Kanal ${{ inputs.channel }})
+          checks: |
+            SNAPCRAFT_STORE_CREDENTIALS=${{ secrets.SNAPCRAFT_STORE_CREDENTIALS != '' }}
+
+  publish:
+    name: Snap bauen und hochladen
+    needs: gate
+    if: needs.gate.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: snapcraft.yaml nach snap/ kopieren
+        run: |
+          set -euo pipefail
+          mkdir -p snap
+          cp packaging/snap/snapcraft.yaml snap/snapcraft.yaml
+
+      - name: Snap bauen
+        id: build
+        uses: snapcore/action-build@3bdaa03e1ba6bf59a65f84a751d943d549a54e79 # v1.3.0
+
+      - name: Snap hochladen
+        uses: snapcore/action-publish@214b86e5ca036ead1668c79afb81e550e6c54d40 # v1.2.0
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.build.outputs.snap }}
+          release: ${{ inputs.channel }}
+
+      - name: Zusammenfassung
+        env:
+          TAG: ${{ inputs.tag }}
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          {
+            echo "### Snap Store"
+            echo "- Version: $TAG, Kanal: $CHANNEL"
+            echo "- Naechster Schritt: Snap testen (\`snap install linefm-radio --channel=$CHANNEL\`), dann Kanal anheben."
+          } >> "$GITHUB_STEP_SUMMARY"

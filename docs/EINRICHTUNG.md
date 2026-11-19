@@ -38,7 +38,7 @@ Wo: Repository > Settings > Secrets and variables > Actions > "New repository se
 - [ ] Jedes Secret, das in den folgenden Abschnitten genannt wird, dort anlegen. Name exakt übernehmen, Wert einfügen, speichern. Danach sieht man den Wert nie wieder, nur noch überschreiben.
 - [ ] Ohne Secret passiert nichts Schlimmes: Der betreffende Schritt wird übersprungen oder baut unsigniert.
 
-Hinweis: Die genaue Liste der Secrets für die Store-Abläufe liegt bei den Pipelines (Paket P27). Die Namen in dieser Anleitung stammen aus den Dokumenten unter `packaging/` und können dort ergänzt werden.
+Die vollständige Liste aller Secrets und Variablen mit Herkunft und Zuständigkeit steht in [secrets.md](secrets.md). Wie die Abläufe zusammenhängen und in welcher Reihenfolge sie laufen, steht in [stores-pipelines.md](stores-pipelines.md).
 
 ## 2. Google Play (Android)
 
@@ -66,7 +66,7 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 
 - [ ] In der Google Cloud Console ein Dienstkonto anlegen und einen JSON-Schlüssel erzeugen.
 - [ ] In der Play Console unter Nutzer und Berechtigungen das Dienstkonto einladen, mit Recht für Veröffentlichung auf Test- und Produktionsspuren.
-- [ ] Inhalt der JSON-Datei als Secret `PLAY_SERVICE_ACCOUNT_JSON` eintragen.
+- [ ] Inhalt der JSON-Datei als Secret `PLAY_SERVICE_ACCOUNT_JSON` eintragen. Danach lädt `store-google.yml` jedes Release als Entwurf in die Spur "internal" hoch (siehe [stores-pipelines.md](stores-pipelines.md)).
 
 ### 2.5 App-Inhalte und Erklärungen
 
@@ -125,9 +125,9 @@ Entscheidung 21: Apple ist für die Veröffentlichung herausgenommen. iOS, macOS
 - [ ] **Team-ID** notieren (Account > Mitgliedschaft, 10 Zeichen). Secret `APPLE_TEAM_ID`.
 - [ ] Bundle-ID `de.linefm.app` unter Zertifikate, IDs & Profile registrieren, mit den Fähigkeiten Background Modes (Audio) und später CarPlay.
 - [ ] App in App Store Connect anlegen (Name "LINEFM Radio", Bundle-ID, Sprache Deutsch).
-- [ ] API-Schlüssel für App Store Connect erzeugen (Nutzer und Zugriff > Integrationen). Schlüssel-ID, Issuer-ID und die `.p8`-Datei als Secrets eintragen. Die genauen Namen stehen bei der Apple-Pipeline (P27).
-- [ ] Zertifikate und Profile: Die Pipeline nutzt fastlane. Sie braucht ein privates Repo oder einen Speicher für die Zertifikate (`match`) und ein Passwort dafür. Vorlagen für die Exportoptionen: [packaging/ios/README.md](../packaging/ios/README.md).
-- [ ] Schalter `APPLE_PUBLISHING_ENABLED` erst dann auf `true` setzen, wenn alles vorliegt.
+- [ ] API-Schlüssel für App Store Connect erzeugen (Nutzer und Zugriff > Integrationen). Schlüssel-ID, Issuer-ID und den Inhalt der `.p8`-Datei als Secrets `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_API_KEY_ISSUER_ID` und `APP_STORE_CONNECT_API_KEY_P8` eintragen.
+- [ ] Zertifikate und Profile: "Apple Distribution" (iOS und Mac) und "Mac Installer Distribution" (nur Mac App Store) als `.p12` exportieren, dazu je ein App-Store-Profil für `de.linefm.app` und `de.linefm.app.widget` (iOS) sowie `de.linefm.app` (macOS). Secrets `APPLE_DISTRIBUTION_CERT_P12_BASE64`, `APPLE_DISTRIBUTION_CERT_PASSWORD`, `APPLE_MAC_INSTALLER_CERT_P12_BASE64`, `APPLE_MAC_INSTALLER_CERT_PASSWORD`, `APPLE_IOS_PROVISIONING_PROFILES_BASE64`, `APPLE_MACOS_PROVISIONING_PROFILE_BASE64`. Für das signierte DMG außerhalb des Stores zusätzlich `APPLE_DEVELOPER_ID_CERT_P12_BASE64` und `APPLE_DEVELOPER_ID_CERT_PASSWORD`. Die Pipeline (`store-apple.yml`) nutzt kein fastlane, Details in [secrets.md](secrets.md). Vorlagen für die Exportoptionen: [packaging/ios/README.md](../packaging/ios/README.md).
+- [ ] Schalter `APPLE_PUBLISHING_ENABLED` (Repository-Variable, nicht Secret) erst dann auf `true` setzen, wenn alles vorliegt.
 - [ ] **CarPlay-Audio-Berechtigung** beantragen (Formular im Apple-Entwicklerportal, "CarPlay App Entitlement Request", Kategorie Audio). Apple prüft von Hand, das kann Wochen dauern. Ohne Freigabe zeigt die App kein CarPlay.
 - [ ] **AASA-Datei** für Universal Links: `https://app.linefm.de/.well-known/apple-app-site-association` (ohne Dateiendung, Antwort `application/json`, keine Weiterleitung). Inhalt, mit deiner Team-ID:
 
@@ -150,7 +150,7 @@ Quelle: [packaging/windows/README.md](../packaging/windows/README.md).
 - [ ] Konto unter <https://partner.microsoft.com/dashboard/registration> als Einzelentwickler registrieren (kostenlos, Identitätsprüfung).
 - [ ] App-Namen "LINEFM Radio" reservieren.
 - [ ] Unter Produktverwaltung > Produktidentität drei Werte kopieren: `Package/Identity/Name`, `Package/Identity/Publisher` (sieht aus wie `CN=XXXXXXXX-...`) und `Package/Properties/PublisherDisplayName`. Diese Werte trägt der Entwickler im Build ein (`identity_name`, `publisher`, `publisher_display_name`).
-- [ ] Secrets für die Store-Pipeline anlegen (Präfix `MS_STORE_*`, genaue Namen bei der Pipeline P27).
+- [ ] Azure-AD-Anwendung für die Store-Pipeline anlegen (Partner Center > Konto-Einstellungen > Benutzer > Azure-AD-Anwendungen, Rolle "Manager"). Secrets `MS_STORE_TENANT_ID`, `MS_STORE_SELLER_ID`, `MS_STORE_CLIENT_ID`, `MS_STORE_CLIENT_SECRET` und Variablen `MS_STORE_PRODUCT_ID`, `MS_STORE_IDENTITY_NAME`, `MS_STORE_PUBLISHER`, `MS_STORE_PUBLISHER_DISPLAY_NAME` eintragen (Quellen in [secrets.md](secrets.md)). `store-microsoft.yml` reicht dann den Entwurf ein, abgeschickt wird im Partner Center.
 - [ ] Für den Store braucht es kein eigenes Zertifikat, Microsoft signiert selbst. Für den Installer auf GitHub optional: Codesigning-Zertifikat als `WINDOWS_CERT_PFX_BASE64` und `WINDOWS_CERT_PASSWORD`. Ohne Zertifikat zeigt Windows SmartScreen beim Installer eine Warnung.
 - [ ] Store-Eintrag: Beschreibung, 300 x 300-Logo, mindestens ein Screenshot, Altersfreigabe, Datenschutz-URL.
 
@@ -171,7 +171,7 @@ Quelle: [packaging/flathub/README.md](../packaging/flathub/README.md).
 
 - [ ] Konto auf <https://snapcraft.io/> anlegen (Ubuntu One).
 - [ ] Snap-Namen `linefm-radio` registrieren (`snapcraft register linefm-radio` oder über die Webseite).
-- [ ] Zugangsdaten für die Pipeline erzeugen (`snapcraft export-login`) und als Secret eintragen (Name bei P27).
+- [ ] Zugangsdaten für die Pipeline erzeugen (`snapcraft export-login`, Befehl in [secrets.md](secrets.md)) und als Secret `SNAPCRAFT_STORE_CREDENTIALS` eintragen. Danach lädt `store-snap.yml` jedes Release in den Kanal "edge".
 - [ ] Erste Version in den Kanal "edge" oder "candidate" stellen, testen, dann "stable".
 - [ ] Hinweis: Ob die Tray-Funktion unter der strikten Snap-Absicherung läuft, ist noch ungetestet.
 
@@ -192,8 +192,9 @@ Die Web-App besteht nur aus Dateien. Such dir **einen** Weg aus. Jede Anleitung 
 
 - [ ] **Eigener Server mit nginx:** [hosting-nginx.md](hosting-nginx.md), Konfiguration in `deploy/nginx/`.
 - [ ] **Server mit Docker und Traefik:** [hosting-traefik.md](hosting-traefik.md), Konfiguration in `deploy/traefik/`.
-- [ ] **Cloudflare Pages:** [hosting-cloudflare.md](hosting-cloudflare.md), Konfiguration in `deploy/cloudflare/`. Dafür Secrets `CLOUDFLARE_API_TOKEN` (Berechtigung "Cloudflare Pages: Edit") und `CLOUDFLARE_ACCOUNT_ID`.
+- [ ] **Cloudflare Pages:** [hosting-cloudflare.md](hosting-cloudflare.md), Konfiguration in `deploy/cloudflare/`. Dafür Secrets `CLOUDFLARE_API_TOKEN` (Berechtigung "Cloudflare Pages: Edit") und `CLOUDFLARE_ACCOUNT_ID`, Variable `CLOUDFLARE_PAGES_PROJECT`. Automatisch ausrollen: `deploy-web.yml`, Ziel `cloudflare` in der Variable `WEB_DEPLOY_TARGETS`.
 - [ ] **Plesk:** [hosting-plesk.md](hosting-plesk.md), Konfiguration in `deploy/plesk/`.
+- [ ] **Automatisch ausrollen:** Umgebung `production` mit Genehmigern anlegen, Secrets und Variablen für das gewählte Ziel eintragen ([secrets.md](secrets.md), Abschnitt "Web-Deploy"), `WEB_DEPLOY_TARGETS` auf `cloudflare`, `ssh` oder `plesk` setzen. Ohne diese Variable rollt nichts aus.
 - [ ] DNS: `app.linefm.de` auf den gewählten Ort zeigen lassen.
 - [ ] HTTPS-Zertifikat einrichten (Let's Encrypt oder Cloudflare). Ohne HTTPS laufen Service Worker und Installation als App nicht, und Browser warnen.
 - [ ] Nach dem ersten Ausrollen prüfen (Befehle am Ende von `hosting-uebersicht.md`): Header, ETag, 304-Antwort.

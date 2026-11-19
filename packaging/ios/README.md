@@ -26,4 +26,4 @@ sed -e "s/{{APPLE_TEAM_ID}}/$APPLE_TEAM_ID/" \
 flutter build ipa --release --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
 ```
 
-Die erzeugte Datei nicht committen. Die Apple-Pipeline (fastlane `match`/`gym`, Gate `APPLE_PUBLISHING_ENABLED`) liegt in P27. Das Ziel `destination: export` schreibt die IPA nur lokal, hochgeladen wird per `pilot`/`deliver`.
+Die erzeugte Datei nicht committen. Die Apple-Pipeline (`.github/workflows/store-apple.yml`, Gate `APPLE_PUBLISHING_ENABLED`) erzeugt die ExportOptions selbst aus den installierten Profilen (je Bundle-ID das passende Profil) und lädt mit `altool` hoch, ohne fastlane. Diese Vorlagen sind für lokale Exporte gedacht. Das Ziel `destination: export` schreibt die IPA nur lokal.

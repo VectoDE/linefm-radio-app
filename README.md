@@ -37,7 +37,7 @@ Alle Sender in einer App, kostenlos und ohne Konto.
 - **Deutsch und Englisch**, hell und dunkel, für Handy, Tablet und Desktop. Warum nur zwei Sprachen: [Sprachen](#sprachen).
 - **Links:** `https://app.linefm.de/?station=<sender>` und `linefm://play?station=<sender>` öffnen direkt den Sender.
 
-Datenschutz: Favoriten, Verlauf und Einstellungen bleiben auf deinem Gerät. Statistik und Absturzberichte sind nur aktiv, wenn der Betreiber sie einschaltet, und dann nur nach deiner Einwilligung. Impressum und Datenschutzerklärung stehen in der App und unter `/impressum/` und `/datenschutz/` auf der Web-Seite.
+Datenschutz: Favoriten, Verlauf und Einstellungen bleiben auf deinem Gerät. Statistik und Absturzberichte sind nur aktiv, wenn der Betreiber sie einschaltet, und dann nur nach deiner Einwilligung. In der Web-Version kann der Betreiber zusätzlich eine Reichweitenmessung mit Google Analytics einrichten; auch die läuft nur, wenn du gesondert zustimmst. Impressum und Datenschutzerklärung stehen in der App und unter `/impressum/` und `/datenschutz/` auf der Web-Seite.
 
 Fehler melden und Ideen: im Bereich Issues oder Discussions dieses Repositories.
 
@@ -49,7 +49,7 @@ Die App lässt sich mit Tastatur bedienen, alle Bereiche sind für Screenreader 
 
 - **Stand:** Version 1.0.0 fertig gebaut, noch in keinem Store. Was vor dem Start fehlt, sind Konten, Zugangsdaten und schriftliche Freigaben des Betreibers, keine Programmierarbeit: [Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md).
 - **Laufende Kosten:** kein eigenes Backend, keine Nutzerkonten. Es fallen nur Store-Gebühren (Google Play einmalig, Apple jährlich, falls später gewünscht) und das Web-Hosting an. Die Sender kommen über die öffentliche laut.fm-API.
-- **Daten:** Ohne aktivierte Statistik schickt die App von sich aus nur Anfragen an laut.fm (API und Streams), an Apple (iTunes-Cover-Suche, abschaltbar), an cdn.linefm.de (Sender-Icons) und an radiogruppe.de (Logo). Statistik und Absturzberichte nur nach Einwilligung, siehe [Telemetrie](docs/telemetry.md).
+- **Daten:** Ohne aktivierte Statistik schickt die App von sich aus nur Anfragen an laut.fm (API und Streams), an Apple (iTunes-Cover-Suche, abschaltbar), an cdn.linefm.de (Sender-Icons) und an radiogruppe.de (Logo). Statistik und Absturzberichte nur nach Einwilligung, siehe [Telemetrie](docs/telemetry.md). Im Web optional Google Analytics, nur nach eigener Einwilligung (siehe [Einrichtung](docs/EINRICHTUNG.md)).
 - **Prüfbarkeit:** Jedes Release hat Prüfsummen, eine SBOM, eine Herkunfts-Attestierung von GitHub und eine cosign-Signatur je Datei, auf Wunsch zusätzlich eine GPG-Signatur: [Release-Dateien prüfen](docs/RELEASE-VERIFIZIEREN.md).
 - **Risiken:** Abhängigkeit von laut.fm als einziger Datenquelle; Marken- und Rechtsfragen (Name, Logo, Rechtstexte) klärt der Betreiber mit einem Anwalt, bevor etwas veröffentlicht wird.
 

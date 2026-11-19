@@ -45,7 +45,8 @@ class WebRoutes {
 ///
 /// Wecker, Ueber und Recht oeffnet die Shell als eigene Seite und springt
 /// sofort zum vorherigen Bereich zurueck; die Adresse zeigt dann den
-/// Bereich dahinter.
+/// Bereich dahinter. Bereichswechsel legen per `pushState` Verlaufseintraege
+/// an, die Zurueck-Taste des Browsers wechselt entsprechend zurueck.
 class WebRouteSync extends ConsumerStatefulWidget {
   const WebRouteSync({
     super.key,
@@ -82,11 +83,29 @@ class _WebRouteSyncState extends ConsumerState<WebRouteSync> {
     }
     ref.listenManual<AppScreen>(navigationProvider, (previous, next) {
       if (!next.isShellScreen) return;
-      replaceBrowserPath(
-        WebRoutes.pathFor(next),
-        query: currentBrowserUri()?.query,
-      );
+      final path = WebRoutes.pathFor(next);
+      // Bereichswechsel = neuer Verlaufseintrag (Zurueck-Taste); der erste
+      // Eintrag nach dem Start und Rueckspruenge ersetzen nur.
+      final push = !_fromPop && previous != null && previous != next;
+      _fromPop = false;
+      setBrowserPath(path, query: currentBrowserUri()?.query, push: push);
     });
+    _unlisten = listenBrowserPop((path) {
+      final screen = WebRoutes.screenFor(path);
+      if (screen == null || !mounted) return;
+      if (ref.read(navigationProvider) == screen) return;
+      _fromPop = true;
+      ref.read(navigationProvider.notifier).go(screen);
+    });
+  }
+
+  bool _fromPop = false;
+  void Function()? _unlisten;
+
+  @override
+  void dispose() {
+    _unlisten?.call();
+    super.dispose();
   }
 
   @override

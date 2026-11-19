@@ -52,7 +52,7 @@ class AboutScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(),
       body: ListView(
-        padding: EdgeInsets.fromLTRB(side, 8, side, 48),
+        padding: EdgeInsets.fromLTRB(side, 20, side, 48),
         children: <Widget>[
           SectionHeading(
             l10n.aboutTitle,

@@ -8,6 +8,7 @@ import 'package:linefm_radio/app/player_controller.dart';
 import 'package:linefm_radio/app/user_activation.dart';
 import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
+import 'package:linefm_radio/core/logging.dart';
 import 'package:linefm_radio/data/api/http_cache.dart';
 import 'package:linefm_radio/data/api/laut_api.dart';
 import 'package:linefm_radio/data/api/song_change_socket.dart';
@@ -228,7 +229,12 @@ class ActiveStationNotifier extends Notifier<Station> {
 
   void select(Station station) {
     state = station;
-    ref.read(prefsProvider).writeLastStation(station.slug).ignore();
+    unawaited(
+      ref
+          .read(prefsProvider)
+          .writeLastStation(station.slug)
+          .catchError(_logPrefsError),
+    );
   }
 }
 
@@ -281,12 +287,28 @@ class FavoritesNotifier extends Notifier<List<Favorite>> {
 
   void toggle(Favorite favorite) {
     state = FavoritesLogic.toggle(state, favorite);
-    ref.read(prefsProvider).writeFavorites(state).ignore();
+    unawaited(
+      ref.read(prefsProvider).writeFavorites(state).catchError(_logPrefsError),
+    );
   }
 
   void remove(String key) {
     state = FavoritesLogic.remove(state, key);
-    ref.read(prefsProvider).writeFavorites(state).ignore();
+    unawaited(
+      ref.read(prefsProvider).writeFavorites(state).catchError(_logPrefsError),
+    );
+  }
+
+  /// "Rueckgaengig" nach dem Entfernen (U3): setzt [favorite] wieder an
+  /// [index]. Ist er inzwischen wieder da, bleibt die Liste unveraendert.
+  void restore(Favorite favorite, int index) {
+    if (FavoritesLogic.contains(state, favorite.key)) return;
+    final next = <Favorite>[...state]
+      ..insert(index.clamp(0, state.length), favorite);
+    state = next;
+    unawaited(
+      ref.read(prefsProvider).writeFavorites(state).catchError(_logPrefsError),
+    );
   }
 
   /// Fuehrt importierte Favoriten mit den vorhandenen zusammen (Doppelte
@@ -294,7 +316,9 @@ class FavoritesNotifier extends Notifier<List<Favorite>> {
   int importFavorites(List<Favorite> imported) {
     final merged = FavoritesImport.merge(state, imported);
     state = merged.favorites;
-    ref.read(prefsProvider).writeFavorites(state).ignore();
+    unawaited(
+      ref.read(prefsProvider).writeFavorites(state).catchError(_logPrefsError),
+    );
     return merged.added;
   }
 }
@@ -309,7 +333,9 @@ class SettingsNotifier extends Notifier<AppSettings> {
 
   void update(AppSettings Function(AppSettings current) change) {
     state = change(state);
-    ref.read(prefsProvider).writeSettings(state).ignore();
+    unawaited(
+      ref.read(prefsProvider).writeSettings(state).catchError(_logPrefsError),
+    );
   }
 }
 
@@ -441,6 +467,11 @@ List<Override> productionOverrides({
     return api;
   }),
   artworkProvider.overrideWith((ref) {
+    // Schalter "Cover laden" aus: keine Anfrage an
+    // Apple, nur Cover aus der laut.fm-API, sonst Senderlogo (L5).
+    if (!ref.watch(settingsProvider.select((s) => s.loadArtwork))) {
+      return const ApiCoverOnlyArtworkService();
+    }
     final service = ItunesArtworkService(
       client: httpClient,
       clock: ref.watch(clockProvider),
@@ -472,3 +503,9 @@ List<Override> productionOverrides({
   ...alarmAndSleepOverrides(),
   castServiceProvider.overrideWith(createCastService),
 ];
+
+/// Speicherfehler nicht verschlucken (Q-14): loggen; die Daten bleiben im
+/// Speicher der laufenden App und werden beim naechsten Schreiben erneut
+/// gesichert.
+void _logPrefsError(Object error, StackTrace stack) =>
+    logError('Speichern fehlgeschlagen', error, stack);

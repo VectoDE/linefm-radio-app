@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb, visibleForTesting;
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/services/cast/cast_backend.dart';
@@ -140,9 +142,26 @@ class NoopCastService implements CastService {
   Future<void> dispose() async {}
 }
 
-/// Initialisiert Cast beim Start. Ohne Cast-Unterstützung (Web, Desktop,
-/// fehlende Google Play Services) bleibt [castBackend] `null`, der
-/// Cast-Knopf erscheint dann nie.
-Future<void> initCast() async {
-  castBackend = await createPluginBackend();
-}
+/// Startet das Cast-SDK, erst beim ersten Tippen auf den Cast-Knopf (L4),
+/// nicht beim App-Start: Vorher sendet das SDK nichts an Google. Ohne
+/// Cast-Unterstützung (Web, Desktop, fehlende Google Play Services) bleibt
+/// [castBackend] `null`. Mehrfachaufrufe teilen sich einen Start.
+Future<void> initCast() => _castInit ??= () async {
+  castBackend = await castBackendFactory();
+}();
+
+/// Erzeugt das Backend beim ersten Tippen; Tests setzen ein Fake.
+@visibleForTesting
+Future<CastBackend?> Function() castBackendFactory = createPluginBackend;
+
+Future<void>? _castInit;
+
+/// Android und iOS (nicht Web): Plattformen, auf denen Cast gehen kann.
+bool castPlatformSupported() =>
+    !kIsWeb &&
+    (defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS);
+
+/// Nur fuer Tests: Start-Zustand zuruecksetzen.
+@visibleForTesting
+void resetCastInitForTest() => _castInit = null;

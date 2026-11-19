@@ -444,6 +444,86 @@ void main() {
         expect(service.state.available, isFalse);
       },
     );
+
+    test('mit Backend (Q-02): echter Dienst, Zustand erreicht den Player, '
+        'Sitzung uebergibt den Sender mit Titel', () async {
+      final backend = FakeCastBackend();
+      castBackend = backend;
+      addTearDown(() => castBackend = null);
+      final container = ProviderContainer(
+        overrides: <Override>[
+          prefsProvider.overrideWithValue(InMemoryPrefsStore()),
+          castServiceProvider.overrideWith(createCastService),
+        ],
+      );
+      addTearDown(container.dispose);
+      final service = container.read(castServiceProvider);
+      expect(service, isA<ChromeCastService>());
+      backend.setDevices(const <CastDevice>[_tv]);
+      await service.connect(_tv);
+      await _settle();
+      await _settle();
+      expect(container.read(castPlaybackProvider).isCasting, isTrue);
+      expect(backend.loads, isNotEmpty, reason: 'Uebergabe lokal -> Cast');
+      expect(
+        backend.loads.last.title,
+        isNotEmpty,
+        reason: 'Titel oder Sendername als Metadaten',
+      );
+    });
+  });
+
+  group('Cast erst nach Tippen (L4)', () {
+    final defaultFactory = castBackendFactory;
+    tearDown(() {
+      castBackend = null;
+      castBackendFactory = defaultFactory;
+      resetCastInitForTest();
+    });
+
+    testWidgets('Android ohne SDK: Knopf sichtbar, Tippen startet SDK', (
+      tester,
+    ) async {
+      castBackend = null;
+      resetCastInitForTest();
+      final backend = FakeCastBackend()..setDevices(const <CastDevice>[_tv]);
+      var starts = 0;
+      castBackendFactory = () async {
+        starts++;
+        return backend;
+      };
+      final container = ProviderContainer(
+        overrides: <Override>[
+          prefsProvider.overrideWithValue(InMemoryPrefsStore()),
+          castServiceProvider.overrideWith(createCastService),
+        ],
+      );
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            locale: const Locale('de'),
+            theme: buildLinefmTheme(Brightness.dark),
+            localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+              AppLocalizations.delegate,
+              ...GlobalMaterialLocalizations.delegates,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const Scaffold(body: Center(child: CastButton())),
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.cast), findsOneWidget);
+      expect(starts, 0, reason: 'vor dem Tippen kein SDK-Start');
+      expect(container.read(castServiceProvider), isA<NoopCastService>());
+      await tester.tap(find.byIcon(Icons.cast));
+      await tester.pumpAndSettle();
+      expect(starts, 1);
+      expect(container.read(castServiceProvider), isA<ChromeCastService>());
+      expect(find.byType(CastSheet), findsOneWidget);
+      expect(find.text('Wohnzimmer'), findsOneWidget);
+    });
   });
 
   group('AirPlay', () {
@@ -503,7 +583,9 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets('Noop: kein Knopf', (tester) async {
+    testWidgets('Noop auf Desktop: kein Knopf', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
       await pump(tester, const NoopCastService());
       expect(find.byIcon(Icons.cast), findsNothing);
     });

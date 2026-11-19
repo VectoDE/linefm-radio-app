@@ -7,7 +7,14 @@
 // canvaskit/<engineRevision>/ und ersetzt die Marke in der naechsten Zeile.
 (function () {
   // COEP bleibt bewusst aus (Fremdbilder), Skwasm laeuft einthreadig; Warnung daher stumm.
-  var config = { suppressMultithreadingWarning: true };
+  // Ersatzschriften (fehlende Zeichen, z. B. Emoji oder kyrillische Titel)
+  // nicht von fonts.gstatic.com laden (L14, keine IP-Adresse an Google).
+  // Die App bringt Poppins und Syncopate selbst mit; was dort fehlt, sucht
+  // die Engine unter assets/fonts/fallback/ auf dem eigenen Server.
+  var config = {
+    suppressMultithreadingWarning: true,
+    fontFallbackBaseUrl: 'assets/fonts/fallback/',
+  };
   /*__CANVASKIT_BASE_URL__*/
 
   function showApp() {

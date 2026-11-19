@@ -15,6 +15,9 @@ final _empty = File('test/fixtures/itunes/search_empty.json')
 Track _t(String artist, String title, {String? artworkUrl}) =>
     Track(artist: artist, title: title, artworkUrl: artworkUrl);
 
+/// Passt zum Treffer in `search_hit.json` (D8 prueft Kuenstler und Titel).
+final _missy = _t('Missy Elliott', 'Get Ur Freak On');
+
 void main() {
   late FakeClock clock;
   late List<Duration> sleeps;
@@ -57,7 +60,7 @@ void main() {
     final q = requests.single.$2.queryParameters;
     expect(q['term'], 'Missy Elliott Get Ur Freak On');
     expect(q['entity'], 'song');
-    expect(q['limit'], '1');
+    expect(q['limit'], '5');
     expect(q['country'], 'DE');
   });
 
@@ -82,12 +85,12 @@ void main() {
 
   test('Positiv-Cache laeuft nach 30 Tagen ab', () async {
     final s = service((_) => http.Response(_hit, 200));
-    await s.lookup(_t('A', 'B'));
+    expect(await s.lookup(_missy), isNotNull);
     clock.advance(const Duration(days: 29));
-    await s.lookup(_t('A', 'B'));
+    await s.lookup(_missy);
     expect(requests, hasLength(1));
     clock.advance(const Duration(days: 2));
-    await s.lookup(_t('A', 'B'));
+    await s.lookup(_missy);
     expect(requests, hasLength(2));
   });
 
@@ -175,9 +178,9 @@ void main() {
       if (fail) throw http.ClientException('offline');
       return http.Response(_hit, 200);
     });
-    expect(await s.lookup(_t('A', 'B')), isNull);
+    expect(await s.lookup(_missy), isNull);
     fail = false;
-    expect(await s.lookup(_t('A', 'B')), isNotNull);
+    expect(await s.lookup(_missy), isNotNull);
   });
 
   test('Persistenter Cache: schreiben, laden, abgelaufene verwerfen', () async {
@@ -188,17 +191,17 @@ void main() {
     );
     final s = service((r) {
       final term = r.url.queryParameters['term']!;
-      return http.Response(term.startsWith('Hit') ? _hit : _empty, 200);
+      return http.Response(term.startsWith('Missy') ? _hit : _empty, 200);
     }, store: store);
-    await s.lookup(_t('Hit', 'X'));
+    await s.lookup(_missy);
     await s.lookup(_t('Miss', 'Y'));
     await s.flush();
-    expect(saved, contains('hit x'));
+    expect(saved, contains('get ur freak on'));
 
     clock.advance(const Duration(days: 2));
     final reloaded = service((_) => http.Response(_empty, 200), store: store);
     final before = requests.length;
-    expect((await reloaded.lookup(_t('Hit', 'X')))!.artworkUrl, isNotNull);
+    expect((await reloaded.lookup(_missy))!.artworkUrl, isNotNull);
     expect(requests.length, before);
     // Negativtreffer (1 Tag) ist abgelaufen -> neue Anfrage.
     await reloaded.lookup(_t('Miss', 'Y'));
@@ -224,6 +227,59 @@ void main() {
     expect(requests, hasLength(3));
     await s.lookup(_t('B', '2'));
     expect(requests, hasLength(4));
+  });
+
+  group('Treffer-Pruefung (D8)', () {
+    test(
+      'fremder Treffer zaehlt nicht: Senderlogo statt falschem Cover',
+      () async {
+        final s = service((_) => http.Response(_hit, 200));
+        expect(await s.lookup(_t('Wincent Weiss', 'Zusammen')), isNull);
+      },
+    );
+
+    test('waehlt unter mehreren Ergebnissen das passende', () {
+      const body =
+          '{"results":['
+          '{"artistName":"Karel Gott","trackName":"Biene Maja",'
+          '"artworkUrl100":"https://x/a/100x100bb.jpg"},'
+          '{"artistName":"Wincent Weiss","trackName":"Zusammen (Radio Edit)",'
+          '"artworkUrl100":"https://x/b/100x100bb.jpg"}]}';
+      final r = ItunesArtworkService.parseSearch(
+        body,
+        track: _t('Wincent Weiss', 'Zusammen'),
+      );
+      expect(r!.artworkUrl, 'https://x/b/600x600bb.jpg');
+    });
+
+    test('Kuenstler mit feat./& und Satzzeichen', () {
+      bool m(String a, String t, String ia, String it) =>
+          ItunesArtworkService.matchesTrack(_t(a, t), artist: ia, title: it);
+      expect(
+        m(
+          'Missy Elliott feat. Ciara',
+          'Lose Control',
+          'Missy Elliott',
+          'Lose Control (feat. Ciara & Fatman Scoop)',
+        ),
+        isTrue,
+      );
+      expect(
+        m(
+          'Simon & Garfunkel',
+          'Mrs. Robinson',
+          'Simon & Garfunkel',
+          'Mrs Robinson',
+        ),
+        isTrue,
+      );
+      expect(m('Björk', 'Jóga', 'Björk', 'Jóga'), isTrue);
+      expect(m('A', 'Song', 'B', 'Song'), isFalse);
+      expect(
+        m('Wincent Weiss', 'Zusammen', 'Karel Gott', 'Biene Maja'),
+        isFalse,
+      );
+    });
   });
 
   test('parseSearch tolerant', () {

@@ -47,6 +47,20 @@ class NoopArtworkService implements ArtworkService {
       null;
 }
 
+/// Ohne iTunes-Suche: nur ein Cover, das die laut.fm-API schon mitliefert
+/// (Einstellung "Cover laden" aus, L5).
+class ApiCoverOnlyArtworkService implements ArtworkService {
+  const ApiCoverOnlyArtworkService();
+
+  @override
+  Future<ArtworkResult?> lookup(Track track, {bool priority = false}) async {
+    final cover = track.artworkUrl;
+    return cover == null || cover.isEmpty
+        ? null
+        : ArtworkResult(artworkUrl: cover);
+  }
+}
+
 /// Persistenter Speicher fuer den Cover-Cache (JSON-Text). Passt zu
 /// `PrefsStore.readCoverCache`/`writeCoverCache`, z. B.:
 /// `CoverCacheStore(read: prefs.readCoverCache, write: prefs.writeCoverCache)`.
@@ -67,6 +81,11 @@ class CoverCacheStore {
 ///   Anfragestarts, Prioritaet vor Verlauf; bei 403/429 [penalty] Pause.
 /// - Hat der Track schon ein Cover aus der laut.fm-API, wird es ohne
 ///   Anfrage zurueckgegeben (Rueckfall-Kette Spec 3.3).
+/// - Treffer werden geprueft (D8): Kuenstler und Titel muessen nach
+///   [normalize] zum laufenden Titel passen ([matchesTrack]). Sonst gilt die
+///   Suche als Fehltreffer und die App zeigt das Senderlogo. Die Web-App nahm
+///   den ersten Treffer ungeprueft (Biene-Maja-Cover zu "Zusammen").
+/// - Jede Anfrage bricht nach [timeout] ab (S5).
 class ItunesArtworkService implements ArtworkService {
   ItunesArtworkService({
     http.Client? client,
@@ -81,6 +100,7 @@ class ItunesArtworkService implements ArtworkService {
     this.penalty = const Duration(minutes: 5),
     this.persistDelay = const Duration(seconds: 5),
     this.country = 'DE',
+    this.timeout = const Duration(seconds: 10),
   }) : _client = client ?? http.Client(),
        _sleep = sleep ?? _defaultSleep {
     _load();
@@ -97,6 +117,9 @@ class ItunesArtworkService implements ArtworkService {
   final Duration penalty;
   final Duration persistDelay;
   final String country;
+
+  /// Hoechstdauer einer Anfrage; danach gilt sie als Netzwerkfehler.
+  final Duration timeout;
 
   final http.Client _client;
   final Clock _clock;
@@ -118,6 +141,10 @@ class ItunesArtworkService implements ArtworkService {
   /// Anzahl echter Anfragen (Tests/Diagnose).
   int networkRequests = 0;
 
+  /// Version 2: Treffer sind geprueft (D8); ungepruefte Eintraege der
+  /// Version 1 werden verworfen.
+  static const int _cacheVersion = 2;
+
   static String keyFor(Track track) =>
       '${track.artist} ${track.title}'.trim().toLowerCase();
 
@@ -128,7 +155,8 @@ class ItunesArtworkService implements ArtworkService {
   Uri searchUri(Track track) => Uri.https('itunes.apple.com', '/search', {
     'term': '${track.artist} ${track.title}'.trim(),
     'entity': 'song',
-    'limit': '1',
+    // Mehrere Treffer, damit [matchesTrack] den passenden waehlen kann.
+    'limit': '5',
     'country': country,
   });
 
@@ -235,10 +263,12 @@ class ItunesArtworkService implements ArtworkService {
   Future<void> _run(_Job job) async {
     try {
       networkRequests++;
-      final response = await _client.get(
-        searchUri(job.track),
-        headers: const <String, String>{'Accept': 'application/json'},
-      );
+      final response = await _client
+          .get(
+            searchUri(job.track),
+            headers: const <String, String>{'Accept': 'application/json'},
+          )
+          .timeout(timeout);
       if (response.statusCode == 403 || response.statusCode == 429) {
         _blockedUntil = _clock.now().add(penalty);
         logInfo(
@@ -251,7 +281,10 @@ class ItunesArtworkService implements ArtworkService {
         job.completer.complete(null);
         return;
       }
-      final result = parseSearch(utf8.decode(response.bodyBytes));
+      final result = parseSearch(
+        utf8.decode(response.bodyBytes),
+        track: job.track,
+      );
       _put(job.key, result);
       job.completer.complete(result);
     } on Object catch (e) {
@@ -261,8 +294,10 @@ class ItunesArtworkService implements ArtworkService {
     }
   }
 
-  /// Wertet eine iTunes-Antwort aus; `null` = kein Treffer.
-  static ArtworkResult? parseSearch(String body) {
+  /// Wertet eine iTunes-Antwort aus; `null` = kein Treffer. Mit [track]
+  /// zaehlt nur ein Ergebnis, dessen Kuenstler und Titel passen
+  /// ([matchesTrack]); ohne [track] das erste.
+  static ArtworkResult? parseSearch(String body, {Track? track}) {
     final Object? json;
     try {
       json = jsonDecode(body);
@@ -272,8 +307,15 @@ class ItunesArtworkService implements ArtworkService {
     if (json is! Map) return null;
     final results = json['results'];
     if (results is! List || results.isEmpty) return null;
-    final first = results.first;
-    if (first is! Map) return null;
+    final first = results.whereType<Map<Object?, Object?>>().where((r) {
+      if (track == null) return true;
+      final artist = r['artistName'];
+      final title = r['trackName'];
+      return artist is String &&
+          title is String &&
+          matchesTrack(track, artist: artist, title: title);
+    }).firstOrNull;
+    if (first == null) return null;
     final art = first['artworkUrl100'];
     final view = first['trackViewUrl'];
     final artworkUrl = art is String && art.startsWith('https://')
@@ -285,6 +327,51 @@ class ItunesArtworkService implements ArtworkService {
     if (artworkUrl == null && trackViewUrl == null) return null;
     return ArtworkResult(artworkUrl: artworkUrl, trackViewUrl: trackViewUrl);
   }
+
+  /// Kleinbuchstaben, Klammerzusaetze ("(feat. X)", "[Remix]") und Satz-
+  /// zeichen entfernt, "&"/"and"/"und" vereinheitlicht, Leerraum gestaucht.
+  static String normalize(String value) {
+    var v = value.toLowerCase();
+    v = v.replaceAll(RegExp(r'[\(\[][^\)\]]*[\)\]]'), ' ');
+    v = v.replaceAll(RegExp(r'\s(feat\.?|ft\.?|featuring)\s.*$'), ' ');
+    v = v.replaceAll(RegExp(r'\s(&|and|und|x|vs\.?)\s'), ' ');
+    v = v.replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), ' ');
+    return v.replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  /// Passt ein iTunes-Ergebnis zum laufenden Titel? Titel: gleich oder einer
+  /// beginnt mit dem anderen (Zusaetze wie "Radio Edit"). Kuenstler: der
+  /// erste Name des laut.fm-Kuenstlers steckt im iTunes-Kuenstler oder
+  /// umgekehrt (Gemeinschaftstitel werden je Dienst anders geschrieben).
+  static bool matchesTrack(
+    Track track, {
+    required String artist,
+    required String title,
+  }) {
+    final wantTitle = normalize(track.title);
+    final gotTitle = normalize(title);
+    if (wantTitle.isEmpty || gotTitle.isEmpty) return false;
+    final titleOk =
+        wantTitle == gotTitle ||
+        gotTitle.startsWith(wantTitle) ||
+        wantTitle.startsWith(gotTitle);
+    if (!titleOk) return false;
+    final wantArtist = normalize(_primaryArtist(track.artist));
+    final gotArtist = normalize(artist);
+    if (wantArtist.isEmpty || gotArtist.isEmpty) return false;
+    return gotArtist.contains(wantArtist) ||
+        wantArtist.contains(normalize(_primaryArtist(artist)));
+  }
+
+  /// Erster Name einer Kuenstlerangabe ("A & B", "A feat. B", "A, B").
+  static String _primaryArtist(String artist) => artist
+      .split(
+        RegExp(
+          r'\s*(,|&|feat\.?|ft\.?|featuring|x|vs\.?|und|and)\s*',
+          caseSensitive: false,
+        ),
+      )
+      .first;
 
   void _put(String key, ArtworkResult? result) {
     final ttl = result?.artworkUrl == null ? negativeTtl : positiveTtl;
@@ -310,7 +397,7 @@ class ItunesArtworkService implements ArtworkService {
     if (s == null) return;
     final now = _clock.now();
     final data = <String, Object?>{
-      'v': 1,
+      'v': _cacheVersion,
       'e': <String, Object?>{
         for (final MapEntry(:key, :value) in _cache.entries)
           if (now.isBefore(value.expiresAt))
@@ -332,7 +419,7 @@ class ItunesArtworkService implements ArtworkService {
     if (text == null || text.isEmpty) return;
     try {
       final json = jsonDecode(text);
-      if (json is! Map || json['v'] != 1) return;
+      if (json is! Map || json['v'] != _cacheVersion) return;
       final entries = json['e'];
       if (entries is! Map) return;
       final now = _clock.now();

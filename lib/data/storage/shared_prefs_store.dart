@@ -72,11 +72,13 @@ abstract final class PrefsKeys {
 /// `clearAppStorage`):
 /// * Ohne Speicher-Bestaetigung wird nichts geschrieben, Lesen liefert die
 ///   Standardwerte. Beim Start ohne Bestaetigung werden Altdaten entfernt.
-/// * [clearAll] loescht alle Daten samt Bestaetigung.
+/// * [clearAll] loescht alle Daten samt Bestaetigung, behaelt aber
+///   "Cover laden: aus" (R3-P03), damit danach keine Anfrage an Apple startet.
 /// * Die Telemetrie-Einwilligung zaehlt ebenfalls als Speicherung und folgt
 ///   derselben Regel; ohne Bestaetigung wird die Entscheidung nicht gemerkt.
 /// * Ausnahme: "Cover laden: aus" wird auch ohne Bestaetigung gemerkt
-///   ([PrefsKeys.privacyPreferences]); erst [clearAll] entfernt es.
+///   ([PrefsKeys.privacyPreferences]) und uebersteht [clearAll]. Zurueck auf
+///   "an" geht es nur ueber den Schalter selbst.
 /// * Die Lautstaerke wird nur gelesen und geschrieben, solange
 ///   "Lautstaerke merken" aktiv ist.
 ///
@@ -272,14 +274,13 @@ class SharedPrefsStore implements PrefsStore {
   @override
   Future<void> clearAll() async {
     _consent = false;
-    await _removeData(keepPrivacyPreferences: false);
+    await _removeData();
     await _write(() => _prefs.remove(PrefsKeys.storageConsent));
   }
 
-  Future<void> _removeData({bool keepPrivacyPreferences = true}) async {
+  Future<void> _removeData() async {
     for (final key in PrefsKeys.data) {
-      if (keepPrivacyPreferences &&
-          PrefsKeys.privacyPreferences.contains(key) &&
+      if (PrefsKeys.privacyPreferences.contains(key) &&
           _readBool(_prefs, key) == false) {
         continue;
       }

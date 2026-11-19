@@ -66,6 +66,17 @@ class ValuesTest(unittest.TestCase):
         self.assertEqual(lsc.non_blank({"A": "​x"}), {"A": "​x"})
 
 
+class RequirementTest(unittest.TestCase):
+    """Review PR #77: Listen in requires gelten als UND (ga4-Varianten)."""
+
+    def test_listen_und_ga4(self) -> None:
+        self.assertTrue(lsc.requirement_met(["!telemetry", "ga4"], {"ga4"}))
+        self.assertFalse(lsc.requirement_met(["!telemetry", "!ga4"], {"ga4"}))
+        self.assertTrue(lsc.requirement_met(["!telemetry", "!ga4"], set()))
+        self.assertTrue(lsc.requirement_met(["telemetry", "ga4"], {"umami", "ga4"}))
+        self.assertFalse(lsc.requirement_met("telemetry", {"ga4"}))
+
+
 class MainTest(unittest.TestCase):
     """Ganzer Lauf auf einer Kopie der Rechtstexte."""
 

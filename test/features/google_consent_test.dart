@@ -150,6 +150,85 @@ void main() {
       }
     });
 
+    test('Listen-requires: alle Eintraege muessen gelten', () {
+      expect(
+        legalRequirementMet(<String>['!telemetry', 'ga4'], {'ga4'}),
+        isTrue,
+      );
+      expect(
+        legalRequirementMet(<String>['!telemetry', '!ga4'], {'ga4'}),
+        isFalse,
+      );
+      expect(
+        legalRequirementMet(<String>['telemetry', 'ga4'], {'umami', 'ga4'}),
+        isTrue,
+      );
+      expect(
+        legalRequirementMet(<String>['telemetry', 'ga4'], {'umami'}),
+        isFalse,
+      );
+    });
+
+    test(
+      'mit ga4: Kurzfassung, localStorage, Empfaenger, AVV, Speicherdauer',
+      () {
+        const expected = <String, List<String>>{
+          'de': <String>[
+            'Nur die Web-Version fragt gesondert',
+            'linefm.googleAnalytics',
+            'Google Ireland Limited (Google Analytics) als Empfänger',
+            'Vertrag zur Auftragsverarbeitung nach Art. 28 DSGVO (Bedingungen',
+            'nach 2 Jahren ab',
+            'Google-Tag',
+            'Der Widerruf gilt für die Zukunft',
+          ],
+          'en': <String>[
+            'Only the web version asks separately',
+            'linefm.googleAnalytics',
+            'Google Ireland Limited (Google Analytics) becomes an additional',
+            'data processing agreement under Art. 28 GDPR with Google Ireland',
+            'expire after 2 years',
+            'Google tag',
+            'Withdrawal applies to the future',
+          ],
+        };
+        for (final lang in <String>['de', 'en']) {
+          final d = LegalDocument.parse(
+            File('assets/legal/$lang/datenschutz.json').readAsStringSync(),
+          );
+          String all(Set<String> p) =>
+              d.visibleFor(p).map((b) => b.text).join('\n');
+          final none = all(<String>{});
+          final ga = all(<String>{'ga4'});
+          final both = all(<String>{'umami', 'ga4'});
+          // Mit GA4 kein pauschales "sendet keine Statistik".
+          final noStats = lang == 'de'
+              ? 'Diese Version der App sendet keine Statistik'
+              : 'This version of the app sends no usage statistics';
+          expect(none, contains(noStats));
+          expect(ga, isNot(contains(noStats)), reason: lang);
+          for (final s in expected[lang]!) {
+            expect(ga, contains(s), reason: '$lang: $s');
+            expect(none, isNot(contains(s)), reason: '$lang ohne ga4: $s');
+          }
+          expect(
+            both,
+            contains(
+              lang == 'de'
+                  ? 'fragt zusätzlich gesondert'
+                  : 'also asks separately',
+            ),
+          );
+          expect(
+            d
+                .visibleFor(<String>{'ga4'})
+                .where((b) => b.url.contains('support.google.com/analytics')),
+            isNotEmpty,
+          );
+        }
+      },
+    );
+
     test('GA4_AUFBEWAHRUNG ist nur mit ga4 Pflicht', () {
       final registry =
           (jsonDecode(File('assets/legal/placeholders.json').readAsStringSync())

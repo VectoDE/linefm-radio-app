@@ -386,6 +386,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sleepTimerEndOfSong => 'Ende des Songs';
 
   @override
+  String get sleepTimerEndOfSongUnavailable =>
+      '„Ende des Songs“ ist bei Live-Sendungen nicht möglich.';
+
+  @override
   String get sleepTimerStatusNone => 'Kein Sleeptimer aktiv.';
 
   @override

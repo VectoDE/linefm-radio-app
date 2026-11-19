@@ -752,6 +752,12 @@ abstract class AppLocalizations {
   /// **'Ende des Songs'**
   String get sleepTimerEndOfSong;
 
+  /// No description provided for @sleepTimerEndOfSongUnavailable.
+  ///
+  /// In de, this message translates to:
+  /// **'„Ende des Songs“ ist bei Live-Sendungen nicht möglich.'**
+  String get sleepTimerEndOfSongUnavailable;
+
   /// No description provided for @sleepTimerStatusNone.
   ///
   /// In de, this message translates to:

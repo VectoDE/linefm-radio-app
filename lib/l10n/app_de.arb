@@ -238,6 +238,7 @@
     }
   },
   "sleepTimerEndOfSong": "Ende des Songs",
+  "sleepTimerEndOfSongUnavailable": "„Ende des Songs“ ist bei Live-Sendungen nicht möglich.",
   "sleepTimerStatusNone": "Kein Sleeptimer aktiv.",
   "sleepTimerStatusRunning": "{minutes, plural, =1{Wiedergabe stoppt in 1 Minute.} other{Wiedergabe stoppt in {minutes} Minuten.}}",
   "@sleepTimerStatusRunning": {

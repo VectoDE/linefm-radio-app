@@ -109,6 +109,7 @@
   "sleepTimerOff": "Off",
   "sleepTimerMinutes": "{minutes} min",
   "sleepTimerEndOfSong": "End of song",
+  "sleepTimerEndOfSongUnavailable": "“End of song” is not available during live shows.",
   "sleepTimerStatusNone": "No sleep timer active.",
   "sleepTimerStatusRunning": "{minutes, plural, =1{Playback stops in 1 minute.} other{Playback stops in {minutes} minutes.}}",
   "sleepTimerStatusEndOfSong": "Playback stops at the end of the song.",

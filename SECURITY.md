@@ -54,4 +54,12 @@ Nicht dazu gehören Lücken in Diensten Dritter (laut.fm, Apple iTunes Search, G
 
 ## So wird die Sicherheit geprüft
 
-Abhängigkeitsprüfung (Dependabot, OSV), statische Analyse (CodeQL), Secret-Scan und OpenSSF Scorecard laufen in den Workflows unter `.github/workflows/`. Ein Eintrag bei bestpractices.dev besteht noch nicht.
+| Prüfung | Werkzeug | Wo | Wann |
+|---|---|---|---|
+| Bekannte Schwachstellen in Dart-Paketen | OSV-Scanner auf `pubspec.lock` | `supply-chain.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
+| Secrets in der Git-Historie | gitleaks (CLI, Version und SHA-256 fest im Workflow) | `supply-chain.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
+| Updates für Actions, Pub, Gradle, Docker und Compose | Dependabot | `.github/dependabot.yml` | wöchentlich, mit 7 Tagen Wartezeit |
+| Statische Analyse | CodeQL | `codeql.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
+| Repo-Hygiene | OpenSSF Scorecard | `scorecard.yml` | Push auf `main`, wöchentlich |
+
+Ein Eintrag bei bestpractices.dev besteht noch nicht.

@@ -52,7 +52,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get creditsOfferedBy => 'A service of';
 
   @override
-  String get creditsDevelopedBy => 'Developed by Tim Hauke (VectoDE)';
+  String get creditsDevelopedBy =>
+      'Developed by Tim Hauke (VectoDE) for jaybelife';
+
+  @override
+  String get creditsOwnership => 'LINEFM and this app belong to jaybelife.';
+
+  @override
+  String get creditsDeveloperOpen => 'Open Tim Hauke on GitHub';
 
   @override
   String get radioGruppeName => 'Radiogruppe';
@@ -477,6 +484,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legalOpenInBrowser => 'Open in browser';
 
   @override
+  String legalUpdated(String date) {
+    return 'As of: $date';
+  }
+
+  @override
   String get legalLoadError => 'The text couldn’t be loaded.';
 
   @override
@@ -541,6 +553,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alarmNone => 'No alarm set.';
+
+  @override
+  String get alarmAdd => 'Add alarm';
+
+  @override
+  String get alarmDelete => 'Delete alarm';
 
   @override
   String get alarmNoteIos =>

@@ -1,6 +1,44 @@
 import 'package:material_ui/material_ui.dart';
 
-/// Design-Tokens aus der Web-App (Spec 4.4). Kontrastpaare dokumentiert P04.
+/// Design-Tokens aus der Web-App (Spec 4.4).
+///
+/// Dunkel ist 1:1 aus `styles.css` uebernommen, Hell ist daraus abgeleitet.
+///
+/// Gemessene WCAG-Kontraste (Verhaeltnis, Formel nach WCAG 2.x; abgesichert
+/// durch `test/ui/theme/contrast_test.dart`):
+///
+/// | Paar (Vordergrund auf Grund)          | Dunkel | Hell  |
+/// |---------------------------------------|--------|-------|
+/// | `text` auf `background`               | 18,60  | 17,09 |
+/// | `text` auf `surface`                  | 17,07  | 18,60 |
+/// | `text` auf `surfaceRaised`            | 15,48  | 15,63 |
+/// | `muted` auf `background`              |  5,66  |  6,26 |
+/// | `muted` auf `surface`                 |  5,19  |  6,81 |
+/// | `muted` auf `surfaceRaised`           |  4,71  |  5,72 |
+/// | `tickerText` auf `surface`            |  7,14  |  8,21 |
+/// | `heart` auf `background`              |  5,74  |  4,55 |
+/// | `heart` auf `surface`                 |  5,27  |  4,96 |
+/// | `heart` auf `surfaceRaised` (Icon)    |  4,78  |  4,17 |
+/// | altes Footer-Grau `#73778a` (entfaellt)|  4,19  |   -   |
+///
+/// Alle Textpaare erreichen mindestens 4,5:1 (AA). `heart` ist ein Icon und
+/// braucht nur 3:1. Der ausgeschaltete Schalter (`switchTrackOff`) erreicht
+/// nur 1,9:1 bzw. 1,5:1, deshalb bekommt er in `SettingsSwitch` einen
+/// `muted`-Rahmen (5,66:1 bzw. 6,26:1, WCAG 1.4.11).
+///
+/// Text auf Senderfarben (Weiss / Tinte `#0f1221`, `Contrast.onColor`):
+///
+/// | Sender        | Farbe     | Weiss  | Tinte  | gewaehlt (Text) |
+/// |---------------|-----------|--------|--------|-----------------|
+/// | LineFM +MAIN  | `#4B4B7D` |  8,07  |  2,30  | Weiss           |
+/// | LineFM +RAP   | `#FF0084` |  3,76  |  4,95  | Tinte (gross: Weiss) |
+/// | LineFM +GAMING| `#4BBD71` |  2,38  |  7,81  | Tinte           |
+/// | LineFM +LOFI  | `#546E7A` |  5,40  |  3,44  | Weiss           |
+/// | Radio3FM      | `#177D29` |  5,25  |  3,55  | Weiss           |
+/// | FobFM         | `#04FFF7` |  1,26  | 14,75  | Tinte           |
+///
+/// Das Web-Footer-Grau `#73778a` (Navigation inaktiv) ist durch `muted`
+/// ersetzt (Spec 4.2 Nr. 17).
 @immutable
 class LinefmColors extends ThemeExtension<LinefmColors> {
   const LinefmColors({
@@ -16,6 +54,10 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     required this.miniPlayerBg,
     required this.navBg,
     required this.tickerText,
+    required this.switchTrackOn,
+    required this.popoverBg,
+    required this.coverShadow,
+    required this.onAccent,
   });
 
   static const LinefmColors dark = LinefmColors(
@@ -31,6 +73,10 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     miniPlayerBg: Color.fromRGBO(15, 18, 33, 0.86),
     navBg: Color.fromRGBO(15, 18, 33, 0.96),
     tickerText: Color(0xFFA4A7B6),
+    switchTrackOn: Color.fromRGBO(255, 255, 255, 0.36),
+    popoverBg: Color.fromRGBO(15, 18, 33, 0.95),
+    coverShadow: Color.fromRGBO(0, 0, 0, 0.35),
+    onAccent: Color(0xFF0F1221),
   );
 
   static const LinefmColors light = LinefmColors(
@@ -46,6 +92,10 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     miniPlayerBg: Color.fromRGBO(255, 255, 255, 0.88),
     navBg: Color.fromRGBO(255, 255, 255, 0.96),
     tickerText: Color(0xFF4A4E62),
+    switchTrackOn: Color.fromRGBO(15, 18, 33, 0.60),
+    popoverBg: Color.fromRGBO(255, 255, 255, 0.97),
+    coverShadow: Color.fromRGBO(15, 18, 33, 0.18),
+    onAccent: Color(0xFFFFFFFF),
   );
 
   final Color background;
@@ -61,6 +111,18 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
   final Color navBg;
   final Color tickerText;
 
+  /// Schalter an (Web: 36 % Weiss). Hell: dunkler, damit der Knopf sich abhebt.
+  final Color switchTrackOn;
+
+  /// Hintergrund des Lautstaerke-Popovers.
+  final Color popoverBg;
+
+  /// Schattenfarbe unter dem Cover (Spec 4.4: dunkel 35 % Schwarz).
+  final Color coverShadow;
+
+  /// Vordergrund auf `accent`-Flaechen (Badge, Auswahl).
+  final Color onAccent;
+
   @override
   LinefmColors copyWith({
     Color? background,
@@ -75,6 +137,10 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     Color? miniPlayerBg,
     Color? navBg,
     Color? tickerText,
+    Color? switchTrackOn,
+    Color? popoverBg,
+    Color? coverShadow,
+    Color? onAccent,
   }) => LinefmColors(
     background: background ?? this.background,
     surface: surface ?? this.surface,
@@ -88,6 +154,10 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     miniPlayerBg: miniPlayerBg ?? this.miniPlayerBg,
     navBg: navBg ?? this.navBg,
     tickerText: tickerText ?? this.tickerText,
+    switchTrackOn: switchTrackOn ?? this.switchTrackOn,
+    popoverBg: popoverBg ?? this.popoverBg,
+    coverShadow: coverShadow ?? this.coverShadow,
+    onAccent: onAccent ?? this.onAccent,
   );
 
   @override
@@ -107,10 +177,54 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
       miniPlayerBg: l(miniPlayerBg, other.miniPlayerBg),
       navBg: l(navBg, other.navBg),
       tickerText: l(tickerText, other.tickerText),
+      switchTrackOn: l(switchTrackOn, other.switchTrackOn),
+      popoverBg: l(popoverBg, other.popoverBg),
+      coverShadow: l(coverShadow, other.coverShadow),
+      onAccent: l(onAccent, other.onAccent),
     );
   }
 }
 
 extension LinefmColorsContext on BuildContext {
   LinefmColors get linefm => Theme.of(this).extension<LinefmColors>()!;
+}
+
+/// Masse, Radien und Zeiten der Web-App (Spec 4.4) und der nativen
+/// Verfeinerung.
+abstract final class LinefmMetrics {
+  static const double radiusCard = 6;
+  static const double radiusLogo = 4;
+  static const double radiusCover = 24;
+  static const double radiusCoverCompact = 16;
+  static const double radiusMiniPlayer = 18;
+  static const double radiusPopover = 12;
+  static const double radiusPill = 999;
+
+  /// Kleinste Tippflaeche (Material 48 dp, WCAG 2.5.8 verlangt mindestens 24).
+  static const double minTarget = 48;
+
+  /// Hoehe der Bottom-Navigation.
+  static const double navHeight = 69;
+
+  /// Hoehe des Headers.
+  static const double headerHeight = 80;
+
+  /// Standarddauern (Web: .18 bis .35 s).
+  static const Duration fast = Duration(milliseconds: 180);
+  static const Duration medium = Duration(milliseconds: 250);
+  static const Duration slow = Duration(milliseconds: 350);
+
+  /// Lauftext: Web 18 s je Durchlauf, Abstand zwischen den Kopien 36.
+  static const Duration marqueeLoop = Duration(seconds: 18);
+  static const double marqueeGap = 36;
+
+  /// Cover-Schatten (dunkel `0 24 55`, hell `0 16 40`).
+  static List<BoxShadow> coverShadows(LinefmColors c, {bool dark = true}) =>
+      <BoxShadow>[
+        BoxShadow(
+          color: c.coverShadow,
+          blurRadius: dark ? 55 : 40,
+          offset: Offset(0, dark ? 24 : 16),
+        ),
+      ];
 }

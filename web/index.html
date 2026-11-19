@@ -1,59 +1,185 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="LINEFM Radio - LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM und FobFM live hoeren.">
-  <meta name="theme-color" content="#0f1221">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
 
-  <!--
-    Uncomment the tag below to lay the app out underneath the parts of the
-    screen that the device obstructs, such as a display cutout, the rounded
-    corners of the screen, or a home indicator.
+  <title>LINEFM | Radio – LineFM +MAIN, +RAP, +GAMING, +LOFI live hören</title>
+  <meta name="description" content="LINEFM live hören: LineFM +MAIN, +RAP, +GAMING und +LOFI, dazu Radio3FM und FobFM. Mit Favoriten, Verlauf und Sleeptimer, kostenlos im Browser.">
+  <meta name="keywords" content="LINEFM, LineFM, Webradio, Radio live, Online-Radio, LineFM +MAIN, LineFM +RAP, LineFM +GAMING, LineFM +LOFI, Radio3FM, FobFM, RadioGruppe Deutschland">
+  <meta name="author" content="LINEFM, RadioGruppe Deutschland">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <link rel="canonical" href="https://app.linefm.de/">
+  <link rel="alternate" hreflang="de" href="https://app.linefm.de/">
+  <link rel="alternate" hreflang="en" href="https://app.linefm.de/?lang=en">
+  <link rel="alternate" hreflang="x-default" href="https://app.linefm.de/">
+  <meta name="google-site-verification" content="__GSC_VERIFICATION__">
 
-    Without it, the browser keeps the app clear of them, and `SafeArea` and
-    `MediaQuery.paddingOf` report no padding. With it, the app covers the whole
-    screen, and it is up to the app to keep its own content out of the way,
-    which is what `SafeArea` is for.
-  -->
-  <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"> -->
-
-  <!-- iOS meta tags & icons -->
+  <meta name="theme-color" content="#0f1221" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f4f5fa" media="(prefers-color-scheme: light)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LINEFM Radio">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="application-name" content="LINEFM Radio">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="LINEFM Radio">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:url" content="https://app.linefm.de/">
+  <meta property="og:title" content="LINEFM | Radio – live hören">
+  <meta property="og:description" content="LineFM +MAIN, +RAP, +GAMING und +LOFI, dazu Radio3FM und FobFM. Kostenlos im Browser, mit Favoriten, Verlauf und Sleeptimer.">
+  <meta property="og:image" content="https://app.linefm.de/icons/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="LINEFM Radio: Logo auf dunklem Hintergrund">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LINEFM | Radio – live hören">
+  <meta name="twitter:description" content="LineFM +MAIN, +RAP, +GAMING und +LOFI, dazu Radio3FM und FobFM. Kostenlos im Browser.">
+  <meta name="twitter:image" content="https://app.linefm.de/icons/og-image.png">
+  <meta name="twitter:image:alt" content="LINEFM Radio: Logo auf dunklem Hintergrund">
 
-  <title>LINEFM | Radio</title>
-  <link rel="manifest" href="manifest.json">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "https://app.linefm.de/#webapp",
+        "name": "LINEFM Radio",
+        "url": "https://app.linefm.de/",
+        "description": "Web-App zum Live-Hören der LINEFM-Sender mit Favoriten, Verlauf und Sleeptimer.",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Alle Systeme mit modernem Browser",
+        "browserRequirements": "Benötigt JavaScript und HTML5-Audio",
+        "inLanguage": ["de", "en"],
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "image": "https://app.linefm.de/icons/og-image.png",
+        "publisher": { "@id": "https://linefm.de/#organization" }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://linefm.de/#organization",
+        "name": "LINEFM",
+        "url": "https://linefm.de/",
+        "logo": "https://cdn.linefm.de/images/icons/main.png",
+        "parentOrganization": {
+          "@type": "Organization",
+          "name": "RadioGruppe Deutschland",
+          "url": "https://radiogruppe.de"
+        }
+      },
+      {
+        "@type": "RadioStation",
+        "@id": "https://app.linefm.de/#linefm",
+        "name": "LineFM +MAIN",
+        "url": "https://app.linefm.de/",
+        "logo": "https://cdn.linefm.de/images/icons/main.png",
+        "inLanguage": "de",
+        "parentOrganization": { "@id": "https://linefm.de/#organization" },
+        "potentialAction": { "@type": "ListenAction", "target": "https://linefm.stream.laut.fm/linefm" }
+      },
+      {
+        "@type": "RadioStation",
+        "@id": "https://app.linefm.de/#linefmrap",
+        "name": "LineFM +RAP",
+        "url": "https://app.linefm.de/",
+        "logo": "https://cdn.linefm.de/images/icons/rap.png",
+        "inLanguage": "de",
+        "parentOrganization": { "@id": "https://linefm.de/#organization" },
+        "potentialAction": { "@type": "ListenAction", "target": "https://linefmrap.stream.laut.fm/linefmrap" }
+      },
+      {
+        "@type": "RadioStation",
+        "@id": "https://app.linefm.de/#linefmgaming",
+        "name": "LineFM +GAMING",
+        "url": "https://app.linefm.de/",
+        "logo": "https://cdn.linefm.de/images/icons/gaming.png",
+        "inLanguage": "de",
+        "parentOrganization": { "@id": "https://linefm.de/#organization" },
+        "potentialAction": { "@type": "ListenAction", "target": "https://linefmgaming.stream.laut.fm/linefmgaming" }
+      },
+      {
+        "@type": "RadioStation",
+        "@id": "https://app.linefm.de/#linefmlofi",
+        "name": "LineFM +LOFI",
+        "url": "https://app.linefm.de/",
+        "logo": "https://cdn.linefm.de/images/icons/lofi.png",
+        "inLanguage": "de",
+        "parentOrganization": { "@id": "https://linefm.de/#organization" },
+        "potentialAction": { "@type": "ListenAction", "target": "https://linefmlofi.stream.laut.fm/linefmlofi" }
+      },
+      {
+        "@type": "RadioStation",
+        "@id": "https://app.linefm.de/#radio3fm",
+        "name": "Radio3FM",
+        "url": "https://app.linefm.de/",
+        "logo": "https://cdn.linefm.de/images/icons/radio3fm.png",
+        "inLanguage": "de",
+        "potentialAction": { "@type": "ListenAction", "target": "https://radio3fm.stream.laut.fm/radio3fm" }
+      },
+      {
+        "@type": "RadioStation",
+        "@id": "https://app.linefm.de/#fobfm",
+        "name": "FobFM",
+        "url": "https://app.linefm.de/",
+        "logo": "https://cdn.linefm.de/images/icons/fobfm.png",
+        "inLanguage": "de",
+        "potentialAction": { "@type": "ListenAction", "target": "https://fobfm.stream.laut.fm/fobfm" }
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    html, body { margin: 0; height: 100%; background: #0f1221; color: #ffffff; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    @media (prefers-color-scheme: light) {
+      html, body { background: #f4f5fa; color: #14172a; }
+      #static-shell a { color: #14172a; }
+      #static-shell .muted { color: #50546b; }
+    }
+    #static-shell { box-sizing: border-box; min-height: 100%; padding: 48px 24px 32px; display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center; }
+    #static-shell[hidden] { display: none; }
+    #static-shell h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.04em; }
+    #static-shell p { margin: 0; max-width: 34rem; line-height: 1.5; }
+    #static-shell ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    #static-shell a { color: #ffffff; }
+    #static-shell .muted { color: #898da1; font-size: 0.9rem; }
+    #static-shell .dots { display: flex; gap: 8px; }
+    #static-shell .dots i { width: 8px; height: 8px; border-radius: 50%; background: #898da1; animation: dot 1.2s infinite ease-in-out; }
+    #static-shell .dots i:nth-child(2) { animation-delay: .2s; }
+    #static-shell .dots i:nth-child(3) { animation-delay: .4s; }
+    @keyframes dot { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { #static-shell .dots i { animation: none; opacity: .6; } }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <div id="static-shell">
+    <img src="icons/Icon-192.png" width="96" height="96" alt="LINEFM Radio" decoding="async">
+    <h1>LINEFM | Radio</h1>
+    <p>Hör LineFM +MAIN, +RAP, +GAMING und +LOFI sowie Radio3FM und FobFM live. Die App merkt sich Favoriten, zeigt den Verlauf und schaltet sich per Sleeptimer ab.</p>
+    <div class="dots" role="status" aria-label="LINEFM wird geladen"><i></i><i></i><i></i></div>
+    <ul aria-label="Sender">
+      <li>LineFM +MAIN</li>
+      <li>LineFM +RAP</li>
+      <li>LineFM +GAMING</li>
+      <li>LineFM +LOFI</li>
+      <li>Radio3FM</li>
+      <li>FobFM</li>
+    </ul>
+    <noscript><p>Für das Radio wird JavaScript benötigt. Bitte aktiviere es in deinem Browser.</p></noscript>
+    <p class="muted">Ein Angebot von <a href="https://radiogruppe.de" rel="noopener">RadioGruppe Deutschland</a> · <a href="https://linefm.de" rel="noopener">linefm.de</a> · <a href="impressum/">Impressum</a> · <a href="datenschutz/">Datenschutz</a></p>
+  </div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

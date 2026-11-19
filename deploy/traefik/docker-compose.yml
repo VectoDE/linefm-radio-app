@@ -1,0 +1,45 @@
+# Traefik-Variante: nginx-Container hinter einem bestehenden Traefik (v3).
+# Start: cp .env.example .env && docker compose up -d --build   (im Ordner deploy/traefik)
+# Voraussetzung: build/web und build/hosting liegen im Repo-Wurzelordner (Postbuild gelaufen).
+name: linefm-app
+
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/traefik/Dockerfile
+    image: ${WEB_IMAGE:-linefm-app-web:local}
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - traefik
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: ${TRAEFIK_NETWORK:-traefik}
+      # HTTPS
+      traefik.http.routers.linefm-app.rule: Host(`${APP_HOST:-app.linefm.de}`)
+      traefik.http.routers.linefm-app.entrypoints: ${TRAEFIK_ENTRYPOINT_SECURE:-websecure}
+      traefik.http.routers.linefm-app.tls: "true"
+      traefik.http.routers.linefm-app.tls.certresolver: ${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      traefik.http.routers.linefm-app.middlewares: linefm-compress
+      traefik.http.routers.linefm-app.service: linefm-app
+      traefik.http.services.linefm-app.loadbalancer.server.port: "8080"
+      # Kompression. nginx komprimiert bereits (gzip); Traefik laesst bereits kodierte Antworten unveraendert.
+      traefik.http.middlewares.linefm-compress.compress: "true"
+      # HTTP -> HTTPS
+      traefik.http.routers.linefm-app-http.rule: Host(`${APP_HOST:-app.linefm.de}`)
+      traefik.http.routers.linefm-app-http.entrypoints: ${TRAEFIK_ENTRYPOINT_HTTP:-web}
+      traefik.http.routers.linefm-app-http.middlewares: linefm-https
+      traefik.http.middlewares.linefm-https.redirectscheme.scheme: https
+      traefik.http.middlewares.linefm-https.redirectscheme.permanent: "true"
+
+networks:
+  traefik:
+    name: ${TRAEFIK_NETWORK:-traefik}
+    external: true

@@ -5,7 +5,8 @@
 // Schritte:
 //  1. main.dart.{js,wasm,mjs} -> main.<sha8>.dart.<ext>, flutter_bootstrap.js anpassen
 //  2. canvaskit/ -> canvaskit/<engineRevision>/, canvasKitBaseUrl im Bootstrap setzen
-//  3. Platzhalter ersetzen (Basis-URL, Search-Console-Verifikation, Build-ID im sw.js)
+//  3. Platzhalter ersetzen (Basis-URL, Search-Console-Verifikation, Build-ID im sw.js,
+//     lastmod der Sitemap = Build-Datum, SOURCE_DATE_EPOCH falls gesetzt)
 //  4. Hosting-Dateien aus deploy/ rendern (Header-Dateien, __CSP_CONNECT_EXTRA__)
 //  5. Ballast entfernen (Sourcemaps, *.symbols, ungenutzte Engine-Varianten, Flutter-Standard-SW)
 //  6. asset-manifest.txt mit SHA-256 aller Dateien schreiben
@@ -269,6 +270,28 @@ String pruneWasmHashes(String bootstrap) {
   );
 }
 
+/// Setzt jedes `<lastmod>` der Sitemap auf [date] (UTC, `YYYY-MM-DD`).
+/// Idempotent: ein zweiter Lauf schreibt nur das Datum neu.
+String renderSitemapLastmod(String xml, DateTime date) {
+  final utc = date.toUtc();
+  String two(int n) => n.toString().padLeft(2, '0');
+  final day = '${utc.year}-${two(utc.month)}-${two(utc.day)}';
+  return xml.replaceAll(
+    RegExp('<lastmod>[^<]*</lastmod>'),
+    '<lastmod>$day</lastmod>',
+  );
+}
+
+/// Build-Datum: SOURCE_DATE_EPOCH (reproduzierbare Builds), sonst jetzt.
+DateTime buildDate([Map<String, String>? env]) {
+  final epoch = int.tryParse(
+    (env ?? Platform.environment)['SOURCE_DATE_EPOCH'] ?? '',
+  );
+  return epoch == null
+      ? DateTime.now().toUtc()
+      : DateTime.fromMillisecondsSinceEpoch(epoch * 1000, isUtc: true);
+}
+
 /// Ersetzt die Standard-Domain durch eine andere Basis-URL (nur Textdateien).
 String rewriteBaseUrl(String text, String baseUrl) {
   final clean = baseUrl.endsWith('/')
@@ -509,6 +532,9 @@ List<String> runPostbuild(PostbuildOptions o) {
     var text = rewriteBaseUrl(f.readAsStringSync(), baseUrl);
     if (name == 'index.html') {
       text = renderGscVerification(text, gsc);
+    }
+    if (name == 'sitemap.xml') {
+      text = renderSitemapLastmod(text, buildDate());
     }
     f.writeAsStringSync(text);
   }

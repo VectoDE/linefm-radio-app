@@ -380,4 +380,34 @@ void main() {
       );
     });
   });
+
+  group('Sitemap lastmod (SEO-03)', () {
+    test('setzt jedes lastmod auf das Build-Datum, idempotent', () {
+      const xml =
+          '<url><loc>a</loc><lastmod>2020-01-01</lastmod></url>'
+          '<url><lastmod>x</lastmod></url>';
+      final date = DateTime.utc(2026, 11, 19, 23, 59);
+      final once = renderSitemapLastmod(xml, date);
+      expect(once, contains('<lastmod>2026-11-19</lastmod>'));
+      expect(once, isNot(contains('2020-01-01')));
+      expect(renderSitemapLastmod(once, date), once);
+    });
+
+    test('SOURCE_DATE_EPOCH bestimmt das Datum', () {
+      expect(
+        buildDate(<String, String>{'SOURCE_DATE_EPOCH': '1795046400'}),
+        DateTime.utc(2026, 11, 19),
+      );
+    });
+
+    test('eingecheckte Sitemap: lastmod, kein hreflang en', () {
+      final xml = File('web/sitemap.xml').readAsStringSync();
+      expect(xml, contains('<lastmod>'));
+      expect(xml, isNot(contains('hreflang="en"')));
+      expect(
+        File('web/index.html').readAsStringSync(),
+        isNot(contains('hreflang="en"')),
+      );
+    });
+  });
 }

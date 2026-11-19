@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/features/stations/favorite_stations.dart';
 
 /// "Speicher loeschen" (wie `clearAppStorage` der Web-App): entfernt alle
 /// lokalen Daten samt Speicher-Bestaetigung und widerruft die Telemetrie-
@@ -13,6 +14,7 @@ Future<void> clearAppStorage(WidgetRef ref) async {
   ref
     ..invalidate(settingsProvider)
     ..invalidate(favoritesProvider)
+    ..invalidate(favoriteStationsProvider)
     ..invalidate(alarmProvider)
     ..invalidate(storageConsentProvider)
     ..invalidate(telemetryConsentProvider);

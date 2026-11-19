@@ -40,7 +40,9 @@ class SettingsScreen extends ConsumerWidget {
     final side = width > 760 ? (width - 720) / 2 : 20.0;
 
     return ListView(
-      padding: EdgeInsets.fromLTRB(side, 0, side, 32),
+      // Oben 20 dp wie die Stationsliste, damit die Ueberschrift auf allen
+      // Screens gleich weit unter dem Header sitzt.
+      padding: EdgeInsets.fromLTRB(side, 20, side, 32),
       children: <Widget>[
         SectionHeading(l10n.settingsTitle),
         Divider(color: context.linefm.line),

@@ -5,6 +5,7 @@ import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/favorite.dart';
+import 'package:linefm_radio/domain/favorites/favorite_stations_logic.dart';
 import 'package:linefm_radio/domain/favorites/favorites_logic.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,9 +27,17 @@ abstract final class PrefsKeys {
   static const String telemetryConsent = 'linefm-telemetry-consent';
   static const String coverCache = 'linefm-cover-cache';
 
+  /// Favoriten-Sender (Issue #42). Gibt es in der Web-App nicht.
+  static const String favoriteStations = 'linefm-favorite-stations';
+
+  /// Fenstergroesse/-position und Mini-Fenster (Desktop, P18).
+  static const String desktopWindow = 'linefm-desktop-window';
+  static const String desktopMini = 'linefm-desktop-mini';
+
   /// Alle Daten-Schluessel, also alles ausser der Speicher-Bestaetigung.
   static const List<String> data = <String>[
     favorites,
+    favoriteStations,
     volume,
     marquee,
     rememberVolume,
@@ -39,6 +48,8 @@ abstract final class PrefsKeys {
     alarms,
     telemetryConsent,
     coverCache,
+    desktopWindow,
+    desktopMini,
   ];
 }
 
@@ -97,6 +108,25 @@ class SharedPrefsStore implements PrefsStore {
       () => _prefs.setString(
         PrefsKeys.favorites,
         FavoritesLogic.encode(favorites),
+      ),
+    );
+  }
+
+  @override
+  Set<String> readFavoriteStations() {
+    if (!_consent) return const <String>{};
+    return FavoriteStationsLogic.decode(
+      _readString(PrefsKeys.favoriteStations),
+    );
+  }
+
+  @override
+  Future<void> writeFavoriteStations(Set<String> slugs) async {
+    if (!_consent) return;
+    await _write(
+      () => _prefs.setString(
+        PrefsKeys.favoriteStations,
+        FavoriteStationsLogic.encode(slugs),
       ),
     );
   }

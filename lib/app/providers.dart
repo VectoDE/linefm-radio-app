@@ -1,13 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:http/http.dart' as http;
 import 'package:linefm_radio/app/navigation.dart';
 import 'package:linefm_radio/app/player_controller.dart';
+import 'package:linefm_radio/app/system_share_service.dart';
 import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
+import 'package:linefm_radio/data/api/http_cache.dart';
 import 'package:linefm_radio/data/api/laut_api.dart';
+import 'package:linefm_radio/data/api/song_change_socket.dart';
 import 'package:linefm_radio/data/artwork/itunes_artwork.dart';
 import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
+import 'package:linefm_radio/domain/alarm/alarm_schedule.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/favorite.dart';
 import 'package:linefm_radio/domain/favorites/favorites_logic.dart';
@@ -19,16 +27,22 @@ import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
+import 'package:linefm_radio/services/alarm/alarm_wiring.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
+import 'package:linefm_radio/services/cast/cast_backend.dart';
+import 'package:linefm_radio/services/cast/cast_handoff.dart';
 import 'package:linefm_radio/services/cast/cast_service.dart';
+import 'package:linefm_radio/services/cast/chrome_cast_service.dart';
 import 'package:linefm_radio/services/share/share_service.dart';
 import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/services/widgets/home_widget_sync.dart';
 
 // Zentrale Provider-Definitionen (Spec 3.4). Gemeinsame Datei: Besitz P01,
-// danach P28. Aenderungswuensche anderer Pakete laufen ueber den Bericht.
-// Die Standardwerte sind Stubs; main() und Tests ueberschreiben sie.
+// danach P11/P28. Aenderungswuensche anderer Pakete laufen ueber den Bericht.
+//
+// Die Standardwerte sind Stubs ohne Netzwerk (Tests, Previews). main() setzt
+// die echten Dienste ueber [productionOverrides].
 
 // ---------------------------------------------------------------- Konfig/Kern
 
@@ -57,9 +71,66 @@ final artworkProvider = Provider<ArtworkService>(
 
 final nowPlayingRepositoryProvider = Provider<NowPlayingRepository>((ref) {
   final repo = FakeNowPlayingRepository();
-  ref.onDispose(repo.dispose);
+  bindNowPlayingRepository(ref, repo);
   return repo;
 });
+
+/// Bindet den Live-Daten-Motor an die App: gewaehlte Station und laufende
+/// Wiedergabe steuern Timer und Abrufe; `dispose` beendet Timer und
+/// WebSocket. Den Vordergrund meldet die Shell (`setForeground`).
+void bindNowPlayingRepository(Ref ref, NowPlayingRepository repo) {
+  ref
+    ..listen<Station>(
+      activeStationProvider,
+      (_, next) => repo.setActiveStation(next),
+    )
+    ..listen<AsyncValue<PlayerUiState>>(playerStateProvider, (_, next) {
+      final state = next.value;
+      if (state != null) {
+        repo.setPlaying(value: state.isPlaying || state.isBusy);
+      }
+    })
+    ..onDispose(repo.dispose);
+}
+
+/// Chromecast: echter Dienst, wenn [castBackend] (initCast) existiert, sonst
+/// [NoopCastService]. Bindet Übergabe lokal zu Cast, Titel-Metadaten und
+/// Lautstärke an die Wiedergabe. Wird beim ersten Lesen erzeugt (Cast-Knopf
+/// im Player); die Shell kann ihn für Sitzungen aus früheren Läufen früher
+/// lesen.
+CastService createCastService(Ref ref) {
+  final backend = castBackend;
+  if (backend == null) return const NoopCastService();
+  final lautApi = ref.read(lautApiProvider);
+  final service = ChromeCastService(
+    backend: backend,
+    resolveStreamUrl: (station) => resolveCastStreamUrl(lautApi, station),
+  );
+  final playback = ref.read(playbackServiceProvider);
+  final handoff = CastHandoff(
+    service: service,
+    stopLocal: playback.stopPlayback,
+    activeStation: () => ref.read(activeStationProvider),
+    currentTrack: () => ref.read(currentTrackProvider).value,
+    initialVolume: playback.state.volume,
+  );
+  final subs = <StreamSubscription<Object?>>[
+    service.states.listen(handoff.onCastState),
+    playback.stateStream.listen(handoff.onLocalState),
+  ];
+  ref
+    ..listen<AsyncValue<Track?>>(
+      currentTrackProvider,
+      (_, next) => handoff.onTrack(next.value),
+    )
+    ..onDispose(() {
+      for (final sub in subs) {
+        unawaited(sub.cancel());
+      }
+      unawaited(service.dispose());
+    });
+  return service;
+}
 
 /// Audio-Dienst; main() setzt das Ergebnis von initAudio().
 final playbackServiceProvider = Provider<PlaybackService>((ref) {
@@ -133,23 +204,21 @@ final currentTrackProvider = Provider<AsyncValue<Track?>>((ref) {
       );
 });
 
-class HistoryNotifier extends AsyncNotifier<List<HistoryEntry>> {
-  @override
-  Future<List<HistoryEntry>> build() async {
-    final station = ref.watch(activeStationProvider);
-    return ref.read(nowPlayingRepositoryProvider).watchHistory(station).first;
-  }
-}
-
-final historyProvider =
-    AsyncNotifierProvider<HistoryNotifier, List<HistoryEntry>>(
-      HistoryNotifier.new,
-    );
+/// LIVE-Eintrag plus letzte Songs der gewaehlten Station, live aktualisiert.
+final historyProvider = StreamProvider<List<HistoryEntry>>((ref) {
+  final station = ref.watch(activeStationProvider);
+  return ref.watch(nowPlayingRepositoryProvider).watchHistory(station);
+});
 
 final listenersProvider = StreamProvider<int?>((ref) {
   final station = ref.watch(activeStationProvider);
   return ref.watch(nowPlayingRepositoryProvider).watchListeners(station);
 });
+
+/// `false`, solange laut.fm nicht erreichbar ist (Offline-Leiste).
+final onlineProvider = StreamProvider<bool>(
+  (ref) => ref.watch(nowPlayingRepositoryProvider).watchOnline(),
+);
 
 // ----------------------------------------------------------- Persistiert
 
@@ -222,7 +291,13 @@ final telemetryConsentProvider =
 
 class SleepTimerNotifier extends Notifier<SleepTimerState> {
   @override
-  SleepTimerState build() => ref.read(sleepTimerServiceProvider).state;
+  SleepTimerState build() {
+    final service = ref.watch(sleepTimerServiceProvider);
+    // Ablauf, Ausblenden und Restzeit meldet der Dienst selbst.
+    final sub = service.states.listen((s) => state = s);
+    ref.onDispose(sub.cancel);
+    return service.state;
+  }
 
   Future<void> start(SleepTimerMode mode, {Track? currentTrack}) async {
     final service = ref.read(sleepTimerServiceProvider);
@@ -244,12 +319,26 @@ final sleepTimerProvider =
 
 class AlarmNotifier extends Notifier<List<AlarmRule>> {
   @override
-  List<AlarmRule> build() => ref.read(prefsProvider).readAlarms();
+  List<AlarmRule> build() {
+    final stored = ref.read(prefsProvider).readAlarms();
+    // Aeltere einmalige Regeln ohne festen Termin bekommen ihn jetzt.
+    return AlarmSchedule.withFiresAt(
+      stored,
+      stored,
+      ref.read(clockProvider).now(),
+    );
+  }
 
   Future<void> setRules(List<AlarmRule> rules) async {
-    state = rules;
-    await ref.read(prefsProvider).writeAlarms(rules);
-    await ref.read(alarmCoordinatorProvider).rescheduleAll(rules);
+    // Einmalige Regeln bekommen beim Einschalten/Aendern ihren festen Termin.
+    final next = AlarmSchedule.withFiresAt(
+      rules,
+      state,
+      ref.read(clockProvider).now(),
+    );
+    state = next;
+    await ref.read(prefsProvider).writeAlarms(next);
+    await ref.read(alarmCoordinatorProvider).rescheduleAll(next);
   }
 }
 
@@ -266,3 +355,58 @@ final castProvider = StreamProvider<CastState>(
 final navigationProvider = NotifierProvider<NavigationNotifier, AppScreen>(
   NavigationNotifier.new,
 );
+
+// ------------------------------------------------------------- Produktion
+
+/// Echte Dienste fuer main(): laut.fm-REST mit Cache, iTunes-Cover mit
+/// persistentem Cache, Live-Daten-Motor (WebSocket nur mit `WS_ENABLED=true`,
+/// Standard aus, Entscheidung 50), System-Teilen. [httpClient] nur fuer
+/// Tests; ohne Angabe erzeugt jeder Dienst seinen eigenen Client.
+List<Override> productionOverrides({
+  required AppConfig config,
+  required PrefsStore prefs,
+  required PlaybackService playback,
+  required TelemetryHub telemetry,
+  http.Client? httpClient,
+}) => <Override>[
+  appConfigProvider.overrideWithValue(config),
+  prefsProvider.overrideWithValue(prefs),
+  playbackServiceProvider.overrideWithValue(playback),
+  telemetryProvider.overrideWithValue(telemetry),
+  lautApiProvider.overrideWith((ref) {
+    final api = HttpLautApi(cache: HttpCache(client: httpClient));
+    if (httpClient == null) ref.onDispose(api.close);
+    return api;
+  }),
+  artworkProvider.overrideWith((ref) {
+    final service = ItunesArtworkService(
+      client: httpClient,
+      clock: ref.watch(clockProvider),
+      store: CoverCacheStore(
+        read: prefs.readCoverCache,
+        write: prefs.writeCoverCache,
+      ),
+    );
+    ref.onDispose(() {
+      unawaited(httpClient == null ? service.dispose() : service.flush());
+    });
+    return service;
+  }),
+  nowPlayingRepositoryProvider.overrideWith((ref) {
+    final repo = LiveNowPlayingRepository(
+      api: ref.watch(lautApiProvider),
+      artwork: ref.watch(artworkProvider),
+      clock: ref.watch(clockProvider),
+      activeStation: ref.read(activeStationProvider),
+      socket: config.wsEnabled ? WebSocketSongChangeSocket() : null,
+    );
+    bindNowPlayingRepository(ref, repo);
+    return repo;
+  }),
+  homeWidgetSyncProvider.overrideWithValue(createHomeWidgetSync()),
+  shareServiceProvider.overrideWith(
+    (ref) => SystemShareService(webBaseUrl: config.webBaseUrl),
+  ),
+  ...alarmAndSleepOverrides(),
+  castServiceProvider.overrideWith(createCastService),
+];

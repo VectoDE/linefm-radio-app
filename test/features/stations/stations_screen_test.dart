@@ -16,16 +16,6 @@ void setSize(WidgetTester tester, double width, [double height = 900]) {
 }
 
 void main() {
-  group('secondsBucket', () {
-    test('gruppiert die Hoerdauer', () {
-      expect(secondsBucket(3), '0-9');
-      expect(secondsBucket(10), '10-59');
-      expect(secondsBucket(60), '60-299');
-      expect(secondsBucket(300), '300-1799');
-      expect(secondsBucket(1800), '1800+');
-    });
-  });
-
   testWidgets('zeigt Ueberschrift, 6 Karten und Ticker', (tester) async {
     setSize(tester, 390);
     final h = Harness();

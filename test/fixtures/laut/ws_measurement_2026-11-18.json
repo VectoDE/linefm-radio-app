@@ -1,0 +1,78 @@
+{
+  "durationMin": 10.01,
+  "frames": 599,
+  "docs": 47678,
+  "liveDocs": 1656,
+  "bytes": 22952404,
+  "framesPerMin": 59.9,
+  "docsPerMin": 4764.6,
+  "kbPerMin": 2239.9,
+  "avgFrameKb": 37.4,
+  "maxFrameKb": 53.8,
+  "avgDocBytes": 481,
+  "distinctStations": 16762,
+  "oursDocs": 15,
+  "oursBytes": 6215,
+  "oursShareDocsPct": 0.031,
+  "oursShareBytesPct": 0.0271,
+  "oursPerStation": {
+    "linefm": 3,
+    "linefmrap": 2,
+    "linefmgaming": 2,
+    "linefmlofi": 2,
+    "radio3fm": 3,
+    "fobfm": 3
+  },
+  "perMinute": [
+    {
+      "frames": 59,
+      "docs": 4685,
+      "kb": 2194
+    },
+    {
+      "frames": 60,
+      "docs": 4786,
+      "kb": 2257
+    },
+    {
+      "frames": 60,
+      "docs": 4744,
+      "kb": 2246
+    },
+    {
+      "frames": 60,
+      "docs": 4712,
+      "kb": 2205
+    },
+    {
+      "frames": 60,
+      "docs": 4876,
+      "kb": 2261
+    },
+    {
+      "frames": 60,
+      "docs": 4878,
+      "kb": 2302
+    },
+    {
+      "frames": 60,
+      "docs": 4639,
+      "kb": 2195
+    },
+    {
+      "frames": 60,
+      "docs": 4728,
+      "kb": 2225
+    },
+    {
+      "frames": 60,
+      "docs": 4809,
+      "kb": 2258
+    },
+    {
+      "frames": 60,
+      "docs": 4821,
+      "kb": 2271
+    }
+  ]
+}

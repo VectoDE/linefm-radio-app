@@ -4,23 +4,39 @@ import 'package:linefm_radio/app/app.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
+import 'package:linefm_radio/features/loader/app_loader.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
-  testWidgets('App startet mit Stub-Providern und zeigt 6 Sender', (
+  testWidgets('App startet mit Stub-Providern, Loader, Shell und 6 Sendern', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    loaderShownThisProcess = false;
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [prefsProvider.overrideWithValue(InMemoryPrefsStore())],
         child: const LinefmApp(),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    expect(find.byType(AppLoader), findsOneWidget);
 
-    expect(find.text('LINEFM | Radio'), findsOneWidget);
+    // Kaltstart: Loader steht mindestens 1,2 s und blendet dann aus.
+    await tester.pump(LoaderGate.nativeMinDuration);
+    await tester.pump(LoaderGate.fadeDuration);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(AppLoader), findsNothing);
+
+    expect(find.text('LINEFM'), findsOneWidget);
     expect(stationsCatalog, hasLength(6));
+    // Stationsnamen stehen in Syncopate-Grossbuchstaben auf den Karten.
     for (final station in stationsCatalog) {
-      expect(find.text(station.displayName), findsOneWidget);
+      expect(find.text(station.displayName.toUpperCase()), findsOneWidget);
     }
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 }

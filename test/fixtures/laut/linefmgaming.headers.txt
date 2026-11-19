@@ -1,0 +1,24 @@
+HTTP/1.1 200 OK
+Date: Wed, 18 Nov 2026 20:12:33 GMT
+Content-Type: application/json; charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+access-control-allow-credentials: true
+access-control-allow-headers: If-Modified-Since
+access-control-allow-methods: GET, OPTIONS
+access-control-allow-origin: *
+Age: 166
+Cache-Control: public, must-revalidate, max-age=360
+etag: W/"952b27debb7484b569fe825c8dd8085b"
+expires: Wed, 18 Nov 2026 20:15:47 GMT
+location: 
+Server: cloudflare
+vary: Accept-Encoding
+via: 1.1 api-frontend-57f55468c6-pxhd2 (Varnish/7.7)
+x-cache: HIT
+x-cache-hits: 7
+x-varnish: 31225417 24164278
+cf-cache-status: MISS
+Strict-Transport-Security: max-age=0
+CF-RAY: a5c9a174c885d7b4-TXL
+

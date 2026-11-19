@@ -1,0 +1,9 @@
+HTTP/1.1 200 OK
+Content-Type: text/javascript; charset=utf-8
+x-content-type-options: nosniff
+Access-Control-Allow-Origin: *
+strict-transport-security: max-age=31536000; includeSubDomains
+Vary: origin
+Cache-Control: max-age=86400
+Date: Wed, 18 Nov 2026 20:21:38 GMT
+Content-Length: 1451

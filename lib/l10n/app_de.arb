@@ -84,6 +84,27 @@
       }
     }
   },
+  "stationFavoriteAdd": "{station} als Favoriten-Sender merken",
+  "@stationFavoriteAdd": {
+    "description": "Stern auf der Stationskarte (Screenreader/Tooltip), Issue #42",
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "stationFavoriteRemove": "{station} aus den Favoriten-Sendern entfernen",
+  "@stationFavoriteRemove": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "stationFavoriteBadge": "Favoriten-Sender",
+  "@stationFavoriteBadge": {
+    "description": "Zusatz im Screenreader-Text einer gemerkten Stationskarte"
+  },
   "playerCoverAlt": "Albumcover",
   "playerShuffle": "Zufällige Station abspielen",
   "playerShuffleTooltip": "Zufällige Station",
@@ -139,6 +160,7 @@
   "historyTitle": "Zuletzt gespielt",
   "historyListLabel": "Zuletzt gespielte Titel",
   "historyEmpty": "Noch keine Titel im Verlauf.",
+  "historyLoadFailed": "Verlauf konnte nicht geladen werden.",
   "favoritesTitle": "Favoriten",
   "favoritesListLabel": "Gespeicherte Songs",
   "favoritesEmpty": "Noch keine Favoriten gespeichert.",
@@ -163,6 +185,8 @@
     }
   },
   "favoritesExportFailed": "Der Export hat nicht geklappt.",
+  "shareCopied": "In die Zwischenablage kopiert.",
+  "shareFailed": "Teilen hat nicht geklappt.",
   "csvColumnTitle": "Titel",
   "@csvColumnTitle": {
     "description": "CSV-Spaltenkopf"
@@ -238,6 +262,7 @@
     }
   },
   "sleepTimerEndOfSong": "Ende des Songs",
+  "sleepTimerEndOfSongUnavailable": "„Ende des Songs“ ist bei Live-Sendungen nicht möglich.",
   "sleepTimerStatusNone": "Kein Sleeptimer aktiv.",
   "sleepTimerStatusRunning": "{minutes, plural, =1{Wiedergabe stoppt in 1 Minute.} other{Wiedergabe stoppt in {minutes} Minuten.}}",
   "@sleepTimerStatusRunning": {
@@ -333,6 +358,18 @@
   "alarmPermissionTitle": "Wecker braucht eine Freigabe",
   "alarmPermissionBody": "Damit der Wecker pünktlich klingelt, muss Android genaue Alarme erlauben. Das stellst du in den Systemeinstellungen ein.",
   "alarmOpenSettings": "Einstellungen öffnen",
+  "alarmStop": "Aus",
+  "alarmRingingBody": "Wecker: {station} läuft.",
+  "@alarmRingingBody": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmExactMissingNote": "Ohne die Freigabe „Alarme und Erinnerungen“ klingelt der Wecker nicht pünktlich. Erlaube sie in den Systemeinstellungen.",
+  "alarmFullScreenMissingNote": "Ohne die Freigabe „Vollbild-Benachrichtigungen“ erscheint der Wecker nur als Mitteilung, nicht als Vollbild.",
+  "alarmOpenFullScreenSettings": "Vollbild erlauben",
   "alarmRingingTitle": "Guten Morgen",
   "alarmRingingBody": "{station} läuft gleich los.",
   "@alarmRingingBody": {
@@ -400,9 +437,17 @@
   "castDisconnect": "Übertragung beenden",
   "airplayButton": "AirPlay",
   "notificationChannelName": "Wiedergabe",
-  "browseFavorites": "Favoriten",
-  "@browseFavorites": {
-    "description": "Android-Auto-/CarPlay-Ordner"
+  "browseFavoriteStations": "Favoriten-Sender",
+  "@browseFavoriteStations": {
+    "description": "Ordner im Auto-Menü (Android Auto/CarPlay): gemerkte Sender, Issue #42"
+  },
+  "browseStations": "Stationen",
+  "@browseStations": {
+    "description": "Ordner im Auto-Menü: alle Sender"
+  },
+  "browseRecent": "Zuletzt gehört",
+  "@browseRecent": {
+    "description": "Ordner im Auto-Menü: zuletzt gehörte Station"
   },
   "widgetIdle": "Zum Abspielen tippen",
   "trayShowWindow": "Fenster zeigen",
@@ -410,5 +455,6 @@
   "trayStop": "Stoppen",
   "trayStations": "Sender",
   "trayMiniPlayer": "Mini-Player",
-  "trayQuit": "Beenden"
+  "trayQuit": "Beenden",
+  "trayAlwaysOnTop": "Immer im Vordergrund"
 }

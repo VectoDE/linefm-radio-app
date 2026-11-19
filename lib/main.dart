@@ -12,30 +12,34 @@ import 'package:linefm_radio/services/audio/audio_backend.dart';
 import 'package:linefm_radio/services/cast/cast_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/services/widgets/home_widget_sync.dart';
+import 'package:linefm_radio/ui/theme/font_licenses.dart';
 
-/// Bootstrap in fester Reihenfolge (Besitz P01, danach P28):
-/// Bindings, Konfiguration, Audio, Desktop, Speicher, Telemetrie, Wecker,
-/// Cast, Widget, Deep Links, runApp.
+/// Bootstrap in fester Reihenfolge (Besitz P01, danach P11/P28):
+/// Bindings, Schrift-Lizenzen, Konfiguration, Audio, Desktop, Speicher,
+/// Telemetrie (samt Absturz-Handlern), Wecker, Cast, Widget, Deep Links,
+/// runApp mit den echten Diensten.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  registerFontLicenses();
   final appConfig = AppConfig.fromEnvironment();
   final playback = await initAudio();
   await initDesktop();
   final prefs = await createPrefsStore();
   await migrateWebappData(prefs);
   final telemetry = await initTelemetry(config: appConfig, prefs: prefs);
+  telemetry.installCrashHandlers();
   await initAlarm();
   await initCast();
   await initHomeWidget();
   await initDeepLinks();
   runApp(
     ProviderScope(
-      overrides: [
-        appConfigProvider.overrideWithValue(appConfig),
-        prefsProvider.overrideWithValue(prefs),
-        playbackServiceProvider.overrideWithValue(playback),
-        telemetryProvider.overrideWithValue(telemetry),
-      ],
+      overrides: productionOverrides(
+        config: appConfig,
+        prefs: prefs,
+        playback: playback,
+        telemetry: telemetry,
+      ),
       child: const LinefmApp(),
     ),
   );

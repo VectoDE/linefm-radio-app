@@ -123,6 +123,19 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String stationFavoriteAdd(String station) {
+    return '$station als Favoriten-Sender merken';
+  }
+
+  @override
+  String stationFavoriteRemove(String station) {
+    return '$station aus den Favoriten-Sendern entfernen';
+  }
+
+  @override
+  String get stationFavoriteBadge => 'Favoriten-Sender';
+
+  @override
   String get playerCoverAlt => 'Albumcover';
 
   @override
@@ -234,6 +247,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get historyEmpty => 'Noch keine Titel im Verlauf.';
 
   @override
+  String get historyLoadFailed => 'Verlauf konnte nicht geladen werden.';
+
+  @override
   String get favoritesTitle => 'Favoriten';
 
   @override
@@ -266,6 +282,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get favoritesExportFailed => 'Der Export hat nicht geklappt.';
+
+  @override
+  String get shareCopied => 'In die Zwischenablage kopiert.';
+
+  @override
+  String get shareFailed => 'Teilen hat nicht geklappt.';
 
   @override
   String get csvColumnTitle => 'Titel';
@@ -384,6 +406,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sleepTimerEndOfSong => 'Ende des Songs';
+
+  @override
+  String get sleepTimerEndOfSongUnavailable =>
+      '„Ende des Songs“ ist bei Live-Sendungen nicht möglich.';
 
   @override
   String get sleepTimerStatusNone => 'Kein Sleeptimer aktiv.';
@@ -590,12 +616,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get alarmOpenSettings => 'Einstellungen öffnen';
 
   @override
-  String get alarmRingingTitle => 'Guten Morgen';
+  String get alarmStop => 'Aus';
 
   @override
   String alarmRingingBody(String station) {
     return '$station läuft gleich los.';
   }
+
+  @override
+  String get alarmExactMissingNote =>
+      'Ohne die Freigabe „Alarme und Erinnerungen“ klingelt der Wecker nicht pünktlich. Erlaube sie in den Systemeinstellungen.';
+
+  @override
+  String get alarmFullScreenMissingNote =>
+      'Ohne die Freigabe „Vollbild-Benachrichtigungen“ erscheint der Wecker nur als Mitteilung, nicht als Vollbild.';
+
+  @override
+  String get alarmOpenFullScreenSettings => 'Vollbild erlauben';
+
+  @override
+  String get alarmRingingTitle => 'Guten Morgen';
 
   @override
   String get alarmDismiss => 'Ausschalten';
@@ -671,7 +711,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get notificationChannelName => 'Wiedergabe';
 
   @override
-  String get browseFavorites => 'Favoriten';
+  String get browseFavoriteStations => 'Favoriten-Sender';
+
+  @override
+  String get browseStations => 'Stationen';
+
+  @override
+  String get browseRecent => 'Zuletzt gehört';
 
   @override
   String get widgetIdle => 'Zum Abspielen tippen';
@@ -693,4 +739,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trayQuit => 'Beenden';
+
+  @override
+  String get trayAlwaysOnTop => 'Immer im Vordergrund';
 }

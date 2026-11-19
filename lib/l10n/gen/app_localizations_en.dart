@@ -123,6 +123,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String stationFavoriteAdd(String station) {
+    return 'Add $station to favorite stations';
+  }
+
+  @override
+  String stationFavoriteRemove(String station) {
+    return 'Remove $station from favorite stations';
+  }
+
+  @override
+  String get stationFavoriteBadge => 'Favorite station';
+
+  @override
   String get playerCoverAlt => 'Album cover';
 
   @override
@@ -234,6 +247,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyEmpty => 'No tracks in the history yet.';
 
   @override
+  String get historyLoadFailed => 'Couldn’t load the history.';
+
+  @override
   String get favoritesTitle => 'Favorites';
 
   @override
@@ -266,6 +282,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get favoritesExportFailed => 'The export failed.';
+
+  @override
+  String get shareCopied => 'Copied to the clipboard.';
+
+  @override
+  String get shareFailed => 'Sharing didn’t work.';
 
   @override
   String get csvColumnTitle => 'Title';
@@ -382,6 +404,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sleepTimerEndOfSong => 'End of song';
+
+  @override
+  String get sleepTimerEndOfSongUnavailable =>
+      '“End of song” is not available during live shows.';
 
   @override
   String get sleepTimerStatusNone => 'No sleep timer active.';
@@ -586,12 +612,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmOpenSettings => 'Open settings';
 
   @override
-  String get alarmRingingTitle => 'Good morning';
+  String get alarmStop => 'Off';
 
   @override
   String alarmRingingBody(String station) {
     return '$station is about to start.';
   }
+
+  @override
+  String get alarmExactMissingNote =>
+      'Without the “Alarms & reminders” permission the alarm will not ring on time. Allow it in the system settings.';
+
+  @override
+  String get alarmFullScreenMissingNote =>
+      'Without the “Full-screen notifications” permission the alarm only shows as a notification, not full screen.';
+
+  @override
+  String get alarmOpenFullScreenSettings => 'Allow full screen';
+
+  @override
+  String get alarmRingingTitle => 'Good morning';
 
   @override
   String get alarmDismiss => 'Turn off';
@@ -667,7 +707,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationChannelName => 'Playback';
 
   @override
-  String get browseFavorites => 'Favorites';
+  String get browseFavoriteStations => 'Favorite stations';
+
+  @override
+  String get browseStations => 'Stations';
+
+  @override
+  String get browseRecent => 'Recently played';
 
   @override
   String get widgetIdle => 'Tap to play';
@@ -689,4 +735,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trayQuit => 'Quit';
+
+  @override
+  String get trayAlwaysOnTop => 'Always on top';
 }

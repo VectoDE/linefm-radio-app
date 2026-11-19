@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
+<!-- Start-Hintergrund (Spec 4.1: nativer Splash in #0F1221). Gilt fuer alle
+     unterstuetzten Versionen bis Android 11 ueber drawable-v21; diese Datei
+     ist der Rueckfall ohne Versionsqualifizierer. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="#0F1221" />
-
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+    <item android:drawable="@color/linefm_background" />
+    <item
+        android:width="112dp"
+        android:height="112dp"
+        android:drawable="@mipmap/ic_launcher_round"
+        android:gravity="center" />
 </layer-list>

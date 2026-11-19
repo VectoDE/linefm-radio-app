@@ -1,0 +1,12 @@
+[
+  {"id":12,"title":"Beautiful People (D.O.D Remix)","started_at":"2026-11-18 21:00:40 +0100","ends_at":"2026-11-18 21:01:40 +0100","artist":{"name":"David Guetta & Sia"},"live":true,"type":"song"},
+  {"id":12,"title":"Later Bitches (DNF Remix)","started_at":"2026-11-18 20:56:48 +0100","ends_at":"2026-11-18 21:00:40 +0100","artist":{"name":"The Prince Karma"},"live":true,"type":"song"},
+  {"id":12,"title":"Redlight","started_at":"2026-11-18 20:53:57 +0100","ends_at":"2026-11-18 20:56:48 +0100","artist":{"name":"Glockenbach & ClockClock"},"live":true,"type":"song"},
+  {"id":12,"title":"Without You","started_at":"2026-11-18 20:49:41 +0100","ends_at":"2026-11-18 20:53:57 +0100","artist":{"name":"Kygo & Hayla"},"live":true,"type":"song"},
+  {"id":12,"title":"Get Right","started_at":"2026-11-18 20:46:49 +0100","ends_at":"2026-11-18 20:49:41 +0100","artist":{"name":"Joel Corry & Jennifer Lopez"},"live":true,"type":"song"},
+  {"id":12,"title":"React","started_at":"2026-11-18 20:43:25 +0100","ends_at":"2026-11-18 20:46:49 +0100","artist":{"name":"Switch Disco & Ella Henderson & Robert Miles"},"live":true,"type":"song"},
+  {"id":12,"title":"Hot in Here (Öwnboss Remix)","started_at":"2026-11-18 20:40:17 +0100","ends_at":"2026-11-18 20:43:25 +0100","artist":{"name":"Steff Da Campo"},"live":true,"type":"song"},
+  {"id":12,"title":"Makina Time","started_at":"2026-11-18 20:38:08 +0100","ends_at":"2026-11-18 20:40:17 +0100","artist":{"name":"Dimitri Vegas & Like Mike & Marlon Hoffstadt & DJ Konik"},"live":true,"type":"song"},
+  {"id":12,"title":"Sorry Papi","started_at":"2026-11-18 20:35:21 +0100","ends_at":"2026-11-18 20:38:08 +0100","artist":{"name":"Topic & Becky G"},"live":true,"type":"song"},
+  {"id":12,"title":"messy","started_at":"2026-11-18 20:31:59 +0100","ends_at":"2026-11-18 20:35:21 +0100","artist":{"name":"Laszewo"},"live":true,"type":"song"}
+]

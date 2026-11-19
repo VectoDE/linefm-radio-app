@@ -219,8 +219,16 @@ void main() {
     final player = FakeRadioPlayer();
     final h = _handler(player);
 
+    // Immer drei Ordner (Issue #42), ohne Daten sind zwei davon leer.
     final root = await h.getChildren(AudioService.browsableRootId);
-    expect(root.map((e) => e.id), <String>[BrowseTree.stationsId]);
+    expect(root.map((e) => e.id), <String>[
+      BrowseTree.favoriteStationsId,
+      BrowseTree.stationsId,
+      BrowseTree.recentId,
+    ]);
+    expect(root.every((e) => e.playable == false), isTrue);
+    expect(await h.getChildren(BrowseTree.favoriteStationsId), isEmpty);
+    expect(await h.getChildren(BrowseTree.recentId), isEmpty);
 
     final stations = await h.getChildren(BrowseTree.stationsId);
     expect(stations, hasLength(6));
@@ -230,8 +238,6 @@ void main() {
     await _settle();
     expect(h.state.station?.slug, 'linefmlofi');
 
-    final root2 = await h.getChildren(AudioService.browsableRootId);
-    expect(root2.map((e) => e.id), contains(BrowseTree.recentId));
     final recent = await h.getChildren(BrowseTree.recentId);
     expect(recent.single.id, 'linefmlofi');
 

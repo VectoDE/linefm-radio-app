@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Homescreen-Widget: 2x1 bis 4x2 (Spec 2.2). Aktualisiert wird nur, wenn
+     die App neue Daten schreibt (updatePeriodMillis 0, kein Akku-Raubbau). -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_description"
     android:initialLayout="@layout/linefm_widget"
     android:minWidth="110dp"
     android:minHeight="40dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="40dp"
+    android:maxResizeWidth="530dp"
+    android:maxResizeHeight="200dp"
+    android:previewImage="@drawable/auto_station_linefm"
+    android:previewLayout="@layout/linefm_widget"
     android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="4"
+    android:targetCellHeight="1"
     android:updatePeriodMillis="0"
     android:widgetCategory="home_screen" />

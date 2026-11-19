@@ -5,6 +5,7 @@ import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/features/about/about_screen.dart';
 import 'package:linefm_radio/features/about/radiogruppe_logo.dart';
 import 'package:linefm_radio/features/alarm/alarm_screen.dart';
+import 'package:linefm_radio/features/consent/google_consent.dart';
 import 'package:linefm_radio/features/legal/external_link.dart';
 import 'package:linefm_radio/features/legal/legal_document.dart';
 import 'package:linefm_radio/features/legal/legal_screen.dart';
@@ -104,6 +105,16 @@ class SettingsScreen extends ConsumerWidget {
             value: consent == true,
             onChanged: (v) =>
                 ref.read(telemetryConsentProvider.notifier).set(value: v),
+          ),
+        if (ref.watch(googleAnalyticsEnabledProvider))
+          SettingsSwitch(
+            title: l10n.settingGoogleTitle,
+            subtitle: ref.watch(googleConsentProvider) == true
+                ? l10n.settingGoogleBodyOn
+                : l10n.settingGoogleBodyOff,
+            value: ref.watch(googleConsentProvider) == true,
+            onChanged: (v) =>
+                ref.read(googleConsentProvider.notifier).set(value: v),
           ),
         const _StorageSection(),
         _NavRow(title: l10n.settingAboutTitle, onTap: () => openAbout(context)),

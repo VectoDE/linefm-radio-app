@@ -10,7 +10,8 @@ name: Barrierefreiheit
 # erreichbar. Von axe nicht entscheidbare Pruefungen ("incomplete") stehen in
 # Bericht und Zusammenfassung, brechen aber nicht ab.
 # Laufzeit lokal (19.11.2026, Windows, 8 Kerne): Web-Build 95 s, axe 142 s;
-# auf dem 4-Kern-Runner grob das Doppelte plus Installation, daher 25 Minuten.
+# auf dem 4-Kern-Runner grob das Doppelte plus Installation; dazu der zweite
+# Web-Build mit Test-IDs fuer die Google-Netzpruefung (P31), daher 40 Minuten.
 # Was axe nicht findet (Screenreader-Ablauf, Tastaturfallen, Verstaendlichkeit),
 # bleibt Handarbeit, siehe docs/BARRIEREFREIHEIT.md.
 
@@ -30,7 +31,7 @@ jobs:
   axe:
     name: axe (WCAG 2.2, Web)
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 40
     permissions:
       contents: read
     steps:
@@ -81,6 +82,32 @@ jobs:
         working-directory: tool/a11y
         timeout-minutes: 12
         run: node run.mjs --web ../../build/web --out out
+
+      # Reichweitenmessung mit Google (P31): ohne IDs keine Anfrage an Google,
+      # mit Test-IDs erst nach Zustimmung. Anfragen an Google bricht der Test
+      # im Browser ab, es geht nichts ins Netz.
+      - name: Google-Netzpruefung ohne IDs
+        working-directory: tool/a11y
+        timeout-minutes: 5
+        run: node analytics_net.mjs --web ../../build/web --mode none
+
+      - name: Web mit Test-IDs bauen (GTM-TEST000, G-TEST000000)
+        run: |
+          set -euo pipefail
+          jq '.GTM_ID = "GTM-TEST000" | .GA4_MEASUREMENT_ID = "G-TEST000000"' config/app.json > "$RUNNER_TEMP/app_ga.json"
+          flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file="$RUNNER_TEMP/app_ga.json" --base-href / --output build/web_ga
+          dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web_ga --strict
+          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web_ga --config "$RUNNER_TEMP/app_ga.json"             --hosting-out build/hosting_ga
+          grep -q "https://www.googletagmanager.com" build/hosting_ga/nginx/snippets/linefm-headers.conf
+          if grep -q "googletagmanager" build/hosting/nginx/snippets/linefm-headers.conf; then
+            echo "::error::CSP ohne IDs enthaelt Google-Quellen"
+            exit 1
+          fi
+
+      - name: Google-Netzpruefung mit Test-IDs
+        working-directory: tool/a11y
+        timeout-minutes: 5
+        run: node analytics_net.mjs --web ../../build/web_ga --mode ids
 
       - name: Zusammenfassung
         if: ${{ always() }}

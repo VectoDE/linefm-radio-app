@@ -471,5 +471,12 @@ void main() {
       expect(parseProviders(' umami, sentry ,'), <String>{'umami', 'sentry'});
       expect(() => parseProviders('umami,matomo'), throwsFormatException);
     });
+
+    test('ga4 ist bekannt, zaehlt aber nicht als telemetry (P31)', () {
+      expect(parseProviders('ga4,umami'), <String>{'ga4', 'umami'});
+      expect(requirementMet('telemetry', <String>{'ga4'}), isFalse);
+      expect(requirementMet('!telemetry', <String>{'ga4'}), isTrue);
+      expect(requirementMet('ga4', <String>{'ga4'}), isTrue);
+    });
   });
 }

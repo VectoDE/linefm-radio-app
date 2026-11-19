@@ -523,6 +523,36 @@ class AppLocalizationsDe extends AppLocalizations {
   String get consentPrivacyLink => 'Mehr in der Datenschutzerklärung';
 
   @override
+  String get settingGoogleTitle => 'Reichweitenmessung mit Google';
+
+  @override
+  String get settingGoogleBodyOn =>
+      'Erlaubt. Google Analytics läuft in der Web-Version. Du kannst das jederzeit widerrufen.';
+
+  @override
+  String get settingGoogleBodyOff =>
+      'Nicht erlaubt. Die Seite lädt nichts von Google.';
+
+  @override
+  String get googleConsentTitle => 'Reichweitenmessung mit Google';
+
+  @override
+  String get googleConsentIntro =>
+      'Wir würden gern zählen, wie viele Menschen die Web-Version nutzen und welche Bereiche sie aufrufen. Dafür setzen wir Google Analytics ein, geladen über den Google Tag Manager.';
+
+  @override
+  String get googleConsentRecipient =>
+      'Anbieter ist Google Ireland Limited (Dublin, Irland). Google erhält dabei deine IP-Adresse, Angaben zu Browser und Gerät, die aufgerufenen Bereiche und eine zufällige Kennung, die in Cookies gespeichert wird. Werbefunktionen bleiben ausgeschaltet.';
+
+  @override
+  String get googleConsentTransfer =>
+      'Google kann die Daten an Google LLC in den USA übermitteln. Grundlage ist das EU-US Data Privacy Framework, für das die EU-Kommission ein angemessenes Datenschutzniveau festgestellt hat.';
+
+  @override
+  String get googleConsentOutro =>
+      'Diese Frage ist getrennt von Statistik und Fehlerberichten und freiwillig. Ohne deine Zustimmung lädt die Seite nichts von Google. Du kannst deine Wahl jederzeit in den Einstellungen ändern.';
+
+  @override
   String get legalImprintTitle => 'Impressum';
 
   @override

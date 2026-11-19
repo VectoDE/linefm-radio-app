@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
+import 'package:linefm_radio/features/consent/google_consent.dart';
 import 'package:linefm_radio/features/legal/legal_document.dart';
 import 'package:linefm_radio/features/legal/legal_screen.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
@@ -35,7 +36,8 @@ String telemetryConsentText(AppLocalizations l10n, AppConfig config) {
 }
 
 /// Rahmen um die App: zeigt den Einwilligungsdialog "Statistik und
-/// Fehlerberichte" einmalig, sobald der erste Frame steht.
+/// Fehlerberichte" einmalig, sobald der erste Frame steht, danach getrennt
+/// "Reichweitenmessung mit Google" (nur Web mit GTM_ID/GA4_MEASUREMENT_ID).
 ///
 /// Ohne konfigurierte Telemetrie passiert nichts (kein Dialog, kein Aufruf).
 /// Schliesst der Nutzer den Dialog ohne Wahl (Zurueck/Esc), gilt das als
@@ -66,11 +68,24 @@ class _TelemetryConsentGateState extends ConsumerState<TelemetryConsentGate> {
       consentRequired: ref.read(telemetryProvider).consentRequired,
       decision: ref.read(telemetryConsentProvider),
     );
-    if (!ask) return;
     _asked = true;
-    final answer = await showTelemetryConsentDialog(context);
-    if (answer == null || !mounted) return;
-    await ref.read(telemetryConsentProvider.notifier).set(value: answer);
+    if (ask) {
+      final answer = await showTelemetryConsentDialog(context);
+      if (!mounted) return;
+      if (answer != null) {
+        await ref.read(telemetryConsentProvider.notifier).set(value: answer);
+      }
+    }
+    // Danach, getrennt: Reichweitenmessung mit Google (nur Web mit IDs).
+    if (!mounted) return;
+    final askGoogle = shouldAskGoogleConsent(
+      configured: ref.read(googleAnalyticsEnabledProvider),
+      decision: ref.read(googleConsentProvider),
+    );
+    if (!askGoogle) return;
+    final google = await showGoogleConsentDialog(context);
+    if (google == null || !mounted) return;
+    ref.read(googleConsentProvider.notifier).set(value: google);
   }
 
   @override

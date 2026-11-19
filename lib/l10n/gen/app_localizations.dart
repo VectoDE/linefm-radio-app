@@ -938,6 +938,54 @@ abstract class AppLocalizations {
   /// **'Mehr in der Datenschutzerklärung'**
   String get consentPrivacyLink;
 
+  /// No description provided for @settingGoogleTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Reichweitenmessung mit Google'**
+  String get settingGoogleTitle;
+
+  /// No description provided for @settingGoogleBodyOn.
+  ///
+  /// In de, this message translates to:
+  /// **'Erlaubt. Google Analytics läuft in der Web-Version. Du kannst das jederzeit widerrufen.'**
+  String get settingGoogleBodyOn;
+
+  /// No description provided for @settingGoogleBodyOff.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht erlaubt. Die Seite lädt nichts von Google.'**
+  String get settingGoogleBodyOff;
+
+  /// No description provided for @googleConsentTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Reichweitenmessung mit Google'**
+  String get googleConsentTitle;
+
+  /// No description provided for @googleConsentIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Wir würden gern zählen, wie viele Menschen die Web-Version nutzen und welche Bereiche sie aufrufen. Dafür setzen wir Google Analytics ein, geladen über den Google Tag Manager.'**
+  String get googleConsentIntro;
+
+  /// No description provided for @googleConsentRecipient.
+  ///
+  /// In de, this message translates to:
+  /// **'Anbieter ist Google Ireland Limited (Dublin, Irland). Google erhält dabei deine IP-Adresse, Angaben zu Browser und Gerät, die aufgerufenen Bereiche und eine zufällige Kennung, die in Cookies gespeichert wird. Werbefunktionen bleiben ausgeschaltet.'**
+  String get googleConsentRecipient;
+
+  /// No description provided for @googleConsentTransfer.
+  ///
+  /// In de, this message translates to:
+  /// **'Google kann die Daten an Google LLC in den USA übermitteln. Grundlage ist das EU-US Data Privacy Framework, für das die EU-Kommission ein angemessenes Datenschutzniveau festgestellt hat.'**
+  String get googleConsentTransfer;
+
+  /// No description provided for @googleConsentOutro.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Frage ist getrennt von Statistik und Fehlerberichten und freiwillig. Ohne deine Zustimmung lädt die Seite nichts von Google. Du kannst deine Wahl jederzeit in den Einstellungen ändern.'**
+  String get googleConsentOutro;
+
   /// No description provided for @legalImprintTitle.
   ///
   /// In de, this message translates to:

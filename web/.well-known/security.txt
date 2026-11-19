@@ -1,6 +1,8 @@
-# Sicherheitskontakt nach RFC 9116. Platzhalter vor dem Ausrollen ersetzen (siehe SECURITY.md).
+# Sicherheitskontakt nach RFC 9116 (siehe SECURITY.md). Kontakt ist das vertrauliche
+# GitHub-Meldeformular, keine E-Mail-Adresse.
 # Expires erneuern, spaetestens alle 6 Monate (RFC 9116 empfiehlt unter einem Jahr).
-Contact: {{SECURITY_KONTAKT}}
+Contact: https://github.com/VectoDE/linefm-radio-app/security/advisories/new
+Policy: https://github.com/VectoDE/linefm-radio-app/blob/main/SECURITY.md
 Expires: 2027-05-19T00:00:00Z
 Preferred-Languages: de, en
 Canonical: https://app.linefm.de/.well-known/security.txt

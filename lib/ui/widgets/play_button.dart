@@ -2,6 +2,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Play/Verbinden/Stop-Knopf (`fa-circle-play`, Spinner, `fa-circle-stop`).
@@ -66,12 +67,18 @@ class PlayButton extends StatelessWidget {
             color: fg,
           );
 
-    return Semantics(
-      button: true,
-      enabled: onPressed != null && !_busy,
-      label: label,
-      excludeSemantics: true,
-      onTap: _busy ? null : onPressed,
+    return SemanticFocus(
+      builder: (context, focused, onFocus, child) => Semantics(
+        button: true,
+        enabled: onPressed != null && !_busy,
+        label: label,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        excludeSemantics: true,
+        onTap: _busy ? null : onPressed,
+        child: child,
+      ),
       child: FocusRing(
         borderRadius: hit / 2,
         shape: BoxShape.circle,

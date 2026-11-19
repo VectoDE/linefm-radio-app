@@ -23,6 +23,11 @@ abstract final class PrefsKeys {
   static const String autoplay = 'linefm-setting-autoplay';
   static const String closeToTray = 'linefm-setting-close-to-tray';
   static const String themeMode = 'linefm-setting-theme';
+
+  /// Cover von Apple laden (L5) und Ein-Zeichen-Kuerzel (A11Y-08). Gibt es
+  /// in der Web-App nicht.
+  static const String loadArtwork = 'linefm-setting-artwork';
+  static const String keyboardShortcuts = 'linefm-setting-shortcuts';
   static const String alarms = 'linefm-alarms';
   static const String telemetryConsent = 'linefm-telemetry-consent';
   static const String coverCache = 'linefm-cover-cache';
@@ -45,6 +50,8 @@ abstract final class PrefsKeys {
     autoplay,
     closeToTray,
     themeMode,
+    loadArtwork,
+    keyboardShortcuts,
     alarms,
     telemetryConsent,
     coverCache,
@@ -162,6 +169,8 @@ class SharedPrefsStore implements PrefsStore {
       'autoplay': _readBool(_prefs, PrefsKeys.autoplay),
       'closeToTray': _readBool(_prefs, PrefsKeys.closeToTray),
       'themeMode': _readString(PrefsKeys.themeMode),
+      'loadArtwork': _readBool(_prefs, PrefsKeys.loadArtwork),
+      'keyboardShortcuts': _readBool(_prefs, PrefsKeys.keyboardShortcuts),
     });
   }
 
@@ -174,6 +183,11 @@ class SharedPrefsStore implements PrefsStore {
       await _prefs.setBool(PrefsKeys.autoplay, settings.autoplay);
       await _prefs.setBool(PrefsKeys.closeToTray, settings.closeToTray);
       await _prefs.setString(PrefsKeys.themeMode, settings.themeMode.name);
+      await _prefs.setBool(PrefsKeys.loadArtwork, settings.loadArtwork);
+      await _prefs.setBool(
+        PrefsKeys.keyboardShortcuts,
+        settings.keyboardShortcuts,
+      );
       return true;
     });
   }

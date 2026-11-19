@@ -42,12 +42,15 @@ abstract final class LinefmText {
     height: 1.4,
   );
 
-  /// Stationsname in der Liste (11, im Grid 12).
-  static TextStyle stationName({bool grid = false}) =>
-      _brand.copyWith(fontSize: grid ? 12 : 11, height: 1.3);
+  // Untergrenze 12 sp fuer alle Texte (D7, A11Y-17); die Web-App nutzte
+  // 9 bis 11 px.
 
-  /// Ticker "Artist - Titel" (10).
-  static final TextStyle ticker = _body.copyWith(fontSize: 10, height: 1.4);
+  /// Stationsname in Liste und Grid (12).
+  static TextStyle stationName({bool grid = false}) =>
+      _brand.copyWith(fontSize: 12, height: 1.3);
+
+  /// Ticker "Artist - Titel" (12).
+  static final TextStyle ticker = _body.copyWith(fontSize: 12, height: 1.4);
 
   /// Songtitel im Player, `clamp(21, 7vw, 34)` aus der Breite.
   static TextStyle playerTitle(double viewportWidth) => _brand.copyWith(
@@ -75,8 +78,8 @@ abstract final class LinefmText {
   /// Listen-Nebenzeile (12).
   static final TextStyle listMeta = _body.copyWith(fontSize: 12, height: 1.4);
 
-  /// Zeitangabe im Verlauf (9 der Web-App, auf 11 angehoben fuer Lesbarkeit).
-  static final TextStyle time = _body.copyWith(fontSize: 11, height: 1.2);
+  /// Zeitangabe im Verlauf (9 der Web-App, auf 12 angehoben).
+  static final TextStyle time = _body.copyWith(fontSize: 12, height: 1.2);
 
   /// Einstellungs-Titel (14, SemiBold).
   static final TextStyle settingTitle = _body.copyWith(
@@ -91,10 +94,11 @@ abstract final class LinefmText {
     height: 1.5,
   );
 
-  /// Navigation (10 der Web-App mit 1 px Laufweite; Spec: 9 mit 0,12 em).
+  /// Navigation (Web-App 10 px, Spec 9; auf 12 angehoben, D7) mit
+  /// 0,06 em Laufweite, damit "VERLAUF"/"STATIONS" auch bei 320 dp passen.
   static final TextStyle nav = _brand.copyWith(
-    fontSize: 9,
-    letterSpacing: 9 * 0.12,
+    fontSize: 12,
+    letterSpacing: 12 * 0.06,
   );
 
   /// Mini-Player Titel (18, Handy 14).

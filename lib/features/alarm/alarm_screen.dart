@@ -11,6 +11,7 @@ import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:linefm_radio/ui/widgets/section_heading.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:linefm_radio/ui/widgets/volume_steps.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -60,13 +61,20 @@ String alarmRepeatSummary(AppLocalizations l10n, Set<int> weekdays) {
 class AlarmScreen extends ConsumerWidget {
   const AlarmScreen({super.key});
 
+  /// Neuer Wecker: zuerst die Uhrzeit waehlen (U2). Abbrechen legt nichts
+  /// an; erst danach entsteht der Wecker fuer den aktuellen Sender.
   Future<void> _add(BuildContext context, WidgetRef ref) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 7, minute: 0),
+    );
+    if (picked == null || !context.mounted) return;
     final station = ref.read(activeStationProvider);
     final now = ref.read(clockProvider).now();
     final rule = AlarmRule(
       id: '${now.microsecondsSinceEpoch}',
-      hour: 7,
-      minute: 0,
+      hour: picked.hour,
+      minute: picked.minute,
       stationSlug: station.slug,
       volume: 0.7,
     );
@@ -295,7 +303,9 @@ class _AlarmCard extends StatelessWidget {
       TimeOfDay(hour: rule.hour, minute: rule.minute),
       alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
     );
-    final dim = rule.enabled ? 1.0 : 0.55;
+    // Ausgeschaltet: Uhrzeit in `muted` (mind. 4,5:1) statt per Deckkraft
+    // gedimmt; der Rest bleibt voll lesbar und bedienbar (A11Y-09).
+    final timeColor = rule.enabled ? c.text : c.muted;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -311,29 +321,32 @@ class _AlarmCard extends StatelessWidget {
             Row(
               children: <Widget>[
                 Expanded(
-                  child: Opacity(
-                    opacity: dim,
-                    child: Semantics(
+                  child: SemanticFocus(
+                    builder: (_, focused, onFocus, child) => Semantics(
                       button: true,
                       label: '${l10n.alarmTime}: $time',
                       excludeSemantics: true,
                       onTap: () => _pickTime(context),
-                      child: InkWell(
-                        onTap: () => _pickTime(context),
-                        borderRadius: BorderRadius.circular(
-                          LinefmMetrics.radiusLogo,
+                      focusable: true,
+                      focused: focused,
+                      onFocus: onFocus,
+                      child: child,
+                    ),
+                    child: InkWell(
+                      onTap: () => _pickTime(context),
+                      borderRadius: BorderRadius.circular(
+                        LinefmMetrics.radiusLogo,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          minHeight: LinefmMetrics.minTarget,
                         ),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            minHeight: LinefmMetrics.minTarget,
-                          ),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              time,
-                              style: LinefmText.playerTitle(600)
-                                  .copyWith(color: c.text, fontSize: 30),
-                            ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            time,
+                            style: LinefmText.playerTitle(600)
+                                .copyWith(color: timeColor, fontSize: 30),
                           ),
                         ),
                       ),
@@ -341,60 +354,56 @@ class _AlarmCard extends StatelessWidget {
                   ),
                 ),
                 Semantics(
-                  label: l10n.alarmEnabled,
+                  label: l10n.alarmEnabledAt(time),
                   child: Switch(
                     value: rule.enabled,
                     onChanged: (v) => onChanged(rule.copyWith(enabled: v)),
                   ),
                 ),
                 IconButton(
-                  tooltip: l10n.alarmDelete,
+                  tooltip: l10n.alarmDeleteAt(time),
                   icon: const Icon(Icons.delete_outline),
                   onPressed: onDelete,
                 ),
               ],
             ),
-            Opacity(
-              opacity: dim,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      alarmRepeatSummary(l10n, rule.weekdays),
-                      style: LinefmText.settingCopy.copyWith(color: c.muted),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    alarmRepeatSummary(l10n, rule.weekdays),
+                    style: LinefmText.settingCopy.copyWith(color: c.muted),
+                  ),
+                  const SizedBox(height: 8),
+                  _DayChips(
+                    selected: rule.weekdays,
+                    onChanged: (d) => onChanged(rule.copyWith(weekdays: d)),
+                  ),
+                  const SizedBox(height: 16),
+                  _StationPicker(
+                    slug: rule.stationSlug,
+                    onChanged: (s) => onChanged(rule.copyWith(stationSlug: s)),
+                  ),
+                  const SizedBox(height: 12),
+                  _LabeledRow(
+                    label: l10n.alarmVolume,
+                    child: VolumeSteps(
+                      axis: Axis.horizontal,
+                      volume: rule.volume.clamp(0.1, 1.0),
+                      semanticLabel: l10n.alarmVolume,
+                      valueLabel: l10n.volumePercent,
+                      onChanged: (v) => onChanged(rule.copyWith(volume: v)),
                     ),
-                    const SizedBox(height: 8),
-                    _DayChips(
-                      selected: rule.weekdays,
-                      onChanged: (d) => onChanged(rule.copyWith(weekdays: d)),
-                    ),
-                    const SizedBox(height: 16),
-                    _StationPicker(
-                      slug: rule.stationSlug,
-                      onChanged: (s) =>
-                          onChanged(rule.copyWith(stationSlug: s)),
-                    ),
-                    const SizedBox(height: 12),
-                    _LabeledRow(
-                      label: l10n.alarmVolume,
-                      child: VolumeSteps(
-                        axis: Axis.horizontal,
-                        volume: rule.volume.clamp(0.1, 1.0),
-                        semanticLabel: l10n.alarmVolume,
-                        valueLabel: l10n.volumePercent,
-                        onChanged: (v) => onChanged(rule.copyWith(volume: v)),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${l10n.alarmSnooze}: '
-                      '${l10n.alarmSnoozeMinutes(AlarmSchedule.snooze.inMinutes)}',
-                      style: LinefmText.settingCopy.copyWith(color: c.muted),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${l10n.alarmSnooze}: '
+                    '${l10n.alarmSnoozeMinutes(AlarmSchedule.snooze.inMinutes)}',
+                    style: LinefmText.settingCopy.copyWith(color: c.muted),
+                  ),
+                ],
               ),
             ),
           ],
@@ -432,7 +441,7 @@ class _DayChips extends StatelessWidget {
               ),
               backgroundColor: Colors.transparent,
               selectedColor: c.accent,
-              side: BorderSide(color: c.muted.withValues(alpha: 0.6)),
+              side: BorderSide(color: c.muted),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(LinefmMetrics.radiusLogo),
               ),

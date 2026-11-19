@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/semantics.dart' show OrdinalSortKey;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -28,6 +29,7 @@ import 'package:linefm_radio/ui/theme/breakpoints.dart';
 import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Hoehe des Mini-Players samt Abstand darueber (Web: 90 + 12).
@@ -69,8 +71,9 @@ class _AppShellState extends ConsumerState<AppShell> {
         .read();
     ref
       ..listenManual(nowPlayingRepositoryProvider, (_, _) {})
-      // Cast beim Start: verbindet Sitzungen aus frueheren Laeufen und haelt
-      // die Uebergabe lokal/Cast aktiv, auch ohne geoeffneten Player.
+      // Cast-Dienst dauerhaft abonnieren: haelt die Uebergabe lokal/Cast
+      // aktiv, auch ohne geoeffneten Player. Das SDK selbst startet erst
+      // beim ersten Tippen auf den Cast-Knopf (L4, initCast).
       ..listenManual(castServiceProvider, (_, _) {})
       // Favoriten-Sender fuer das Auto-Menue, auch nach "Speicher loeschen".
       ..listenManual(favoriteStationsProvider, (_, _) {});
@@ -210,6 +213,11 @@ class _AppShellState extends ConsumerState<AppShell> {
             ? KeyEventResult.handled
             : KeyEventResult.ignored;
       }
+      // Ein-Zeichen-Kuerzel (F, S, 1-6) lassen sich in den Einstellungen
+      // abschalten (WCAG 2.1.4, A11Y-08).
+      if (!ref.read(settingsProvider).keyboardShortcuts) {
+        return KeyEventResult.ignored;
+      }
       if (key == LogicalKeyboardKey.keyF) {
         final track = ref.read(currentTrackProvider).value;
         if (track == null) return KeyEventResult.ignored;
@@ -264,17 +272,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     final expanded = windowClass == WindowClass.expanded;
 
     final body = expanded
-        ? Stack(
-            children: <Widget>[
-              Positioned.fill(child: _ExpandedLayout(screen: screen)),
-              const Positioned(
-                left: 0,
-                right: 0,
-                bottom: 32,
-                child: AutoplayStartButton(),
-              ),
-            ],
-          )
+        ? _ExpandedLayout(screen: screen)
         : _CompactLayout(screen: screen);
 
     return PopScope(
@@ -369,10 +367,9 @@ class _CompactLayout extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              const AutoplayStartButton(padding: EdgeInsets.only(bottom: 16)),
               const _OfflineBanner(),
               const _StorageNoticeSlot(),
-              const MiniPlayerSlot(),
+              const _MiniPlayerOrStart(),
               SizedBox(height: player ? 0 : 12),
               _BottomNav(screen: screen),
             ],
@@ -405,50 +402,94 @@ class _ExpandedLayout extends ConsumerWidget {
     ];
     final index = railScreens.indexOf(shown);
 
+    // Tab- und Screenreader-Reihenfolge wie die Optik: Navigation, Header,
+    // Inhalt, Hinweise, Player (A11Y-04). Ohne feste Ordnung kam der Header
+    // erst nach den Karten.
+    Widget part(int order, Widget child) => FocusTraversalOrder(
+      order: NumericFocusOrder(order.toDouble()),
+      child: FocusTraversalGroup(
+        child: Semantics(
+          sortKey: OrdinalSortKey(order.toDouble()),
+          child: child,
+        ),
+      ),
+    );
+
     return SafeArea(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Semantics(
-            container: true,
-            explicitChildNodes: true,
-            label: l10n.navMain,
-            child: NavigationRail(
-              selectedIndex: index < 0 ? null : index,
-              labelType: NavigationRailLabelType.all,
-              groupAlignment: -0.85,
-              onDestinationSelected: (i) =>
-                  ref.read(navigationProvider.notifier).go(railScreens[i]),
-              destinations: <NavigationRailDestination>[
-                _railItem(FontAwesomeIcons.play, l10n.navStations),
-                _railItem(FontAwesomeIcons.clockRotateLeft, l10n.navHistory),
-                _railItem(FontAwesomeIcons.heart, l10n.navFavorites),
-                _railItem(FontAwesomeIcons.gear, l10n.navSettings),
-              ],
-            ),
-          ),
-          VerticalDivider(width: 1, thickness: 1, color: c.line),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                const _Header(transparent: false, inset: false),
-                Expanded(
-                  child: _content(
-                    shown,
-                    stationsPadding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-                  ),
+      child: FocusTraversalGroup(
+        policy: OrderedTraversalPolicy(),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            part(
+              1,
+              Semantics(
+                container: true,
+                explicitChildNodes: true,
+                label: l10n.navMain,
+                child: NavigationRail(
+                  selectedIndex: index < 0 ? null : index,
+                  labelType: NavigationRailLabelType.all,
+                  groupAlignment: -0.85,
+                  onDestinationSelected: (i) =>
+                      ref.read(navigationProvider.notifier).go(railScreens[i]),
+                  destinations: <NavigationRailDestination>[
+                    _railItem(FontAwesomeIcons.play, l10n.navStations),
+                    _railItem(
+                      FontAwesomeIcons.clockRotateLeft,
+                      l10n.navHistory,
+                    ),
+                    _railItem(FontAwesomeIcons.heart, l10n.navFavorites),
+                    _railItem(FontAwesomeIcons.gear, l10n.navSettings),
+                  ],
                 ),
-                const _OfflineBanner(),
-                const _StorageNoticeSlot(),
-              ],
+              ),
             ),
-          ),
-          SizedBox(
-            width: playerWidth,
-            child: const PlayerScreen(embedded: true),
-          ),
-        ],
+            VerticalDivider(width: 1, thickness: 1, color: c.line),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  part(2, const _Header(transparent: false, inset: false)),
+                  Expanded(
+                    child: part(
+                      3,
+                      _content(
+                        shown,
+                        stationsPadding: const EdgeInsets.fromLTRB(
+                          24,
+                          20,
+                          24,
+                          32,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Im Fluss unter dem Inhalt statt als Overlay: verdeckt
+                  // nichts und liegt nicht ueber der ganzen App (A11Y-01).
+                  part(
+                    4,
+                    const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        AutoplayStartButton(
+                          padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        ),
+                        _OfflineBanner(),
+                        _StorageNoticeSlot(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              width: playerWidth,
+              child: part(5, const PlayerScreen(embedded: true)),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -497,11 +538,11 @@ class _Header extends ConsumerWidget {
         color: transparent ? Colors.transparent : c.background,
         boxShadow: transparent
             ? const <BoxShadow>[]
-            : const <BoxShadow>[
+            : <BoxShadow>[
                 BoxShadow(
-                  color: Color(0x80000000),
+                  color: c.headerShadow,
                   blurRadius: 10,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ],
       ),
@@ -509,6 +550,8 @@ class _Header extends ConsumerWidget {
         children: <Widget>[
           Semantics(
             header: true,
+            headingLevel: 2,
+            container: true,
             label: l10n.brandName,
             excludeSemantics: true,
             child: Padding(
@@ -614,11 +657,17 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.linefm;
     final color = selected ? c.accent : c.muted;
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      excludeSemantics: true,
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        excludeSemantics: true,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: InkResponse(
         onTap: onTap,
         containedInkWell: true,
@@ -663,10 +712,31 @@ class _StorageNoticeSlot extends ConsumerWidget {
   }
 }
 
-/// "Keine Verbindung. LINEFM versucht es weiter." (Spec 4.2 Nr. 14).
+/// Kompakt-Layout: Im Platz des Mini-Players steht bei Autoplay-Sperre die
+/// Start-Leiste (U1, A11Y-13). So ueberdeckt sie keine Karte und der Inhalt
+/// bleibt auch bei 320 x 640 sichtbar.
+class _MiniPlayerOrStart extends ConsumerWidget {
+  const _MiniPlayerOrStart();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final blocked = ref.watch(autoplayBlockedProvider);
+    final player = ref.watch(navigationProvider) == AppScreen.player;
+    if (blocked && !player) {
+      return const AutoplayStartButton(
+        padding: EdgeInsets.symmetric(horizontal: 12),
+      );
+    }
+    return const MiniPlayerSlot();
+  }
+}
+
 /// Web-Autoplay-Sperre (Spec 2.2): Ein Start ohne vorherige Nutzeraktion
-/// (Autoplay, Wecker, Link) waere stumm geblieben. Der grosse Knopf startet
-/// den gewaehlten Sender mit dem Klick als Nutzeraktion.
+/// (Autoplay, Wecker, Link) waere stumm geblieben. Die Leiste erklaert das
+/// und startet den gewaehlten Sender mit dem Klick als Nutzeraktion.
+///
+/// Nur der Hinweistext ist Live-Region; der Knopf ist ein eigener, normaler
+/// Knopf ohne umschliessenden Semantik-Knoten (A11Y-01).
 class AutoplayStartButton extends ConsumerWidget {
   const AutoplayStartButton({super.key, this.padding = EdgeInsets.zero});
 
@@ -678,33 +748,53 @@ class AutoplayStartButton extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final c = context.linefm;
     final station = ref.watch(activeStationProvider);
+    final button = FilledButton.icon(
+      key: const ValueKey<String>('autoplay-start'),
+      style: FilledButton.styleFrom(
+        backgroundColor: c.accent,
+        foregroundColor: c.onAccent,
+        minimumSize: const Size(0, LinefmMetrics.minTarget),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        shape: const StadiumBorder(),
+        textStyle: LinefmText.listTitle.copyWith(fontWeight: FontWeight.w600),
+      ),
+      onPressed: () => unawaited(
+        ref
+            .read(playerControllerProvider)
+            .startStation(ref.read(activeStationProvider)),
+      ),
+      icon: const FaIcon(FontAwesomeIcons.play, size: 16),
+      label: Text(l10n.autoplayBlockedStart),
+    );
     return Padding(
       padding: padding,
       child: Center(
-        child: Semantics(
-          liveRegion: true,
-          child: Tooltip(
-            message: l10n.autoplayBlockedHint(station.displayName),
-            child: FilledButton.icon(
-              key: const ValueKey<String>('autoplay-start'),
-              style: FilledButton.styleFrom(
-                backgroundColor: c.accent,
-                foregroundColor: c.onAccent,
-                minimumSize: const Size(220, 56),
-                padding: const EdgeInsets.symmetric(horizontal: 28),
-                shape: const StadiumBorder(),
-                textStyle: LinefmText.listTitle.copyWith(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 760),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: c.surface,
+              border: Border.all(color: c.line),
+              borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Semantics(
+                      container: true,
+                      liveRegion: true,
+                      child: Text(
+                        l10n.autoplayBlockedHint(station.displayName),
+                        style: LinefmText.notice.copyWith(color: c.text),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  button,
+                ],
               ),
-              onPressed: () => unawaited(
-                ref
-                    .read(playerControllerProvider)
-                    .startStation(ref.read(activeStationProvider)),
-              ),
-              icon: const FaIcon(FontAwesomeIcons.play, size: 18),
-              label: Text(l10n.autoplayBlockedStart),
             ),
           ),
         ),
@@ -713,6 +803,7 @@ class AutoplayStartButton extends ConsumerWidget {
   }
 }
 
+/// "Keine Verbindung. LINEFM versucht es weiter." (Spec 4.2 Nr. 14).
 class _OfflineBanner extends ConsumerWidget {
   const _OfflineBanner();
 

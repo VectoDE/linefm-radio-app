@@ -18,6 +18,7 @@ import 'package:linefm_radio/ui/widgets/cover_image.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
 import 'package:linefm_radio/ui/widgets/marquee_text.dart';
 import 'package:linefm_radio/ui/widgets/play_button.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Basis des Mini-Players (Web: `rgba(15, 18, 33, .86)`). Der Player liegt
@@ -188,12 +189,18 @@ class _TrackArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final coverSize = compact ? 62.0 : 72.0;
-    return Semantics(
-      button: true,
-      label: artist.isEmpty ? title : '$title, $artist',
-      hint: hint,
-      excludeSemantics: true,
-      onTap: onTap,
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        button: true,
+        label: artist.isEmpty ? title : '$title, $artist',
+        hint: hint,
+        excludeSemantics: true,
+        onTap: onTap,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: FocusRing(
         borderRadius: 14,
         child: InkWell(

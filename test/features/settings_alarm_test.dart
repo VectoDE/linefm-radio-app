@@ -81,8 +81,9 @@ void main() {
         'Sleeptimer',
         'Kein Sleeptimer aktiv.',
         'Speicher',
-        'Zuletzt gehörte Station, Favoriten, Lautstärke und Einstellungen '
-            'werden lokal gespeichert.',
+        'Lokal gespeichert werden: zuletzt gehörter Sender, Lautstärke, '
+            'Favoriten, Favoriten-Sender, Wecker, Einstellungen, '
+            'zwischengespeicherte Cover und am Computer die Fensterposition.',
         'Speicher löschen',
         'Ein Angebot von',
         'Website',
@@ -161,7 +162,7 @@ void main() {
       );
       expect(
         find.text(
-          'Die zuletzt gehörte Station startet nach deinem ersten Tippen '
+          'Der zuletzt gehörte Sender startet nach deinem ersten Tippen '
           'oder Klick.',
         ),
         findsOneWidget,
@@ -256,6 +257,20 @@ void main() {
       );
       await tester.pump();
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('neuer Wecker: Abbrechen in der Zeitauswahl legt nichts an', (
+      tester,
+    ) async {
+      useSize(tester, 420, 1400);
+      final host = FeatureHost();
+      await tester.pumpWidget(host.app(const AlarmScreen(), scaffold: false));
+      await tester.pump();
+      await tester.tap(find.text('Wecker hinzufügen'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Abbrechen'));
+      await tester.pumpAndSettle();
+      expect(host.prefs.readAlarms(), isEmpty);
     });
 
     testWidgets('schmal mit grosser Schrift ohne Ueberlauf', (tester) async {
@@ -415,6 +430,9 @@ void main() {
 
       await tester.tap(find.text('Wecker hinzufügen'));
       await tester.pumpAndSettle();
+      // U2: zuerst die Uhrzeit (Vorgabe 07:00) bestaetigen.
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
       expect(host.prefs.readAlarms(), hasLength(1));
       expect(host.prefs.readAlarms().single.hour, 7);
       expect(alarms.calls, isNotEmpty);
@@ -428,10 +446,24 @@ void main() {
       expect(host.prefs.readAlarms().single.weekdays, <int>{1, 3});
       expect(find.text('Mo, Mi'), findsOneWidget);
 
-      await tester.tap(find.byTooltip('Wecker löschen'));
+      await tester.tap(find.byTooltip('Wecker 07:00 löschen'));
       await tester.pumpAndSettle();
       expect(host.prefs.readAlarms(), isEmpty);
       expect(alarms.calls.last, isEmpty);
+    });
+
+    testWidgets('neuer Wecker: Abbrechen in der Zeitauswahl legt nichts an', (
+      tester,
+    ) async {
+      useSize(tester, 420, 1400);
+      final host = FeatureHost();
+      await tester.pumpWidget(host.app(const AlarmScreen(), scaffold: false));
+      await tester.pump();
+      await tester.tap(find.text('Wecker hinzufügen'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Abbrechen'));
+      await tester.pumpAndSettle();
+      expect(host.prefs.readAlarms(), isEmpty);
     });
 
     testWidgets('schmal mit grosser Schrift ohne Ueberlauf', (tester) async {
@@ -469,6 +501,9 @@ void main() {
       await tester.pumpWidget(host.app(const AlarmScreen(), scaffold: false));
       await tester.pump();
       await tester.tap(find.text('Wecker hinzufügen'));
+      await tester.pumpAndSettle();
+      // U2: zuerst die Uhrzeit (Vorgabe 07:00) bestaetigen.
+      await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
       expect(find.text('Wecker braucht eine Freigabe'), findsOneWidget);
       await tester.tap(find.text('Einstellungen öffnen'));

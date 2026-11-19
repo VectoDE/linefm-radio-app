@@ -14,6 +14,7 @@ import 'package:linefm_radio/ui/widgets/cover_image.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
 import 'package:linefm_radio/ui/widgets/marquee_text.dart';
 import 'package:linefm_radio/ui/widgets/play_button.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Anzeigedaten des Players. Reine Werte, damit die Ansicht ohne Provider
@@ -71,6 +72,8 @@ class PlayerView extends StatelessWidget {
     this.onRetry,
     this.castSlot,
     this.airPlaySlot,
+    this.onSleepTimer,
+    this.sleepTimerActive = false,
     this.topInset = 0,
     this.bottomInset = 0,
     this.embedded = false,
@@ -94,6 +97,12 @@ class PlayerView extends StatelessWidget {
   /// keinen Platz.
   final Widget? castSlot;
   final Widget? airPlaySlot;
+
+  /// Oeffnet die Sleeptimer-Auswahl (U2). `null` blendet den Knopf aus.
+  final VoidCallback? onSleepTimer;
+
+  /// Sleeptimer laeuft: Knopf hervorgehoben.
+  final bool sleepTimerActive;
   final double topInset;
   final double bottomInset;
 
@@ -203,6 +212,8 @@ class PlayerView extends StatelessWidget {
                       onOpenMusicLinks: onOpenMusicLinks,
                       castSlot: castSlot,
                       airPlaySlot: airPlaySlot,
+                      onSleepTimer: onSleepTimer,
+                      sleepTimerActive: sleepTimerActive,
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -289,9 +300,9 @@ class _StationLine extends StatelessWidget {
     final style = TextStyle(
       fontFamily: LinefmFonts.brand,
       fontWeight: FontWeight.w700,
-      fontSize: 10,
+      fontSize: 12,
       height: 1.4,
-      letterSpacing: 1.6,
+      letterSpacing: 1.2,
       color: color.withValues(alpha: 0.82),
     );
     return Row(
@@ -347,10 +358,16 @@ class _TrackInfo extends StatelessWidget {
     final track = data.track;
     final title = track?.title ?? data.station.displayName;
     final artist = track?.artist ?? strings.trackLoading;
-    return Semantics(
-      liveRegion: true,
-      container: true,
-      label: '$title, $artist',
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        liveRegion: true,
+        container: true,
+        label: '$title, $artist',
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: ExcludeSemantics(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -563,8 +580,12 @@ class _SecondaryRow extends StatelessWidget {
     required this.onOpenMusicLinks,
     required this.castSlot,
     required this.airPlaySlot,
+    this.onSleepTimer,
+    this.sleepTimerActive = false,
   });
 
+  final VoidCallback? onSleepTimer;
+  final bool sleepTimerActive;
   final PlayerViewData data;
   final PlayerStrings strings;
   final Color color;
@@ -608,6 +629,20 @@ class _SecondaryRow extends StatelessWidget {
               ),
             ),
           ),
+        if (onSleepTimer != null)
+          gap(
+            _IconAction(
+              label: strings.sleepTimer,
+              onPressed: onSleepTimer,
+              color: color,
+              border: sleepTimerActive ? color : border,
+              child: Icon(
+                sleepTimerActive ? Icons.bedtime : Icons.bedtime_outlined,
+                size: 20,
+                color: color,
+              ),
+            ),
+          ),
         if (castSlot != null) gap(castSlot!),
         if (airPlaySlot != null) gap(airPlaySlot!),
       ],
@@ -637,12 +672,18 @@ class _IconAction extends StatelessWidget {
     return Tooltip(
       message: label,
       excludeFromSemantics: true,
-      child: Semantics(
-        button: true,
-        enabled: onPressed != null,
-        label: label,
-        excludeSemantics: true,
-        onTap: onPressed,
+      child: SemanticFocus(
+        builder: (_, focused, onFocus, child) => Semantics(
+          button: true,
+          enabled: onPressed != null,
+          label: label,
+          excludeSemantics: true,
+          onTap: onPressed,
+          focusable: true,
+          focused: focused,
+          onFocus: onFocus,
+          child: child,
+        ),
         child: FocusRing(
           shape: BoxShape.circle,
           borderRadius: LinefmMetrics.minTarget / 2,

@@ -27,10 +27,15 @@ class PlayerStrings {
     required this.musicSpotify,
     required this.musicYouTubeMusic,
     required this.linkOpenError,
+    this.sleepTimer = 'Sleeptimer',
   });
+
+  /// Knopf "Sleeptimer einstellen" im Player (U2).
+  final String sleepTimer;
 
   factory PlayerStrings.of(AppLocalizations l10n) => PlayerStrings(
     coverAlt: l10n.playerCoverAlt,
+    sleepTimer: l10n.playerSleepTimer,
     shuffle: l10n.playerShuffle,
     start: l10n.playerStart,
     connecting: l10n.playerConnecting,

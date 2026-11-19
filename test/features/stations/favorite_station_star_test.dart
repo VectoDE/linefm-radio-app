@@ -34,14 +34,21 @@ void main() {
     expect(h.container.read(favoritesProvider), isEmpty);
     expect(
       find.byTooltip('LineFM +LOFI aus den Favoriten-Sendern entfernen'),
-      findsOneWidget,
+      findsNWidgets(2),
     );
     // Antippen des Sterns startet keine Wiedergabe.
     expect(h.sink.events.where((e) => e.startsWith('play')), isEmpty);
+    // U4: Gruppe "Deine Sender" oben mit der gemerkten Karte.
+    expect(find.text('DEINE SENDER'), findsOneWidget);
+    expect(stars, findsNWidgets(7));
 
-    await tester.tap(stars.at(3));
+    await tester.tap(
+      find.byTooltip('LineFM +LOFI aus den Favoriten-Sendern entfernen').first,
+    );
     await settle(tester);
     expect(h.container.read(favoriteStationsProvider), isEmpty);
+    expect(find.text('DEINE SENDER'), findsNothing);
+    expect(stars, findsNWidgets(6));
   });
 
   testWidgets('Screenreader: Zusatz im Label und eigene Aktion', (
@@ -63,7 +70,8 @@ void main() {
       find.bySemanticsLabel(
         "LineFM +MAIN, läuft: James Hype - I Was Lovin' You, Favoriten-Sender",
       ),
-      findsOneWidget,
+      // In "Deine Sender" (U4) und in der Gesamtliste.
+      findsNWidgets(2),
     );
     final node = tester.getSemantics(find.bySemanticsLabel('Radio3FM'));
     final labels = node

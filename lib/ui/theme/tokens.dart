@@ -58,6 +58,8 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     required this.popoverBg,
     required this.coverShadow,
     required this.onAccent,
+    required this.headerShadow,
+    required this.noticeShadow,
   });
 
   static const LinefmColors dark = LinefmColors(
@@ -77,6 +79,8 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     popoverBg: Color.fromRGBO(15, 18, 33, 0.95),
     coverShadow: Color.fromRGBO(0, 0, 0, 0.35),
     onAccent: Color(0xFF0F1221),
+    headerShadow: Color(0x80000000),
+    noticeShadow: Color(0x47000000),
   );
 
   static const LinefmColors light = LinefmColors(
@@ -96,6 +100,8 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     popoverBg: Color.fromRGBO(255, 255, 255, 0.97),
     coverShadow: Color.fromRGBO(15, 18, 33, 0.18),
     onAccent: Color(0xFFFFFFFF),
+    headerShadow: Color(0x1A0F1221),
+    noticeShadow: Color(0x1F0F1221),
   );
 
   final Color background;
@@ -123,6 +129,13 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
   /// Vordergrund auf `accent`-Flaechen (Badge, Auswahl).
   final Color onAccent;
 
+  /// Schatten unter dem Header (dunkel wie das Web 50 % Schwarz, hell nur
+  /// ein Hauch, sonst liegt ein grauer Balken unter dem Header, D1).
+  final Color headerShadow;
+
+  /// Schatten unter schwebenden Hinweisen (Speicher-Hinweis).
+  final Color noticeShadow;
+
   @override
   LinefmColors copyWith({
     Color? background,
@@ -141,6 +154,8 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     Color? popoverBg,
     Color? coverShadow,
     Color? onAccent,
+    Color? headerShadow,
+    Color? noticeShadow,
   }) => LinefmColors(
     background: background ?? this.background,
     surface: surface ?? this.surface,
@@ -158,6 +173,8 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     popoverBg: popoverBg ?? this.popoverBg,
     coverShadow: coverShadow ?? this.coverShadow,
     onAccent: onAccent ?? this.onAccent,
+    headerShadow: headerShadow ?? this.headerShadow,
+    noticeShadow: noticeShadow ?? this.noticeShadow,
   );
 
   @override
@@ -181,6 +198,8 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
       popoverBg: l(popoverBg, other.popoverBg),
       coverShadow: l(coverShadow, other.coverShadow),
       onAccent: l(onAccent, other.onAccent),
+      headerShadow: l(headerShadow, other.headerShadow),
+      noticeShadow: l(noticeShadow, other.noticeShadow),
     );
   }
 }

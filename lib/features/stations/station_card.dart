@@ -6,6 +6,7 @@ import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
 import 'package:linefm_radio/ui/widgets/marquee_text.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:linefm_radio/ui/widgets/station_art.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -97,7 +98,12 @@ class _StationCardState extends State<StationCard> {
       style: LinefmText.stationName(grid: grid).copyWith(color: colors.text),
     );
     final ticker = widget.ticker.isEmpty
-        ? SizedBox(height: LinefmText.ticker.fontSize! * 1.4)
+        ? SizedBox(
+            height:
+                MediaQuery.textScalerOf(context)
+                    .scale(LinefmText.ticker.fontSize!) *
+                1.4,
+          )
         : MarqueeText(
             widget.ticker,
             enabled: widget.marquee,
@@ -138,14 +144,20 @@ class _StationCardState extends State<StationCard> {
             widget.onLongPress!,
     };
 
-    return Semantics(
-      container: true,
-      button: true,
-      selected: widget.active,
-      label: widget.semanticLabel,
-      excludeSemantics: true,
-      onTap: widget.onTap,
-      customSemanticsActions: actions.isEmpty ? null : actions,
+    final card = SemanticFocus(
+      builder: (context, focused, onFocus, child) => Semantics(
+        container: true,
+        button: true,
+        selected: widget.active,
+        label: widget.semanticLabel,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        excludeSemantics: true,
+        onTap: widget.onTap,
+        customSemanticsActions: actions.isEmpty ? null : actions,
+        child: child,
+      ),
       child: FocusRing(
         borderRadius: LinefmMetrics.radiusCard,
         child: AnimatedContainer(
@@ -177,7 +189,7 @@ class _StationCardState extends State<StationCard> {
                         grid ? 16 : 10,
                         grid ? 16 : 10,
                         // Platz fuer den Stern neben dem Lauftext.
-                        hasStar && !grid ? 46 : (grid ? 16 : 10),
+                        hasStar && !grid ? 50 : (grid ? 16 : 10),
                         grid ? 16 : 10,
                       ),
                       child: Align(
@@ -191,20 +203,8 @@ class _StationCardState extends State<StationCard> {
                   if (widget.active && widget.playing)
                     Positioned(
                       top: hasStar ? 21 : (grid ? 12 : 10),
-                      right: hasStar ? 50 : (grid ? 12 : 10),
+                      right: hasStar ? 54 : (grid ? 12 : 10),
                       child: _PlayingBars(color: accent),
-                    ),
-                  if (onToggleFavorite != null)
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: _FavoriteStar(
-                        favorite: widget.favorite,
-                        tooltip: favoriteLabel,
-                        activeColor: accent,
-                        idleColor: colors.muted,
-                        onPressed: onToggleFavorite,
-                      ),
                     ),
                 ],
               ),
@@ -213,11 +213,31 @@ class _StationCardState extends State<StationCard> {
         ),
       ),
     );
+    if (onToggleFavorite == null) return card;
+    // Der Stern liegt neben (nicht in) dem Karten-Knoten: eigener, benannter
+    // Schalter fuer Tastatur und Screenreader (A11Y-10). Die Aktion der Karte
+    // bleibt zusaetzlich fuer Wisch-Navigation.
+    return Stack(
+      children: <Widget>[
+        card,
+        Positioned(
+          top: 2,
+          right: 2,
+          child: _FavoriteStar(
+            favorite: widget.favorite,
+            tooltip: favoriteLabel,
+            activeColor: accent,
+            idleColor: colors.muted,
+            onPressed: onToggleFavorite,
+          ),
+        ),
+      ],
+    );
   }
 }
 
-/// Stern der Favoriten-Sender. Fuer Screenreader ausgeblendet, dort ist das
-/// eine Aktion der Karte.
+/// Stern der Favoriten-Sender: Schalter mit eigenem Namen ("… merken" /
+/// "… entfernen") und 48 dp Zielgroesse.
 class _FavoriteStar extends StatelessWidget {
   const _FavoriteStar({
     required this.favorite,
@@ -235,15 +255,16 @@ class _FavoriteStar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ExcludeSemantics(
+    return Semantics(
+      toggled: favorite,
       child: IconButton(
         key: const ValueKey<String>('station-favorite-star'),
         tooltip: tooltip.isEmpty ? null : tooltip,
         onPressed: onPressed,
         iconSize: 18,
         style: IconButton.styleFrom(
-          minimumSize: const Size(44, 44),
-          fixedSize: const Size(44, 44),
+          minimumSize: const Size(48, 48),
+          fixedSize: const Size(48, 48),
           padding: EdgeInsets.zero,
         ),
         icon: AnimatedSwitcher(

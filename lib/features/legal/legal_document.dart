@@ -14,6 +14,9 @@ enum LegalKind {
 
   /// Dateiname ohne Endung, zugleich Pfad der Web-Seite (`/impressum/`).
   final String assetName;
+
+  /// Pfad der statischen Web-Seite, als Link-Ziel fuer die Semantik.
+  Uri get webUri => Uri(path: '/$assetName/');
 }
 
 enum LegalBlockType { h1, h2, p, ul, link, mail }

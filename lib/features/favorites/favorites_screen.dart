@@ -14,6 +14,7 @@ import 'package:linefm_radio/features/history/list_screen.dart';
 import 'package:linefm_radio/features/history/stagger_in.dart';
 import 'package:linefm_radio/features/history/track_row.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/ui/theme/breakpoints.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:material_ui/material_ui.dart';
@@ -33,6 +34,33 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
   void initState() {
     super.initState();
     unawaited(ref.read(telemetryProvider).screen('favorites'));
+  }
+
+  /// Entfernt sofort und bietet 5 s lang "Rueckgaengig" an (U3).
+  void _removeWithUndo(Favorite favorite, int index) {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final expanded = WindowClass.of(context) == WindowClass.expanded;
+    // Kompakt: ueber Mini-Player und Navigation, nicht darauf (U6).
+    final bottom = expanded
+        ? 16.0
+        : MediaQuery.paddingOf(context).bottom + LinefmMetrics.navHeight + 102;
+    removeFavoriteWithTelemetry(ref, favorite);
+    messenger
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.fromLTRB(16, 0, 16, bottom),
+          duration: const Duration(seconds: 5),
+          content: Text(l10n.favoritesRemoved(favorite.title)),
+          action: SnackBarAction(
+            label: l10n.actionUndo,
+            onPressed: () =>
+                ref.read(favoritesProvider.notifier).restore(favorite, index),
+          ),
+        ),
+      );
   }
 
   @override
@@ -79,7 +107,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
             favorite: favorite,
             marquee: marquee,
             removeLabel: l10n.favoritesRemove(favorite.title),
-            onRemoved: () => removeFavoriteWithTelemetry(ref, favorite),
+            onRemoved: () => _removeWithUndo(favorite, index),
           ),
         );
       },

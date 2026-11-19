@@ -5,6 +5,7 @@ import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:linefm_radio/ui/widgets/volume_steps.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -54,12 +55,18 @@ class _VolumeButtonState extends ConsumerState<VolumeButton> {
         controller: _portal,
         overlayChildBuilder: (context) =>
             _Popover(link: _link, color: widget.color, onClose: _close),
-        child: Semantics(
-          button: true,
-          expanded: _open,
-          label: _open ? l10n.volumeClose : l10n.volumeOpen,
-          excludeSemantics: true,
-          onTap: _toggle,
+        child: SemanticFocus(
+          builder: (_, focused, onFocus, child) => Semantics(
+            button: true,
+            expanded: _open,
+            label: _open ? l10n.volumeClose : l10n.volumeOpen,
+            excludeSemantics: true,
+            onTap: _toggle,
+            focusable: true,
+            focused: focused,
+            onFocus: onFocus,
+            child: child,
+          ),
           child: FocusRing(
             borderRadius: 24,
             shape: BoxShape.circle,

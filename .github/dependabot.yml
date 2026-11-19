@@ -52,3 +52,35 @@ updates:
     groups:
       gradle-minor-patch:
         update-types: [minor, patch]
+
+  # Basisimage des Web-Containers (deploy/traefik/Dockerfile, per Digest gepinnt).
+  - package-ecosystem: docker
+    directory: /deploy/traefik
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Berlin
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build
+    labels:
+      - dependencies
+      - typ:infra
+
+  # Images in den Compose-Dateien (Traefik-Stack, Telemetrie: Umami, GlitchTip, Datenbanken).
+  - package-ecosystem: docker-compose
+    directories:
+      - /deploy/traefik
+      - /deploy/telemetry
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Berlin
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build
+    labels:
+      - dependencies
+      - typ:infra

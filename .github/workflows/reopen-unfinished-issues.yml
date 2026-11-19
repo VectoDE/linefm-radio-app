@@ -52,6 +52,9 @@ jobs:
               line = $0
               sub(/^[[:space:]]*([-*+]|[0-9]+[.)])[[:space:]]+\[ \][[:space:]]*/, "", line)
               if (length(line) > 160) line = substr(line, 1, 157) "..."
+              # @ entschaerfen (Zero-Width-Space): Der Bot-Kommentar soll niemanden
+              # erwaehnen und keine Team-Benachrichtigung ausloesen (N3-Sec).
+              gsub(/@/, "@\342\200\213", line)
               print line
             }
           ' > open_tasks.txt

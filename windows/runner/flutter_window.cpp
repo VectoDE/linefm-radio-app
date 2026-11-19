@@ -1,6 +1,7 @@
 #include "flutter_window.h"
 
 #include <optional>
+#include <string>
 
 #include "flutter/generated_plugin_registrant.h"
 
@@ -25,6 +26,11 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
+  single_instance_channel_ =
+      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+          flutter_controller_->engine()->messenger(),
+          "de.linefm.app/single_instance",
+          &flutter::StandardMethodCodec::GetInstance());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
@@ -40,6 +46,7 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  single_instance_channel_ = nullptr;
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
   }
@@ -62,6 +69,37 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
   }
 
   switch (message) {
+    case WM_COPYDATA: {
+      // Zweiter Programmstart: Fenster zeigen, Argumente an Dart geben.
+      const auto* data = reinterpret_cast<const COPYDATASTRUCT*>(lparam);
+      if (data != nullptr && data->dwData == kSingleInstanceCopyData) {
+        ::ShowWindow(hwnd, ::IsIconic(hwnd) ? SW_RESTORE : SW_SHOW);
+        ::SetForegroundWindow(hwnd);
+        if (single_instance_channel_) {
+          flutter::EncodableList arguments;
+          if (data->lpData != nullptr && data->cbData > 0) {
+            const std::string payload(static_cast<const char*>(data->lpData),
+                                      data->cbData);
+            size_t start = 0;
+            while (start < payload.size()) {
+              size_t end = payload.find('\n', start);
+              if (end == std::string::npos) {
+                end = payload.size();
+              }
+              if (end > start) {
+                arguments.emplace_back(payload.substr(start, end - start));
+              }
+              start = end + 1;
+            }
+          }
+          single_instance_channel_->InvokeMethod(
+              "secondInstance",
+              std::make_unique<flutter::EncodableValue>(std::move(arguments)));
+        }
+        return TRUE;
+      }
+      break;
+    }
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
       break;

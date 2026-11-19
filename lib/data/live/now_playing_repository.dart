@@ -125,6 +125,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     this.maxEndsAtDelay = const Duration(minutes: 10),
     this.unknownEndDelay = const Duration(seconds: 30),
     this.maxAnnounceDelay = const Duration(seconds: 60),
+    this.minRefetchGap = const Duration(seconds: 5),
     this.timer = Timer.new,
     this.periodicTimer = Timer.periodic,
   }) : _stations = stations,
@@ -136,6 +137,13 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   final Duration maxEndsAtDelay;
   final Duration unknownEndDelay;
   final Duration maxAnnounceDelay;
+
+  /// Mindestabstand zwischen zwei Abrufen DERSELBEN Adresse (Sender und
+  /// Endpunkt). Kurz hintereinander ausgeloeste Abrufe (Start, Stationswechsel,
+  /// Vordergrund-Wechsel, Timer) werden so zu einem zusammengefasst; ein
+  /// laufender Abruf wird immer mitbenutzt. Nur "Aktualisieren" (Pull-to-
+  /// refresh) umgeht den Abstand.
+  final Duration minRefetchGap;
 
   /// Austauschbar fuer deterministische Tests.
   final Timer Function(Duration, void Function()) timer;
@@ -159,6 +167,8 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   final Map<String, List<Track>> _last = <String, List<Track>>{};
   final Map<String, int?> _listeners = <String, int?>{};
   final Map<String, Timer> _announced = <String, Timer>{};
+  final Map<String, Future<Object?>> _inFlight = <String, Future<Object?>>{};
+  final Map<String, DateTime> _fetchedAt = <String, DateTime>{};
 
   final StreamController<void> _changed = StreamController<void>.broadcast(
     sync: true,
@@ -253,7 +263,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   @override
   Future<void> refresh() async {
     _ensureStarted();
-    await _pollOnce(force: true);
+    await _pollOnce(force: true, bypassGap: true);
   }
 
   @override
@@ -307,54 +317,96 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
 
   // --------------------------------------------------------------- Abruf
 
-  Future<void> _pollOnce({bool force = false}) async {
+  Future<void> _pollOnce({bool force = false, bool bypassGap = false}) async {
     if (_disposed) return;
     if (!_awake && !force) return;
-    final jobs = <Future<void>>[_fetchActive(includeHistory: _foreground)];
+    final jobs = <Future<void>>[
+      _fetchActive(includeHistory: _foreground, bypassGap: bypassGap),
+    ];
     // Auch bei verbundenem WebSocket: verpasste Nachrichten (z. B. vor dem
     // Verbinden) werden so spaetestens nach einem Intervall korrigiert.
     if (_foreground) {
       for (final s in _stations) {
-        if (s != _active) jobs.add(_fetchCurrent(s.slug));
+        if (s != _active) {
+          jobs.add(_fetchCurrent(s.slug, bypassGap: bypassGap));
+        }
       }
     }
     await Future.wait(jobs);
   }
 
-  Future<void> _fetchActive({required bool includeHistory}) async {
+  Future<void> _fetchActive({
+    required bool includeHistory,
+    bool bypassGap = false,
+  }) async {
     final slug = _active.slug;
     await Future.wait(<Future<void>>[
-      _fetchCurrent(slug),
-      if (includeHistory) _fetchHistory(slug),
-      if (includeHistory) _fetchListeners(slug),
+      _fetchCurrent(slug, bypassGap: bypassGap),
+      if (includeHistory) _fetchHistory(slug, bypassGap: bypassGap),
+      if (includeHistory) _fetchListeners(slug, bypassGap: bypassGap),
     ]);
     _scheduleEndsAt();
   }
 
-  Future<void> _fetchCurrent(String slug) async {
-    final track = await _guard(() => _api.currentSong(slug));
+  Future<void> _fetchCurrent(String slug, {bool bypassGap = false}) async {
+    final track = await _guard(
+      'current:$slug',
+      () => _api.currentSong(slug),
+      bypassGap: bypassGap,
+    );
     if (track == null || _disposed) return;
     _applyTrack(slug, track.value);
   }
 
-  Future<void> _fetchHistory(String slug) async {
-    final list = await _guard(() => _api.lastSongs(slug));
+  Future<void> _fetchHistory(String slug, {bool bypassGap = false}) async {
+    final list = await _guard(
+      'last:$slug',
+      () => _api.lastSongs(slug),
+      bypassGap: bypassGap,
+    );
     if (list == null || _disposed) return;
     _last[slug] = list.value;
     _emit();
   }
 
-  Future<void> _fetchListeners(String slug) async {
-    final n = await _guard(() => _api.listeners(slug));
+  Future<void> _fetchListeners(String slug, {bool bypassGap = false}) async {
+    final n = await _guard(
+      'listeners:$slug',
+      () => _api.listeners(slug),
+      bypassGap: bypassGap,
+    );
     if (n == null || _disposed) return;
     if (_listeners[slug] == n.value) return;
     _listeners[slug] = n.value;
     _emit();
   }
 
-  /// `null` bei Fehler; sonst das Ergebnis in einer Huelle (auch fuer
-  /// `null`-Werte der API).
-  Future<_Box<T>?> _guard<T>(Future<T> Function() call) async {
+  /// `null` bei Fehler oder wenn der Abruf zusammengefasst wurde (gleiche
+  /// Adresse zuletzt vor weniger als [minRefetchGap]); sonst das Ergebnis in
+  /// einer Huelle (auch fuer `null`-Werte der API). Ein laufender Abruf
+  /// derselben Adresse wird mitbenutzt.
+  Future<_Box<T>?> _guard<T>(
+    String key,
+    Future<T> Function() call, {
+    bool bypassGap = false,
+  }) {
+    final running = _inFlight[key];
+    if (running != null) return running.then((v) => v as _Box<T>?);
+    final last = _fetchedAt[key];
+    if (!bypassGap &&
+        last != null &&
+        _clock.now().difference(last) < minRefetchGap) {
+      return Future<_Box<T>?>.value();
+    }
+    final future = _request(call).whenComplete(() {
+      _inFlight.remove(key);
+      _fetchedAt[key] = _clock.now();
+    });
+    _inFlight[key] = future;
+    return future;
+  }
+
+  Future<_Box<T>?> _request<T>(Future<T> Function() call) async {
     try {
       final value = await call();
       _setOnline(true);

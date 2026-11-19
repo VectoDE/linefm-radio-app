@@ -53,7 +53,7 @@ class ListScreen extends StatelessWidget {
         final list = ListView.builder(
           // Immer scrollbar, damit Pull-to-refresh auch bei kurzer Liste geht.
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(side, 8, side, bottomInset),
+          padding: EdgeInsets.fromLTRB(side, 20, side, bottomInset),
           itemCount: count,
           itemBuilder: (context, index) {
             if (index == 0) {

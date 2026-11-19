@@ -139,6 +139,7 @@
   "historyTitle": "Zuletzt gespielt",
   "historyListLabel": "Zuletzt gespielte Titel",
   "historyEmpty": "Noch keine Titel im Verlauf.",
+  "historyLoadFailed": "Verlauf konnte nicht geladen werden.",
   "favoritesTitle": "Favoriten",
   "favoritesListLabel": "Gespeicherte Songs",
   "favoritesEmpty": "Noch keine Favoriten gespeichert.",
@@ -163,6 +164,8 @@
     }
   },
   "favoritesExportFailed": "Der Export hat nicht geklappt.",
+  "shareCopied": "In die Zwischenablage kopiert.",
+  "shareFailed": "Teilen hat nicht geklappt.",
   "csvColumnTitle": "Titel",
   "@csvColumnTitle": {
     "description": "CSV-Spaltenkopf"
@@ -411,5 +414,6 @@
   "trayStop": "Stoppen",
   "trayStations": "Sender",
   "trayMiniPlayer": "Mini-Player",
-  "trayQuit": "Beenden"
+  "trayQuit": "Beenden",
+  "trayAlwaysOnTop": "Immer im Vordergrund"
 }

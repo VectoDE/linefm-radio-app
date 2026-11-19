@@ -26,6 +26,10 @@ abstract final class PrefsKeys {
   static const String telemetryConsent = 'linefm-telemetry-consent';
   static const String coverCache = 'linefm-cover-cache';
 
+  /// Fenstergroesse/-position und Mini-Fenster (Desktop, P18).
+  static const String desktopWindow = 'linefm-desktop-window';
+  static const String desktopMini = 'linefm-desktop-mini';
+
   /// Alle Daten-Schluessel, also alles ausser der Speicher-Bestaetigung.
   static const List<String> data = <String>[
     favorites,
@@ -39,6 +43,8 @@ abstract final class PrefsKeys {
     alarms,
     telemetryConsent,
     coverCache,
+    desktopWindow,
+    desktopMini,
   ];
 }
 

@@ -217,6 +217,49 @@ void main() {
     expect(socket.closes, 1);
   });
 
+  test('Start: jede Adresse nur einmal, auch bei Vordergrund-Wechsel und '
+      'Stationswechsel', () async {
+    final r = repo();
+    final subs = <StreamSubscription<Object?>>[
+      r.watchStations().listen((_) {}),
+      r.watchHistory(main).listen((_) {}),
+      r.watchListeners(main).listen((_) {}),
+      r.watchTrack(main).listen((_) {}),
+    ];
+    await _settle();
+    // Typische Ausloeser direkt nach dem Start: Fenster verliert/erhaelt den
+    // Fokus (AppLifecycle), Stationswechsel durch Link oder gemerkte Station.
+    r.setForeground(value: false);
+    r.setForeground(value: true);
+    r.setActiveStation(rap);
+    r.setActiveStation(main);
+    await _settle();
+
+    int count(String call) => api.calls.where((c) => c == call).length;
+    expect(count('current:linefm'), 1);
+    expect(count('last:linefm'), 1);
+    expect(count('listeners:linefm'), 1);
+    expect(count('current:linefmrap'), 1);
+    expect(count('last:linefmrap'), 1);
+    expect(count('listeners:linefmrap'), 1);
+
+    // Nach dem Mindestabstand wird wieder abgerufen.
+    clock.advance(const Duration(seconds: 6));
+    r.setForeground(value: false);
+    r.setForeground(value: true);
+    await _settle();
+    expect(count('current:linefm'), 2);
+
+    // Pull-to-refresh umgeht den Abstand.
+    await r.refresh();
+    expect(count('current:linefm'), 3);
+
+    for (final s in subs) {
+      await s.cancel();
+    }
+    r.dispose();
+  });
+
   test('ends_at-Timer: Abruf bei ends_at + 3 s, Grenzen 10 s/10 min', () async {
     final r = repo();
     final sub = r.watchTrack(main).listen((_) {});
@@ -345,6 +388,8 @@ void main() {
     final r = repo();
     final sub = r.watchStations().listen((_) {});
     await _settle();
+    // Nach dem Mindestabstand (sonst waere der Titel noch frisch genug).
+    clock.advance(const Duration(seconds: 6));
     api.calls.clear();
     r.setActiveStation(rap);
     await _settle();

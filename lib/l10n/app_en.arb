@@ -64,6 +64,7 @@
   "historyTitle": "Recently played",
   "historyListLabel": "Recently played tracks",
   "historyEmpty": "No tracks in the history yet.",
+  "historyLoadFailed": "Couldn’t load the history.",
   "favoritesTitle": "Favorites",
   "favoritesListLabel": "Saved songs",
   "favoritesEmpty": "No favorites saved yet.",
@@ -74,6 +75,8 @@
   "favoritesExportEmpty": "There is nothing to export yet.",
   "favoritesExportSavedTo": "Saved to {path}",
   "favoritesExportFailed": "The export failed.",
+  "shareCopied": "Copied to the clipboard.",
+  "shareFailed": "Sharing didn’t work.",
   "csvColumnTitle": "Title",
   "csvColumnArtist": "Artist",
   "csvColumnStation": "Station",
@@ -206,5 +209,6 @@
   "trayStop": "Stop",
   "trayStations": "Stations",
   "trayMiniPlayer": "Mini player",
-  "trayQuit": "Quit"
+  "trayQuit": "Quit",
+  "trayAlwaysOnTop": "Always on top"
 }

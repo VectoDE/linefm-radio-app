@@ -8,6 +8,7 @@ import 'package:linefm_radio/services/cast/cast_service.dart';
 import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
+import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -91,7 +92,10 @@ class _CastButtonState extends ConsumerState<CastButton> {
           top: Radius.circular(LinefmMetrics.radiusCover),
         ),
       ),
-      builder: (_) => const CastSheet(),
+      builder: (sheetContext) => NamedSheet(
+        label: AppLocalizations.of(sheetContext).castButton,
+        child: const CastSheet(),
+      ),
     );
     // Aktive Suche beenden, passive läuft weiter, solange der Knopf steht.
     if (mounted) unawaited(service.startDiscovery());

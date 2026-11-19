@@ -70,6 +70,7 @@ class AlarmScreen extends ConsumerWidget {
     final picked = await showTimePicker(
       context: context,
       initialTime: const TimeOfDay(hour: 7, minute: 0),
+      builder: _namedTimePicker,
     );
     if (picked == null || !context.mounted) return;
     final station = ref.read(activeStationProvider);
@@ -182,6 +183,13 @@ class AlarmScreen extends ConsumerWidget {
     );
   }
 }
+
+/// Uhrzeit-Dialog mit zugaenglichem Namen (sonst meldet axe
+/// `aria-dialog-name`): derselbe Text wie die Ueberschrift im Dialog.
+Widget _namedTimePicker(BuildContext context, Widget? child) => NamedDialog(
+  label: MaterialLocalizations.of(context).timePickerDialHelpText,
+  child: child!,
+);
 
 /// Fragt die Plattform nach der Wecker-Freigabe; fehlt sie, erklaert ein Dialog
 /// den Grund und fuehrt in die Systemeinstellungen.
@@ -302,6 +310,7 @@ class _AlarmCard extends StatelessWidget {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: rule.hour, minute: rule.minute),
+      builder: _namedTimePicker,
     );
     if (picked != null) {
       onChanged(rule.copyWith(hour: picked.hour, minute: picked.minute));

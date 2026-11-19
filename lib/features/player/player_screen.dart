@@ -19,6 +19,7 @@ import 'package:linefm_radio/services/cast/cast_button.dart';
 import 'package:linefm_radio/services/share/music_links.dart';
 import 'package:linefm_radio/ui/theme/breakpoints.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
+import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Player-Screen der App. Liest die Provider, uebergibt Daten und Texte an
@@ -62,10 +63,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       context: context,
       showDragHandle: true,
       backgroundColor: c.surface,
-      builder: (context) => const SafeArea(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
-          child: SleepTimerRow(showDivider: false),
+      builder: (context) => NamedSheet(
+        label: AppLocalizations.of(context).sleepTimerTitle,
+        child: const SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
+            child: SleepTimerRow(showDivider: false),
+          ),
         ),
       ),
     );

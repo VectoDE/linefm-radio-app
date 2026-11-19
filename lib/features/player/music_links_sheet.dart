@@ -1,6 +1,7 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
+import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -163,13 +164,16 @@ Future<void> showMusicLinksSheet(
         top: Radius.circular(LinefmMetrics.radiusCover),
       ),
     ),
-    builder: (sheetContext) => MusicLinksSheet(
-      title: title,
-      items: items,
-      onSelected: (item) {
-        Navigator.of(sheetContext).pop();
-        item.onOpen();
-      },
+    builder: (sheetContext) => NamedSheet(
+      label: title,
+      child: MusicLinksSheet(
+        title: title,
+        items: items,
+        onSelected: (item) {
+          Navigator.of(sheetContext).pop();
+          item.onOpen();
+        },
+      ),
     ),
   );
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:material_ui/material_ui.dart';
 
 /// Gibt einem [AlertDialog] (oder [Dialog]) einen zugaenglichen Namen.
@@ -16,4 +17,28 @@ class NamedDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       Semantics(label: label, namesRoute: true, child: child);
+}
+
+/// Gibt einem Bottom-Sheet die Rolle `dialog` mit zugaenglichem Namen.
+///
+/// `showModalBottomSheet` legt nur einen Routen-Knoten mit dem allgemeinen
+/// Namen "Dialog" an (im Web `role="region"`). Screenreader hoeren so nicht,
+/// worum es geht, und Tests finden das Sheet nicht per Rolle und Namen. Dieser
+/// Rahmen setzt einen eigenen Knoten mit `role="dialog"` und [label] direkt um
+/// den Inhalt.
+class NamedSheet extends StatelessWidget {
+  const NamedSheet({super.key, required this.label, required this.child});
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    container: true,
+    explicitChildNodes: true,
+    role: SemanticsRole.dialog,
+    namesRoute: true,
+    label: label,
+    child: child,
+  );
 }

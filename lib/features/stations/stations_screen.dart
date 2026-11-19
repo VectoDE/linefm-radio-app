@@ -13,6 +13,7 @@ import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/breakpoints.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:linefm_radio/ui/widgets/section_heading.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -203,11 +204,17 @@ class StationsScreen extends ConsumerWidget {
       context: context,
       backgroundColor: colors.surfaceRaised,
       showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: ListTile(
-          leading: FaIcon(FontAwesomeIcons.shareNodes, color: colors.text),
-          title: Text(l10n.stationLongPressShare, style: LinefmText.listTitle),
-          onTap: () => Navigator.of(context).pop(true),
+      builder: (context) => NamedSheet(
+        label: station.displayName,
+        child: SafeArea(
+          child: ListTile(
+            leading: FaIcon(FontAwesomeIcons.shareNodes, color: colors.text),
+            title: Text(
+              l10n.stationLongPressShare,
+              style: LinefmText.listTitle,
+            ),
+            onTap: () => Navigator.of(context).pop(true),
+          ),
         ),
       ),
     );

@@ -917,7 +917,7 @@ abstract class AppLocalizations {
   /// No description provided for @consentOutro.
   ///
   /// In de, this message translates to:
-  /// **'Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.'**
+  /// **'Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst die Einwilligung jederzeit in den Einstellungen mit Wirkung für die Zukunft widerrufen.'**
   String get consentOutro;
 
   /// No description provided for @consentAllow.
@@ -947,7 +947,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingGoogleBodyOn.
   ///
   /// In de, this message translates to:
-  /// **'Erlaubt. Google Analytics läuft in der Web-Version. Du kannst das jederzeit widerrufen.'**
+  /// **'Erlaubt. Google Analytics läuft in der Web-Version. Du kannst das jederzeit widerrufen; die Seite lädt dann einmal neu.'**
   String get settingGoogleBodyOn;
 
   /// No description provided for @settingGoogleBodyOff.
@@ -965,7 +965,7 @@ abstract class AppLocalizations {
   /// No description provided for @googleConsentIntro.
   ///
   /// In de, this message translates to:
-  /// **'Wir würden gern zählen, wie viele Menschen die Web-Version nutzen und welche Bereiche sie aufrufen. Dafür setzen wir Google Analytics ein, geladen über den Google Tag Manager.'**
+  /// **'Wir würden gern zählen, wie viele Menschen die Web-Version nutzen und welche Bereiche sie aufrufen. Dafür setzen wir Google Analytics ein, eingebunden über das Google-Tag.'**
   String get googleConsentIntro;
 
   /// No description provided for @googleConsentRecipient.
@@ -983,7 +983,7 @@ abstract class AppLocalizations {
   /// No description provided for @googleConsentOutro.
   ///
   /// In de, this message translates to:
-  /// **'Diese Frage ist getrennt von Statistik und Fehlerberichten und freiwillig. Ohne deine Zustimmung lädt die Seite nichts von Google. Du kannst deine Wahl jederzeit in den Einstellungen ändern.'**
+  /// **'Diese Frage ist getrennt von Statistik und Fehlerberichten und freiwillig. Ohne deine Zustimmung lädt die Seite nichts von Google. Du kannst die Einwilligung jederzeit in den Einstellungen mit Wirkung für die Zukunft widerrufen.'**
   String get googleConsentOutro;
 
   /// No description provided for @legalImprintTitle.

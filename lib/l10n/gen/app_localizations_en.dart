@@ -524,7 +524,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingGoogleBodyOn =>
-      'Allowed. Google Analytics runs in the web version. You can withdraw this at any time.';
+      'Allowed. Google Analytics runs in the web version. You can withdraw this at any time; the page then reloads once.';
 
   @override
   String get settingGoogleBodyOff =>
@@ -535,7 +535,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get googleConsentIntro =>
-      'We would like to count how many people use the web version and which parts they open. For this we use Google Analytics, loaded through Google Tag Manager.';
+      'We would like to count how many people use the web version and which parts they open. For this we use Google Analytics, embedded through the Google tag.';
 
   @override
   String get googleConsentRecipient =>
@@ -547,7 +547,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get googleConsentOutro =>
-      'This question is separate from statistics and error reports and voluntary. Without your consent the page loads nothing from Google. You can change your choice in the settings at any time.';
+      'This question is separate from statistics and error reports and voluntary. Without your consent the page loads nothing from Google. You can withdraw your consent at any time in the settings, with effect for the future.';
 
   @override
   String get legalImprintTitle => 'Imprint';

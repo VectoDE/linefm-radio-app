@@ -511,7 +511,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get consentOutro =>
-      'Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.';
+      'Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst die Einwilligung jederzeit in den Einstellungen mit Wirkung für die Zukunft widerrufen.';
 
   @override
   String get consentAllow => 'Erlauben';
@@ -527,7 +527,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingGoogleBodyOn =>
-      'Erlaubt. Google Analytics läuft in der Web-Version. Du kannst das jederzeit widerrufen.';
+      'Erlaubt. Google Analytics läuft in der Web-Version. Du kannst das jederzeit widerrufen; die Seite lädt dann einmal neu.';
 
   @override
   String get settingGoogleBodyOff =>
@@ -538,7 +538,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get googleConsentIntro =>
-      'Wir würden gern zählen, wie viele Menschen die Web-Version nutzen und welche Bereiche sie aufrufen. Dafür setzen wir Google Analytics ein, geladen über den Google Tag Manager.';
+      'Wir würden gern zählen, wie viele Menschen die Web-Version nutzen und welche Bereiche sie aufrufen. Dafür setzen wir Google Analytics ein, eingebunden über das Google-Tag.';
 
   @override
   String get googleConsentRecipient =>
@@ -550,7 +550,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get googleConsentOutro =>
-      'Diese Frage ist getrennt von Statistik und Fehlerberichten und freiwillig. Ohne deine Zustimmung lädt die Seite nichts von Google. Du kannst deine Wahl jederzeit in den Einstellungen ändern.';
+      'Diese Frage ist getrennt von Statistik und Fehlerberichten und freiwillig. Ohne deine Zustimmung lädt die Seite nichts von Google. Du kannst die Einwilligung jederzeit in den Einstellungen mit Wirkung für die Zukunft widerrufen.';
 
   @override
   String get legalImprintTitle => 'Impressum';

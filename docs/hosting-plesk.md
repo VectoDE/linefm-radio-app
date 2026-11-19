@@ -30,7 +30,7 @@ Immer nur **eine** der beiden Header-Quellen verwenden. Sonst entstehen doppelte
 
 **Git-Erweiterung von Plesk:** Ein Repository mit dem fertigen `build/web`-Inhalt anlegen (z. B. Branch `web-release`, vom Workflow befüllt) und in Plesk unter Git das Ziel "Dokumentstamm" wählen. Plesk zieht per Webhook oder von Hand.
 
-Secrets für den automatischen Deploy (`deploy-web.yml`, Paket P27): `PLESK_SFTP_HOST`, `PLESK_SFTP_USER`, `PLESK_SFTP_PASSWORD` oder ein SSH-Schlüssel sowie der Zielpfad. Der Betreiber trägt sie ein.
+**Automatisch per SSH (`deploy-web.yml`, Ziel `plesk`):** Der Workflow synchronisiert `build/web` per `rsync` über SSH in den Dokumentstamm. `.well-known/` (z. B. `assetlinks.json`) und `cgi-bin/` bleiben unberührt, die `.htaccess` aus dem Upload wird mitgeliefert. Voraussetzung ist ein Plesk-Abonnement mit SSH-Zugang und Schlüssel-Login (Plesk > Websites & Domains > Webspace-Zugang, Shell aktivieren, öffentlichen Schlüssel unter "SSH-Schlüssel" eintragen). Der Betreiber trägt die Secrets `PLESK_SSH_HOST`, `PLESK_SSH_USER`, `PLESK_SSH_KEY`, `PLESK_SSH_KNOWN_HOSTS` und die Variable `PLESK_DOCROOT` (z. B. `httpdocs`) ein, dazu `plesk` in `WEB_DEPLOY_TARGETS` ([secrets.md](secrets.md)). Passwort-Login per SFTP wird bewusst nicht unterstützt. Wer nur SFTP hat, nimmt die Git-Erweiterung oder lädt von Hand hoch.
 
 ## Was die Dateien tun
 

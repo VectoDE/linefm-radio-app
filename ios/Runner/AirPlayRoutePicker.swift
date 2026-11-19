@@ -45,9 +45,7 @@ final class AirPlayRoutePickerView: NSObject, FlutterPlatformView {
     picker = AVRoutePickerView(frame: frame)
     super.init()
     picker.backgroundColor = .clear
-    if #available(iOS 13.0, *) {
-      picker.prioritizesVideoDevices = false
-    }
+    picker.prioritizesVideoDevices = false
     if let value = (args?["tintColor"] as? NSNumber)?.int64Value {
       picker.tintColor = UIColor(argb: value)
     }

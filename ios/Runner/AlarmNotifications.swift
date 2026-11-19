@@ -116,19 +116,16 @@ final class AlarmNotifications: NSObject, UNUserNotificationCenterDelegate {
 
     cancel(id: id)
     let group = DispatchGroup()
-    let lock = NSLock()
-    var firstError: Error?
+    let errors = ErrorBox()
     for request in requests {
       group.enter()
       center.add(request) { error in
-        lock.lock()
-        if let error, firstError == nil { firstError = error }
-        lock.unlock()
+        if let error { errors.record(error) }
         group.leave()
       }
     }
     group.notify(queue: .main) {
-      if let firstError {
+      if let firstError = errors.first {
         result(
           FlutterError(
             code: "schedule_failed", message: firstError.localizedDescription, details: nil))
@@ -208,5 +205,23 @@ final class AlarmNotifications: NSObject, UNUserNotificationCenterDelegate {
       }
     }
     completionHandler()
+  }
+}
+
+/// Sammelt den ersten Fehler aus parallelen `add`-Callbacks (thread-sicher).
+private final class ErrorBox: @unchecked Sendable {
+  private let lock = NSLock()
+  private var stored: Error?
+
+  func record(_ error: Error) {
+    lock.lock()
+    if stored == nil { stored = error }
+    lock.unlock()
+  }
+
+  var first: Error? {
+    lock.lock()
+    defer { lock.unlock() }
+    return stored
   }
 }

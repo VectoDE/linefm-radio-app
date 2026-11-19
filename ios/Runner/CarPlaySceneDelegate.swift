@@ -73,6 +73,7 @@ final class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegat
         detailText: isCurrent ? now.detailText : nil,
         image: UIImage(named: "station_\(station.slug)")
       )
+      item.userInfo = station.slug
       item.isPlaying = isCurrent && now.playing
       item.playingIndicatorLocation = .trailing
       item.handler = { [weak self] _, completion in
@@ -89,17 +90,36 @@ final class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegat
   private func reloadLists() {
     let folders = CarPlayChannel.shared.folders
     guard !folders.isEmpty, let interfaceController else { return }
-    // Gleiche Ordner wie bisher: nur Inhalte tauschen (Tab bleibt gewaehlt).
+    // Gleiche Ordner wie bisher: nur Inhalte tauschen (Tab bleibt gewaehlt,
+    // ein geoeffnetes Now Playing bleibt stehen).
     if folders.count == lists.count {
       for (template, folder) in zip(lists, folders) {
+        template.tabTitle = folder.title
         template.updateSections([section(for: folder)])
       }
+      tabBar?.updateTemplates(lists)
       return
     }
     lists = makeLists()
     let tabBar = CPTabBarTemplate(templates: lists)
     self.tabBar = tabBar
     interfaceController.setRootTemplate(tabBar, animated: false, completion: nil)
+  }
+
+  /// Titelwechsel: nur Detailtext und Wiedergabe-Markierung der vorhandenen
+  /// Eintraege setzen statt die Listen neu aufzubauen (CarPlay drosselt
+  /// haeufige Template-Updates).
+  private func updateNowPlayingItems() {
+    let now = CarPlayChannel.shared.nowPlaying
+    for template in lists {
+      for section in template.sections {
+        for case let item as CPListItem in section.items {
+          let isCurrent = (item.userInfo as? String) == now.slug && now.slug != nil
+          item.setDetailText(isCurrent ? now.detailText : nil)
+          item.isPlaying = isCurrent && now.playing
+        }
+      }
+    }
   }
 
   private func showNowPlaying() {
@@ -165,6 +185,6 @@ extension CarPlaySceneDelegate: CarPlayChannelListener {
   }
 
   func carPlayNowPlayingDidChange() {
-    reloadLists()
+    updateNowPlayingItems()
   }
 }

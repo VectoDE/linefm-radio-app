@@ -280,7 +280,7 @@
   "settingStorageBody": "Lokal gespeichert werden: zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen, zwischengespeicherte Cover und am Computer die Fensterposition.",
   "settingStorageClear": "Speicher löschen",
   "clearStorageConfirmTitle": "Speicher löschen?",
-  "clearStorageConfirmBody": "Zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen.",
+  "clearStorageConfirmBody": "Zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen. Nur „Cover laden: aus“ bleibt gespeichert, damit danach keine Anfragen an Apple gehen.",
   "clearStorageDone": "Speicher gelöscht.",
   "actionCancel": "Abbrechen",
   "actionDelete": "Löschen",
@@ -292,7 +292,20 @@
   "settingTelemetryBodyOn": "Erlaubt. Du kannst das jederzeit widerrufen.",
   "settingTelemetryBodyOff": "Nicht erlaubt. Es wird nichts gesendet.",
   "consentTitle": "Statistik und Fehlerberichte",
-  "consentBody": "Damit wir sehen, was gut läuft und wo die App hakt, würden wir gern Angaben zur Nutzung und zu Fehlern auswerten, ohne Namen und ohne Konto. Die Daten gehen an den Betreiber unseres Statistik- und Fehlerbericht-Dienstes (Umami, GlitchTip). Dabei wird technisch deine IP-Adresse übertragen. Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.",
+  "consentIntro": "Damit wir sehen, was gut läuft und wo die App hakt, würden wir gern Angaben zur Nutzung und zu Fehlern auswerten, ohne Namen und ohne Konto.",
+  "consentRecipients": "Die Daten gehen an: {services}. Dabei wird technisch deine IP-Adresse übertragen.",
+  "@consentRecipients": {
+    "placeholders": {
+      "services": {
+        "type": "String"
+      }
+    }
+  },
+  "consentServiceUmami": "Umami (Nutzungsstatistik)",
+  "consentServiceSentry": "GlitchTip bzw. Sentry (Fehlerberichte)",
+  "consentServiceFirebase": "Google (Firebase Analytics und Crashlytics)",
+  "consentFirebaseTransfer": "Google kann die Daten in die USA übermitteln. Grundlage ist das EU-US Data Privacy Framework, für das die EU-Kommission ein angemessenes Datenschutzniveau festgestellt hat.",
+  "consentOutro": "Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.",
   "consentAllow": "Erlauben",
   "consentDecline": "Ablehnen",
   "consentPrivacyLink": "Mehr in der Datenschutzerklärung",
@@ -458,7 +471,7 @@
   },
   "stationsYoursListLabel": "Deine Favoriten-Sender",
   "settingArtworkTitle": "Cover laden",
-  "settingArtworkBody": "Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfragen an Apple, die App zeigt das Cover von laut.fm oder das Senderlogo. Diese Einstellung bleibt auch ohne bestätigten Speicher-Hinweis gespeichert.",
+  "settingArtworkBody": "Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfragen an Apple, die App zeigt das Cover von laut.fm oder das Senderlogo. Diese Einstellung bleibt auch ohne bestätigten Speicher-Hinweis und nach „Speicher löschen“ gespeichert.",
   "settingShortcutsTitle": "Tastenkürzel mit einer Taste",
   "settingShortcutsBody": "F merkt den Song, S spielt einen zufälligen Sender, 1 bis 6 wählen einen Sender.",
   "playerSleepTimer": "Sleeptimer einstellen",

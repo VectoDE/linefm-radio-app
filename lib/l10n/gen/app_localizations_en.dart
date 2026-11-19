@@ -447,7 +447,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearStorageConfirmBody =>
-      'Your last station, volume, favorites, favorite stations, alarms, settings and cached covers will be removed. This can’t be undone.';
+      'Your last station, volume, favorites, favorite stations, alarms, settings and cached covers will be removed. This can’t be undone. Only “Load covers: off” is kept, so no requests go to Apple afterwards.';
 
   @override
   String get clearStorageDone => 'Storage cleared.';
@@ -484,8 +484,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get consentTitle => 'Usage statistics and error reports';
 
   @override
-  String get consentBody =>
-      'To see what works and where the app stumbles, we’d like to collect usage and error data, with no name and no account. The data goes to the operator of our statistics and error-report service (Umami, GlitchTip). Your IP address is transmitted in the process. This is optional. Nothing is sent unless you agree. You can change your choice any time in the settings.';
+  String get consentIntro =>
+      'To see what works and where the app stumbles, we’d like to collect usage and error data, with no name and no account.';
+
+  @override
+  String consentRecipients(String services) {
+    return 'The data goes to: $services. Your IP address is transmitted in the process.';
+  }
+
+  @override
+  String get consentServiceUmami => 'Umami (usage statistics)';
+
+  @override
+  String get consentServiceSentry => 'GlitchTip or Sentry (error reports)';
+
+  @override
+  String get consentServiceFirebase =>
+      'Google (Firebase Analytics and Crashlytics)';
+
+  @override
+  String get consentFirebaseTransfer =>
+      'Google may transfer the data to the USA. This relies on the EU-US Data Privacy Framework, for which the European Commission has found an adequate level of data protection.';
+
+  @override
+  String get consentOutro =>
+      'This is optional. Nothing is sent unless you agree. You can change your choice any time in the settings.';
 
   @override
   String get consentAllow => 'Allow';
@@ -736,7 +759,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingArtworkBody =>
-      'Looks up the album cover for the current track at Apple. Off: no requests to Apple, the app shows the laut.fm cover or the station logo. This setting is kept even without a confirmed storage notice.';
+      'Looks up the album cover for the current track at Apple. Off: no requests to Apple, the app shows the laut.fm cover or the station logo. This setting is kept even without a confirmed storage notice and after “Clear storage”.';
 
   @override
   String get settingShortcutsTitle => 'Single-key shortcuts';

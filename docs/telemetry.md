@@ -26,8 +26,10 @@ Einwilligung (DSGVO/TDDDG):
 - Einwilligung erteilt: Sinks starten. Widerruf stoppt sie sofort, leert die
   Umami-Warteschlange und beendet das Sentry-SDK.
 
-Erfasste Ereignisse (keine personenbezogenen Daten, keine Cookies, keine
-Geräte-IDs): `app_start`, Bildschirmaufrufe als `/screen/<name>`, `play`,
+Erfasste Ereignisse (personenbezogen im Sinne der DSGVO, weil technisch die
+IP-Adresse mitläuft und Firebase eine App-Instanz-ID nutzt, aber
+pseudonymisiert: keine Namen, keine Konten, keine Cookies, keine Werbe-ID):
+`app_start`, Bildschirmaufrufe als `/screen/<name>`, `play`,
 `stop`, `shuffle`, `favorite_add`, `favorite_remove`, `share_song`,
 `export_favorites`, `sleep_timer_set`, `alarm_set`, `cast_start`,
 `airplay_open`, `error_stream`. Umami sammelt zusätzlich Sprache und

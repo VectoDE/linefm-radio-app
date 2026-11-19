@@ -809,7 +809,7 @@ abstract class AppLocalizations {
   /// No description provided for @clearStorageConfirmBody.
   ///
   /// In de, this message translates to:
-  /// **'Zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen.'**
+  /// **'Zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen. Nur „Cover laden: aus“ bleibt gespeichert, damit danach keine Anfragen an Apple gehen.'**
   String get clearStorageConfirmBody;
 
   /// No description provided for @clearStorageDone.
@@ -878,11 +878,47 @@ abstract class AppLocalizations {
   /// **'Statistik und Fehlerberichte'**
   String get consentTitle;
 
-  /// No description provided for @consentBody.
+  /// No description provided for @consentIntro.
   ///
   /// In de, this message translates to:
-  /// **'Damit wir sehen, was gut läuft und wo die App hakt, würden wir gern Angaben zur Nutzung und zu Fehlern auswerten, ohne Namen und ohne Konto. Die Daten gehen an den Betreiber unseres Statistik- und Fehlerbericht-Dienstes (Umami, GlitchTip). Dabei wird technisch deine IP-Adresse übertragen. Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.'**
-  String get consentBody;
+  /// **'Damit wir sehen, was gut läuft und wo die App hakt, würden wir gern Angaben zur Nutzung und zu Fehlern auswerten, ohne Namen und ohne Konto.'**
+  String get consentIntro;
+
+  /// No description provided for @consentRecipients.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Daten gehen an: {services}. Dabei wird technisch deine IP-Adresse übertragen.'**
+  String consentRecipients(String services);
+
+  /// No description provided for @consentServiceUmami.
+  ///
+  /// In de, this message translates to:
+  /// **'Umami (Nutzungsstatistik)'**
+  String get consentServiceUmami;
+
+  /// No description provided for @consentServiceSentry.
+  ///
+  /// In de, this message translates to:
+  /// **'GlitchTip bzw. Sentry (Fehlerberichte)'**
+  String get consentServiceSentry;
+
+  /// No description provided for @consentServiceFirebase.
+  ///
+  /// In de, this message translates to:
+  /// **'Google (Firebase Analytics und Crashlytics)'**
+  String get consentServiceFirebase;
+
+  /// No description provided for @consentFirebaseTransfer.
+  ///
+  /// In de, this message translates to:
+  /// **'Google kann die Daten in die USA übermitteln. Grundlage ist das EU-US Data Privacy Framework, für das die EU-Kommission ein angemessenes Datenschutzniveau festgestellt hat.'**
+  String get consentFirebaseTransfer;
+
+  /// No description provided for @consentOutro.
+  ///
+  /// In de, this message translates to:
+  /// **'Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.'**
+  String get consentOutro;
 
   /// No description provided for @consentAllow.
   ///
@@ -1325,7 +1361,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingArtworkBody.
   ///
   /// In de, this message translates to:
-  /// **'Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfragen an Apple, die App zeigt das Cover von laut.fm oder das Senderlogo. Diese Einstellung bleibt auch ohne bestätigten Speicher-Hinweis gespeichert.'**
+  /// **'Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfragen an Apple, die App zeigt das Cover von laut.fm oder das Senderlogo. Diese Einstellung bleibt auch ohne bestätigten Speicher-Hinweis und nach „Speicher löschen“ gespeichert.'**
   String get settingArtworkBody;
 
   /// No description provided for @settingShortcutsTitle.

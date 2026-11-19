@@ -449,7 +449,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get clearStorageConfirmBody =>
-      'Zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen.';
+      'Zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen. Nur „Cover laden: aus“ bleibt gespeichert, damit danach keine Anfragen an Apple gehen.';
 
   @override
   String get clearStorageDone => 'Speicher gelöscht.';
@@ -487,8 +487,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get consentTitle => 'Statistik und Fehlerberichte';
 
   @override
-  String get consentBody =>
-      'Damit wir sehen, was gut läuft und wo die App hakt, würden wir gern Angaben zur Nutzung und zu Fehlern auswerten, ohne Namen und ohne Konto. Die Daten gehen an den Betreiber unseres Statistik- und Fehlerbericht-Dienstes (Umami, GlitchTip). Dabei wird technisch deine IP-Adresse übertragen. Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.';
+  String get consentIntro =>
+      'Damit wir sehen, was gut läuft und wo die App hakt, würden wir gern Angaben zur Nutzung und zu Fehlern auswerten, ohne Namen und ohne Konto.';
+
+  @override
+  String consentRecipients(String services) {
+    return 'Die Daten gehen an: $services. Dabei wird technisch deine IP-Adresse übertragen.';
+  }
+
+  @override
+  String get consentServiceUmami => 'Umami (Nutzungsstatistik)';
+
+  @override
+  String get consentServiceSentry => 'GlitchTip bzw. Sentry (Fehlerberichte)';
+
+  @override
+  String get consentServiceFirebase =>
+      'Google (Firebase Analytics und Crashlytics)';
+
+  @override
+  String get consentFirebaseTransfer =>
+      'Google kann die Daten in die USA übermitteln. Grundlage ist das EU-US Data Privacy Framework, für das die EU-Kommission ein angemessenes Datenschutzniveau festgestellt hat.';
+
+  @override
+  String get consentOutro =>
+      'Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.';
 
   @override
   String get consentAllow => 'Erlauben';
@@ -740,7 +763,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingArtworkBody =>
-      'Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfragen an Apple, die App zeigt das Cover von laut.fm oder das Senderlogo. Diese Einstellung bleibt auch ohne bestätigten Speicher-Hinweis gespeichert.';
+      'Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfragen an Apple, die App zeigt das Cover von laut.fm oder das Senderlogo. Diese Einstellung bleibt auch ohne bestätigten Speicher-Hinweis und nach „Speicher löschen“ gespeichert.';
 
   @override
   String get settingShortcutsTitle => 'Tastenkürzel mit einer Taste';

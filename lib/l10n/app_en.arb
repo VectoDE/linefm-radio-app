@@ -177,6 +177,18 @@
   "alarmPermissionTitle": "The alarm needs permission",
   "alarmPermissionBody": "For the alarm to ring on time, Android has to allow exact alarms. You can switch that on in the system settings.",
   "alarmOpenSettings": "Open settings",
+  "alarmStop": "Off",
+  "alarmRingingBody": "Alarm: {station} is playing.",
+  "@alarmRingingBody": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmExactMissingNote": "Without the “Alarms & reminders” permission the alarm will not ring on time. Allow it in the system settings.",
+  "alarmFullScreenMissingNote": "Without the “Full-screen notifications” permission the alarm only shows as a notification, not full screen.",
+  "alarmOpenFullScreenSettings": "Allow full screen",
   "alarmRingingTitle": "Good morning",
   "alarmRingingBody": "{station} is about to start.",
   "alarmDismiss": "Turn off",

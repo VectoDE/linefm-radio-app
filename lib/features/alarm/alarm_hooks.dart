@@ -15,3 +15,53 @@ final alarmPermissionCheckProvider = Provider<AlarmPermissionCheck>(
 final alarmOpenSystemSettingsProvider = Provider<Future<void> Function()>(
   (ref) => () async {},
 );
+
+/// Stand der Wecker-Freigaben (Android). Standard: alles in Ordnung.
+class AlarmPermissionStatus {
+  const AlarmPermissionStatus({this.exactOk = true, this.fullScreenOk = true});
+
+  /// Genaue Alarme erlaubt (`SCHEDULE_EXACT_ALARM`).
+  final bool exactOk;
+
+  /// Vollbild-Wecken erlaubt (`USE_FULL_SCREEN_INTENT`, Android 14+).
+  final bool fullScreenOk;
+
+  @override
+  bool operator ==(Object other) =>
+      other is AlarmPermissionStatus &&
+      other.exactOk == exactOk &&
+      other.fullScreenOk == fullScreenOk;
+
+  @override
+  int get hashCode => Object.hash(exactOk, fullScreenOk);
+}
+
+/// Stille Pruefung beider Freigaben (ohne Rueckfrage an den Nutzer).
+final alarmStatusCheckProvider =
+    Provider<Future<AlarmPermissionStatus> Function()>(
+      (ref) =>
+          () async => const AlarmPermissionStatus(),
+    );
+
+/// Oeffnet die Systemeinstellung fuer Vollbild-Benachrichtigungen (Android).
+final alarmOpenFullScreenSettingsProvider = Provider<Future<void> Function()>(
+  (ref) => () async {},
+);
+
+class AlarmPermissionStatusNotifier extends Notifier<AlarmPermissionStatus> {
+  @override
+  AlarmPermissionStatus build() => const AlarmPermissionStatus();
+
+  /// Liest den aktuellen Stand neu (App-Start, Rueckkehr aus den
+  /// Systemeinstellungen).
+  Future<AlarmPermissionStatus> refresh() async {
+    final next = await ref.read(alarmStatusCheckProvider)();
+    state = next;
+    return next;
+  }
+}
+
+final alarmPermissionStatusProvider =
+    NotifierProvider<AlarmPermissionStatusNotifier, AlarmPermissionStatus>(
+      AlarmPermissionStatusNotifier.new,
+    );

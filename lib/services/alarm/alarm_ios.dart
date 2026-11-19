@@ -22,6 +22,8 @@ import 'package:linefm_radio/services/alarm/alarm_texts.dart';
 ///   url: String}` -> ersetzt Mitteilungen mit dieser `id` (je Wochentag eine
 ///   Kennung `id#wochentag`); Ton `UNNotificationSound.default`.
 /// * `cancel` mit `{id: String}` -> entfernt alle zugehoerigen Mitteilungen.
+/// * `retain` mit `{ids: Liste von Strings}` -> entfernt alle Mitteilungen
+///   der App-Weckerregeln, deren `id` nicht in der Liste steht.
 class IosAlarmPlatform implements AlarmPlatform {
   IosAlarmPlatform({MethodChannel? channel, this._texts})
     : _channel = channel ?? const MethodChannel(channelName);
@@ -33,6 +35,9 @@ class IosAlarmPlatform implements AlarmPlatform {
 
   @override
   Stream<AlarmRing> get rings => const Stream<AlarmRing>.empty();
+
+  @override
+  bool get ringsItself => false;
 
   @override
   Future<void> init() async {}
@@ -74,4 +79,22 @@ class IosAlarmPlatform implements AlarmPlatform {
 
   @override
   Future<void> silence(AlarmRing ring) async {}
+
+  @override
+  Future<AlarmRingState> ringState(AlarmRing ring) async =>
+      AlarmRingState.ringing;
+
+  @override
+  Future<void> removeOrphans(Set<String> knownRuleIds) async {
+    try {
+      await _channel.invokeMethod<void>('retain', <String, Object?>{
+        'ids': knownRuleIds.toList(),
+      });
+    } on MissingPluginException {
+      debugPrint('Wecker iOS: nativer Kanal $channelName fehlt.');
+    }
+  }
+
+  @override
+  Future<void> dispose() async {}
 }

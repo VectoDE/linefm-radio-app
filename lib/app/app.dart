@@ -4,6 +4,7 @@ import 'package:linefm_radio/app/document_lang.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/app/shell.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
+import 'package:linefm_radio/features/alarm/alarm_bootstrap.dart';
 import 'package:linefm_radio/features/consent/consent_dialog.dart';
 import 'package:linefm_radio/features/loader/app_loader.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
@@ -61,8 +62,10 @@ class LinefmApp extends ConsumerWidget {
         return resolved;
       },
       builder: (context, child) => DesktopHost(
-        child: ShareFeedbackListener(
-          child: LoaderGate(child: child ?? const SizedBox.shrink()),
+        child: AlarmBootstrap(
+          child: ShareFeedbackListener(
+            child: LoaderGate(child: child ?? const SizedBox.shrink()),
+          ),
         ),
       ),
       home: const WebRouteSync(child: TelemetryConsentGate(child: AppShell())),

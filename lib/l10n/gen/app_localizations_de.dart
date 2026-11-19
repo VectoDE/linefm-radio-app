@@ -603,12 +603,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get alarmOpenSettings => 'Einstellungen öffnen';
 
   @override
-  String get alarmRingingTitle => 'Guten Morgen';
+  String get alarmStop => 'Aus';
 
   @override
   String alarmRingingBody(String station) {
     return '$station läuft gleich los.';
   }
+
+  @override
+  String get alarmExactMissingNote =>
+      'Ohne die Freigabe „Alarme und Erinnerungen“ klingelt der Wecker nicht pünktlich. Erlaube sie in den Systemeinstellungen.';
+
+  @override
+  String get alarmFullScreenMissingNote =>
+      'Ohne die Freigabe „Vollbild-Benachrichtigungen“ erscheint der Wecker nur als Mitteilung, nicht als Vollbild.';
+
+  @override
+  String get alarmOpenFullScreenSettings => 'Vollbild erlauben';
+
+  @override
+  String get alarmRingingTitle => 'Guten Morgen';
 
   @override
   String get alarmDismiss => 'Ausschalten';

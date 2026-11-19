@@ -83,6 +83,7 @@ class AlarmScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final c = context.linefm;
     final rules = ref.watch(alarmProvider);
+    final permission = ref.watch(alarmPermissionStatusProvider);
     final platform = ref.watch(platformInfoProvider);
     final now = ref.watch(clockProvider).now();
     final next = AlarmSchedule.nextOf(rules, now);
@@ -114,6 +115,22 @@ class AlarmScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _Note(text: note),
+          if (!permission.exactOk) ...<Widget>[
+            const SizedBox(height: 12),
+            _PermissionNote(
+              text: l10n.alarmExactMissingNote,
+              action: l10n.alarmOpenSettings,
+              onAction: () => ref.read(alarmOpenSystemSettingsProvider)(),
+            ),
+          ],
+          if (!permission.fullScreenOk) ...<Widget>[
+            const SizedBox(height: 12),
+            _PermissionNote(
+              text: l10n.alarmFullScreenMissingNote,
+              action: l10n.alarmOpenFullScreenSettings,
+              onAction: () => ref.read(alarmOpenFullScreenSettingsProvider)(),
+            ),
+          ],
           const SizedBox(height: 20),
           for (final rule in rules)
             Padding(
@@ -204,6 +221,43 @@ class _Note extends StatelessWidget {
                 style: LinefmText.settingCopy.copyWith(color: c.muted),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Dauerhafter Hinweis auf eine fehlende Systemfreigabe mit Knopf in die
+/// passende Systemeinstellung.
+class _PermissionNote extends StatelessWidget {
+  const _PermissionNote({
+    required this.text,
+    required this.action,
+    required this.onAction,
+  });
+
+  final String text;
+  final String action;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.linefm;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.surface,
+        border: Border.all(color: c.accent),
+        borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(text, style: LinefmText.settingCopy.copyWith(color: c.text)),
+            const SizedBox(height: 10),
+            FilledButton(onPressed: onAction, child: Text(action)),
           ],
         ),
       ),

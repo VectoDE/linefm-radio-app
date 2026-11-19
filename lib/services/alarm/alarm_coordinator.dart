@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show ValueListenable, ValueNotifier;
+import 'package:flutter/services.dart' show SystemSound, SystemSoundType;
 import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/alarm/alarm_schedule.dart';
@@ -41,6 +43,18 @@ String baseRuleIdOf(String ruleId) => ruleId.endsWith(snoozeSuffix)
     ? ruleId.substring(0, ruleId.length - snoozeSuffix.length)
     : ruleId;
 
+/// Zustand eines klingelnden Alarms nach Sicht der Plattform.
+enum AlarmRingState {
+  /// Der Weckton laeuft noch.
+  ringing,
+
+  /// Der Nutzer hat ueber die System-Benachrichtigung geschlummert.
+  snoozed,
+
+  /// Beendet (gestoppt oder entfernt).
+  ended,
+}
+
 /// Plattformabhaengige Wecker-Ausfuehrung (alarm_android, alarm_ios,
 /// alarm_inapp).
 abstract interface class AlarmPlatform {
@@ -49,22 +63,52 @@ abstract interface class AlarmPlatform {
   /// Mitteilung den Sender ueber den Deep Link `linefm://play?station=`.
   Stream<AlarmRing> get rings;
 
+  /// Spielt die Plattform selbst einen Weckton (Android: Systemton)? Sonst
+  /// braucht der Koordinator bei fehlendem Stream einen Ersatzton.
+  bool get ringsItself;
+
   Future<void> init();
 
-  /// Ersetzt alle geplanten Termine der Regel durch die kommenden.
+  /// Ersetzt alle geplanten Termine der Regel durch die kommenden. Bei einer
+  /// ausgeschalteten Regel entfallen alle kuenftigen Termine; ein klingelnder
+  /// oder nativ geschlummerter Alarm bleibt unberuehrt (kein stilles
+  /// Verschlafen).
   Future<void> schedule(AlarmRule rule);
 
   /// Entfernt alle Termine der Regel (auch Schlummer, auch einen laufenden
-  /// Ton).
+  /// Ton). Nur fuer geloeschte Regeln.
   Future<void> cancel(String ruleId);
 
+  /// Entfernt alle Termine, deren Regel nicht in [knownRuleIds] steht
+  /// (Schlummer-IDs zaehlen zur Basisregel). Raeumt Reste nach Loeschen und
+  /// "Speicher loeschen" auf, auch nach einem Kaltstart.
+  Future<void> removeOrphans(Set<String> knownRuleIds);
+
+  /// Aktueller Zustand eines gemeldeten Klingelns.
+  Future<AlarmRingState> ringState(AlarmRing ring);
+
   /// Beendet den Weckton, sobald der Sender laeuft (Android: Systemton;
-  /// sonst nichts zu tun).
+  /// sonst nichts zu tun). Stoppt nur, solange der Alarm wirklich klingelt.
   Future<void> silence(AlarmRing ring);
+
+  Future<void> dispose();
+}
+
+/// Was die Oberflaeche beim Klingeln zeigt (Banner mit Schlummern/Aus).
+class AlarmRinging {
+  const AlarmRinging({required this.ruleId, required this.station});
+
+  /// Basis-Regel-ID.
+  final String ruleId;
+  final Station station;
 }
 
 /// Koordiniert Regeln, Plattform und Sendestart.
 abstract interface class AlarmCoordinator {
+  /// Klingelnder Wecker, solange der Nutzer nicht geschlummert oder
+  /// ausgeschaltet hat; `null` sonst.
+  ValueListenable<AlarmRinging?> get ringing;
+
   Future<void> rescheduleAll(List<AlarmRule> rules);
 
   Future<void> snooze(String ruleId);
@@ -74,6 +118,12 @@ abstract interface class AlarmCoordinator {
 
 class NoopAlarmCoordinator implements AlarmCoordinator {
   const NoopAlarmCoordinator();
+
+  static final ValueNotifier<AlarmRinging?> _none =
+      ValueNotifier<AlarmRinging?>(null);
+
+  @override
+  ValueListenable<AlarmRinging?> get ringing => _none;
 
   @override
   Future<void> rescheduleAll(List<AlarmRule> rules) async {}
@@ -89,10 +139,12 @@ class NoopAlarmCoordinator implements AlarmCoordinator {
 /// Paket `alarm`; sonst nichts).
 Future<void> initAlarm() => platforms.initAlarmPlatform();
 
+Future<void> _systemBeep() => SystemSound.play(SystemSoundType.alert);
+
 /// Weckerverhalten: Plant Regeln, startet beim Klingeln den Sender mit
-/// Lautstaerke-Rampe und beendet den Weckton erst, wenn der Stream wirklich
-/// spielt. Scheitert der Stream (offline), klingelt der Weckton weiter (kein
-/// stilles Verschlafen, Spec 2.2).
+/// Lautstaerke-Rampe und beendet den Weckton erst, wenn der Stream der
+/// Ziel-Station wirklich spielt. Scheitert der Stream (offline), klingelt der
+/// Weckton weiter (kein stilles Verschlafen, Spec 2.2).
 class DefaultAlarmCoordinator implements AlarmCoordinator {
   DefaultAlarmCoordinator({
     required this.platform,
@@ -102,10 +154,13 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
     required this.rules,
     this.onRuleFired,
     this.bringToFront,
+    this.beep = _systemBeep,
     this.rampStart = 0.2,
     this.rampDuration = const Duration(seconds: 30),
     this.rampStep = const Duration(seconds: 1),
     this.streamTimeout = const Duration(seconds: 45),
+    this.beepInterval = const Duration(seconds: 3),
+    this.bannerTimeout = const Duration(minutes: 3),
   }) {
     _sub = platform.rings.listen((ring) => unawaited(handleRing(ring)));
   }
@@ -120,23 +175,41 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
   /// Aktuelle Regeln (aus dem Speicher; funktioniert auch nach Kaltstart).
   final List<AlarmRule> Function() rules;
 
-  /// Nach dem Klingeln einer einmaligen Regel: ausgeschaltete Regel speichern.
+  /// Speichert eine geaenderte Regel (einmaliger Wecker nach dem Klingeln,
+  /// verpasster Termin): schaltet sie aus.
   final Future<void> Function(AlarmRule updated)? onRuleFired;
 
   /// Desktop: Fenster zeigen und fokussieren.
   final Future<void> Function()? bringToFront;
 
+  /// Ersatzton, wenn weder Plattform-Ton noch Stream laufen (Desktop/Web).
+  final Future<void> Function() beep;
+
   final double rampStart;
   final Duration rampDuration;
   final Duration rampStep;
   final Duration streamTimeout;
+  final Duration beepInterval;
+  final Duration bannerTimeout;
 
+  final ValueNotifier<AlarmRinging?> _ringing = ValueNotifier<AlarmRinging?>(
+    null,
+  );
   StreamSubscription<AlarmRing>? _sub;
   Timer? _rampTimer;
+  Timer? _beepTimer;
+  Timer? _bannerTimer;
+  AlarmRing? _activeRing;
   final Set<String> _handled = <String>{};
+
+  /// Regel-IDs, die zuletzt geplant waren (erkennt geloeschte Regeln).
+  Set<String> _known = <String>{};
 
   /// Regel-IDs, fuer die gerade eine Schlummer-Wiederholung geplant ist.
   final Set<String> _snoozing = <String>{};
+
+  @override
+  ValueListenable<AlarmRinging?> get ringing => _ringing;
 
   AlarmRule? _ruleById(String id) {
     for (final rule in rules()) {
@@ -147,18 +220,34 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
 
   @override
   Future<void> rescheduleAll(List<AlarmRule> rules) async {
+    final ids = <String>{for (final r in rules) r.id};
+    for (final removed in _known.difference(ids)) {
+      _snoozing.remove(removed);
+      await platform.cancel(removed);
+      await platform.cancel('$removed$snoozeSuffix');
+    }
+    _known = ids;
+
+    final now = _clock.now();
     for (final rule in rules) {
-      if (rule.enabled) {
-        await platform.schedule(rule);
-      } else {
-        await platform.cancel(rule.id);
+      final at = rule.firesAt;
+      if (rule.enabled && !rule.repeats && at != null && !at.isAfter(now)) {
+        // Einmaliger Termin liegt hinter uns (verpasst oder gerade
+        // klingelnd): ausschalten statt auf morgen zu legen.
+        await onRuleFired?.call(rule.copyWith(enabled: false));
+        continue;
+      }
+      await platform.schedule(rule);
+      if (!rule.enabled && !_snoozing.contains(rule.id)) {
         await platform.cancel('${rule.id}$snoozeSuffix');
       }
     }
+    await platform.removeOrphans(ids);
   }
 
   /// Wecker klingelt: Sender mit Rampe starten, Ton erst bei laufendem Stream
-  /// beenden, danach naechste Termine planen. Oeffentlich fuer Tests.
+  /// der Ziel-Station beenden, danach naechste Termine planen. Oeffentlich
+  /// fuer Tests.
   Future<void> handleRing(AlarmRing ring) async {
     if (!_handled.add(ring.key)) return;
     final rule = _ruleById(ring.baseRuleId);
@@ -171,24 +260,31 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
     final target = rule.volume.clamp(0.1, 1.0);
     final start = rampStart < target ? rampStart : target;
 
+    _activeRing = ring;
+    _showRinging(AlarmRinging(ruleId: rule.id, station: station));
     try {
       await bringToFront?.call();
     } on Object {
       // Fenster zeigen ist nur Komfort.
     }
 
-    final playing = _waitForPlaying();
-    try {
-      await startStation(station);
-      await _playback.setVolume(start);
-    } on Object {
-      // Stream nicht startbar: Ton klingelt weiter, siehe unten.
-    }
-
-    final ok = await playing;
+    final ok = await _startAndAwaitPlaying(station, start);
     if (ok) {
-      await platform.silence(ring);
-      _startRamp(from: start, to: target);
+      switch (await platform.ringState(ring)) {
+        case AlarmRingState.ringing:
+          await platform.silence(ring);
+          _startRamp(from: start, to: target);
+        case AlarmRingState.snoozed:
+          // Nutzer hat in der Benachrichtigung geschlummert: Radio aus, der
+          // native Termin bleibt bestehen.
+          _rampTimer?.cancel();
+          await _playback.stopPlayback();
+          _clearRinging();
+        case AlarmRingState.ended:
+          _startRamp(from: start, to: target);
+      }
+    } else if (!platform.ringsItself) {
+      _startBeeping();
     }
     if (ring.isSnoozeRing) {
       _snoozing.remove(rule.id);
@@ -197,17 +293,24 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
     }
   }
 
-  Future<bool> _waitForPlaying() async {
-    if (_playback.state.isPlaying) return true;
-    final completer = Completer<bool>();
-    late final StreamSubscription<PlayerUiState> sub;
+  /// Startet den Sender und wartet auf `playing` genau dieser Station.
+  Future<bool> _startAndAwaitPlaying(Station station, double volume) async {
+    final done = Completer<bool>();
+    bool matches(PlayerUiState s) => s.isPlaying && s.station == station;
+    final sub = _playback.stateStream.listen((s) {
+      if (matches(s) && !done.isCompleted) done.complete(true);
+    });
     final timer = Timer(streamTimeout, () {
-      if (!completer.isCompleted) completer.complete(false);
+      if (!done.isCompleted) done.complete(false);
     });
-    sub = _playback.stateStream.listen((s) {
-      if (s.isPlaying && !completer.isCompleted) completer.complete(true);
-    });
-    final result = await completer.future;
+    try {
+      await startStation(station);
+      await _playback.setVolume(volume);
+    } on Object {
+      // Stream nicht startbar: Ton klingelt weiter, der Timer meldet false.
+    }
+    if (matches(_playback.state) && !done.isCompleted) done.complete(true);
+    final result = await done.future;
     timer.cancel();
     await sub.cancel();
     return result;
@@ -232,12 +335,38 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
     });
   }
 
+  void _startBeeping() {
+    _beepTimer?.cancel();
+    unawaited(beep());
+    _beepTimer = Timer.periodic(beepInterval, (_) => unawaited(beep()));
+  }
+
+  Future<void> _silenceActive() async {
+    final ring = _activeRing;
+    _activeRing = null;
+    if (ring != null) await platform.silence(ring);
+  }
+
+  void _showRinging(AlarmRinging value) {
+    _ringing.value = value;
+    _bannerTimer?.cancel();
+    _bannerTimer = Timer(bannerTimeout, _clearRinging);
+  }
+
+  void _clearRinging() {
+    _bannerTimer?.cancel();
+    _beepTimer?.cancel();
+    _beepTimer = null;
+    _ringing.value = null;
+  }
+
   /// Einmalige Regeln schalten sich aus, wiederkehrende bekommen neue Termine.
+  /// Ein noch klingelnder Alarm bleibt dabei unberuehrt (Plattform-Vertrag
+  /// von [AlarmPlatform.schedule]).
   Future<void> _afterFired(AlarmRule rule) async {
     final updated = AlarmSchedule.afterFired(rule);
     if (updated != rule) {
       await onRuleFired?.call(updated);
-      await platform.cancel(rule.id);
     } else {
       await platform.schedule(rule);
     }
@@ -249,6 +378,8 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
     final rule = _ruleById(base);
     if (rule == null) return;
     _rampTimer?.cancel();
+    await _silenceActive();
+    _clearRinging();
     if (_playback.state.status != PlayerStatus.idle) {
       await _playback.stopPlayback();
     }
@@ -266,6 +397,7 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
         hour: at.hour,
         minute: at.minute,
         weekdays: const <int>{},
+        firesAt: at,
       ),
     );
   }
@@ -274,6 +406,8 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
   Future<void> dismiss(String ruleId) async {
     final base = baseRuleIdOf(ruleId);
     _rampTimer?.cancel();
+    await _silenceActive();
+    _clearRinging();
     if (_snoozing.remove(base)) {
       await platform.cancel('$base$snoozeSuffix');
     }
@@ -285,6 +419,10 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
 
   Future<void> dispose() async {
     _rampTimer?.cancel();
+    _beepTimer?.cancel();
+    _bannerTimer?.cancel();
     await _sub?.cancel();
+    await platform.dispose();
+    _ringing.dispose();
   }
 }

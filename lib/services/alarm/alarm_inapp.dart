@@ -33,6 +33,9 @@ class InAppAlarmPlatform implements AlarmPlatform {
   Stream<AlarmRing> get rings => _rings.stream;
 
   @override
+  bool get ringsItself => false;
+
+  @override
   Future<void> init() async {}
 
   @override
@@ -59,6 +62,17 @@ class InAppAlarmPlatform implements AlarmPlatform {
   @override
   Future<void> silence(AlarmRing ring) async {}
 
+  @override
+  Future<AlarmRingState> ringState(AlarmRing ring) async =>
+      AlarmRingState.ringing;
+
+  @override
+  Future<void> removeOrphans(Set<String> knownRuleIds) async {
+    for (final id in _rules.keys.toList()) {
+      if (!knownRuleIds.contains(baseRuleIdOf(id))) await cancel(id);
+    }
+  }
+
   /// Eine Pruefung gegen die Wanduhr. Oeffentlich fuer Tests.
   void check() {
     final now = _clock.now();
@@ -82,6 +96,7 @@ class InAppAlarmPlatform implements AlarmPlatform {
     _timer = null;
   }
 
+  @override
   Future<void> dispose() async {
     _timer?.cancel();
     await _rings.close();

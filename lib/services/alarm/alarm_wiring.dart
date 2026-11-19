@@ -3,38 +3,53 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/features/alarm/alarm_hooks.dart';
+import 'package:linefm_radio/platform/desktop/desktop_controller.dart';
 import 'package:linefm_radio/platform/desktop/window.dart';
 import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
 import 'package:linefm_radio/services/alarm/alarm_permissions.dart';
 import 'package:linefm_radio/services/alarm/alarm_platform_factory.dart';
 import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
 
-/// Provider-Overrides fuer Wecker und Sleeptimer. P28 haengt sie in
-/// `productionOverrides` ein (`...alarmAndSleepOverrides()`).
+/// Provider-Overrides fuer Wecker und Sleeptimer (eingehaengt in
+/// `productionOverrides`).
 ///
-/// Der Wecker-Koordinator muss beim App-Start einmal gelesen werden
-/// (`ref.read(alarmCoordinatorProvider)`), damit er Termine plant und auf
-/// klingelnde Wecker reagiert, auch wenn der Nutzer den Wecker-Screen nie
-/// oeffnet. [window]: Desktop-Fenster, das beim Klingeln nach vorn kommt.
+/// Der Wecker-Koordinator wird beim App-Start von `AlarmBootstrap` einmal
+/// gelesen, damit er Termine plant und auf klingelnde Wecker reagiert, auch
+/// wenn der Nutzer den Wecker-Screen nie oeffnet.
+///
+/// [window]: Fenster, das beim Klingeln nach vorn kommt (Standard: das
+/// Desktop-Fenster aus `DesktopController`). [platformFactory]: nur fuer
+/// Tests. [isAndroid]: erzwingt die Plattform fuer die Freigabepruefung (Tests).
 List<Override> alarmAndSleepOverrides({
   AlarmPermissionGateway permissions = const SystemAlarmPermissionGateway(),
   DesktopWindow? window,
+  bool? isAndroid,
+  AlarmPlatform Function(Clock clock) platformFactory = _defaultPlatform,
 }) => <Override>[
   alarmPermissionCheckProvider.overrideWith(
     (ref) =>
-        () => alarmPermissionCheck(permissions),
+        () => alarmPermissionCheck(permissions, isAndroid: isAndroid),
   ),
   alarmOpenSystemSettingsProvider.overrideWith(
     (ref) =>
-        () => alarmOpenSystemSettings(permissions),
+        () => alarmOpenSystemSettings(permissions, isAndroid: isAndroid),
+  ),
+  alarmStatusCheckProvider.overrideWith(
+    (ref) =>
+        () => alarmPermissionStatus(permissions, isAndroid: isAndroid),
+  ),
+  alarmOpenFullScreenSettingsProvider.overrideWith(
+    (ref) =>
+        () => alarmOpenFullScreenSettings(permissions, isAndroid: isAndroid),
   ),
   alarmCoordinatorProvider.overrideWith((ref) {
     final clock = ref.watch(clockProvider);
     final coordinator = DefaultAlarmCoordinator(
-      platform: createAlarmPlatform(clock: clock),
+      platform: platformFactory(clock),
       clock: clock,
       playback: ref.watch(playbackServiceProvider),
       startStation: (station) =>
@@ -45,7 +60,7 @@ List<Override> alarmAndSleepOverrides({
             for (final r in ref.read(alarmProvider))
               r.id == updated.id ? updated : r,
           ]),
-      bringToFront: window?.show,
+      bringToFront: () => (window ?? DesktopController.instance.window).show(),
     );
     ref.onDispose(() => unawaited(coordinator.dispose()));
     unawaited(
@@ -74,3 +89,6 @@ List<Override> alarmAndSleepOverrides({
     return service;
   }),
 ];
+
+AlarmPlatform _defaultPlatform(Clock clock) =>
+    createAlarmPlatform(clock: clock);

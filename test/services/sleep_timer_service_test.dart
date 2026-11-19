@@ -178,6 +178,26 @@ void main() {
     );
   });
 
+  test(
+    '7: nach Ablauf stoppt ein spaeterer Titelwechsel nicht erneut',
+    () async {
+      final song = track(
+        title: 's',
+        endsAt: t0.add(const Duration(minutes: 2)),
+      );
+      await service.start(const SleepTimerEndOfSong(), currentTrack: song);
+      clock.advance(const Duration(minutes: 2));
+      await service.tick();
+      expect(playback.stops, 1);
+      // Nutzer startet das Radio neu, danach wechselt der Titel.
+      await playback.playStation(stationsCatalog.first);
+      tracks.add(track(title: 'naechster'));
+      await Future<void>.delayed(Duration.zero);
+      expect(playback.stops, 1, reason: 'Timer ist abgelaufen, nichts mehr');
+      expect(playback.state.status, PlayerStatus.playing);
+    },
+  );
+
   test('Ablauf ohne laufende Wiedergabe stoppt nichts', () async {
     await playback.stopPlayback();
     final before = playback.stops;

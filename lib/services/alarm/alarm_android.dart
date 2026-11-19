@@ -21,6 +21,10 @@ abstract interface class AndroidAlarmApi {
 
   /// Aktuell klingelnde Alarme (liefert beim Abonnieren sofort den Stand).
   Stream<List<AlarmSettings>> get ringing;
+
+  /// Nativ geschlummerte Alarme (Knopf in der Benachrichtigung) mit dem
+  /// neuen Termin.
+  Stream<(int, DateTime)> get snoozed;
 }
 
 class PackageAlarmApi implements AndroidAlarmApi {
@@ -42,6 +46,12 @@ class PackageAlarmApi implements AndroidAlarmApi {
   @override
   Stream<List<AlarmSettings>> get ringing =>
       Alarm.ringing.map((set) => set.alarms.toList());
+
+  @override
+  Stream<(int, DateTime)> get snoozed => Alarm.events
+      .where((e) => e is AlarmMoved && e.cause == AlarmEventCause.snooze)
+      .cast<AlarmMoved>()
+      .map((e) => (e.id, e.nextRingAt));
 }
 
 /// Android: Paket `alarm` (`AlarmManager.setAlarmClock`, Doze-fest, Vollbild-
@@ -74,6 +84,14 @@ class AndroidAlarmPlatform implements AlarmPlatform {
 
   StreamController<AlarmRing>? _rings;
   StreamSubscription<List<AlarmSettings>>? _ringSub;
+  StreamSubscription<(int, DateTime)>? _snoozeSub;
+
+  /// Nativ geschlummerte Alarm-IDs mit neuem Termin: bleiben beim Neuplanen
+  /// erhalten.
+  final Map<int, DateTime> _snoozed = <int, DateTime>{};
+
+  @override
+  bool get ringsItself => true;
 
   /// Alarm-ID: 23 Bit Hash der Regel-ID, darunter 8 Bit Terminnummer.
   static int keyOf(String ruleId) {
@@ -111,7 +129,15 @@ class AndroidAlarmPlatform implements AlarmPlatform {
   }
 
   @override
-  Future<void> init() async {}
+  Future<void> init() async {
+    _snoozeSub ??= _api.snoozed.listen((e) => _snoozed[e.$1] = e.$2);
+  }
+
+  Future<bool> _spared(int id) async {
+    if (await _api.isRinging(id)) return true;
+    final until = _snoozed[id];
+    return until != null && until.isAfter(_clock.now());
+  }
 
   @override
   Future<void> schedule(AlarmRule rule) async {
@@ -120,8 +146,9 @@ class AndroidAlarmPlatform implements AlarmPlatform {
     final busy = <int>{};
     for (final alarm in existing) {
       if (keyOfId(alarm.id) != key) continue;
-      if (await _api.isRinging(alarm.id)) {
-        // Laufenden Ton nicht abwuergen; die ID bleibt belegt.
+      if (await _spared(alarm.id)) {
+        // Klingelnden oder geschlummerten Alarm nicht anruehren; die ID bleibt
+        // belegt.
         busy.add(alarm.id);
       } else {
         await _api.stop(alarm.id);
@@ -180,12 +207,40 @@ class AndroidAlarmPlatform implements AlarmPlatform {
   }
 
   @override
-  Future<void> silence(AlarmRing ring) async {
-    final id = ring.handle;
-    if (id != null) await _api.stop(id);
+  Future<void> removeOrphans(Set<String> knownRuleIds) async {
+    for (final alarm in await _api.getAlarms()) {
+      final payload = alarm.payload;
+      final base = payload == null ? null : baseRuleIdOf(payload);
+      if (base == null || !knownRuleIds.contains(base)) {
+        await _api.stop(alarm.id);
+      }
+    }
   }
 
+  @override
+  Future<AlarmRingState> ringState(AlarmRing ring) async {
+    final id = ring.handle;
+    if (id == null) return AlarmRingState.ended;
+    if (await _api.isRinging(id)) return AlarmRingState.ringing;
+    for (final alarm in await _api.getAlarms()) {
+      if (alarm.id == id && alarm.dateTime.isAfter(_clock.now())) {
+        return AlarmRingState.snoozed;
+      }
+    }
+    return AlarmRingState.ended;
+  }
+
+  @override
+  Future<void> silence(AlarmRing ring) async {
+    final id = ring.handle;
+    // Nur stoppen, solange er klingelt: ein nativ geschlummerter Termin
+    // (gleiche ID) darf nicht geloescht werden.
+    if (id != null && await _api.isRinging(id)) await _api.stop(id);
+  }
+
+  @override
   Future<void> dispose() async {
+    await _snoozeSub?.cancel();
     await _ringSub?.cancel();
     await _rings?.close();
   }

@@ -15,6 +15,7 @@ import 'package:linefm_radio/data/artwork/itunes_artwork.dart';
 import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
+import 'package:linefm_radio/domain/alarm/alarm_schedule.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/favorite.dart';
 import 'package:linefm_radio/domain/favorites/favorites_logic.dart';
@@ -26,6 +27,7 @@ import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
+import 'package:linefm_radio/services/alarm/alarm_wiring.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/cast/cast_service.dart';
 import 'package:linefm_radio/services/share/share_service.dart';
@@ -275,12 +277,26 @@ final sleepTimerProvider =
 
 class AlarmNotifier extends Notifier<List<AlarmRule>> {
   @override
-  List<AlarmRule> build() => ref.read(prefsProvider).readAlarms();
+  List<AlarmRule> build() {
+    final stored = ref.read(prefsProvider).readAlarms();
+    // Aeltere einmalige Regeln ohne festen Termin bekommen ihn jetzt.
+    return AlarmSchedule.withFiresAt(
+      stored,
+      stored,
+      ref.read(clockProvider).now(),
+    );
+  }
 
   Future<void> setRules(List<AlarmRule> rules) async {
-    state = rules;
-    await ref.read(prefsProvider).writeAlarms(rules);
-    await ref.read(alarmCoordinatorProvider).rescheduleAll(rules);
+    // Einmalige Regeln bekommen beim Einschalten/Aendern ihren festen Termin.
+    final next = AlarmSchedule.withFiresAt(
+      rules,
+      state,
+      ref.read(clockProvider).now(),
+    );
+    state = next;
+    await ref.read(prefsProvider).writeAlarms(next);
+    await ref.read(alarmCoordinatorProvider).rescheduleAll(next);
   }
 }
 
@@ -348,4 +364,5 @@ List<Override> productionOverrides({
   shareServiceProvider.overrideWith(
     (ref) => SystemShareService(webBaseUrl: config.webBaseUrl),
   ),
+  ...alarmAndSleepOverrides(),
 ];

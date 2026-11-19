@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter_riverpod/flutter_riverpod.dart' show AsyncData;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -48,6 +49,10 @@ class _FakeSleepTimer implements SleepTimerService {
 
 class _RecordingAlarms implements AlarmCoordinator {
   final List<List<AlarmRule>> calls = <List<AlarmRule>>[];
+
+  @override
+  ValueListenable<AlarmRinging?> get ringing =>
+      const NoopAlarmCoordinator().ringing;
 
   @override
   Future<void> rescheduleAll(List<AlarmRule> rules) async => calls.add(rules);

@@ -137,6 +137,7 @@ class DefaultSleepTimerService implements SleepTimerService {
 
   Future<void> _expire() async {
     _stopTicking();
+    _startTrack = null;
     final status = _playback.state.status;
     if (status != PlayerStatus.idle) {
       await _playback.stopPlayback();
@@ -147,7 +148,11 @@ class DefaultSleepTimerService implements SleepTimerService {
   }
 
   void _onTrack(Track? track) {
-    if (_disposed || _state.mode is! SleepTimerEndOfSong) return;
+    // Nur bei laufendem Timer: nach Ablauf oder Abbruch ist der Titelwechsel
+    // ohne Bedeutung (sonst stoppt ein spaeterer Start faelschlich erneut).
+    if (_disposed || _timer == null || _state.mode is! SleepTimerEndOfSong) {
+      return;
+    }
     final started = _startTrack;
     if (started == null || track == null) return;
     final sameSong =

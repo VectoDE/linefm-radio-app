@@ -599,12 +599,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmOpenSettings => 'Open settings';
 
   @override
-  String get alarmRingingTitle => 'Good morning';
+  String get alarmStop => 'Off';
 
   @override
   String alarmRingingBody(String station) {
     return '$station is about to start.';
   }
+
+  @override
+  String get alarmExactMissingNote =>
+      'Without the “Alarms & reminders” permission the alarm will not ring on time. Allow it in the system settings.';
+
+  @override
+  String get alarmFullScreenMissingNote =>
+      'Without the “Full-screen notifications” permission the alarm only shows as a notification, not full screen.';
+
+  @override
+  String get alarmOpenFullScreenSettings => 'Allow full screen';
+
+  @override
+  String get alarmRingingTitle => 'Good morning';
 
   @override
   String get alarmDismiss => 'Turn off';

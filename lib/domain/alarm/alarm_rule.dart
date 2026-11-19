@@ -8,6 +8,7 @@ class AlarmRule {
     this.weekdays = const <int>{},
     this.volume = 1.0,
     this.enabled = true,
+    this.firesAt,
   }) : assert(hour >= 0 && hour < 24, 'hour 0..23'),
        assert(minute >= 0 && minute < 60, 'minute 0..59');
 
@@ -27,6 +28,7 @@ class AlarmRule {
     final days = json['weekdays'];
     final volume = json['volume'];
     final enabled = json['enabled'];
+    final firesAt = json['firesAt'];
     return AlarmRule(
       id: id,
       hour: hour,
@@ -42,6 +44,7 @@ class AlarmRule {
           ? volume.toDouble().clamp(0.0, 1.0)
           : 1.0,
       enabled: enabled is bool ? enabled : true,
+      firesAt: firesAt is String ? DateTime.tryParse(firesAt) : null,
     );
   }
 
@@ -55,6 +58,12 @@ class AlarmRule {
   final double volume;
   final bool enabled;
 
+  /// Nur einmalige Regeln: der beim Einschalten festgelegte Klingelzeitpunkt.
+  /// Liegt er beim Neuplanen (App-Start, Boot) in der Vergangenheit, wurde der
+  /// Wecker verpasst und wird deaktiviert, statt auf den naechsten Tag zu
+  /// rutschen.
+  final DateTime? firesAt;
+
   /// Wiederholt sich die Regel (mindestens ein Wochentag)?
   bool get repeats => weekdays.isNotEmpty;
 
@@ -66,6 +75,8 @@ class AlarmRule {
     Set<int>? weekdays,
     double? volume,
     bool? enabled,
+    DateTime? firesAt,
+    bool clearFiresAt = false,
   }) => AlarmRule(
     id: id ?? this.id,
     hour: hour ?? this.hour,
@@ -74,6 +85,7 @@ class AlarmRule {
     weekdays: weekdays ?? this.weekdays,
     volume: volume ?? this.volume,
     enabled: enabled ?? this.enabled,
+    firesAt: clearFiresAt ? null : (firesAt ?? this.firesAt),
   );
 
   Map<String, Object?> toJson() => <String, Object?>{
@@ -84,6 +96,7 @@ class AlarmRule {
     'weekdays': (weekdays.toList()..sort()),
     'volume': volume,
     'enabled': enabled,
+    if (firesAt != null) 'firesAt': firesAt!.toIso8601String(),
   };
 
   @override
@@ -95,7 +108,8 @@ class AlarmRule {
       other.stationSlug == stationSlug &&
       _sameSet(other.weekdays, weekdays) &&
       other.volume == volume &&
-      other.enabled == enabled;
+      other.enabled == enabled &&
+      other.firesAt == firesAt;
 
   @override
   int get hashCode => Object.hash(
@@ -106,6 +120,7 @@ class AlarmRule {
     Object.hashAllUnordered(weekdays),
     volume,
     enabled,
+    firesAt,
   );
 
   @override

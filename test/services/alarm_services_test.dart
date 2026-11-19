@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
+import 'package:linefm_radio/domain/alarm/alarm_schedule.dart';
 import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
@@ -21,6 +22,8 @@ class _FakeAlarmApi implements AndroidAlarmApi {
   final Set<int> ringingIds = <int>{};
   final StreamController<List<AlarmSettings>> ringingController =
       StreamController<List<AlarmSettings>>.broadcast();
+  final StreamController<(int, DateTime)> snoozedController =
+      StreamController<(int, DateTime)>.broadcast();
 
   @override
   Future<bool> set(AlarmSettings settings) async {
@@ -42,6 +45,9 @@ class _FakeAlarmApi implements AndroidAlarmApi {
 
   @override
   Stream<List<AlarmSettings>> get ringing => ringingController.stream;
+
+  @override
+  Stream<(int, DateTime)> get snoozed => snoozedController.stream;
 }
 
 class _FakePlatform implements AlarmPlatform {
@@ -50,9 +56,25 @@ class _FakePlatform implements AlarmPlatform {
   final List<AlarmRule> scheduled = <AlarmRule>[];
   final List<String> cancelled = <String>[];
   final List<AlarmRing> silenced = <AlarmRing>[];
+  final List<Set<String>> orphanCalls = <Set<String>>[];
+  AlarmRingState state = AlarmRingState.ringing;
+  bool disposed = false;
+
+  @override
+  bool get ringsItself => true;
 
   @override
   Stream<AlarmRing> get rings => controller.stream;
+
+  @override
+  Future<void> removeOrphans(Set<String> knownRuleIds) async =>
+      orphanCalls.add(knownRuleIds);
+
+  @override
+  Future<AlarmRingState> ringState(AlarmRing ring) async => state;
+
+  @override
+  Future<void> dispose() async => disposed = true;
 
   @override
   Future<void> init() async {}
@@ -77,6 +99,8 @@ class _Playback extends NoopPlaybackService {
   final List<Station> started = <Station>[];
 
   Future<void> playingNow() => super.playStation(stationsCatalog.first);
+
+  Future<void> playingOther() => super.playStation(stationsCatalog.last);
 
   @override
   Future<void> playStation(Station station) async {
@@ -193,6 +217,7 @@ void main() {
       expect(got.single.ruleId, '1700000000000000');
       expect(got.single.handle, api.alarms.keys.single);
       await sub.cancel();
+      api.ringingIds.add(got.single.handle);
       await platform.silence(got.single);
       expect(api.alarms, isEmpty);
     });
@@ -328,7 +353,11 @@ void main() {
       final c = build(_Playback());
       await c.handleRing(AlarmRing(ruleId: ruleList.first.id, handle: 1));
       expect(fired.single.enabled, isFalse);
-      expect(platform.cancelled, contains(ruleList.first.id));
+      expect(
+        platform.cancelled,
+        isEmpty,
+        reason: 'kein cancel: ein klingelnder Ton darf nicht verstummen',
+      );
       await c.dispose();
     });
 
@@ -393,11 +422,8 @@ void main() {
           rule(id: 'a'),
           rule(id: 'b', enabled: false),
         ]);
-        expect(platform.scheduled.map((r) => r.id), <String>['a']);
-        expect(
-          platform.cancelled,
-          containsAll(<String>['b', 'b$snoozeSuffix']),
-        );
+        expect(platform.scheduled.map((r) => r.id), <String>['a', 'b']);
+        expect(platform.cancelled, <String>['b$snoozeSuffix']);
         await c.dispose();
       },
     );
@@ -499,6 +525,217 @@ void main() {
     });
   });
 
+  group('Befunde der Review', () {
+    late _FakePlatform platform;
+    late FakeClock clock;
+    late List<AlarmRule> ruleList;
+    late List<AlarmRule> fired;
+
+    setUp(() {
+      platform = _FakePlatform();
+      clock = FakeClock(t0);
+      ruleList = <AlarmRule>[rule()];
+      fired = <AlarmRule>[];
+    });
+
+    DefaultAlarmCoordinator build(
+      _Playback playback, {
+      Duration streamTimeout = const Duration(milliseconds: 30),
+    }) => DefaultAlarmCoordinator(
+      platform: platform,
+      clock: clock,
+      playback: playback,
+      startStation: playback.playStation,
+      rules: () => ruleList,
+      onRuleFired: (u) async => fired.add(u),
+      rampDuration: Duration.zero,
+      streamTimeout: streamTimeout,
+      beep: () async {},
+    );
+
+    test('2: geloeschte Regel wird samt Schlummer abgemeldet', () async {
+      final c = build(_Playback());
+      await c.rescheduleAll(<AlarmRule>[rule(id: 'a'), rule(id: 'b')]);
+      platform.cancelled.clear();
+      await c.rescheduleAll(<AlarmRule>[rule(id: 'a')]);
+      expect(platform.cancelled, <String>['b', 'b$snoozeSuffix']);
+      expect(platform.orphanCalls.last, <String>{'a'});
+      await c.dispose();
+    });
+
+    test('2: Speicher loeschen (leere Liste) meldet alles ab', () async {
+      final c = build(_Playback());
+      await c.rescheduleAll(<AlarmRule>[rule(id: 'a')]);
+      platform.cancelled.clear();
+      await c.rescheduleAll(const <AlarmRule>[]);
+      expect(platform.cancelled, contains('a'));
+      expect(platform.orphanCalls.last, isEmpty);
+      await c.dispose();
+    });
+
+    test('3: offline klingelt der Ton weiter, kein cancel', () async {
+      final c = build(_Playback(autoPlay: false));
+      await c.handleRing(AlarmRing(ruleId: ruleList.first.id, handle: 1));
+      expect(platform.silenced, isEmpty);
+      expect(platform.cancelled, isEmpty);
+      expect(fired.single.enabled, isFalse);
+      await c.dispose();
+    });
+
+    test(
+      '4: verpasster Einmal-Wecker wird deaktiviert statt verschoben',
+      () async {
+        final missed = rule().copyWith(firesAt: DateTime(2026, 11, 18, 5));
+        final c = build(_Playback());
+        await c.rescheduleAll(<AlarmRule>[missed]);
+        expect(fired.single.enabled, isFalse);
+        expect(platform.scheduled, isEmpty);
+        expect(AlarmSchedule.nextOccurrence(missed, t0), isNull);
+        await c.dispose();
+      },
+    );
+
+    test('4: firesAt wird beim Einschalten gesetzt, bei Aenderung neu', () {
+      final created = AlarmSchedule.withFiresAt(
+        <AlarmRule>[rule()],
+        const <AlarmRule>[],
+        t0,
+      );
+      expect(created.single.firesAt, DateTime(2026, 11, 18, 7));
+      // Unveraendert: bleibt, auch wenn die Zeit weitergelaufen ist.
+      final later = AlarmSchedule.withFiresAt(
+        created,
+        created,
+        DateTime(2026, 11, 18, 8),
+      );
+      expect(later.single.firesAt, DateTime(2026, 11, 18, 7));
+      // Neue Uhrzeit: neuer Termin.
+      final moved = AlarmSchedule.withFiresAt(
+        <AlarmRule>[created.single.copyWith(hour: 9)],
+        created,
+        t0,
+      );
+      expect(moved.single.firesAt, DateTime(2026, 11, 18, 9));
+      // Wiederkehrend: kein fester Termin.
+      final repeating = AlarmSchedule.withFiresAt(
+        <AlarmRule>[
+          created.single.copyWith(weekdays: <int>{1}),
+        ],
+        created,
+        t0,
+      );
+      expect(repeating.single.firesAt, isNull);
+      expect(
+        AlarmRule.tryFromJson(created.single.toJson())!.firesAt,
+        created.single.firesAt,
+      );
+    });
+
+    test('5: laufender anderer Sender zaehlt nicht als Start', () async {
+      final playback = _Playback(autoPlay: false);
+      await playback.playingOther();
+      final c = build(playback);
+      await c.handleRing(AlarmRing(ruleId: ruleList.first.id, handle: 1));
+      expect(platform.silenced, isEmpty, reason: 'Ziel-Sender spielt nicht');
+      await c.dispose();
+    });
+
+    test('6: nativ geschlummert: Radio aus, Termin bleibt', () async {
+      platform.state = AlarmRingState.snoozed;
+      final playback = _Playback();
+      final c = build(playback, streamTimeout: const Duration(seconds: 5));
+      await c.handleRing(AlarmRing(ruleId: ruleList.first.id, handle: 1));
+      expect(platform.silenced, isEmpty);
+      expect(playback.state.status, PlayerStatus.idle);
+      expect(c.ringing.value, isNull);
+      await c.dispose();
+    });
+
+    test('6: Klingeln zeigt das Banner, Aus raeumt es weg', () async {
+      final c = build(_Playback());
+      await c.handleRing(AlarmRing(ruleId: ruleList.first.id, handle: 1));
+      expect(c.ringing.value?.ruleId, ruleList.first.id);
+      await c.dismiss(ruleList.first.id);
+      expect(c.ringing.value, isNull);
+      await c.dispose();
+    });
+
+    test('13: dispose des Koordinators entsorgt die Plattform', () async {
+      final c = build(_Playback());
+      await c.dispose();
+      expect(platform.disposed, isTrue);
+    });
+  });
+
+  group('AndroidAlarmPlatform (Review)', () {
+    late _FakeAlarmApi api;
+    late AndroidAlarmPlatform platform;
+
+    setUp(() {
+      api = _FakeAlarmApi();
+      platform = AndroidAlarmPlatform(
+        clock: FakeClock(t0),
+        api: api,
+        texts: AlarmTexts.german,
+      );
+    });
+
+    test('2: verwaiste Alarme ohne Regel werden gestoppt', () async {
+      await platform.schedule(rule(id: 'keep'));
+      await platform.schedule(rule(id: 'weg'));
+      await platform.schedule(rule(id: 'x$snoozeSuffix'));
+      await platform.removeOrphans(<String>{'keep', 'x'});
+      expect(api.alarms.values.map((a) => a.payload).toSet(), <String?>{
+        'keep',
+        'x$snoozeSuffix',
+      });
+    });
+
+    test('3: ausgeschaltete Regel stoppt keinen klingelnden Alarm', () async {
+      await platform.schedule(rule(weekdays: <int>{3}));
+      final ringingId = api.alarms.keys.first;
+      api.ringingIds.add(ringingId);
+      await platform.schedule(rule(weekdays: <int>{3}, enabled: false));
+      expect(api.alarms.keys, <int>[ringingId]);
+    });
+
+    test('6: nativ geschlummerter Termin bleibt beim Neuplanen', () async {
+      await platform.init();
+      await platform.schedule(rule());
+      final id = api.alarms.keys.single;
+      api.snoozedController.add((id, DateTime(2026, 11, 18, 7, 9)));
+      await Future<void>.delayed(Duration.zero);
+      await platform.schedule(rule(enabled: false));
+      expect(api.alarms.keys, <int>[id]);
+    });
+
+    test('6: silence stoppt nur, solange er klingelt', () async {
+      await platform.schedule(rule());
+      final id = api.alarms.keys.single;
+      final ring = AlarmRing(ruleId: rule().id, handle: id);
+      await platform.silence(ring); // nicht klingelnd: nichts loeschen
+      expect(api.alarms, isNotEmpty);
+      api.ringingIds.add(id);
+      await platform.silence(ring);
+      expect(api.alarms, isEmpty);
+    });
+
+    test(
+      '6: ringState unterscheidet klingelnd, geschlummert, beendet',
+      () async {
+        await platform.schedule(rule());
+        final id = api.alarms.keys.single;
+        final ring = AlarmRing(ruleId: rule().id, handle: id);
+        expect(await platform.ringState(ring), AlarmRingState.snoozed);
+        api.ringingIds.add(id);
+        expect(await platform.ringState(ring), AlarmRingState.ringing);
+        api.ringingIds.clear();
+        api.alarms.clear();
+        expect(await platform.ringState(ring), AlarmRingState.ended);
+      },
+    );
+  });
+
   group('Berechtigungen', () {
     test('Nicht-Android: immer erlaubt, keine Rueckfrage', () async {
       final g = _Gateway(exact: false);
@@ -541,6 +778,12 @@ class _Gateway implements AlarmPermissionGateway {
 
   @override
   Future<void> openExactAlarmSettings() async => opened++;
+
+  @override
+  Future<bool> canUseFullScreenIntent() async => true;
+
+  @override
+  Future<void> openFullScreenIntentSettings() async {}
 
   @override
   Future<void> requestNotifications() async => notificationRequests++;

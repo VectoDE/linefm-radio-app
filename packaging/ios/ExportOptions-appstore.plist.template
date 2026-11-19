@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- ExportOptions fuer den App-Store-/TestFlight-Export (flutter build ipa
+     mit Option export-options-plist, oder xcodebuild exportArchive).
+     Platzhalter in doppelten geschweiften Klammern vor dem Einsatz ersetzen
+     (siehe packaging/ios/README.md). Keine echten Werte committen. -->
+<plist version="1.0">
+<dict>
+  <key>method</key>
+  <string>app-store-connect</string>
+  <key>teamID</key>
+  <string>{{APPLE_TEAM_ID}}</string>
+  <key>signingStyle</key>
+  <string>manual</string>
+  <key>signingCertificate</key>
+  <string>Apple Distribution</string>
+  <key>provisioningProfiles</key>
+  <dict>
+    <key>de.linefm.app</key>
+    <string>{{PROVISIONING_PROFILE_APPSTORE_NAME}}</string>
+  </dict>
+  <key>uploadSymbols</key>
+  <true/>
+  <key>manageAppVersionAndBuildNumber</key>
+  <false/>
+  <key>destination</key>
+  <string>export</string>
+</dict>
+</plist>

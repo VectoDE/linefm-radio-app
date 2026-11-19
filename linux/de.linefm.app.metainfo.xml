@@ -1,19 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- AppStream-Metainfo fuer Flathub, GNOME Software und KDE Discover.
-     Pruefen mit: appstreamcli validate --pedantic linux/de.linefm.app.metainfo.xml
-     Offen bis zum Store-Release (P26/P28): Screenshots, Release-Datum,
-     Projektlizenz (derzeit proprietaer, im Repo liegt noch keine LICENSE). -->
+     Pruefen mit: appstreamcli validate (Option pedantic) linux/de.linefm.app.metainfo.xml
+     Offen bis zum Store-Release:
+     - Screenshots: Platzhalter-URLs unten, jaybelife liefert die Bilder (TODO).
+     - Release-Datum: je Release anpassen (Pipeline P27).
+     - Lizenz: proprietaer (Entscheidung 43). Flathub verlangt dafuer
+       LicenseRef-proprietary mit Link auf den Lizenztext (TODO: Link auf die
+       endgueltige Lizenz-/Nutzungsseite eintragen). -->
 <component type="desktop-application">
   <id>de.linefm.app</id>
   <name>LINEFM Radio</name>
   <summary>Live radio of the LINEFM stations</summary>
   <summary xml:lang="de">Live-Radio der LINEFM-Sender</summary>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>LicenseRef-proprietary</project_license>
+  <project_license>LicenseRef-proprietary=https://app.linefm.de/</project_license>
   <developer id="de.linefm">
     <name>LINEFM</name>
   </developer>
   <url type="homepage">https://app.linefm.de</url>
+  <branding>
+    <color type="primary" scheme_preference="light">#8a8ad0</color>
+    <color type="primary" scheme_preference="dark">#474776</color>
+  </branding>
   <description>
     <p>Listen to the LINEFM stations live: LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM and FobFM.</p>
     <p>See the current song with cover, browse the recent history and save your favorites. The tray icon keeps the radio running in the background, a mini player stays on top of other windows, and media keys and global shortcuts control playback.</p>
@@ -47,8 +55,32 @@
     <internet>always</internet>
     <display_length compare="ge">360</display_length>
   </requires>
-  <content_rating type="oars-1.1"/>
+  <!-- OARS 1.1: reines Live-Radio ohne Chat, Kauf oder Standort. Die Sender
+       (u. a. +RAP) koennen Lieder mit Kraftausdruecken spielen. TODO(Inhaber):
+       Einstufung mit https://hughsie.github.io/oars/generate.html bestaetigen. -->
+  <content_rating type="oars-1.1">
+    <content_attribute id="language-profanity">moderate</content_attribute>
+  </content_rating>
+  <!-- TODO(jaybelife): Screenshots aufnehmen (Desktop, 16:9, mindestens 1248x702),
+       auf stabiler URL (Tag oder Commit, kein Branch) ablegen und eintragen. -->
+  <screenshots>
+    <screenshot type="default">
+      <caption>Player with the current song and cover</caption>
+      <caption xml:lang="de">Player mit aktuellem Song und Cover</caption>
+      <image type="source">https://app.linefm.de/screenshots/linux-player.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Station list</caption>
+      <caption xml:lang="de">Senderliste</caption>
+      <image type="source">https://app.linefm.de/screenshots/linux-stations.png</image>
+    </screenshot>
+  </screenshots>
   <releases>
-    <release version="1.0.0" date="2026-11-19"/>
+    <release version="1.0.0" date="2026-11-19">
+      <description>
+        <p>First release.</p>
+        <p xml:lang="de">Erste Version.</p>
+      </description>
+    </release>
   </releases>
 </component>

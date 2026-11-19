@@ -41,6 +41,7 @@ class RadioGruppeCredit extends ConsumerWidget {
         const SizedBox(height: 12),
         SemanticFocus(
           builder: (_, focused, onFocus, child) => Semantics(
+            container: true,
             link: true,
             linkUrl: Uri.parse(radioGruppeUrl),
             label: l10n.radioGruppeOpen,

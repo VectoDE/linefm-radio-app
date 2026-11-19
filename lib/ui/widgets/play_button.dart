@@ -69,6 +69,7 @@ class PlayButton extends StatelessWidget {
 
     return SemanticFocus(
       builder: (context, focused, onFocus, child) => Semantics(
+        container: true,
         button: true,
         enabled: onPressed != null && !_busy,
         label: label,

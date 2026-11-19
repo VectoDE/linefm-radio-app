@@ -368,7 +368,10 @@ class _CompactLayout extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               const _OfflineBanner(),
-              const _StorageNoticeSlot(),
+              // Handy: nur ein Hinweis zur Zeit. Steht die Start-Leiste,
+              // wartet der Speicher-Hinweis, damit bei 320 x 640 Inhalt
+              // sichtbar bleibt (U1).
+              const _StorageNoticeSlot(yieldToAutoplay: true),
               const _MiniPlayerOrStart(),
               SizedBox(height: player ? 0 : 12),
               _BottomNav(screen: screen),
@@ -409,6 +412,8 @@ class _ExpandedLayout extends ConsumerWidget {
       order: NumericFocusOrder(order.toDouble()),
       child: FocusTraversalGroup(
         child: Semantics(
+          container: true,
+          explicitChildNodes: true,
           sortKey: OrdinalSortKey(order.toDouble()),
           child: child,
         ),
@@ -659,6 +664,7 @@ class _NavItem extends StatelessWidget {
     final color = selected ? c.accent : c.muted;
     return SemanticFocus(
       builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
         button: true,
         selected: selected,
         label: label,
@@ -699,12 +705,20 @@ class _NavItem extends StatelessWidget {
 /// Speicher-Hinweis unten ueber Mini-Player und Navigation (Web: 16 dp
 /// Rand, max. 760 dp breit).
 class _StorageNoticeSlot extends ConsumerWidget {
-  const _StorageNoticeSlot();
+  const _StorageNoticeSlot({this.yieldToAutoplay = false});
+
+  /// Ausblenden, solange die Autoplay-Leiste steht (Kompakt-Layout).
+  final bool yieldToAutoplay;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final confirmed = ref.watch(storageConsentProvider);
     if (confirmed) return const SizedBox.shrink();
+    if (yieldToAutoplay &&
+        ref.watch(autoplayBlockedProvider) &&
+        ref.watch(navigationProvider) != AppScreen.player) {
+      return const SizedBox.shrink();
+    }
     return const Padding(
       padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: StorageNotice(),

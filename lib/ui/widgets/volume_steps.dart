@@ -100,6 +100,7 @@ class VolumeSteps extends StatelessWidget {
 
     return SemanticFocus(
       builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
         slider: true,
         label: semanticLabel,
         value: text,

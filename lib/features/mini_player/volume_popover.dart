@@ -57,6 +57,7 @@ class _VolumeButtonState extends ConsumerState<VolumeButton> {
             _Popover(link: _link, color: widget.color, onClose: _close),
         child: SemanticFocus(
           builder: (_, focused, onFocus, child) => Semantics(
+            container: true,
             button: true,
             expanded: _open,
             label: _open ? l10n.volumeClose : l10n.volumeOpen,

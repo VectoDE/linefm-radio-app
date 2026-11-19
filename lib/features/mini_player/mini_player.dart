@@ -191,6 +191,7 @@ class _TrackArea extends StatelessWidget {
     final coverSize = compact ? 62.0 : 72.0;
     return SemanticFocus(
       builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
         button: true,
         label: artist.isEmpty ? title : '$title, $artist',
         hint: hint,

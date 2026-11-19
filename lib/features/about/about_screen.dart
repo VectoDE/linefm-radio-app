@@ -147,6 +147,7 @@ class _Developer extends ConsumerWidget {
       children: <Widget>[
         SemanticFocus(
           builder: (_, focused, onFocus, child) => Semantics(
+            container: true,
             link: true,
             linkUrl: Uri.parse(developerUrl),
             label: '${l10n.creditsDevelopedBy}. ${l10n.creditsDeveloperOpen}',
@@ -215,6 +216,7 @@ class _LinkRow extends StatelessWidget {
     final c = context.linefm;
     return SemanticFocus(
       builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
         link: linkUrl != null,
         linkUrl: linkUrl,
         button: linkUrl == null,

@@ -255,8 +255,22 @@ class _FavoriteStar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      toggled: favorite,
+    // Eigener Knoten (container), sonst wandert "toggled" in den Eltern-
+    // knoten und axe meldet einen Schalter um Karte und Stern
+    // (nested-interactive). Fokussierbar wie alle Knoepfe (A11Y-02/07).
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
+        button: true,
+        toggled: favorite,
+        label: tooltip,
+        excludeSemantics: true,
+        onTap: onPressed,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: IconButton(
         key: const ValueKey<String>('station-favorite-star'),
         tooltip: tooltip.isEmpty ? null : tooltip,

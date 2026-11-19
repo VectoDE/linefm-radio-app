@@ -323,6 +323,7 @@ class _AlarmCard extends StatelessWidget {
                 Expanded(
                   child: SemanticFocus(
                     builder: (_, focused, onFocus, child) => Semantics(
+                      container: true,
                       button: true,
                       label: '${l10n.alarmTime}: $time',
                       excludeSemantics: true,

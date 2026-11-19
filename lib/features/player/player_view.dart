@@ -674,6 +674,7 @@ class _IconAction extends StatelessWidget {
       excludeFromSemantics: true,
       child: SemanticFocus(
         builder: (_, focused, onFocus, child) => Semantics(
+          container: true,
           button: true,
           enabled: onPressed != null,
           label: label,

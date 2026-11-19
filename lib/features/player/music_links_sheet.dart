@@ -93,6 +93,7 @@ class _MusicRow extends StatelessWidget {
     final colors = context.linefm;
     return SemanticFocus(
       builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
         button: true,
         label: item.label,
         excludeSemantics: true,

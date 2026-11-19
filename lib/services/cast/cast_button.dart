@@ -137,6 +137,7 @@ class _CastButtonState extends ConsumerState<CastButton> {
       excludeFromSemantics: true,
       child: SemanticFocus(
         builder: (_, focused, onFocus, child) => Semantics(
+          container: true,
           button: true,
           label: label,
           excludeSemantics: true,
@@ -315,6 +316,7 @@ class _SheetRow extends StatelessWidget {
     if (onTap == null) return content;
     return SemanticFocus(
       builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
         button: true,
         label: label,
         excludeSemantics: true,

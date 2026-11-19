@@ -249,6 +249,7 @@ class _NavRow extends StatelessWidget {
     final c = context.linefm;
     return SemanticFocus(
       builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
         button: true,
         label: title,
         hint: subtitle,
@@ -404,6 +405,7 @@ class _Footer extends ConsumerWidget {
     final c = context.linefm;
     Widget link(String label, Uri url, VoidCallback onTap) => SemanticFocus(
       builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
         link: true,
         linkUrl: url,
         label: label,

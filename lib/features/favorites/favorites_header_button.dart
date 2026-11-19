@@ -32,6 +32,7 @@ class FavoritesHeaderButton extends ConsumerWidget {
 
     return SemanticFocus(
       builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
         button: true,
         label: label,
         excludeSemantics: true,

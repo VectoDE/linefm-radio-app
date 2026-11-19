@@ -48,7 +48,7 @@ updates:
       prefix: build
     labels:
       - dependencies
-      - android
+      - plattform:android
     groups:
       gradle-minor-patch:
         update-types: [minor, patch]

@@ -2,7 +2,7 @@
 
 **Status:** Entwurf, freiwillig. Ob für LINEFM Radio eine Erklärung nach dem Barrierefreiheitsstärkungsgesetz (BFSG) Pflicht ist, ist nicht geklärt (siehe [FREIGABE-CHECKLISTE.md](FREIGABE-CHECKLISTE.md), Abschnitt A4). Dieser Text ist eine Vorprüfung und ersetzt keine Rechtsberatung. Vor der Veröffentlichung mit einem Anwalt oder der zuständigen Stelle abstimmen.
 
-Stand der Prüfung: 19. November 2026. Geprüft wurde die Web-Version (Chromium, Wasm-Build) automatisch mit axe-core 4.10 und von Hand mit Tastatur und Zugriffsbaum. Gerätetests mit TalkBack, VoiceOver und NVDA sind **noch nicht** gelaufen.
+Stand der Prüfung: 19. November 2026. Geprüft wurde die Web-Version (Chromium, Wasm-Build) automatisch mit axe-core 4.10.3 (WCAG 2.2 A bis AAA und Best Practices) und von Hand mit Tastatur und Zugriffsbaum. axe lief über Sender, Player, Verlauf, Favoriten und Einstellungen bei 320, 390 und 1280 px, jeweils hell und dunkel, dazu über Impressum und Datenschutz: keine Verstöße. Gerätetests mit TalkBack, VoiceOver und NVDA sind **noch nicht** gelaufen.
 
 ## Unser Ziel
 
@@ -10,10 +10,11 @@ LINEFM Radio soll sich ohne Maus, mit Screenreader, mit starker Vergrößerung u
 
 ## Was heute funktioniert
 
-- Alle Funktionen sind mit der Tastatur erreichbar, die Reihenfolge folgt dem Bildschirm.
+- Alle Funktionen sind mit der Tastatur erreichbar, die Reihenfolge folgt dem Bildschirm: Kopfbereich, Inhalt, Hinweise, Player, Navigation. Tab und Umschalt+Tab laufen ohne Falle durch, auch auf dem Handy-Layout.
+- Die Bereiche sind als Landmarks ausgezeichnet (Hauptinhalt, Navigation, Player, Kopfbereich, Hinweise).
 - Textfarben der App erreichen in der Berechnung aus den Farbwerten mindestens 4,5:1, die Hauptschrift liegt bei 15:1 bis 18:1 (hell und dunkel). Eine Ausnahme ist der Wert für ein rotes Herz-Symbol auf erhöhter Fläche im hellen Schema mit etwa 4,2:1; das ist ein Bedienelement und erfüllt 3:1, aber nicht 4,5:1 für Text.
 - Heller und dunkler Modus, auch nach Systemeinstellung.
-- Die Web-Version wurde bei 320, 390 und 1100 px Breite angesehen (Screenshots in der Qualitätsrunde). Eine vollständige Prüfung auf waagerechtes Scrollen bei 400 Prozent Zoom steht noch aus.
+- Die Web-Version wurde bei 320, 390 und 1280 px Breite angesehen, hell und dunkel (Screenshots in der Qualitätsrunde). Eine vollständige Prüfung auf waagerechtes Scrollen bei 400 Prozent Zoom steht noch aus.
 - Der Ladezustand der Startseite ist als Status für Screenreader gekennzeichnet. Namen und Rollen der Bedienelemente in der App sind im Zugriffsbaum vorhanden, wurden aber noch nicht mit einem echten Screenreader durchgehört.
 - Die animierten Ladepunkte der Startseite stehen still, wenn das System "Bewegung reduzieren" meldet.
 - Deutsch und Englisch, die Sprache der Seite ist ausgezeichnet.
@@ -24,13 +25,10 @@ Diese Punkte sind uns bekannt und noch nicht behoben.
 
 | Bereich | Einschränkung | Was wir tun |
 |---|---|---|
-| Web, breite Ansicht | Verschachtelte Bedienelemente in der Senderliste (axe: `nested-interactive`), Screenreader können dadurch doppelt vorlesen | Behebung in der App geplant |
-| Web, breite Ansicht | Zielgröße einzelner Schaltflächen unter 24 x 24 px (axe: `target-size`, WCAG 2.5.8) | Behebung in der App geplant |
-| Web | Scrollbereiche in Liste und Verlauf sind nicht per Tastatur fokussierbar (axe: `scrollable-region-focusable`) | Behebung in der App geplant |
 | Web | Die Oberfläche wird von Flutter auf eine Zeichenfläche gerendert. Die Kontrastprüfung durch Werkzeuge ist dort nur eingeschränkt möglich, wir haben die Werte deshalb aus den Farbwerten berechnet | Handprüfung mit Screenreader steht aus |
-| Rechtsseiten | Platzhalter-Text in einem Grauton mit 6,5:1 erfüllt AA, aber nicht AAA | Beim Ausfüllen der Betreiberdaten prüfen |
 | Alle Plattformen | Nicht geprüft mit TalkBack (Android), VoiceOver (iOS, macOS) und NVDA (Windows) | Teil der Freigabe-Checkliste, Abschnitt B10 |
 | Radiowecker | Nicht auf Barrierefreiheit der Systemdialoge (Alarm, Vollbild) geprüft | Gerätetest B3 |
+| Web | Beim Tabben über das Seitenende hinaus landet der Fokus kurz auf zwei unbeschrifteten Flutter-Containern, bevor er wieder oben beginnt | Verhalten von Flutter Web, wird beobachtet |
 | Livestream | Radio hat keine Untertitel. Für Titel und Sender gibt es Text, für gesprochene Inhalte keine Transkripte | Liegt beim Programm von laut.fm bzw. den Sendern |
 
 ## Feedback und Kontakt

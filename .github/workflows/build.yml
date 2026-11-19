@@ -371,6 +371,12 @@ jobs:
           flutter build web $FLUTTER_BUILD_FLAGS --wasm --no-web-resources-cdn --base-href /
           --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
+      - name: Ersatzschriften selbst hosten (L14)
+        run: |
+          # Noto-Fallback nach build/web/assets/fonts/fallback/ (Pruefsummen aus tool/font_fallback.lock.json).
+          cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
+          dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
+
       - name: Postbuild (Hashes, Header-Dateien)
         env:
           LEGAL_STRICT: ${{ needs.meta.outputs.legal_strict }}

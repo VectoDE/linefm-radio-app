@@ -1,0 +1,57 @@
+name: SSH vorbereiten
+description: >
+  Legt Schluessel und known_hosts fuer rsync/ssh an. Der Host-Schluessel kommt aus
+  einem Secret (known_hosts) und wird strikt geprueft: StrictHostKeyChecking=yes,
+  kein ssh-keyscan, kein "no". Host und Benutzer werden auf harmlose Zeichen geprueft.
+  Ausgabe: ssh-Kommando (fuer rsync -e) und Ziel user@host. Aufraeumen: Schritt
+  "SSH aufraeumen" im Aufrufer (if: always()) oder die Dateien liegen nur in RUNNER_TEMP.
+
+inputs:
+  host:
+    required: true
+  user:
+    required: true
+  key:
+    description: Privater Schluessel (OpenSSH, ohne Passphrase)
+    required: true
+  known-hosts:
+    description: Zeile(n) aus known_hosts fuer den Host (ssh-keyscan-Ausgabe, einmalig geprueft)
+    required: true
+  port:
+    required: false
+    default: "22"
+
+outputs:
+  ssh-command:
+    description: Fertiges ssh-Kommando fuer rsync -e
+    value: ${{ steps.setup.outputs.ssh_command }}
+  target:
+    description: user@host
+    value: ${{ steps.setup.outputs.target }}
+
+runs:
+  using: composite
+  steps:
+    - name: Schluessel und known_hosts schreiben
+      id: setup
+      shell: bash
+      env:
+        SSH_HOST: ${{ inputs.host }}
+        SSH_USER: ${{ inputs.user }}
+        SSH_KEY: ${{ inputs.key }}
+        SSH_KNOWN_HOSTS: ${{ inputs.known-hosts }}
+        SSH_PORT: ${{ inputs.port }}
+      run: |
+        set -euo pipefail
+        if ! [[ "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]; then echo "::error::Host enthaelt unerlaubte Zeichen"; exit 1; fi
+        if ! [[ "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]; then echo "::error::Benutzer enthaelt unerlaubte Zeichen"; exit 1; fi
+        if ! [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]; then echo "::error::Port ungueltig"; exit 1; fi
+        dir="$RUNNER_TEMP/ssh"
+        umask 077
+        mkdir -p "$dir"
+        printf '%s\n' "$SSH_KEY" > "$dir/id"
+        printf '%s\n' "$SSH_KNOWN_HOSTS" > "$dir/known_hosts"
+        {
+          echo "ssh_command=ssh -i $dir/id -p $SSH_PORT -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$dir/known_hosts"
+          echo "target=$SSH_USER@$SSH_HOST"
+        } >> "$GITHUB_OUTPUT"

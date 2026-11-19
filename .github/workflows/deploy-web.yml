@@ -1,0 +1,365 @@
+name: Deploy Web
+
+# Rollt die Web-Variante (Artefakt "*-web.zip" aus dem GitHub-Release) auf die gewaehlten Ziele aus:
+#   cloudflare  Cloudflare Pages per wrangler
+#   ssh         eigener nginx-/Traefik-Server per rsync, Release-Ordner + atomarer Symlink-Wechsel
+#   plesk       Plesk-Dokumentstamm per rsync ueber SSH
+# Ziele: Eingabe "targets" (kommagetrennt) oder, wenn leer, die Repository-Variable
+# WEB_DEPLOY_TARGETS. Ohne Angabe passiert nichts (Hinweis in der Zusammenfassung).
+# Jedes Ziel laeuft mit Umgebung "production" (dort Pflicht-Genehmiger einstellen) und nur mit
+# vollstaendigen Secrets; sonst wird uebersprungen. Ungetestet (kein Ziel-Server/Konto vorhanden).
+# Anleitung und Secret-Liste: docs/secrets.md, docs/hosting-*.md.
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Versions-Tag (vX.Y.Z)
+        type: string
+        required: true
+      targets:
+        description: Ziele kommagetrennt (cloudflare, ssh, plesk). Leer = Variable WEB_DEPLOY_TARGETS
+        type: string
+        required: false
+        default: ""
+    secrets:
+      CLOUDFLARE_API_TOKEN:
+        required: false
+      CLOUDFLARE_ACCOUNT_ID:
+        required: false
+      DEPLOY_HOST:
+        required: false
+      DEPLOY_USER:
+        required: false
+      DEPLOY_SSH_KEY:
+        required: false
+      DEPLOY_KNOWN_HOSTS:
+        required: false
+      PLESK_SSH_HOST:
+        required: false
+      PLESK_SSH_USER:
+        required: false
+      PLESK_SSH_KEY:
+        required: false
+      PLESK_SSH_KNOWN_HOSTS:
+        required: false
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Versions-Tag eines vorhandenen Releases (z. B. v1.0.0)
+        type: string
+        required: true
+      targets:
+        description: Ziele kommagetrennt (cloudflare, ssh, plesk). Leer = Variable WEB_DEPLOY_TARGETS
+        type: string
+        required: false
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Ziele bestimmen
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      cloudflare: ${{ steps.plan.outputs.cloudflare }}
+      ssh: ${{ steps.plan.outputs.ssh }}
+      plesk: ${{ steps.plan.outputs.plesk }}
+    steps:
+      - name: Ziele auswerten
+        id: plan
+        env:
+          TAG: ${{ inputs.tag }}
+          INPUT_TARGETS: ${{ inputs.targets }}
+          VAR_TARGETS: ${{ vars.WEB_DEPLOY_TARGETS }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Ungueltiger Tag: $TAG"
+            exit 1
+          fi
+          targets="${INPUT_TARGETS:-$VAR_TARGETS}"
+          targets="${targets// /}"
+          for t in cloudflare ssh plesk; do
+            if [[ ",$targets," == *",$t,"* ]]; then echo "$t=true" >> "$GITHUB_OUTPUT"; else echo "$t=false" >> "$GITHUB_OUTPUT"; fi
+          done
+          # Unbekannte Namen sofort melden.
+          IFS=',' read -r -a list <<< "$targets"
+          for t in "${list[@]}"; do
+            [ -z "$t" ] && continue
+            case "$t" in cloudflare|ssh|plesk) ;; *) echo "::error::Unbekanntes Ziel '$t' (erlaubt: cloudflare, ssh, plesk)"; exit 1 ;; esac
+          done
+          {
+            echo "### Web-Deploy $TAG"
+            if [ -z "$targets" ]; then
+              echo "- Kein Ziel gewaehlt (Eingabe targets und Variable WEB_DEPLOY_TARGETS leer): nichts ausgerollt."
+            else
+              echo "- Ziele: ${targets//,/, }"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  cloudflare:
+    name: Cloudflare Pages
+    needs: plan
+    if: needs.plan.outputs.cloudflare == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Gate Cloudflare
+        id: gate
+        uses: ./.github/actions/secret-gate
+        with:
+          label: Web-Deploy Cloudflare Pages (${{ inputs.tag }})
+          checks: |
+            CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+            CLOUDFLARE_ACCOUNT_ID=${{ secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+            CLOUDFLARE_PAGES_PROJECT=${{ vars.CLOUDFLARE_PAGES_PROJECT != '' }}
+
+      - name: Projektnamen pruefen
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+        run: |
+          if ! [[ "$PROJECT" =~ ^[a-z0-9][a-z0-9-]{0,56}$ ]]; then
+            echo "::error::CLOUDFLARE_PAGES_PROJECT ist kein gueltiger Pages-Projektname"
+            exit 1
+          fi
+
+      - name: Web-Build aus dem Release holen
+        if: steps.gate.outputs.ready == 'true'
+        uses: ./.github/actions/fetch-release
+        with:
+          tag: ${{ inputs.tag }}
+          pattern: "*-web.zip"
+          token: ${{ github.token }}
+
+      - name: Entpacken
+        if: steps.gate.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p build/web
+          unzip -q dist/*-web.zip -d build/web
+          test -f build/web/index.html
+          # Pages wertet .htaccess nicht aus; Header kommen aus _headers.
+          rm -f build/web/.htaccess
+
+      - name: Nach Cloudflare Pages ausrollen
+        if: steps.gate.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.165.0"
+          command: pages deploy build/web --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }} --branch=main --commit-dirty=true
+
+      - name: Zusammenfassung
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          echo "- Cloudflare Pages: $TAG ausgerollt. Rollback im Dashboard (Deployments)." >> "$GITHUB_STEP_SUMMARY"
+
+  ssh:
+    name: SSH (nginx/Traefik)
+    needs: plan
+    if: needs.plan.outputs.ssh == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Gate SSH-Deploy
+        id: gate
+        uses: ./.github/actions/secret-gate
+        with:
+          label: Web-Deploy SSH/rsync (${{ inputs.tag }})
+          checks: |
+            DEPLOY_HOST=${{ secrets.DEPLOY_HOST != '' }}
+            DEPLOY_USER=${{ secrets.DEPLOY_USER != '' }}
+            DEPLOY_SSH_KEY=${{ secrets.DEPLOY_SSH_KEY != '' }}
+            DEPLOY_KNOWN_HOSTS=${{ secrets.DEPLOY_KNOWN_HOSTS != '' }}
+            DEPLOY_PATH=${{ vars.DEPLOY_PATH != '' }}
+
+      - name: Web-Build aus dem Release holen
+        if: steps.gate.outputs.ready == 'true'
+        uses: ./.github/actions/fetch-release
+        with:
+          tag: ${{ inputs.tag }}
+          pattern: "*-web*.zip"
+          token: ${{ github.token }}
+
+      - name: Entpacken
+        if: steps.gate.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p build/web build/hosting
+          unzip -q dist/*-web.zip -d build/web
+          test -f build/web/index.html
+          if ls dist/*-web-hosting.zip >/dev/null 2>&1; then unzip -q dist/*-web-hosting.zip -d build/hosting; fi
+
+      - name: SSH vorbereiten
+        id: ssh
+        if: steps.gate.outputs.ready == 'true'
+        uses: ./.github/actions/ssh-setup
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known-hosts: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          port: ${{ vars.DEPLOY_PORT || '22' }}
+
+      - name: Ausrollen (Release-Ordner, Symlink-Wechsel)
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          SSH_COMMAND: ${{ steps.ssh.outputs.ssh-command }}
+          TARGET: ${{ steps.ssh.outputs.target }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          RELOAD_COMMAND: ${{ vars.DEPLOY_RELOAD_COMMAND }}
+          TAG: ${{ inputs.tag }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$DEPLOY_PATH" =~ ^/[A-Za-z0-9._/-]+$ ]] || [[ "$DEPLOY_PATH" == *".."* ]]; then
+            echo "::error::DEPLOY_PATH muss ein absoluter Pfad aus [A-Za-z0-9._/-] ohne '..' sein"
+            exit 1
+          fi
+          base="${DEPLOY_PATH%/}"
+          rel="${TAG#v}-${RUN_ID}"
+          # Zielordner anlegen, Dateien uebertragen (Header-Dateien getrennt zum manuellen Einspielen).
+          $SSH_COMMAND "$TARGET" "mkdir -p '$base/releases/$rel' '$base/hosting'"
+          rsync -a --delete -e "$SSH_COMMAND" build/web/ "$TARGET:$base/releases/$rel/"
+          if [ -d build/hosting ] && [ -n "$(ls -A build/hosting)" ]; then
+            rsync -a --delete -e "$SSH_COMMAND" build/hosting/ "$TARGET:$base/hosting/"
+          fi
+          # Atomar umschalten, nur die letzten fuenf Releases behalten.
+          $SSH_COMMAND "$TARGET" "ln -sfn '$base/releases/$rel' '$base/current.new' && mv -Tf '$base/current.new' '$base/current' && cd '$base/releases' && ls -1t | tail -n +6 | xargs -r rm -rf --"
+          if [ -n "$RELOAD_COMMAND" ]; then
+            $SSH_COMMAND "$TARGET" "$RELOAD_COMMAND"
+          fi
+          {
+            echo "- SSH: $TAG nach \`$base/releases/$rel\` ausgerollt, \`current\` umgeschaltet."
+            echo "- Rollback: Symlink \`current\` auf den vorherigen Ordner in \`releases/\` setzen."
+            echo "- Geaenderte Header-Dateien liegen in \`$base/hosting/\` und muessen bei Bedarf nach nginx kopiert werden (docs/hosting-nginx.md)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: SSH-Dateien entfernen
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/ssh"
+
+  plesk:
+    name: Plesk (SSH)
+    needs: plan
+    if: needs.plan.outputs.plesk == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Gate Plesk-Deploy
+        id: gate
+        uses: ./.github/actions/secret-gate
+        with:
+          label: Web-Deploy Plesk per SSH (${{ inputs.tag }})
+          checks: |
+            PLESK_SSH_HOST=${{ secrets.PLESK_SSH_HOST != '' }}
+            PLESK_SSH_USER=${{ secrets.PLESK_SSH_USER != '' }}
+            PLESK_SSH_KEY=${{ secrets.PLESK_SSH_KEY != '' }}
+            PLESK_SSH_KNOWN_HOSTS=${{ secrets.PLESK_SSH_KNOWN_HOSTS != '' }}
+            PLESK_DOCROOT=${{ vars.PLESK_DOCROOT != '' }}
+
+      - name: Web-Build aus dem Release holen
+        if: steps.gate.outputs.ready == 'true'
+        uses: ./.github/actions/fetch-release
+        with:
+          tag: ${{ inputs.tag }}
+          pattern: "*-web.zip"
+          token: ${{ github.token }}
+
+      - name: Entpacken
+        if: steps.gate.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p build/web
+          unzip -q dist/*-web.zip -d build/web
+          test -f build/web/index.html
+
+      - name: SSH vorbereiten
+        id: ssh
+        if: steps.gate.outputs.ready == 'true'
+        uses: ./.github/actions/ssh-setup
+        with:
+          host: ${{ secrets.PLESK_SSH_HOST }}
+          user: ${{ secrets.PLESK_SSH_USER }}
+          key: ${{ secrets.PLESK_SSH_KEY }}
+          known-hosts: ${{ secrets.PLESK_SSH_KNOWN_HOSTS }}
+          port: ${{ vars.PLESK_SSH_PORT || '22' }}
+
+      - name: Dokumentstamm synchronisieren
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          SSH_COMMAND: ${{ steps.ssh.outputs.ssh-command }}
+          TARGET: ${{ steps.ssh.outputs.target }}
+          DOCROOT: ${{ vars.PLESK_DOCROOT }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$DOCROOT" =~ ^[A-Za-z0-9._/-]+$ ]] || [[ "$DOCROOT" == *".."* ]]; then
+            echo "::error::PLESK_DOCROOT enthaelt unerlaubte Zeichen oder '..'"
+            exit 1
+          fi
+          # .well-known (assetlinks.json, AASA) und cgi-bin bleiben unberuehrt.
+          rsync -a --delete --exclude '.well-known/' --exclude 'cgi-bin/' \
+            -e "$SSH_COMMAND" build/web/ "$TARGET:${DOCROOT%/}/"
+          {
+            echo "- Plesk: $TAG nach \`${DOCROOT%/}/\` synchronisiert (\`.well-known/\` und \`cgi-bin/\` ausgenommen)."
+            echo "- Header kommen aus der \`.htaccess\` im Upload bzw. aus den nginx-Zusatzanweisungen (docs/hosting-plesk.md)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: SSH-Dateien entfernen
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/ssh"

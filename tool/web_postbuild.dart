@@ -7,7 +7,8 @@
 //  2. canvaskit/ -> canvaskit/<engineRevision>/, canvasKitBaseUrl im Bootstrap setzen
 //  3. Platzhalter ersetzen (Basis-URL, Search-Console-Verifikation, Build-ID im sw.js)
 //  4. Hosting-Dateien aus deploy/ rendern (Header-Dateien, __CSP_CONNECT_EXTRA__)
-//  5. asset-manifest.txt mit SHA-256 aller Dateien schreiben
+//  5. Ballast entfernen (Sourcemaps, *.symbols, ungenutzte Engine-Varianten, Flutter-Standard-SW)
+//  6. asset-manifest.txt mit SHA-256 aller Dateien schreiben
 //
 // Optionen:
 //  --config <datei>            Dart-Define-Datei (Standard: config/app.json, falls vorhanden)
@@ -17,6 +18,8 @@
 //  --hosting-out <ordner>      Standard: build/hosting
 //  --base-url <url>            Standard: WEB_BASE_URL aus der Konfiguration
 //  --gsc <token>               Search-Console-Verifikation (sonst GSC_VERIFICATION)
+//  --strict                    Abbruch, solange Platzhalter ({{...}}) in .well-known/security.txt stehen
+//  --keep-debug                Sourcemaps, *.symbols und Engine-Varianten nicht entfernen
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -223,6 +226,49 @@ String rewriteBootstrap(
   return out;
 }
 
+/// Engine-Varianten, die das eigene Bootstrap nie laedt (flutter_bootstrap.js, Flutter 3.50):
+///  - `wimp.*` nur bei `enableWimp`, `webparagraph/` nur bei `preferWebParagraph`
+///    (beides setzt web/flutter_bootstrap.js nicht).
+///  - `*.symbols` sind Debug-Symbole fuer Stacktraces, nie Teil des Ladepfads.
+/// Behalten werden canvaskit.{js,wasm} (dart2js-Rueckfall in Firefox/Safari),
+/// chromium/ (dart2js-Rueckfall in Chromium), skwasm.* und skwasm_heavy.* (dart2wasm).
+bool isPrunableEngineFile(String relPath) {
+  final p = relPath.replaceAll('\\', '/');
+  final name = p.split('/').last;
+  if (name.endsWith('.symbols') || name.endsWith('.map')) {
+    return true;
+  }
+  if (p.contains('webparagraph/')) {
+    return true;
+  }
+  return RegExp(r'^wimp\.(js|wasm)$').hasMatch(name) &&
+      p.contains('canvaskit/');
+}
+
+/// Entfernt Eintraege fuer entfernte Engine-Varianten aus `wasmHashes`.
+String pruneWasmHashes(String bootstrap) {
+  final pattern = RegExp(
+    r'^_flutter.buildConfig = (\{.*\});$',
+    multiLine: true,
+  );
+  final match = pattern.firstMatch(bootstrap);
+  if (match == null) {
+    return bootstrap;
+  }
+  final cfg = jsonDecode(match.group(1)!) as Map<String, dynamic>;
+  final hashes = cfg['wasmHashes'];
+  if (hashes is Map<String, dynamic>) {
+    hashes.removeWhere(
+      (k, _) => k == 'wimp.wasm' || k.startsWith('webparagraph/'),
+    );
+  }
+  return bootstrap.replaceRange(
+    match.start,
+    match.end,
+    '_flutter.buildConfig = ${jsonEncode(cfg)};',
+  );
+}
+
 /// Ersetzt die Standard-Domain durch eine andere Basis-URL (nur Textdateien).
 String rewriteBaseUrl(String text, String baseUrl) {
   final clean = baseUrl.endsWith('/')
@@ -247,8 +293,13 @@ class PostbuildOptions {
     this.hostingOut = 'build/hosting',
     this.baseUrl,
     this.gsc,
+    this.keepDebug = false,
+    this.strict = false,
   });
 
+  final bool strict;
+
+  final bool keepDebug;
   final Directory webDir;
   final Map<String, dynamic> config;
   final String? cspConnectExtra;
@@ -264,6 +315,13 @@ String _rel(Directory root, FileSystemEntity e) {
   final p = e.absolute.path.replaceAll('\\', '/');
   return p.substring(rootPath.length).replaceFirst(RegExp('^/'), '');
 }
+
+/// Flutter-Standarddateien, die dieses Bootstrap nicht verwendet: flutter.js ist im
+/// Bootstrap enthalten, flutter_service_worker.js ersetzt web/sw.js.
+bool _isFlutterDefaultLeftover(String rel) =>
+    rel == 'flutter.js' ||
+    rel == 'flutter_service_worker.js' ||
+    rel == '.last_build_id';
 
 List<File> _filesIn(Directory dir) =>
     dir.listSync(recursive: true).whereType<File>().toList()
@@ -301,6 +359,18 @@ List<String> runPostbuild(PostbuildOptions o) {
   final bootstrapFile = File('${web.path}/flutter_bootstrap.js');
   if (!bootstrapFile.existsSync()) {
     throw PostbuildException('flutter_bootstrap.js fehlt');
+  }
+
+  // 0. Platzhalter in security.txt (Kontakt) duerfen nicht live gehen.
+  final securityTxt = File('${web.path}/.well-known/security.txt');
+  if (securityTxt.existsSync() &&
+      securityTxt.readAsStringSync().contains('{{')) {
+    const msg =
+        '.well-known/security.txt enthaelt noch Platzhalter ({{...}}), Kontakt eintragen';
+    if (o.strict) {
+      throw PostbuildException(msg);
+    }
+    stderr.writeln('web_postbuild: WARNUNG: $msg');
   }
 
   // 1. main.dart.* umbenennen
@@ -412,7 +482,24 @@ List<String> runPostbuild(PostbuildOptions o) {
     }
   }
 
-  // 5. Build-ID (sw.js) und asset-manifest.txt
+  // 5. Ballast entfernen
+  if (!o.keepDebug) {
+    for (final f in _filesIn(web)) {
+      final rel = _rel(web, f);
+      if (isPrunableEngineFile(rel) || _isFlutterDefaultLeftover(rel)) {
+        f.deleteSync();
+      }
+    }
+    final wp = Directory('${web.path}/canvaskit/$revision/webparagraph');
+    if (wp.existsSync()) {
+      wp.deleteSync(recursive: true);
+    }
+    bootstrapFile.writeAsStringSync(
+      pruneWasmHashes(bootstrapFile.readAsStringSync()),
+    );
+  }
+
+  // 6. Build-ID (sw.js) und asset-manifest.txt
   final entries = <String, (String, int)>{};
   for (final f in _filesIn(web)) {
     final rel = _rel(web, f);
@@ -468,6 +555,8 @@ int runCli(List<String> args) {
       baseUrl,
       gsc,
       targets;
+  var keepDebug = false;
+  var strict = false;
   for (var i = 0; i < args.length; i++) {
     String next() {
       if (i + 1 >= args.length) {
@@ -491,6 +580,10 @@ int runCli(List<String> args) {
         baseUrl = next();
       case '--gsc':
         gsc = next();
+      case '--keep-debug':
+        keepDebug = true;
+      case '--strict':
+        strict = true;
       case final a when a.startsWith('--'):
         stderr.writeln('Unbekannte Option $a');
         return 64;
@@ -521,6 +614,8 @@ int runCli(List<String> args) {
         hostingOut: hostingOut ?? 'build/hosting',
         baseUrl: baseUrl,
         gsc: gsc,
+        keepDebug: keepDebug,
+        strict: strict,
       ),
     );
     stdout.writeln(

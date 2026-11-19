@@ -159,7 +159,7 @@ Format: `linefm://play?station=<slug>` und `https://app.linefm.de/?station=<slug
 
 Tests: `test/platform/deep_links_test.dart`, `android_deep_links_test.dart`, `web_routes_test.dart`.
 
-## laut.fm: WebSocket bewusst aus (Entscheidung 50)
+## laut.fm: WebSocket bewusst aus
 
 Der WebSocket `wss://api.laut.fm/song_change.ws.json` meldet Titelwechsel **aller** Sender der Plattform. Gemessen am 19.11.2026:
 

@@ -1,7 +1,7 @@
 # Snapcraft-Definition fuer LINEFM Radio (strict, core24).
 #
 # snapcraft erwartet die Datei unter snap/snapcraft.yaml im Projektstamm.
-# Die CI (store-snap.yml, P27) kopiert sie dorthin:
+# Die CI (store-snap.yml) kopiert sie dorthin:
 #   mkdir -p snap && cp packaging/snap/snapcraft.yaml snap/snapcraft.yaml
 #   snapcraft pack
 # Ungetestet: snapcraft laeuft nur unter Linux (LXD/Multipass).

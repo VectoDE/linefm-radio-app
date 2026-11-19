@@ -1,8 +1,8 @@
 # Flatpak-Manifest fuer LINEFM Radio (Flathub-Einreichung vorbereitet).
 #
 # Das Modul "linefm-radio" installiert den fertigen Linux-Release-Tarball aus
-# dem GitHub-Release (Build aus P25, Inhalt direkt im Archiv-Wurzelverzeichnis).
-# URL und SHA256 setzt .github/workflows/flathub-prep.yml (P27) je Release.
+# dem GitHub-Release (Build aus build.yml, Inhalt direkt im Archiv-Wurzelverzeichnis).
+# URL und SHA256 setzt .github/workflows/flathub-prep.yml je Release.
 # Zeilen mit "# release-tarball" nicht umbenennen, der Workflow sucht danach.
 #
 # Wichtig: Flathub baut regulaer aus Quellcode. Ein vorgebautes Binaer-Tarball
@@ -91,6 +91,9 @@ modules:
   - name: mpv
     buildsystem: meson
     config-opts:
+      # Nur LGPL-Teile bauen: libmpv wird mit einer proprietaeren App ausgeliefert.
+      # Siehe docs/LIZENZEN-DRITTE.md. Ungetestet (kein Linux-Build moeglich).
+      - -Dgpl=false
       - -Dlibmpv=true
       - -Dcplayer=false
       - -Dlua=disabled
@@ -125,7 +128,7 @@ modules:
         url: https://github.com/VectoDE/linefm-radio-app/releases/download/v1.0.0/linefm-radio-1.0.0-linux-x64.tar.gz # release-tarball
         sha256: '0000000000000000000000000000000000000000000000000000000000000000' # release-tarball
         strip-components: 0
-      # Lizenztext (Entscheidung 43, "Alle Rechte vorbehalten"); Flathub verlangt
+      # Lizenztext ("Alle Rechte vorbehalten"); Flathub verlangt
       # ihn unter /app/share/licenses/<App-ID>/. Tag mit dem Release-Tarball
       # gleich halten; aendert sich LICENSE, sha256 neu berechnen.
       - type: file

@@ -1,6 +1,6 @@
 ; Inno-Setup-Skript fuer LINEFM Radio (Windows x64).
 ;
-; Vertrag mit .github/workflows/build.yml (P25). Der Workflow ruft ISCC mit
+; Vertrag mit .github/workflows/build.yml. Der Workflow ruft ISCC mit
 ; diesen Defines auf:
 ;   /DAppVersion=<x.y.z>               Versionsnummer ohne Suffix
 ;   /DSourceDir=<Pfad>                 build\windows\x64\runner\Release

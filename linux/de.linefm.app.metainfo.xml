@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- AppStream-Metainfo fuer Flathub, GNOME Software und KDE Discover.
-     Pruefen mit: appstreamcli validate (Option pedantic) linux/de.linefm.app.metainfo.xml
+<!-- AppStream-Metainfo für Flathub, GNOME Software und KDE Discover.
+     Prüfen mit: appstreamcli validate (Option pedantic) linux/de.linefm.app.metainfo.xml
      Offen bis zum Store-Release:
      - Screenshots: Platzhalter-URLs unten, jaybelife liefert die Bilder (TODO).
-     - Release-Datum: je Release anpassen (Pipeline P27).
-     - Lizenz: proprietaer (Entscheidung 43). Flathub verlangt dafuer
+     - Release-Datum: je Release anpassen (Store-Pipeline).
+     - Lizenz: proprietär. Flathub verlangt dafür
        LicenseRef-proprietary mit Link auf den Lizenztext (TODO: Link auf die
-       endgueltige Lizenz-/Nutzungsseite eintragen). -->
+       endgültige Lizenz-/Nutzungsseite eintragen). -->
 <component type="desktop-application">
   <id>de.linefm.app</id>
   <name>LINEFM Radio</name>
@@ -27,8 +27,8 @@
     <p>See the current song with cover, browse the recent history and save your favorites. The tray icon keeps the radio running in the background, a mini player stays on top of other windows, and media keys and global shortcuts control playback.</p>
   </description>
   <description xml:lang="de">
-    <p>Hoere die LINEFM-Sender live: LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM und FobFM.</p>
-    <p>Die App zeigt den aktuellen Song mit Cover, den Verlauf und deine Favoriten. Das Tray-Symbol haelt das Radio im Hintergrund am Laufen, ein Mini-Player bleibt ueber anderen Fenstern, und Medientasten sowie globale Tastenkuerzel steuern die Wiedergabe.</p>
+    <p>Höre die LINEFM-Sender live: LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM und FobFM.</p>
+    <p>Die App zeigt den aktuellen Song mit Cover, den Verlauf und deine Favoriten. Das Tray-Symbol hält das Radio im Hintergrund am Laufen, ein Mini-Player bleibt über anderen Fenstern, und Medientasten sowie globale Tastenkürzel steuern die Wiedergabe.</p>
   </description>
   <launchable type="desktop-id">de.linefm.app.desktop</launchable>
   <provides>
@@ -56,8 +56,8 @@
     <display_length compare="ge">360</display_length>
   </requires>
   <!-- OARS 1.1: reines Live-Radio ohne Chat, Kauf oder Standort. Die Sender
-       (u. a. +RAP) koennen Lieder mit Kraftausdruecken spielen. TODO(Inhaber):
-       Einstufung mit https://hughsie.github.io/oars/generate.html bestaetigen. -->
+       (u. a. +RAP) können Lieder mit Kraftausdrücken spielen. TODO(Inhaber):
+       Einstufung mit https://hughsie.github.io/oars/generate.html bestätigen. -->
   <content_rating type="oars-1.1">
     <content_attribute id="language-profanity">moderate</content_attribute>
   </content_rating>

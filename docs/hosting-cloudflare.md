@@ -9,12 +9,14 @@ Der Postbuild legt `_headers` und `_redirects` in `build/web` (aus `deploy/cloud
 - `_headers`: Security-Header für alle Pfade (`/*`), Cache-Control je Pfadgruppe nach der Cache-Strategie. Cache-Control steht absichtlich nur in den Pfadregeln, weil Pages die Header mehrerer passender Regeln zusammenführt.
 - `_redirects`: enthält absichtlich keine Regeln. Ohne `404.html` schaltet Pages automatisch in den SPA-Modus und liefert für unbekannte Pfade `index.html`. Die Regel `/* /index.html 200` würde Pages als Endlosschleife ablehnen. Vorhandene Dateien, auch `/impressum/` und `/datenschutz/`, gehen vor.
 - ETags setzt Pages selbst.
+- `/.htaccess` gehört nicht auf Pages: Pages liefert jede Datei im Ausgabeordner aus. Den Postbuild deshalb mit `--targets cloudflare` starten (dann entstehen nur `_headers` und `_redirects`) oder `build/web/.htaccess` vor dem Upload löschen.
+- `assets/*` ist in `_headers` pro Unterordner geregelt (`assets/assets`, `fonts`, `packages`, `shaders`). Pages führt passende Regeln zusammen, und `AssetManifest.*`, `FontManifest.json` und `NOTICES` müssen `no-cache` bleiben.
 
 ## Einmalige Einrichtung (Betreiber)
 
 1. Im Cloudflare-Dashboard unter Workers & Pages ein Pages-Projekt `linefm-app` anlegen (Direct Upload).
 2. Eigene Domain `app.linefm.de` unter "Custom domains" hinzufügen. Liegt `linefm.de` bei Cloudflare, legt Cloudflare den CNAME selbst an, sonst wird ein CNAME auf `linefm-app.pages.dev` beim DNS-Anbieter gesetzt.
-3. API-Token mit Berechtigung "Cloudflare Pages: Edit" erstellen. Als GitHub-Secrets `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID` eintragen, damit `deploy-web.yml` (Paket P27) automatisch ausrollt.
+3. API-Token mit Berechtigung "Cloudflare Pages: Edit" erstellen. Als GitHub-Secrets `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID` sowie die Variable `CLOUDFLARE_PAGES_PROJECT` (`linefm-app`) eintragen und `cloudflare` in die Variable `WEB_DEPLOY_TARGETS` aufnehmen, damit `deploy-web.yml` bei jedem Release ausrollt (Umgebung `production`, siehe [secrets.md](secrets.md)).
 
 ## Deploy von Hand
 

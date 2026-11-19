@@ -22,9 +22,12 @@ dart run tool/web_postbuild.dart build/web
   2. Verschiebt `canvaskit/` nach `canvaskit/<engineRevision>/`, damit auch diese Dateien dauerhaft gecacht werden dürfen.
   3. Setzt Basis-URL, Search-Console-Token (`GSC_VERIFICATION`) und Build-ID des Service Workers.
   4. Schreibt die Hosting-Dateien mit der fertigen CSP: `_headers`, `_redirects`, `.htaccess` in `build/web`, alle übrigen nach `build/hosting/`.
-  5. Erzeugt `asset-manifest.txt` mit SHA-256 und Größe jeder Datei.
+  5. Entfernt Ballast: Sourcemaps (`*.map`), Debug-Symbole (`*.symbols`), die ungenutzten Engine-Varianten `wimp.*` und `webparagraph/` sowie die Flutter-Standarddateien `flutter.js` und `flutter_service_worker.js`. Das spart rund 16 MB im Ausrollordner (49,5 auf 33,3 MB, Messung unten). Behalten wird alles, was `flutter_bootstrap.js` laden kann: `main.<hash>.dart.wasm` mit `skwasm` und `skwasm_heavy`, der dart2js-Rückfall mit `canvaskit/chromium/` (Chromium) und `canvaskit/canvaskit.*` (Firefox, Safari). Wer die Debug-Dateien für eine Fehleranalyse braucht, startet den Postbuild mit `--keep-debug`.
+  6. Erzeugt `asset-manifest.txt` mit SHA-256 und Größe jeder Datei.
 
-Optionen: `--config`, `--csp-connect-extra`, `--targets cloudflare,plesk|none`, `--deploy-dir`, `--hosting-out`, `--base-url`, `--gsc`. Ohne `--csp-connect-extra` werden die Telemetrie-Domains aus `config/app.json` abgeleitet (`UMAMI_URL`, `SENTRY_DSN`, `FIREBASE_ENABLED`). Wer die Server-Konfiguration einmal ohne Build rendern will, setzt `CSP_CONNECT_EXTRA` als Umgebungsvariable.
+Optionen: `--config`, `--csp-connect-extra`, `--targets cloudflare,plesk|none`, `--deploy-dir`, `--hosting-out`, `--base-url`, `--gsc`, `--keep-debug`. Ohne `--csp-connect-extra` werden die Telemetrie-Domains aus `config/app.json` abgeleitet (`UMAMI_URL`, `SENTRY_DSN`, `FIREBASE_ENABLED`). Wer die Server-Konfiguration einmal ohne Build rendern will, setzt `CSP_CONNECT_EXTRA` als Umgebungsvariable.
+
+**Keine `.htaccess` auf Cloudflare Pages:** Ohne `--targets` legt der Postbuild `_headers`, `_redirects` und `.htaccess` in `build/web`. Pages liefert jede Datei im Ausgabeordner öffentlich aus, auch `/.htaccess`. Für Pages deshalb `--targets cloudflare` verwenden oder `rm -f build/web/.htaccess` vor dem Upload. Der Workflow `deploy-web.yml` sollte das vor `pages deploy` tun; bis dahin gilt die Handarbeit. Auf nginx-Servern sperren die mitgelieferten Regeln `/.htaccess` und `/_headers` mit 404.
 
 Wichtig: **Nach jeder Änderung der Telemetrie-Einstellungen neu bauen und die gerenderten Header-Dateien neu ausrollen.** Sonst blockiert die CSP die neuen Domains.
 
@@ -34,10 +37,11 @@ Wichtig: **Nach jeder Änderung der Telemetrie-Einstellungen neu bauen und die g
 |---|---|---|
 | `/`, `/index.html`, `/flutter_bootstrap.js`, `/sw.js`, `/manifest.webmanifest`, `/version.json`, `/asset-manifest.txt`, `/impressum/`, `/datenschutz/` | `no-cache` | Immer beim Server nachfragen. Mit ETag ist die Antwort meist ein billiges 304. |
 | `/main.<hash>.dart.js|mjs|wasm`, `/canvaskit/<revision>/**` | `public, max-age=31536000, immutable` | Der Hash steht im Dateinamen. Neue Version heißt neuer Name. |
-| `/assets/**`, `/icons/**`, `/favicon.png` | `public, max-age=86400, stale-while-revalidate=604800` | Nicht gehasht, ändert sich selten. |
+| `/assets/AssetManifest.*`, `/assets/FontManifest.json`, `/assets/NOTICES` | `no-cache` | Fester Dateiname, aber der Inhalt ändert sich mit jedem Build. Mit einem Tag Cache bekäme ein Nutzer nach einem Update bis zu 24 Stunden ein altes Manifest zu neuen Dateien. |
+| übrige `/assets/**`, `/icons/**`, `/favicon.png` | `public, max-age=86400, stale-while-revalidate=604800` | Nicht gehasht, ändert sich selten. |
 | `/robots.txt`, `/sitemap.xml`, `/llms.txt` | `public, max-age=3600` | Crawler sollen Änderungen innerhalb einer Stunde sehen. |
 
-ETag setzen nginx (`etag on`), Apache (`FileETag MTime Size`) und Cloudflare Pages selbst. Komprimiert werden `html`, `js`, `mjs`, `wasm`, `json`, `css`, `svg`, `txt`, `xml` und das Manifest. Wichtig sind die MIME-Typen `application/wasm` für `.wasm` und ein JavaScript-Typ für `.mjs`. Die mitgelieferten Konfigurationen setzen beides.
+ETag setzen nginx (`etag on`), Apache (`FileETag MTime Size`) und Cloudflare Pages selbst. Komprimiert werden `html`, `js`, `mjs`, `wasm`, `json`, `css`, `svg`, `txt`, `xml`, das Manifest, Schriften (`otf`, `ttf`) und `application/octet-stream`. Letzteres ist wichtig: `assets/NOTICES` (1,4 MB, ohne Dateiendung) und `AssetManifest.bin` liefern nginx und Apache als `octet-stream`, ohne den Eintrag blieben sie unkomprimiert. Brotli: Cloudflare Pages komprimiert selbst (Brotli und gzip). Bei nginx und Apache ist Brotli ein optionales Modul (Anleitung in den Hosting-Dokumenten). Ohne Modul gilt gzip, das reicht als Mindeststand. Wichtig sind die MIME-Typen `application/wasm` für `.wasm` und ein JavaScript-Typ für `.mjs`. Die mitgelieferten Konfigurationen setzen beides.
 
 ## Routing
 
@@ -59,7 +63,7 @@ Die App nutzt Pfad-URLs. Alle Pfade ohne Dateiendung liefern `index.html`. Pfade
 Die CSP erlaubt nur die eigene Herkunft, dazu gezielt:
 
 - Skripte: `'self'` und `'wasm-unsafe-eval'` (nötig, damit der Browser das Wasm-Modul kompiliert). Kein `unsafe-inline`, kein `unsafe-eval`.
-- Stile: `'self'` und `'unsafe-inline'`, weil Flutter-Web Inline-Stile setzt.
+- Stile: `'self'` und `'unsafe-inline'`. **Dokumentierte Ausnahme:** Die Flutter-Engine setzt zur Laufzeit Inline-Stile (`style`-Attribute an `flt-*`-Elementen), und die statische Startseite bringt ein eigenes `<style>`. Beides lässt sich ohne Nonce oder Hash nicht erlauben, und ein Nonce pro Antwort geht bei statischem Hosting nicht. Das Risiko ist begrenzt, weil `script-src` kein `unsafe-inline` hat: Wer Stile einschleust, führt dadurch keinen Code aus. Wird die Ausnahme eng, wäre der Weg ein Hash für das Start-`<style>` und, sobald die Engine es erlaubt, der Verzicht auf `unsafe-inline`. Vor jedem Flutter-Update neu prüfen.
 - Bilder und Abrufe: `api.laut.fm` (auch `wss:`), `itunes.apple.com`, `*.mzstatic.com` (Cover), `cdn.linefm.de` (Senderlogos), `assets.laut.fm`, `radiogruppe.de` (RadioGruppe-Logo).
 - Audio: `*.laut.fm` (Streams laufen über `<sender>.stream.laut.fm`).
 - Zusätzlich je nach Konfiguration die Telemetrie-Domains.
@@ -77,5 +81,17 @@ curl -sI https://app.linefm.de/ | grep -iE 'content-security|strict-transport|et
 curl -sI https://app.linefm.de/main.*.dart.wasm   # Dateinamen aus asset-manifest.txt nehmen
 curl -sI -H 'If-None-Match: <etag>' https://app.linefm.de/   # erwartet 304
 ```
+
+## Größe des Ausrollordners und Startsatz (gemessen)
+
+Messung am 19.11.2026 mit `flutter build web --release --wasm --no-web-resources-cdn`, Postbuild vorher und nachher, lokal ohne Kompression:
+
+| | vorher | nachher |
+|---|---|---|
+| Ausrollordner (Bytes) | 49 527 699 (84 Dateien) | 33 342 939 (70 Dateien) |
+| Start in Chromium mit Wasm (übertragen, Bytes) | 8 206 471 | 8 206 295 |
+| Start in Chromium mit erzwungenem dart2js-Rückfall (Bytes) | 10 604 659 | 10 604 483 |
+
+Der Startsatz bleibt gleich, weil der Browser die entfernten Dateien nie geladen hat. Der Gewinn liegt bei Deploy-Zeit, Speicher und Cache-Größe. Beide Startwege laufen nach dem Postbuild ohne 404 und ohne Seitenfehler, geprüft mit Playwright in Chromium (Rückfall erzwungen, indem `WebAssembly.validate` auf `false` gesetzt wird). Firefox und Safari wurden nicht geprüft. Ihr Rückfall nutzt `canvaskit/canvaskit.wasm`, die Datei bleibt erhalten.
 
 Danach [Mozilla HTTP Observatory](https://developer.mozilla.org/en-US/observatory) und SSL Labs laufen lassen. Ziel ist A+ bei beiden. Die Messung am echten Host erfolgt nach dem ersten Deploy.

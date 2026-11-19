@@ -1,23 +1,23 @@
-LINEFM Radio fuer macOS - so oeffnest du die App beim ersten Start
-===================================================================
+LINEFM Radio für macOS - so öffnest du die App beim ersten Start
+================================================================
 
-Diese Version ist nicht von Apple notarisiert. macOS (Gatekeeper) zeigt
-deshalb beim ersten Start eine Warnung wie "LINEFM Radio kann nicht geoeffnet
-werden, da Apple nicht pruefen kann, ob die App frei von Schadsoftware ist".
-Das ist erwartet. Die App ist in Ordnung und ist unveraendert aus dem
+Diese Version ist nicht von Apple notarisiert. macOS (der Schutz heißt Gatekeeper) zeigt
+deshalb beim ersten Start eine Warnung wie "LINEFM Radio kann nicht geöffnet
+werden, da Apple nicht prüfen kann, ob die App frei von Schadsoftware ist".
+Das ist erwartet. Die App ist in Ordnung und ist unverändert aus dem
 offiziellen Release.
 
 1. Ziehe "LINEFM Radio" in den Ordner "Programme" (Applications).
-2. Starte die App aus dem Ordner "Programme". Die Warnung erscheint, schliesse sie mit "Fertig".
-3. Oeffne Systemeinstellungen > Datenschutz & Sicherheit.
+2. Starte die App aus dem Ordner "Programme". Die Warnung erscheint, schließe sie mit "Fertig".
+3. Öffne Systemeinstellungen > Datenschutz & Sicherheit.
 4. Scrolle zu "Sicherheit". Dort steht, dass "LINEFM Radio" blockiert wurde.
-   Klicke auf "Trotzdem oeffnen" und bestaetige mit deinem Passwort oder Touch ID.
+   Klicke auf "Trotzdem öffnen" und bestätige mit deinem Passwort oder Touch ID.
 5. Ab jetzt startet die App normal.
 
-Hinweis: Bis macOS 14 reichte Rechtsklick > "Oeffnen". Ab macOS 15 (Sequoia)
-geht das nur noch ueber Systemeinstellungen wie oben.
+Hinweis: Bis macOS 14 reichte Rechtsklick > "Öffnen". Ab macOS 15 (Sequoia)
+geht das nur noch über Systemeinstellungen wie oben.
 
-Alternative per Terminal (entfernt die Quarantaene-Markierung):
+Alternative per Terminal (entfernt die Quarantäne-Markierung):
 
     xattr -dr com.apple.quarantine "/Applications/LINEFM Radio.app"
 

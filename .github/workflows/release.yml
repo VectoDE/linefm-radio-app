@@ -173,3 +173,97 @@ jobs:
             --notes-file "$NOTES_FILE" \
             --verify-tag \
             "${flags[@]}"
+
+  # Store- und Deploy-Pipelines (P27). Jede ruft nur das auf, wofuer Secrets/Variablen
+  # gesetzt sind; sonst wird sauber uebersprungen. Die Release-Dateien stammen aus dem
+  # eben angelegten GitHub-Release.
+  google-play:
+    name: Google Play
+    needs: publish
+    uses: ./.github/workflows/store-google.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets:
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+    permissions:
+      contents: read
+
+  snap-store:
+    name: Snap Store
+    needs: publish
+    uses: ./.github/workflows/store-snap.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets:
+      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+    permissions:
+      contents: read
+
+  microsoft-store:
+    name: Microsoft Store
+    needs: publish
+    if: ${{ !contains(github.ref_name, '-') }}
+    uses: ./.github/workflows/store-microsoft.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets:
+      MS_STORE_TENANT_ID: ${{ secrets.MS_STORE_TENANT_ID }}
+      MS_STORE_SELLER_ID: ${{ secrets.MS_STORE_SELLER_ID }}
+      MS_STORE_CLIENT_ID: ${{ secrets.MS_STORE_CLIENT_ID }}
+      MS_STORE_CLIENT_SECRET: ${{ secrets.MS_STORE_CLIENT_SECRET }}
+      FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
+    permissions:
+      contents: read
+
+  flathub-prep:
+    name: Flathub-Vorbereitung
+    needs: publish
+    if: ${{ !contains(github.ref_name, '-') }}
+    uses: ./.github/workflows/flathub-prep.yml
+    with:
+      tag: ${{ github.ref_name }}
+    permissions:
+      contents: read
+
+  apple-stores:
+    name: Apple (TestFlight, Mac App Store)
+    needs: publish
+    if: ${{ !contains(github.ref_name, '-') }}
+    uses: ./.github/workflows/store-apple.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets:
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_DISTRIBUTION_CERT_P12_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERT_P12_BASE64 }}
+      APPLE_DISTRIBUTION_CERT_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_CERT_PASSWORD }}
+      APPLE_MAC_INSTALLER_CERT_P12_BASE64: ${{ secrets.APPLE_MAC_INSTALLER_CERT_P12_BASE64 }}
+      APPLE_MAC_INSTALLER_CERT_PASSWORD: ${{ secrets.APPLE_MAC_INSTALLER_CERT_PASSWORD }}
+      APPLE_IOS_PROVISIONING_PROFILES_BASE64: ${{ secrets.APPLE_IOS_PROVISIONING_PROFILES_BASE64 }}
+      APPLE_MACOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_MACOS_PROVISIONING_PROFILE_BASE64 }}
+      APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+      APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+      FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
+    permissions:
+      contents: read
+
+  deploy-web:
+    name: Web-Deploy
+    needs: publish
+    if: ${{ !contains(github.ref_name, '-') }}
+    uses: ./.github/workflows/deploy-web.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      PLESK_SSH_HOST: ${{ secrets.PLESK_SSH_HOST }}
+      PLESK_SSH_USER: ${{ secrets.PLESK_SSH_USER }}
+      PLESK_SSH_KEY: ${{ secrets.PLESK_SSH_KEY }}
+      PLESK_SSH_KNOWN_HOSTS: ${{ secrets.PLESK_SSH_KNOWN_HOSTS }}
+    permissions:
+      contents: read

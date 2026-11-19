@@ -3,10 +3,13 @@
 Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI sowie Radio3FM und FobFM. Ein Angebot von RadioGruppe Deutschland. Gebaut mit Flutter (ein Framework von Google) für Android, iOS, Windows, macOS, Linux und das Web.
 
 <!--
-Badges: Es stehen hier bewusst keine. Sie kommen erst, wenn sie echt sind:
-- CI-Status: nach dem Merge der Workflows (.github/workflows/ci.yml), aktuell offen in PR #34.
-- OpenSSF Scorecard: nach dem ersten Lauf von scorecard.yml, bei privatem Repo nicht aussagekräftig.
-- OpenSSF Best Practices: erst nach Eintrag auf bestpractices.dev. Die FLOSS-Lizenz-Anforderung ist bei "Alle Rechte vorbehalten" nicht erfüllbar.
+Badges: Es stehen hier bewusst keine. Sie kommen erst, wenn sie echt und für Leser sichtbar sind:
+- CI, Barrierefreiheit (a11y.yml), Lieferkette: Die Workflows laufen seit dem Merge von PR #34 (19.11.2026).
+  Solange das Repository privat ist, zeigt GitHub die Status-Badges nur angemeldeten Mitgliedern,
+  alle anderen sähen ein kaputtes Bild. Einfügen, sobald das Repo öffentlich ist.
+- OpenSSF Scorecard: braucht ein öffentliches Repository, vorher gibt es kein Ergebnis auf scorecard.dev.
+- OpenSSF Best Practices: erst nach Eintrag auf bestpractices.dev. Die FLOSS-Lizenz-Anforderung ist bei
+  "Alle Rechte vorbehalten" nicht erfüllbar, "passing" ist damit ausgeschlossen.
 -->
 
 **Stand:** in Entwicklung, Version 1.0.0. Noch in keinem Store veröffentlicht. Die Web-Version ist für `https://app.linefm.de` vorgesehen.
@@ -16,8 +19,12 @@ Badges: Es stehen hier bewusst keine. Sie kommen erst, wenn sie echt sind:
 | Ich bin ... | Ich will ... | Weiter bei |
 |---|---|---|
 | Hörerin oder Hörer | wissen, was die App kann | [Für Hörer](#für-hörer) |
+| Mensch mit Screenreader, Tastatur oder Vergrößerung | wissen, was geht und was nicht | [Barrierefreiheit](#barrierefreiheit) |
+| Entscheider | Stand, Kosten, Risiken auf einen Blick | [Für Entscheider](#für-entscheider) |
 | Betreiber (jaybelife) | Konten einrichten und freigeben | [Für Betreiber](#für-betreiber) |
+| Neu im Code | zum ersten Mal bauen | [Erste Schritte](#erste-schritte) |
 | Entwickler | bauen, testen, erweitern | [Für Entwickler](#für-entwickler) |
+| Unsicher, wohin mit der Frage | Hilfe finden | [SUPPORT.md](SUPPORT.md) |
 
 ## Für Hörer
 
@@ -36,6 +43,18 @@ Datenschutz: Favoriten, Verlauf und Einstellungen bleiben auf deinem Gerät. Sta
 
 Fehler melden und Ideen: im Bereich Issues oder Discussions dieses Repositories.
 
+## Barrierefreiheit
+
+Die App lässt sich mit Tastatur bedienen, alle Bereiche sind für Screenreader ausgezeichnet, hell und dunkel erreichen die Texte mindestens 4,5:1 Kontrast. Jeder Pull Request lässt axe-core über die Web-Version laufen (Workflow `a11y.yml`); bei einem schweren Fund schlägt der Lauf fehl. Mit echten Screenreadern (TalkBack, VoiceOver, NVDA) ist die App noch nicht geprüft. Was geht, was fehlt und wie du uns erreichst: [Erklärung zur Barrierefreiheit](docs/BARRIEREFREIHEIT.md).
+
+## Für Entscheider
+
+- **Stand:** Version 1.0.0 fertig gebaut, noch in keinem Store. Was vor dem Start fehlt, sind Konten, Zugangsdaten und schriftliche Freigaben des Betreibers, keine Programmierarbeit: [Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md).
+- **Laufende Kosten:** kein eigenes Backend, keine Nutzerkonten. Es fallen nur Store-Gebühren (Google Play einmalig, Apple jährlich, falls später gewünscht) und das Web-Hosting an. Die Sender kommen über die öffentliche laut.fm-API.
+- **Daten:** Ohne aktivierte Statistik schickt die App von sich aus nur Anfragen an laut.fm und, abschaltbar, an Apple für Cover. Statistik und Absturzberichte nur nach Einwilligung, siehe [Telemetrie](docs/telemetry.md).
+- **Prüfbarkeit:** Jedes Release hat Prüfsummen, eine SBOM und, sobald das Repository öffentlich ist, eine Herkunfts-Attestierung: [Release-Dateien prüfen](docs/RELEASE-VERIFIZIEREN.md).
+- **Risiken:** Abhängigkeit von laut.fm als einziger Datenquelle; Marken- und Rechtsfragen (Name, Logo, Rechtstexte) klärt der Betreiber mit einem Anwalt, bevor etwas veröffentlicht wird.
+
 ## Für Betreiber
 
 Du musst keinen Code anfassen. Was du tun musst, steht in zwei Listen:
@@ -43,9 +62,22 @@ Du musst keinen Code anfassen. Was du tun musst, steht in zwei Listen:
 1. **[Einrichtung](docs/EINRICHTUNG.md):** Konten und Zugangsdaten für Google Play, Microsoft Store, Flathub, Snap Store, Web-Hosting, Statistik, später Apple. Alles als Checkboxen, Schritt für Schritt.
 2. **[Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md):** Was du vor dem Start schriftlich bestätigst (Marke, Name, Icon, Rechtstexte, laut.fm, Übergabe) und welche Gerätetests laufen.
 
+Welches Secret wohin gehört, steht gesammelt in [docs/secrets.md](docs/secrets.md). Wie die Store-Abläufe zusammenhängen und in welcher Reihenfolge du sie zum ersten Mal startest: [docs/stores-pipelines.md](docs/stores-pipelines.md).
+
 Hosting der Web-Version: [Überblick](docs/hosting-uebersicht.md) mit Anleitungen für [nginx](docs/hosting-nginx.md), [Traefik](docs/hosting-traefik.md), [Cloudflare Pages](docs/hosting-cloudflare.md) und [Plesk](docs/hosting-plesk.md). Statistik und Absturzberichte: [Telemetrie](docs/telemetry.md).
 
 Verteilung: Google Play, Microsoft Store, Flathub, Snap Store und GitHub Releases (Installer, APK, unsigniertes macOS-DMG mit [Öffnen-Anleitung](packaging/macos/LIES-MICH-ZUERST.txt)). Apple App Store und Mac App Store sind bewusst zurückgestellt, der Code ist dafür vorbereitet. Übersicht der Pakete: [packaging/README.md](packaging/README.md).
+
+## Erste Schritte
+
+Du brauchst [Flutter 3.50](https://docs.flutter.dev/get-started/install) und Git. Für Android zusätzlich Android Studio, für Windows Visual Studio mit C++ und Rust.
+
+1. Repository klonen und im Ordner `flutter pub get` ausführen.
+2. `config/app.example.json` nach `config/app.json` kopieren. Die Vorlage reicht zum Starten, Statistik bleibt aus.
+3. `flutter run -d chrome --dart-define-from-file=config/app.json` startet die Web-Version im Browser.
+4. Vor einem Pull Request: `dart format .`, `flutter analyze --fatal-infos` und `flutter test` müssen ohne Fehler durchlaufen.
+
+Hängt etwas, steht die Lösung oft in [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md), sonst frag in den Discussions ([SUPPORT.md](SUPPORT.md)). Wie wir miteinander umgehen: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Für Entwickler
 
@@ -72,10 +104,15 @@ flutter run -d chrome
 | [docs/hosting-uebersicht.md](docs/hosting-uebersicht.md) | Web-Hosting, Cache, Header |
 | [docs/STORE-TEXTE.md](docs/STORE-TEXTE.md) | Texte für Play, Microsoft Store, Snap, Flathub, Tester-Einladung |
 | [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md) | Erklärung zur Barrierefreiheit (Entwurf) |
+| [docs/secrets.md](docs/secrets.md) | Alle Secrets und Variablen der Abläufe |
+| [docs/stores-pipelines.md](docs/stores-pipelines.md) | Store- und Deploy-Abläufe, Erstveröffentlichung |
+| [docs/RELEASE-VERIFIZIEREN.md](docs/RELEASE-VERIFIZIEREN.md) | Downloads prüfen: Prüfsummen, SBOM, Signaturen |
 | [docs/LIZENZEN-DRITTE.md](docs/LIZENZEN-DRITTE.md) | Lizenzen von libmpv, FFmpeg und weiteren Bausteinen |
 | [SECURITY.md](SECURITY.md) | Sicherheitslücke melden |
 | [CHANGELOG.md](CHANGELOG.md) | Änderungen je Version |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Mitarbeiten |
+| [SUPPORT.md](SUPPORT.md) | Wo du Hilfe bekommst |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Verhaltensregeln |
 | [docs/telemetry.md](docs/telemetry.md) | Statistik, Absturzberichte, Selbsthosting |
 | [packaging/README.md](packaging/README.md) | Installer, Store-Pakete, Signierung |
 

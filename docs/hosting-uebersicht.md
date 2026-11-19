@@ -17,7 +17,7 @@ dart run tool/web_postbuild.dart build/web
 
 - `--wasm`: Browser mit WasmGC laden `main.<hash>.dart.wasm`, alle anderen fallen automatisch auf `main.<hash>.dart.js` zurück.
 - `--no-web-resources-cdn`: CanvasKit und Schriften kommen vom eigenen Server, nicht von `gstatic.com`. Dadurch gehen keine IP-Adressen an Google, und die CSP braucht keine Fremd-Skripte.
-- Ersatzschriften (L14): Für Zeichen, die Poppins und Syncopate nicht kennen (Emoji, Kyrillisch, Griechisch, CJK, Symbole), lädt die Engine Noto-Schriften von `fontFallbackBaseUrl`. Das Bootstrap setzt dafür `assets/fonts/fallback/`. Nach `flutter build web` und vor dem Postbuild legt `dart run tool/fetch_font_fallback.dart build/web` die Dateien dort ab: 728 Dateien, rund 9 MiB ohne CJK und 25 MiB CJK. Jede Datei wird gegen die Prüfsumme aus `tool/font_fallback.lock.json` geprüft. Ausgeliefert wird nur, was ein Text wirklich braucht; ein Besucher mit deutschen Songtiteln lädt keine dieser Dateien. Wer Platz sparen muss, nimmt `--groups core`, dann fehlen nur chinesische, japanische und koreanische Zeichen. Nach jedem Flutter-Update `--check-sdk` laufen lassen und bei Abweichung `--update-lock`; die CI bricht mit `--strict` ab, wenn die Liste nicht mehr zum SDK passt. Fehlt der Ordner, warnt der Postbuild (mit `--strict` bricht er ab).
+- Ersatzschriften (L14): Für Zeichen, die Poppins und Syncopate nicht kennen (Emoji, Kyrillisch, Griechisch, CJK, Symbole), lädt die Engine Noto-Schriften von `fontFallbackBaseUrl`. Das Bootstrap setzt dafür `assets/fonts/fallback/`. Nach `flutter build web` und vor dem Postbuild legt `dart run tool/fetch_font_fallback.dart build/web` die Dateien dort ab: 728 Schriftdateien aus der Sperrdatei, 9,2 MiB ohne CJK und 25,2 MiB CJK (34,4 MiB). Mit `OFL.txt` und dem von Flutter selbst abgelegten `Roboto-Regular.ttf` liegen im Ordner 730 Dateien mit 34,6 MiB. Fehlt `assets/fonts/OFL.txt`, bricht das Werkzeug ab; der Postbuild prüft ebenfalls, dass neben den Schriften `OFL.txt` liegt. Jede Datei wird gegen die Prüfsumme aus `tool/font_fallback.lock.json` geprüft. Ausgeliefert wird nur, was ein Text wirklich braucht; ein Besucher mit deutschen Songtiteln lädt keine dieser Dateien. Wer Platz sparen muss, nimmt `--groups core`, dann fehlen nur chinesische, japanische und koreanische Zeichen. Nach jedem Flutter-Update `--check-sdk` laufen lassen und bei Abweichung `--update-lock`; die CI bricht mit `--strict` ab, wenn die Liste nicht mehr zum SDK passt. Fehlt der Ordner, warnt der Postbuild (mit `--strict` bricht er ab).
 - `web_postbuild.dart` macht Folgendes (Details im Kopf der Datei):
   1. Hängt einen Inhalts-Hash an `main.dart.js/.wasm/.mjs` und trägt die neuen Namen im Bootstrap ein.
   2. Verschiebt `canvaskit/` nach `canvaskit/<engineRevision>/`, damit auch diese Dateien dauerhaft gecacht werden dürfen.
@@ -34,7 +34,7 @@ Wichtig: **Nach jeder Änderung der Telemetrie-Einstellungen neu bauen und die g
 
 ### Ersatzschriften: CJK-Gruppe bleibt (Abwägung)
 
-Gemessen am Build vom 19.11.2026 (`build/web/assets/fonts/fallback/`): 730 Dateien mit 34,6 MiB. Davon gehören 568 Dateien mit 25,2 MiB zur CJK-Gruppe (Noto Sans SC, TC, HK, JP, KR). Die größte einzelne Datei hat 4,0 MiB. Der ganze Ausrollordner hat 799 Dateien.
+Gemessen am Build vom 19.11.2026 (`build/web/assets/fonts/fallback/`): 730 Dateien mit 34,6 MiB (728 Schriften, `OFL.txt`, `Roboto-Regular.ttf`). Davon gehören 568 Dateien mit 25,2 MiB zur CJK-Gruppe (Noto Sans SC, TC, HK, JP, KR). Die größte einzelne Datei hat 4,0 MiB. Der ganze Ausrollordner hat mit Ersatzschriften 799 Dateien und 69,8 MB.
 
 Entscheidung: Die CJK-Gruppe bleibt im Build.
 
@@ -99,7 +99,7 @@ curl -sI -H 'If-None-Match: <etag>' https://app.linefm.de/   # erwartet 304
 
 ## Größe des Ausrollordners und Startsatz (gemessen)
 
-Messung am 19.11.2026 mit `flutter build web --release --wasm --no-web-resources-cdn`, Postbuild vorher und nachher, lokal ohne Kompression:
+Messung am 19.11.2026 mit `flutter build web --release --wasm --no-web-resources-cdn`, Postbuild vorher und nachher, lokal ohne Kompression, **ohne** Ersatzschriften (die kommen mit 730 Dateien und 34,6 MiB dazu, siehe oben):
 
 | | vorher | nachher |
 |---|---|---|

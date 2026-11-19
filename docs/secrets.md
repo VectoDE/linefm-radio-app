@@ -126,6 +126,11 @@ Diese Variablen schreibt die CI in `config/app.json`. Sie landen im fertigen Pro
 | `TRUST_GRIDINSOFT_URL`, `TRUST_TRUSTPILOT_URL` | Variable | Profil-Links für die Vertrauens-Badges (optional) |
 | `LEGAL_VALUES_JSON` | Variable | JSON mit den Impressums-/Datenschutz-Platzhaltern, siehe EINRICHTUNG Abschnitt 9 |
 | `FIREBASE_CONFIG_JSON` | Secret, optional | JSON mit `FIREBASE_*`-Schlüsseln (aktiviert Firebase) |
+| `ANDROID_CERT_SHA256` | Variable, optional | SHA-256 des App-Signaturzertifikats aus der Play Console (Einstellungen > App-Integrität), Form `AA:BB:…` (32 Byte), mehrere kommagetrennt. Der Web-Postbuild setzt ihn in `/.well-known/assetlinks.json` ein; ohne Wert fehlt die Datei. Erst danach `autoVerify` im Manifest einschalten. Nicht in `config/app.json`. |
+
+`APPLE_TEAM_ID` (Secret, siehe Apple) füllt zusätzlich `/.well-known/apple-app-site-association` für die Universal Links.
+
+Für die Store-Prüfung der Rechtstexte gilt: Ist Telemetrie aktiv (`UMAMI_*`, `SENTRY_DSN` oder `FIREBASE_CONFIG_JSON` gesetzt), sind in `LEGAL_VALUES_JSON` auch `TELEMETRIE_AUFBEWAHRUNG` und der Betreiber des jeweiligen Dienstes (`UMAMI_BETREIBER`, `SENTRY_BETREIBER`) Pflicht. Leere Werte zählen als offen.
 
 ## Sicherheitsregeln der Abläufe
 

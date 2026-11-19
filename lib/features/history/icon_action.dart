@@ -1,6 +1,7 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
+import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -84,11 +85,7 @@ class _IconActionState extends State<IconAction> {
     );
 
     if (widget.tooltip) {
-      button = Tooltip(
-        message: widget.label,
-        excludeFromSemantics: true,
-        child: button,
-      );
+      button = QuietTooltip(message: widget.label, child: button);
     }
 
     // Umschalter wie `SettingsSwitch`: Schalter-Rolle (toggled), KEINE

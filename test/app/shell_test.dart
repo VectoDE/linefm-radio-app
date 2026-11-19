@@ -9,11 +9,17 @@ import 'package:linefm_radio/features/mini_player/mini_player.dart';
 import 'package:linefm_radio/features/player/player_screen.dart';
 import 'package:linefm_radio/features/settings/settings_screen.dart';
 import 'package:linefm_radio/features/storage_notice/storage_notice.dart';
+import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'app_host.dart';
 
 const _noAutoplay = AppSettings(autoplay: false);
+
+/// Knopf mit [QuietTooltip] (der Material-Finder `byTooltip` kennt nur
+/// Tooltips mit Semantik).
+Finder _byQuietTooltip(String message) =>
+    find.byWidgetPredicate((w) => w is QuietTooltip && w.message == message);
 
 void main() {
   group('Sprache', () {
@@ -51,7 +57,7 @@ void main() {
       await pumpApp(tester, host);
 
       expect(find.text('LINEFM'), findsOneWidget);
-      expect(find.byTooltip('Einstellungen'), findsOneWidget);
+      expect(_byQuietTooltip('Einstellungen'), findsOneWidget);
       for (final label in <String>['SENDER', 'PLAYER', 'VERLAUF']) {
         expect(find.text(label), findsOneWidget);
       }
@@ -100,7 +106,7 @@ void main() {
         hasLength(1),
       );
 
-      await tester.tap(find.byTooltip('Einstellungen'));
+      await tester.tap(_byQuietTooltip('Einstellungen'));
       await settleApp(tester);
       expect(find.byType(SettingsScreen), findsOneWidget);
 
@@ -206,8 +212,8 @@ void main() {
         await tester.sendKeyEvent(LogicalKeyboardKey.tab);
         await tester.pump();
         final context = FocusManager.instance.primaryFocus?.context;
-        final tooltip = context?.findAncestorWidgetOfExactType<Tooltip>();
-        if (tooltip?.message != null) tooltips.add(tooltip!.message!);
+        final tooltip = context?.findAncestorWidgetOfExactType<QuietTooltip>();
+        if (tooltip != null) tooltips.add(tooltip.message);
       }
       expect(tooltips, contains('Einstellungen'));
       await disposeApp(tester, host);

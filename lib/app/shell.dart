@@ -30,6 +30,7 @@ import 'package:linefm_radio/ui/theme/breakpoints.dart';
 import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -736,17 +737,24 @@ class _Header extends ConsumerWidget {
           const Spacer(),
           FavoritesHeaderButton(color: tint),
           const SizedBox(width: 4),
-          IconButton(
-            tooltip: l10n.settingsButton,
-            onPressed: () {
-              final nav = ref.read(navigationProvider.notifier);
-              if (ref.read(navigationProvider) == AppScreen.settings) {
-                nav.back();
-              } else {
-                nav.go(AppScreen.settings);
-              }
-            },
-            icon: FaIcon(FontAwesomeIcons.gear, size: 18, color: tint),
+          QuietTooltip(
+            message: l10n.settingsButton,
+            child: IconButton(
+              onPressed: () {
+                final nav = ref.read(navigationProvider.notifier);
+                if (ref.read(navigationProvider) == AppScreen.settings) {
+                  nav.back();
+                } else {
+                  nav.go(AppScreen.settings);
+                }
+              },
+              icon: FaIcon(
+                FontAwesomeIcons.gear,
+                size: 18,
+                color: tint,
+                semanticLabel: l10n.settingsButton,
+              ),
+            ),
           ),
         ],
       ),

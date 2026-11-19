@@ -11,6 +11,7 @@ import 'package:linefm_radio/features/settings/platform_info.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:linefm_radio/ui/widgets/section_heading.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:linefm_radio/ui/widgets/volume_steps.dart';
@@ -368,10 +369,15 @@ class _AlarmCard extends StatelessWidget {
                     onChanged: (v) => onChanged(rule.copyWith(enabled: v)),
                   ),
                 ),
-                IconButton(
-                  tooltip: l10n.alarmDeleteAt(time),
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: onDelete,
+                QuietTooltip(
+                  message: l10n.alarmDeleteAt(time),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.delete_outline,
+                      semanticLabel: l10n.alarmDeleteAt(time),
+                    ),
+                    onPressed: onDelete,
+                  ),
                 ),
               ],
             ),

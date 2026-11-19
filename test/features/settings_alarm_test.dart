@@ -17,6 +17,7 @@ import 'package:linefm_radio/features/settings/sleep_timer_row.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations_de.dart';
 import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
 import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
+import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'feature_host.dart';
@@ -63,6 +64,11 @@ class _RecordingAlarms implements AlarmCoordinator {
   @override
   Future<void> dismiss(String ruleId) async {}
 }
+
+/// Knopf mit [QuietTooltip] (der Material-Finder `byTooltip` kennt nur
+/// Tooltips mit Semantik).
+Finder _byQuietTooltip(String message) =>
+    find.byWidgetPredicate((w) => w is QuietTooltip && w.message == message);
 
 void main() {
   final l10n = AppLocalizationsDe();
@@ -446,7 +452,7 @@ void main() {
       expect(host.prefs.readAlarms().single.weekdays, <int>{1, 3});
       expect(find.text('Mo, Mi'), findsOneWidget);
 
-      await tester.tap(find.byTooltip('Wecker 07:00 löschen'));
+      await tester.tap(_byQuietTooltip('Wecker 07:00 löschen'));
       await tester.pumpAndSettle();
       expect(host.prefs.readAlarms(), isEmpty);
       expect(alarms.calls.last, isEmpty);

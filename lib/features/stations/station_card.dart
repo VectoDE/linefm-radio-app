@@ -6,6 +6,7 @@ import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
 import 'package:linefm_radio/ui/widgets/marquee_text.dart';
+import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:linefm_radio/ui/widgets/station_art.dart';
 import 'package:material_ui/material_ui.dart';
@@ -271,27 +272,29 @@ class _FavoriteStar extends StatelessWidget {
         onFocus: onFocus,
         child: child,
       ),
-      child: IconButton(
-        key: const ValueKey<String>('station-favorite-star'),
-        tooltip: tooltip.isEmpty ? null : tooltip,
-        onPressed: onPressed,
-        iconSize: 18,
-        style: IconButton.styleFrom(
-          minimumSize: const Size(48, 48),
-          fixedSize: const Size(48, 48),
-          padding: EdgeInsets.zero,
-        ),
-        icon: AnimatedSwitcher(
-          duration: MediaQuery.disableAnimationsOf(context)
-              ? Duration.zero
-              : const Duration(milliseconds: 180),
-          transitionBuilder: (child, animation) =>
-              ScaleTransition(scale: animation, child: child),
-          child: FaIcon(
-            favorite ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
-            key: ValueKey<bool>(favorite),
-            size: 18,
-            color: favorite ? activeColor : idleColor,
+      child: QuietTooltip(
+        message: tooltip,
+        child: IconButton(
+          key: const ValueKey<String>('station-favorite-star'),
+          onPressed: onPressed,
+          iconSize: 18,
+          style: IconButton.styleFrom(
+            minimumSize: const Size(48, 48),
+            fixedSize: const Size(48, 48),
+            padding: EdgeInsets.zero,
+          ),
+          icon: AnimatedSwitcher(
+            duration: MediaQuery.disableAnimationsOf(context)
+                ? Duration.zero
+                : const Duration(milliseconds: 180),
+            transitionBuilder: (child, animation) =>
+                ScaleTransition(scale: animation, child: child),
+            child: FaIcon(
+              favorite ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
+              key: ValueKey<bool>(favorite),
+              size: 18,
+              color: favorite ? activeColor : idleColor,
+            ),
           ),
         ),
       ),

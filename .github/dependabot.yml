@@ -1,0 +1,54 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /.github/actions/*
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Berlin
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: ci
+    labels:
+      - dependencies
+      - ci
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: pub
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Berlin
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build
+    labels:
+      - dependencies
+    open-pull-requests-limit: 10
+    groups:
+      pub-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: gradle
+    directory: /android
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Berlin
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build
+    labels:
+      - dependencies
+      - android
+    groups:
+      gradle-minor-patch:
+        update-types: [minor, patch]

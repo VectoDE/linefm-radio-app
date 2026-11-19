@@ -1,0 +1,91 @@
+name: OpenSSF Scorecard
+
+# Privates Repo: Ergebnisse werden nicht veroeffentlicht (publish_results nur fuer
+# oeffentliche Repos), sondern als JSON-Artefakt plus Job-Zusammenfassung abgelegt.
+# Sobald das Repo oeffentlich ist, laeuft automatisch SARIF + Code Scanning + Badge-Daten.
+# Der Analyse-Job enthaelt bewusst keine run-Schritte und kein env (Vorgabe der
+# Scorecard-Workflow-Pruefung bei publish_results).
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 4 * * 1"
+  branch_protection_rule:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  analysis:
+    name: Scorecard-Analyse
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+      id-token: write
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scorecard ausfuehren
+        uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
+        with:
+          results_file: ${{ github.event.repository.private && 'scorecard.json' || 'scorecard.sarif' }}
+          results_format: ${{ github.event.repository.private && 'json' || 'sarif' }}
+          # Optionaler Fine-grained-PAT (read-only) fuer Checks wie Branch-Protection.
+          repo_token: ${{ secrets.SCORECARD_TOKEN || github.token }}
+          publish_results: ${{ !github.event.repository.private }}
+
+      - name: Ergebnis als Artefakt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: scorecard-results
+          path: scorecard.*
+          retention-days: 30
+
+      - name: SARIF an Code Scanning
+        if: ${{ !github.event.repository.private }}
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: scorecard.sarif
+
+  summary:
+    name: Scorecard-Zusammenfassung
+    needs: analysis
+    if: ${{ github.event.repository.private }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Ergebnis holen
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: scorecard-results
+
+      - name: Tabelle schreiben
+        run: |
+          set -euo pipefail
+          score=$(jq -r '.score' scorecard.json)
+          {
+            echo "### OpenSSF Scorecard (privat, nicht veroeffentlicht): ${score} / 10"
+            echo ""
+            echo "| Check | Wert | Begruendung |"
+            echo "|---|---|---|"
+            jq -r '.checks | sort_by(.score) | .[] | "| \(.name) | \(.score) | \(.reason | gsub("\\|"; "/")) |"' scorecard.json
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -10,6 +10,11 @@
 //                 3. "Erlauben" -> gtm.js wird angefordert (im Test abgefangen
 //                    und verworfen, es geht nichts ins Netz), nach Neuladen
 //                    sofort wieder (gespeicherte Zustimmung).
+//                 4. Widerrufen in den Einstellungen (selbe Sitzung) -> _ga-/_gid-/
+//                    _gat-Cookies geloescht, Seite laedt neu, danach keine
+//                    weitere Anfrage an Google und kein neuer Dialog,
+//                 5. deny() ueber die JS-Schnittstelle setzt sofort
+//                    window['ga-disable-<ID>'] (auch fuer IDs aus _ga_<ID>).
 // Jede Anfrage an Google-Hosts wird abgebrochen, bevor sie das Netz erreicht.
 //
 // Aufruf:
@@ -119,6 +124,47 @@ async function defaultDenied(page) {
   );
 }
 
+/** Cookies, wie Google Analytics sie setzen wuerde, plus ein fremdes Kontroll-Cookie. */
+async function setGaCookies(page) {
+  await page.evaluate(() => {
+    for (const c of ['_ga=GA1.1.1.1', '_ga_COOKIE1=GS1.1.1', '_ga_TEST000000=GS1.1.1', '_gid=GA1.1.1', '_gat=1', '_gat_UA1=1', 'linefm_test=1']) {
+      document.cookie = `${c}; path=/`;
+    }
+  });
+}
+
+async function gaCookies(page) {
+  return page.evaluate(() =>
+    document.cookie
+      .split(';')
+      .map((c) => c.split('=')[0].trim())
+      .filter((n) => n === '_ga' || n.startsWith('_ga_') || n === '_gid' || n.startsWith('_gat')),
+  );
+}
+
+/** Einstellungen oeffnen (schmal: Knopf im Kopf). */
+async function openSettings(page) {
+  const name = /^Einstellungen$/i;
+  const target = page.getByRole('button', { name }).or(page.getByRole('tab', { name })).first();
+  await target.waitFor({ state: 'attached', timeout: 15_000 });
+  await target.evaluate((el) => el.click());
+  await page.waitForTimeout(1200);
+}
+
+/** Schalter "Reichweitenmessung mit Google"; scrollt, bis Flutter ihn anlegt. */
+async function findSwitch(page) {
+  const name = /Reichweitenmessung mit Google/;
+  const target = page.getByRole('switch', { name }).or(page.getByRole('checkbox', { name })).first();
+  const size = page.viewportSize();
+  for (let i = 0; i < 12 && (await target.count()) === 0; i++) {
+    await page.mouse.move(size.width / 2, size.height / 2);
+    await page.mouse.wheel(0, size.height * 0.5);
+    await page.waitForTimeout(400);
+  }
+  await target.waitFor({ state: 'attached', timeout: 15_000 });
+  return target;
+}
+
 const dialog = (page) => page.getByRole('alertdialog', { name: 'Reichweitenmessung mit Google' });
 const button = (page, name) => dialog(page).getByRole('button', { name });
 
@@ -190,6 +236,50 @@ async function main() {
         await page.waitForTimeout(1000); // Route-Handler laeuft nach dem request-Ereignis
         check(google.length > before, 'zweite Anfrage abgefangen');
         check(google.every((u) => /^https:\/\/www\.googletagmanager\.com\//.test(u)), `nur googletagmanager.com angefragt (${[...new Set(google)].join(', ')})`);
+
+        // Widerrufen in derselben Sitzung (Einstellungen): Cookies weg, Seite
+        // laedt neu, danach keine Anfrage an Google mehr.
+        await boot(page, base);
+        await setGaCookies(page);
+        await openSettings(page);
+        const toggle = await findSwitch(page);
+        check((await toggle.getAttribute('aria-checked')) === 'true', 'Schalter "Reichweitenmessung mit Google" steht auf an');
+        const reloaded = page.waitForEvent('load', { timeout: 15_000 });
+        const beforeRevoke = google.length;
+        await toggle.evaluate((el) => el.click());
+        check(await reloaded.then(() => true, () => false), 'Widerruf laedt die Seite neu (geladenes Google-Tag wird verworfen)');
+        await boot(page, base);
+        await page.waitForTimeout(4000);
+        check((await page.evaluate(() => localStorage.getItem('linefm.googleAnalytics'))) === 'denied', 'Widerruf gespeichert ("denied")');
+        const left = await gaCookies(page);
+        check(left.length === 0, `nach Widerruf keine _ga-/_gid-/_gat-Cookies (${left.join(', ')})`);
+        check(await page.evaluate(() => document.cookie.includes('linefm_test=1')), 'fremde Cookies bleiben unberuehrt');
+        check(google.length === beforeRevoke, `nach Widerruf keine weitere Anfrage an Google (${google.slice(beforeRevoke).join(', ')})`);
+        check((await dialog(page).count()) === 0, 'nach Widerruf kein erneuter Dialog');
+        await context.close();
+      }
+      // Widerruf ueber die JS-Schnittstelle: GA4 wird sofort abgeschaltet.
+      {
+        const { context } = await newContext(browser);
+        const page = await context.newPage();
+        await page.goto(base, { waitUntil: 'load' });
+        await page.evaluate(() => {
+          localStorage.setItem('linefm.googleAnalytics', 'granted');
+        });
+        await boot(page, base);
+        await page.waitForFunction(() => (window.dataLayer || []).some((e) => e && e.event === 'gtm.js'), null, { timeout: 30_000 });
+        await setGaCookies(page);
+        const state = await page.evaluate(() => {
+          window.linefmAnalytics.deny();
+          return {
+            configured: window['ga-disable-G-TEST000000'] === true,
+            fromCookie: window['ga-disable-G-COOKIE1'] === true,
+            cookies: document.cookie,
+          };
+        });
+        check(state.configured, "deny(): window['ga-disable-G-TEST000000'] = true");
+        check(state.fromCookie, 'deny(): ID aus _ga_<ID>-Cookie ebenfalls abgeschaltet');
+        check(!/(^|; )_g(a|id|at)/.test(state.cookies), `deny(): Cookies sofort geloescht (${state.cookies})`);
         await context.close();
       }
     }

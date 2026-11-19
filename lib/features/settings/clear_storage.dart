@@ -12,8 +12,9 @@ import 'package:linefm_radio/features/stations/favorite_stations.dart';
 Future<void> clearAppStorage(WidgetRef ref) async {
   await ref.read(prefsProvider).clearAll();
   await ref.read(telemetryProvider).setConsent(value: false);
-  ref.read(googleConsentProvider.notifier).reset();
   await ref.read(alarmCoordinatorProvider).rescheduleAll(const []);
+  // Zuletzt: War Google schon geladen, laedt web/analytics.js die Seite neu.
+  ref.read(googleConsentProvider.notifier).reset();
   ref
     ..invalidate(settingsProvider)
     ..invalidate(favoritesProvider)

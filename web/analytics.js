@@ -10,9 +10,12 @@
 //  - Erst grant() (Nutzer stimmt zu) setzt analytics_storage auf "granted" und
 //    laedt gtm.js (mit GTM_ID) bzw. gtag.js (nur GA4_MEASUREMENT_ID). Werbe-
 //    Kategorien (ad_*) bleiben immer "denied".
-//  - deny()/reset() setzen analytics_storage zurueck und loeschen die _ga-Cookies.
-//    Ein schon geladenes Skript laesst sich nicht entladen; beim naechsten Aufruf
-//    der Seite wird es nicht mehr geladen.
+//  - deny()/reset() setzen analytics_storage zurueck und loeschen die _ga-/_gid-/
+//    _gat-Cookies. War gtm.js bzw. gtag.js in dieser Sitzung schon geladen, wird
+//    GA4 zusaetzlich per window['ga-disable-<ID>'] abgeschaltet und die Seite
+//    neu geladen: Ein geladenes Skript laesst sich nicht entladen und koennte im
+//    Consent Mode sonst weiter cookielose Pings senden. Nach dem Neuladen gilt
+//    "denied", es wird nichts mehr von Google geladen.
 // Die Entscheidung liegt in localStorage unter KEY ("granted" | "denied"); das
 // Speichern der Entscheidung selbst ist technisch notwendig (§ 25 Abs. 2 TDDDG).
 // Die CSP erlaubt googletagmanager.com / google-analytics.com nur, wenn beim Build
@@ -86,16 +89,39 @@
     for (var i = 0; i < parts.length - 1; i++) domains.push('; domain=.' + parts.slice(i).join('.'));
     document.cookie.split(';').forEach(function (c) {
       var name = c.split('=')[0].trim();
-      if (name === '_ga' || name.indexOf('_ga_') === 0 || name === '_gid' || name === '_gat') {
+      if (name === '_ga' || name.indexOf('_ga_') === 0 || name === '_gid' || name.indexOf('_gat') === 0) {
         domains.forEach(function (d) {
           document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + d;
         });
       }
     });
   }
+  /** GA4-Mess-IDs: konfigurierte ID plus alle, die ein _ga_<ID>-Cookie verraten (GTM). */
+  function measurementIds() {
+    var ids = cfg.ga4 ? [cfg.ga4] : [];
+    document.cookie.split(';').forEach(function (c) {
+      var name = c.split('=')[0].trim();
+      if (name.indexOf('_ga_') === 0) {
+        var id = 'G-' + name.slice(4);
+        if (GA4_RE.test(id) && ids.indexOf(id) < 0) ids.push(id);
+      }
+    });
+    return ids;
+  }
   function revoke() {
     gtag('consent', 'update', { analytics_storage: 'denied' });
+    if (loaded) {
+      measurementIds().forEach(function (id) {
+        w['ga-disable-' + id] = true;
+      });
+    }
     clearCookies();
+    if (loaded) {
+      // Kurz warten, damit die App laufende Schreibvorgaenge abschliesst.
+      w.setTimeout(function () {
+        w.location.reload();
+      }, 300);
+    }
   }
 
   w.linefmAnalytics = {

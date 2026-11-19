@@ -16,6 +16,17 @@
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		D17A00000000000000000002 /* CarPlayChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17A00000000000000000001 /* CarPlayChannel.swift */; };
+		D17A00000000000000000004 /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17A00000000000000000003 /* CarPlaySceneDelegate.swift */; };
+		D17A00000000000000000006 /* AlarmNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17A00000000000000000005 /* AlarmNotifications.swift */; };
+		D17A00000000000000000008 /* AirPlayRoutePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17A00000000000000000007 /* AirPlayRoutePicker.swift */; };
+		D17A0000000000000000000A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D17A00000000000000000009 /* PrivacyInfo.xcprivacy */; };
+		D17A00000000000000000010 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D17A0000000000000000000D /* InfoPlist.strings */; };
+		D17A00000000000000000012 /* StationLogos.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D17A00000000000000000011 /* StationLogos.xcassets */; };
+		D17A00000000000000000013 /* StationLogos.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D17A00000000000000000011 /* StationLogos.xcassets */; };
+		D17A00000000000000000017 /* LinefmWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17A00000000000000000016 /* LinefmWidget.swift */; };
+		D17A0000000000000000001C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D17A0000000000000000001B /* PrivacyInfo.xcprivacy */; };
+		D17A0000000000000000001E /* LinefmWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D17A0000000000000000001D /* LinefmWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,6 +36,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
+		};
+		D17A00000000000000000028 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D17A0000000000000000001F;
+			remoteInfo = LinefmWidgetExtension;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -37,6 +55,17 @@
 			files = (
 			);
 			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D17A00000000000000000027 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D17A0000000000000000001E /* LinefmWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -59,6 +88,22 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D17A00000000000000000001 /* CarPlayChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayChannel.swift; sourceTree = "<group>"; };
+		D17A00000000000000000003 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
+		D17A00000000000000000005 /* AlarmNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmNotifications.swift; sourceTree = "<group>"; };
+		D17A00000000000000000007 /* AirPlayRoutePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirPlayRoutePicker.swift; sourceTree = "<group>"; };
+		D17A00000000000000000009 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D17A0000000000000000000B /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		D17A0000000000000000000C /* Runner-CarPlay.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Runner-CarPlay.entitlements"; sourceTree = "<group>"; };
+		D17A0000000000000000000E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		D17A0000000000000000000F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		D17A00000000000000000011 /* StationLogos.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = StationLogos.xcassets; sourceTree = "<group>"; };
+		D17A00000000000000000016 /* LinefmWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinefmWidget.swift; sourceTree = "<group>"; };
+		D17A00000000000000000018 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D17A00000000000000000019 /* LinefmWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LinefmWidget.entitlements; sourceTree = "<group>"; };
+		D17A0000000000000000001A /* LinefmWidget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = LinefmWidget.xcconfig; sourceTree = "<group>"; };
+		D17A0000000000000000001B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D17A0000000000000000001D /* LinefmWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LinefmWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +112,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D17A00000000000000000021 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -98,6 +150,8 @@
 			children = (
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
+				D17A00000000000000000014 /* Shared */,
+				D17A00000000000000000015 /* LinefmWidget */,
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
 			);
@@ -108,6 +162,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				D17A0000000000000000001D /* LinefmWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -123,9 +178,37 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
+				D17A00000000000000000001 /* CarPlayChannel.swift */,
+				D17A00000000000000000003 /* CarPlaySceneDelegate.swift */,
+				D17A00000000000000000005 /* AlarmNotifications.swift */,
+				D17A00000000000000000007 /* AirPlayRoutePicker.swift */,
+				D17A00000000000000000009 /* PrivacyInfo.xcprivacy */,
+				D17A0000000000000000000D /* InfoPlist.strings */,
+				D17A0000000000000000000B /* Runner.entitlements */,
+				D17A0000000000000000000C /* Runner-CarPlay.entitlements */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
+			sourceTree = "<group>";
+		};
+		D17A00000000000000000014 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				D17A00000000000000000011 /* StationLogos.xcassets */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		D17A00000000000000000015 /* LinefmWidget */ = {
+			isa = PBXGroup;
+			children = (
+				D17A00000000000000000016 /* LinefmWidget.swift */,
+				D17A00000000000000000018 /* Info.plist */,
+				D17A0000000000000000001B /* PrivacyInfo.xcprivacy */,
+				D17A00000000000000000019 /* LinefmWidget.entitlements */,
+				D17A0000000000000000001A /* LinefmWidget.xcconfig */,
+			);
+			path = LinefmWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -157,11 +240,13 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				D17A00000000000000000027 /* Embed Foundation Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				D17A00000000000000000029 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -170,6 +255,23 @@
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
 			productType = "com.apple.product-type.application";
+		};
+		D17A0000000000000000001F /* LinefmWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D17A00000000000000000023 /* Build configuration list for PBXNativeTarget "LinefmWidgetExtension" */;
+			buildPhases = (
+				D17A00000000000000000020 /* Sources */,
+				D17A00000000000000000021 /* Frameworks */,
+				D17A00000000000000000022 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LinefmWidgetExtension;
+			productName = LinefmWidgetExtension;
+			productReference = D17A0000000000000000001D /* LinefmWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -189,6 +291,9 @@
 						CreatedOnToolsVersion = 7.3.1;
 						LastSwiftMigration = 1100;
 					};
+					D17A0000000000000000001F = {
+						CreatedOnToolsVersion = 15.0;
+					};
 				};
 			};
 			buildConfigurationList = 97C146E91CF9000F007C117D /* Build configuration list for PBXProject "Runner" */;
@@ -197,6 +302,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				de,
 				Base,
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
@@ -209,6 +315,7 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				D17A0000000000000000001F /* LinefmWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -229,6 +336,18 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				D17A0000000000000000000A /* PrivacyInfo.xcprivacy in Resources */,
+				D17A00000000000000000010 /* InfoPlist.strings in Resources */,
+				D17A00000000000000000012 /* StationLogos.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D17A00000000000000000022 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D17A00000000000000000013 /* StationLogos.xcassets in Resources */,
+				D17A0000000000000000001C /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -284,6 +403,18 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
+				D17A00000000000000000002 /* CarPlayChannel.swift in Sources */,
+				D17A00000000000000000004 /* CarPlaySceneDelegate.swift in Sources */,
+				D17A00000000000000000006 /* AlarmNotifications.swift in Sources */,
+				D17A00000000000000000008 /* AirPlayRoutePicker.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D17A00000000000000000020 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D17A00000000000000000017 /* LinefmWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -294,6 +425,11 @@
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
 			targetProxy = 331C8085294A63A400263BE5 /* PBXContainerItemProxy */;
+		};
+		D17A00000000000000000029 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D17A0000000000000000001F /* LinefmWidgetExtension */;
+			targetProxy = D17A00000000000000000028 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -312,6 +448,15 @@
 				97C147001CF9000F007C117D /* Base */,
 			);
 			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		D17A0000000000000000000D /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D17A0000000000000000000E /* de */,
+				D17A0000000000000000000F /* en */,
+			);
+			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -375,6 +520,10 @@
 			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CARPLAY_ENABLED = NO;
+				CODE_SIGN_ENTITLEMENTS = "Runner/Runner$(LINEFM_ENTITLEMENTS_SUFFIX_$(CARPLAY_ENABLED)).entitlements";
+				LINEFM_ENTITLEMENTS_SUFFIX_NO = "";
+				LINEFM_ENTITLEMENTS_SUFFIX_YES = "-CarPlay";
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				ENABLE_BITCODE = NO;
@@ -556,6 +705,10 @@
 			baseConfigurationReference = 9740EEB21CF90195004384FC /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CARPLAY_ENABLED = NO;
+				CODE_SIGN_ENTITLEMENTS = "Runner/Runner$(LINEFM_ENTITLEMENTS_SUFFIX_$(CARPLAY_ENABLED)).entitlements";
+				LINEFM_ENTITLEMENTS_SUFFIX_NO = "";
+				LINEFM_ENTITLEMENTS_SUFFIX_YES = "-CarPlay";
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				ENABLE_BITCODE = NO;
@@ -578,6 +731,10 @@
 			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CARPLAY_ENABLED = NO;
+				CODE_SIGN_ENTITLEMENTS = "Runner/Runner$(LINEFM_ENTITLEMENTS_SUFFIX_$(CARPLAY_ENABLED)).entitlements";
+				LINEFM_ENTITLEMENTS_SUFFIX_NO = "";
+				LINEFM_ENTITLEMENTS_SUFFIX_YES = "-CarPlay";
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				ENABLE_BITCODE = NO;
@@ -593,6 +750,99 @@
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
+		};
+		D17A00000000000000000024 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D17A0000000000000000001A /* LinefmWidget.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = "";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = LinefmWidget/LinefmWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LinefmWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = de.linefm.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		D17A00000000000000000025 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D17A0000000000000000001A /* LinefmWidget.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = "";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = LinefmWidget/LinefmWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LinefmWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = de.linefm.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		D17A00000000000000000026 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D17A0000000000000000001A /* LinefmWidget.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = "";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = LinefmWidget/LinefmWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LinefmWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = de.linefm.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Profile;
 		};
 /* End XCBuildConfiguration section */
 
@@ -623,6 +873,16 @@
 				97C147061CF9000F007C117D /* Debug */,
 				97C147071CF9000F007C117D /* Release */,
 				249021D4217E4FDB00AE95B9 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D17A00000000000000000023 /* Build configuration list for PBXNativeTarget "LinefmWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D17A00000000000000000024 /* Debug */,
+				D17A00000000000000000025 /* Release */,
+				D17A00000000000000000026 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

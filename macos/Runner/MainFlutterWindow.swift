@@ -9,6 +9,8 @@ class MainFlutterWindow: NSWindow {
     self.setFrame(windowFrame, display: true)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+    AirPlayRoutePicker.register(
+      with: flutterViewController.registrar(forPlugin: "LinefmAirPlayRoutePicker"))
 
     super.awakeFromNib()
   }

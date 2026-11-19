@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+	Standard-Entitlements (CARPLAY_ENABLED = NO). Mit CARPLAY_ENABLED = YES
+	nimmt Xcode stattdessen Runner-CarPlay.entitlements (gleicher Inhalt plus
+	com.apple.developer.carplay-audio). Beide Dateien gleich halten.
+	Siehe ios/README.md.
+-->
+<dict>
+	<!-- Daten fuer das Homescreen-Widget (home_widget). -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.de.linefm.app</string>
+	</array>
+	<!--
+		Universal Links (https://app.linefm.de/?station=...): vorbereitet, aber
+		aus. Voraussetzung: apple-app-site-association unter
+		https://app.linefm.de/.well-known/ mit "<TEAM_ID>.de.linefm.app" und
+		Associated Domains im App-ID-Profil. Dann diesen Block einkommentieren
+		(auch in Runner-CarPlay.entitlements).
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:app.linefm.de</string>
+	</array>
+	-->
+</dict>
+</plist>

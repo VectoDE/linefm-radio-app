@@ -46,6 +46,12 @@ abstract final class HomeWidgetKeys {
 const String androidWidgetProvider =
     'de.linefm.app.widget.LinefmWidgetProvider';
 
+/// WidgetKit-Art (`kind`) des iOS-Widgets (`ios/LinefmWidget`).
+const String iosWidgetKind = 'LinefmWidget';
+
+/// App Group, ueber die App und iOS-Widget die Daten teilen (Spec 2.2).
+const String iosAppGroupId = 'group.de.linefm.app';
+
 /// Datei-Schluessel des Covers (home_widget legt es unter
 /// `<App-Support>/home_widget/linefm_cover.jpg` ab).
 const String _coverFileKey = 'linefm_cover';
@@ -75,14 +81,16 @@ class _PluginBackend implements HomeWidgetBackend {
       );
 
   @override
-  Future<void> refresh() =>
-      HomeWidget.updateWidget(qualifiedAndroidName: androidWidgetProvider);
+  Future<void> refresh() => HomeWidget.updateWidget(
+    qualifiedAndroidName: androidWidgetProvider,
+    iOSName: iosWidgetKind,
+  );
 }
 
 /// Laedt Cover-Bytes; null bei Fehler.
 typedef CoverFetcher = Future<Uint8List?> Function(Uri url);
 
-/// Homescreen-Widget unter Android (Spec 2.2): Sender, Titel, Kuenstler,
+/// Homescreen-Widget unter Android und iOS (Spec 2.2): Sender, Titel, Kuenstler,
 /// Wiedergabestatus und ein lokal gespeichertes Cover (300x300). Der
 /// Play-/Stop-Knopf im Widget entscheidet anhand von `playing`, ob er die
 /// Wiedergabe ueber die Medientaste stoppt oder die App per
@@ -229,20 +237,27 @@ Future<Uint8List?> _httpFetchCover(Uri url) async {
 bool get _isAndroid =>
     !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
-/// Passende Umsetzung fuer die Plattform (Android: home_widget, sonst
-/// No-Op; iOS folgt mit P17).
+bool get _isIos => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
+/// Passende Umsetzung fuer die Plattform (Android und iOS: home_widget,
+/// sonst No-Op). iOS liest dieselben Schluessel aus der App Group
+/// [iosAppGroupId] (`ios/LinefmWidget/LinefmWidget.swift`).
 HomeWidgetSync createHomeWidgetSync() =>
-    _isAndroid ? AndroidHomeWidgetSync() : const NoopHomeWidgetSync();
+    _isAndroid || _isIos ? AndroidHomeWidgetSync() : const NoopHomeWidgetSync();
 
 /// Initialisiert das Homescreen-Widget: Beim Start laeuft noch nichts,
 /// deshalb wird ein evtl. veralteter Status "spielt" (App beendet waehrend
 /// der Wiedergabe) zurueckgesetzt. Danach schreibt der PlayerController
 /// ueber [HomeWidgetSync.update].
 Future<void> initHomeWidget() async {
-  if (!_isAndroid) return;
+  if (!_isAndroid && !_isIos) return;
   try {
+    if (_isIos) await HomeWidget.setAppGroupId(iosAppGroupId);
     await HomeWidget.saveWidgetData<bool>(HomeWidgetKeys.playing, false);
-    await HomeWidget.updateWidget(qualifiedAndroidName: androidWidgetProvider);
+    await HomeWidget.updateWidget(
+      qualifiedAndroidName: androidWidgetProvider,
+      iOSName: iosWidgetKind,
+    );
   } on Object catch (e) {
     logError('Homescreen-Widget nicht initialisiert', e);
   }

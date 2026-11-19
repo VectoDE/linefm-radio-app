@@ -1,0 +1,69 @@
+# Snapcraft-Definition fuer LINEFM Radio (strict, core24).
+#
+# snapcraft erwartet die Datei unter snap/snapcraft.yaml im Projektstamm.
+# Die CI (store-snap.yml, P27) kopiert sie dorthin:
+#   mkdir -p snap && cp packaging/snap/snapcraft.yaml snap/snapcraft.yaml
+#   snapcraft pack
+# Ungetestet: snapcraft laeuft nur unter Linux (LXD/Multipass).
+name: linefm-radio
+title: LINEFM Radio
+base: core24
+adopt-info: linefm-radio
+summary: Live radio of the LINEFM stations
+description: |
+  Listen to the LINEFM stations live: LineFM +MAIN, +RAP, +GAMING, +LOFI,
+  Radio3FM and FobFM. Shows the current song with cover and keeps your
+  favorites. Media keys control playback.
+license: Proprietary
+website: https://app.linefm.de
+contact: https://app.linefm.de
+icon: linux/assets/icons/hicolor/512x512/apps/de.linefm.app.png
+grade: stable
+confinement: strict
+
+apps:
+  linefm-radio:
+    command: linefm_radio
+    extensions: [gnome]
+    desktop: meta/gui/de.linefm.app.desktop
+    common-id: de.linefm.app
+    # Die gnome-Erweiterung bringt desktop, wayland, x11, opengl mit.
+    # Tray (StatusNotifierItem) braucht unter strict je nach Desktop eine
+    # Freigabe; ohne sie laeuft die App ohne Tray-Symbol weiter (TODO: pruefen).
+    plugs:
+      - audio-playback
+      - network
+    slots:
+      - mpris
+
+slots:
+  # MPRIS: Medientasten und Sperrbildschirm-Steuerung.
+  # TODO(P28): Name gegen die Einstellung in audio_service_mpris pruefen.
+  mpris:
+    interface: mpris
+    name: linefm_radio
+
+parts:
+  linefm-radio:
+    plugin: flutter
+    source: .
+    flutter-target: lib/main.dart
+    build-packages:
+      - libmpv-dev
+      - libayatana-appindicator3-dev
+    stage-packages:
+      - libmpv2
+      - libayatana-appindicator3-1
+    override-pull: |
+      craftctl default
+      # Version aus pubspec.yaml (ohne +Build-Nummer).
+      craftctl set version="$(sed -n 's/^version:[[:space:]]*\([0-9.]*\).*/\1/p' pubspec.yaml | head -n1)"
+
+  desktop-integration:
+    plugin: nil
+    source: linux/
+    override-build: |
+      install -Dm644 de.linefm.app.desktop "$CRAFT_PART_INSTALL/meta/gui/de.linefm.app.desktop"
+      install -Dm644 assets/icons/hicolor/512x512/apps/de.linefm.app.png "$CRAFT_PART_INSTALL/meta/gui/icon.png"
+      # Snapcraft ersetzt Exec; das Symbol kommt aus meta/gui.
+      sed -i 's|^Icon=.*|Icon=${SNAP}/meta/gui/icon.png|' "$CRAFT_PART_INSTALL/meta/gui/de.linefm.app.desktop"

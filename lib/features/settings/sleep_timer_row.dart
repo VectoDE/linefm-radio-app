@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/domain/sleep_timer/sleep_timer_logic.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:material_ui/material_ui.dart';
@@ -72,6 +73,10 @@ class _SleepTimerRowState extends ConsumerState<SleepTimerRow> {
     final state = ref.watch(sleepTimerProvider);
     final now = ref.watch(clockProvider).now();
     final expired = SleepTimerLogic.isExpired(state, now);
+    final track = ref.watch(currentTrackProvider).value;
+    // Live-Sendung: laut.fm kennt das Songende nicht, "Ende des Songs" geht
+    // dann nicht.
+    final endOfSongOk = sleepTimerEndOfSongAvailable(track, now);
     final status = sleepTimerStatusText(l10n, state, now);
 
     final presets = <SleepTimerMode>[
@@ -104,6 +109,13 @@ class _SleepTimerRowState extends ConsumerState<SleepTimerRow> {
             style: LinefmText.settingCopy.copyWith(color: c.muted),
           ),
         ),
+        if (!endOfSongOk && track != null) ...<Widget>[
+          const SizedBox(height: 4),
+          Text(
+            l10n.sleepTimerEndOfSongUnavailable,
+            style: LinefmText.settingCopy.copyWith(color: c.muted),
+          ),
+        ],
       ],
     );
 
@@ -133,6 +145,7 @@ class _SleepTimerRowState extends ConsumerState<SleepTimerRow> {
                 for (final m in presets)
                   DropdownMenuItem<SleepTimerMode>(
                     value: m,
+                    enabled: m is! SleepTimerEndOfSong || endOfSongOk,
                     child: Text(label(m)),
                   ),
               ],

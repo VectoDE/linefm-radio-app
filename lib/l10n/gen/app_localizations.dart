@@ -788,6 +788,12 @@ abstract class AppLocalizations {
   /// **'Ende des Songs'**
   String get sleepTimerEndOfSong;
 
+  /// No description provided for @sleepTimerEndOfSongUnavailable.
+  ///
+  /// In de, this message translates to:
+  /// **'„Ende des Songs“ ist bei Live-Sendungen nicht möglich.'**
+  String get sleepTimerEndOfSongUnavailable;
+
   /// No description provided for @sleepTimerStatusNone.
   ///
   /// In de, this message translates to:
@@ -1130,17 +1136,41 @@ abstract class AppLocalizations {
   /// **'Einstellungen öffnen'**
   String get alarmOpenSettings;
 
-  /// No description provided for @alarmRingingTitle.
+  /// No description provided for @alarmStop.
   ///
   /// In de, this message translates to:
-  /// **'Guten Morgen'**
-  String get alarmRingingTitle;
+  /// **'Aus'**
+  String get alarmStop;
 
   /// No description provided for @alarmRingingBody.
   ///
   /// In de, this message translates to:
   /// **'{station} läuft gleich los.'**
   String alarmRingingBody(String station);
+
+  /// No description provided for @alarmExactMissingNote.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne die Freigabe „Alarme und Erinnerungen“ klingelt der Wecker nicht pünktlich. Erlaube sie in den Systemeinstellungen.'**
+  String get alarmExactMissingNote;
+
+  /// No description provided for @alarmFullScreenMissingNote.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne die Freigabe „Vollbild-Benachrichtigungen“ erscheint der Wecker nur als Mitteilung, nicht als Vollbild.'**
+  String get alarmFullScreenMissingNote;
+
+  /// No description provided for @alarmOpenFullScreenSettings.
+  ///
+  /// In de, this message translates to:
+  /// **'Vollbild erlauben'**
+  String get alarmOpenFullScreenSettings;
+
+  /// No description provided for @alarmRingingTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Guten Morgen'**
+  String get alarmRingingTitle;
 
   /// No description provided for @alarmDismiss.
   ///

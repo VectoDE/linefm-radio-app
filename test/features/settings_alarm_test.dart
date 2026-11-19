@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show ValueListenable;
+import 'package:flutter_riverpod/flutter_riverpod.dart' show AsyncData;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/providers.dart';
@@ -47,6 +49,10 @@ class _FakeSleepTimer implements SleepTimerService {
 
 class _RecordingAlarms implements AlarmCoordinator {
   final List<List<AlarmRule>> calls = <List<AlarmRule>>[];
+
+  @override
+  ValueListenable<AlarmRinging?> get ringing =>
+      const NoopAlarmCoordinator().ringing;
 
   @override
   Future<void> rescheduleAll(List<AlarmRule> rules) async => calls.add(rules);
@@ -263,11 +269,15 @@ void main() {
   });
 
   group('Sleeptimer', () {
-    Future<(FeatureHost, _FakeSleepTimer)> pumpRow(WidgetTester tester) async {
+    Future<(FeatureHost, _FakeSleepTimer)> pumpRow(
+      WidgetTester tester, {
+      Track? track,
+    }) async {
       useSize(tester, 420, 800);
       late _FakeSleepTimer fake;
       final host = FeatureHost(
         extra: <Override>[
+          currentTrackProvider.overrideWithValue(AsyncData<Track?>(track)),
           sleepTimerServiceProvider.overrideWith(
             (ref) => fake = _FakeSleepTimer(ref.read(clockProvider).now),
           ),
@@ -299,7 +309,15 @@ void main() {
     });
 
     testWidgets('Ende des Songs und Aus', (tester) async {
-      final (_, fake) = await pumpRow(tester);
+      final (_, fake) = await pumpRow(
+        tester,
+        track: Track(
+          artist: 'A',
+          title: 'T',
+          endsAt: DateTime(2026, 11, 18, 6, 3),
+        ),
+      );
+      expect(find.text(l10n.sleepTimerEndOfSongUnavailable), findsNothing);
       await tester.tap(find.byType(DropdownButton<SleepTimerMode>));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Ende des Songs').last);
@@ -312,6 +330,21 @@ void main() {
       await tester.tap(find.text('Aus').last);
       await tester.pumpAndSettle();
       expect(find.text('Kein Sleeptimer aktiv.'), findsOneWidget);
+    });
+
+    testWidgets('Live-Sendung: Ende des Songs gesperrt mit Hinweis', (
+      tester,
+    ) async {
+      final (_, fake) = await pumpRow(
+        tester,
+        track: const Track(artist: 'A', title: 'Live'),
+      );
+      expect(find.text(l10n.sleepTimerEndOfSongUnavailable), findsOneWidget);
+      await tester.tap(find.byType(DropdownButton<SleepTimerMode>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ende des Songs').last);
+      await tester.pumpAndSettle();
+      expect(fake.started, isEmpty);
     });
 
     test('Statuswortlaut', () {

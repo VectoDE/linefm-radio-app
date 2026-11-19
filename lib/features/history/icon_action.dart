@@ -90,9 +90,16 @@ class _IconActionState extends State<IconAction> {
       );
     }
 
+    // Umschalter wie `SettingsSwitch`: Schalter-Rolle (toggled), KEINE
+    // zusaetzliche Knopf-Rolle, eigener Knoten mit Tipp-Aktion. Beides
+    // zusammen (button + toggled) wurde von Screenreadern/Web-Semantik nicht
+    // als Schalter aktiviert; nur der Mausklick griff.
+    final isToggle = widget.toggled != null;
     return Semantics(
-      button: true,
+      container: true,
+      button: !isToggle,
       toggled: widget.toggled,
+      enabled: true,
       label: widget.label,
       onTap: widget.onPressed,
       excludeSemantics: true,

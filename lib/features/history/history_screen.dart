@@ -56,7 +56,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     if (entries.isEmpty) {
       if (history.hasError) {
         stateHint = _Message(
-          text: l10n.historyEmpty,
+          text: l10n.historyLoadFailed,
           actionLabel: l10n.playerRetry,
           onAction: _refresh,
         );

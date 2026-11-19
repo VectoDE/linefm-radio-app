@@ -339,10 +339,13 @@ String? appLinkValue(
 String renderAppLinkTemplate(String file, String text, String value) {
   final key = appLinkTemplates[file]!;
   if (key == 'ANDROID_CERT_SHA256') {
+    // Mehrere Fingerprints (App-Signatur aus Play und Upload-Schluessel fuer
+    // die GitHub-APK), Reihenfolge bleibt, doppelte fallen weg.
     final prints = value
         .split(',')
         .map((s) => s.trim().toUpperCase())
         .where((s) => s.isNotEmpty)
+        .toSet()
         .toList();
     if (prints.isEmpty || !prints.every(_certFingerprint.hasMatch)) {
       throw PostbuildException(

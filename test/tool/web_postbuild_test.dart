@@ -452,7 +452,8 @@ void main() {
       expect(
         (links.single
             as Map<String, dynamic>)['target']['sha256_cert_fingerprints'],
-        <String>[fp, fp],
+        <String>[fp],
+        reason: 'doppelter Fingerprint (Gross/klein) nur einmal',
       );
       final aasa = jsonDecode(
         File('${web.path}/.well-known/apple-app-site-association')
@@ -461,6 +462,27 @@ void main() {
       expect(aasa['applinks']['details'][0]['appIDs'], <String>[
         'ABCDE12345.de.linefm.app',
       ]);
+    });
+
+    test('App-Signatur und Upload-Schluessel: beide Fingerprints (R4-C5)', () {
+      final upload = List<String>.filled(32, 'CD').join(':');
+      renderAppLinks(
+        web,
+        const <String, dynamic>{},
+        strict: true,
+        env: <String, String>{
+          'ANDROID_CERT_SHA256': ' $fp ,${upload.toLowerCase()},',
+          'APPLE_TEAM_ID': 'ABCDE12345',
+        },
+      );
+      final links = jsonDecode(
+        File('${web.path}/.well-known/assetlinks.json').readAsStringSync(),
+      ) as List<dynamic>;
+      expect(
+        (links.single
+            as Map<String, dynamic>)['target']['sha256_cert_fingerprints'],
+        <String>[fp, upload],
+      );
     });
 
     test('Konfiguration als Quelle, Umgebung hat Vorrang', () {

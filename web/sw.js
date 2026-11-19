@@ -5,7 +5,10 @@
 // cross-origin und werden nie abgefangen. __BUILD_ID__ setzt tool/web_postbuild.dart.
 const BUILD_ID = '__BUILD_ID__';
 const SHELL_CACHE = 'linefm-shell-' + BUILD_ID;
-const IMMUTABLE_CACHE = 'linefm-immutable';
+// Beide Caches tragen die Build-ID. Beim Aktivieren eines neuen Service Workers werden alle
+// linefm-Caches anderer Builds geloescht, damit alte main.<hash>- und canvaskit-Dateien
+// nicht dauerhaft Speicher belegen (Browser-Kontingent). Kosten: ein Neuladen pro Release.
+const IMMUTABLE_CACHE = 'linefm-immutable-' + BUILD_ID;
 const SHELL = [
   './',
   'index.html',
@@ -31,7 +34,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(
-        keys.filter((k) => k.startsWith('linefm-shell-') && k !== SHELL_CACHE)
+        keys.filter((k) => k.startsWith('linefm-') && k !== SHELL_CACHE && k !== IMMUTABLE_CACHE)
           .map((k) => caches.delete(k)),
       ))
       .then(() => self.clients.claim()),

@@ -9,6 +9,8 @@ Der Postbuild legt `_headers` und `_redirects` in `build/web` (aus `deploy/cloud
 - `_headers`: Security-Header für alle Pfade (`/*`), Cache-Control je Pfadgruppe nach der Cache-Strategie. Cache-Control steht absichtlich nur in den Pfadregeln, weil Pages die Header mehrerer passender Regeln zusammenführt.
 - `_redirects`: enthält absichtlich keine Regeln. Ohne `404.html` schaltet Pages automatisch in den SPA-Modus und liefert für unbekannte Pfade `index.html`. Die Regel `/* /index.html 200` würde Pages als Endlosschleife ablehnen. Vorhandene Dateien, auch `/impressum/` und `/datenschutz/`, gehen vor.
 - ETags setzt Pages selbst.
+- `/.htaccess` gehört nicht auf Pages: Pages liefert jede Datei im Ausgabeordner aus. Den Postbuild deshalb mit `--targets cloudflare` starten (dann entstehen nur `_headers` und `_redirects`) oder `build/web/.htaccess` vor dem Upload löschen.
+- `assets/*` ist in `_headers` pro Unterordner geregelt (`assets/assets`, `fonts`, `packages`, `shaders`). Pages führt passende Regeln zusammen, und `AssetManifest.*`, `FontManifest.json` und `NOTICES` müssen `no-cache` bleiben.
 
 ## Einmalige Einrichtung (Betreiber)
 

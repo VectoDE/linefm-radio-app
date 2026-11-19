@@ -38,7 +38,7 @@ Basisimage aktualisieren: neuen Digest holen (`docker buildx imagetools inspect 
 
 ## Kompression
 
-nginx komprimiert mit gzip. Das Label `linefm-compress` (Traefik-Middleware) bleibt aktiv, Traefik fasst bereits kodierte Antworten aber nicht erneut an. Wer Brotli will, nutzt das Brotli-Modul im Image oder schaltet gzip in `linefm-locations.conf` ab und lässt Traefik komprimieren. Danach ETag und `Vary: Accept-Encoding` mit `curl -sI -H 'Accept-Encoding: br'` prüfen.
+nginx komprimiert mit gzip. Das Label `linefm-compress` (Traefik-Middleware) bleibt aktiv, Traefik fasst bereits kodierte Antworten aber nicht erneut an. Wer Brotli will, nutzt das Brotli-Modul im Image oder schaltet gzip in `linefm-locations.conf` ab und lässt Traefik komprimieren. Traefik v3 kann in der Compress-Middleware auch Brotli und zstd. Die Typliste von nginx enthält `application/octet-stream` und Schriften, damit `NOTICES` und `AssetManifest.bin` mitkomprimiert werden. Danach ETag und `Vary: Accept-Encoding` mit `curl -sI -H 'Accept-Encoding: br'` prüfen.
 
 ## Traefik vor nativem nginx
 

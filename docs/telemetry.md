@@ -1,7 +1,9 @@
 # Telemetrie: Konfiguration und Hosting
 
-LINEFM Radio kann anonyme Statistik und Absturzberichte senden. Alles ist
-optional und austauschbar. Ohne Konfiguration sendet die App nichts und zeigt
+LINEFM Radio kann Statistik und Absturzberichte senden. Anonym sind diese Daten
+nicht: Der Dienst sieht technisch die IP-Adresse, Umami bildet daraus eine
+Besucher-Kennung, Firebase arbeitet mit einer App-Instanz-ID. Datenschutzrechtlich
+gelten sie deshalb als pseudonym. Alles ist optional und austauschbar. Ohne Konfiguration sendet die App nichts und zeigt
 auch keinen Einwilligungsdialog.
 
 ## Wie es funktioniert

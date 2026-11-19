@@ -11,7 +11,8 @@
 //       jede Pruefsumme und legt sie unter build/web/assets/fonts/fallback/ ab.
 //   dart run tool/fetch_font_fallback.dart --update-lock [--sdk-data <datei>]
 //       Liest die Liste aus dem Flutter-SDK (font_fallback_data.dart), laedt
-//       alles einmal und schreibt die Sperrdatei neu (nach jedem Flutter-Update).
+//       alles frisch aus dem Netz (ohne Cache, S3-05) und schreibt die
+//       Sperrdatei neu (nach jedem Flutter-Update).
 //   dart run tool/fetch_font_fallback.dart --check-sdk [--sdk-data <datei>]
 //       Vergleicht Sperrdatei und SDK-Liste; Exit 1 bei Abweichung.
 //
@@ -21,7 +22,8 @@
 //   --cache <ordner>      Standard: .dart_tool/font_fallback_cache
 //   --source <url>        Standard: https://fonts.gstatic.com/s/
 //   --sdk-data <datei>    Standard: aus dem laufenden Flutter-SDK abgeleitet
-//   --license <datei>     OFL-Text (Standard: assets/fonts/OFL.txt), landet als OFL.txt daneben
+//   --license <datei>     OFL-Text (Standard: assets/fonts/OFL.txt), landet als OFL.txt daneben.
+//                         Fehlt die Datei, bricht der Aufruf mit Exit 1 ab (R3-P07).
 //   --strict              Abweichung zwischen Sperrdatei und SDK ist ein Fehler
 import 'dart:async';
 import 'dart:convert';
@@ -274,14 +276,19 @@ Future<void> _pool<T>(
 }
 
 /// Holt eine Datei (Cache oder Netz) und prueft die Pruefsumme.
+///
+/// Mit [useCache] = false wird immer aus dem Netz geladen (fuer --update-lock:
+/// ohne bekannte Pruefsumme darf ein alter oder fremder Cache-Inhalt nicht in
+/// die Sperrdatei wandern). Das Ergebnis landet trotzdem im Cache.
 Future<List<int>> fetchVerified(
   HttpClient client,
   FallbackFont font, {
   required String source,
   required Directory cache,
+  bool useCache = true,
 }) async {
   final cached = File('${cache.path}/${font.path}');
-  if (cached.existsSync()) {
+  if (useCache && cached.existsSync()) {
     final bytes = cached.readAsBytesSync();
     if (font.sha256 == null || sha256Hex(bytes) == font.sha256) {
       return bytes;
@@ -380,6 +387,7 @@ Future<int> runCli(List<String> args) async {
             f,
             source: src,
             cache: cache,
+            useCache: false,
           );
           locked.add(
             FallbackFont(
@@ -429,6 +437,13 @@ Future<int> runCli(List<String> args) async {
     if (!web.existsSync()) {
       throw FontFallbackException('${web.path} existiert nicht');
     }
+    final ofl = File(licensePath);
+    if (!ofl.existsSync()) {
+      throw FontFallbackException(
+        '$licensePath fehlt: ohne OFL-Lizenztext duerfen die Schriften nicht '
+        'ausgeliefert werden (--license angeben)',
+      );
+    }
     final lock = parseLock(File(lockPath).readAsStringSync());
     try {
       final sdk = readSdk(sdkData);
@@ -467,13 +482,8 @@ Future<int> runCli(List<String> args) async {
         ..writeAsBytesSync(bytes);
       total += bytes.length;
     });
-    final ofl = File(licensePath);
-    if (ofl.existsSync()) {
-      File('${target.path}/OFL.txt')
-          .writeAsStringSync(renderLicense(ofl.readAsStringSync()));
-    } else {
-      stderr.writeln('fetch_font_fallback: WARNUNG: $licensePath fehlt');
-    }
+    File('${target.path}/OFL.txt')
+        .writeAsStringSync(renderLicense(ofl.readAsStringSync()));
     stdout.writeln(
       'fetch_font_fallback: ${selected.length} Dateien '
       '(${(total / 1048576).toStringAsFixed(1)} MiB, Gruppen ${groups.join(',')}) '

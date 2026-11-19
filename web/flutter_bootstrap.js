@@ -17,9 +17,16 @@
   };
   /*__CANVASKIT_BASE_URL__*/
 
+  // Nach dem Start zeichnet Flutter die Oberflaeche. Die statische Huelle
+  // bleibt fuer Crawler im DOM, ist aber fuer Screenreader und Tastatur
+  // weg: kein zweites h1, keine unsichtbaren 0x0-Links im Tab-Weg (A11Y-03,
+  // A11Y-07).
   function showApp() {
     var shell = document.getElementById('static-shell');
-    if (shell) shell.hidden = true;
+    if (!shell) return;
+    shell.hidden = true;
+    shell.setAttribute('aria-hidden', 'true');
+    shell.setAttribute('inert', '');
   }
 
   _flutter.loader.load({

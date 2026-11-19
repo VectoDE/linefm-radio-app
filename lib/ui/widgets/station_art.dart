@@ -39,6 +39,9 @@ class StationArt extends StatelessWidget {
     // Kuerzel-Groesse 11 bei 48 dp, linear mitwachsend.
     final fontSize = size * 11 / 48;
     final onColor = StationStyle.onStation(station.color, large: true);
+    final cachePx = (size * MediaQuery.devicePixelRatioOf(context))
+        .ceil()
+        .clamp(1, 1024);
     return ExcludeSemantics(
       child: SizedBox.square(
         dimension: size,
@@ -69,6 +72,9 @@ class StationArt extends StatelessWidget {
                 Image.asset(
                   station.logoAsset,
                   fit: BoxFit.cover,
+                  // Nur in Anzeigegroesse dekodieren (P30-10): die Logos
+                  // liegen gross vor, in Liste und Ticker reichen 48 dp.
+                  cacheWidth: cachePx,
                   excludeFromSemantics: true,
                   filterQuality: FilterQuality.medium,
                   frameBuilder: (context, child, frame, sync) => sync

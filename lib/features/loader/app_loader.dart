@@ -199,7 +199,8 @@ bool loaderShownThisProcess = false;
 /// ist aber fuer Bedienung und Screenreader gesperrt, solange der Loader
 /// steht. Ein Neuaufbau im selben Prozess (Warmstart) zeigt keinen Loader.
 ///
-/// Dauer: Web 2 s wie die Web-App, nativ kuerzer (1,2 s), weil davor schon der
+/// Dauer: Web hoechstens 400 ms (P30-03; die alte Web-App hielt 2 s und
+/// verzoegerte so den ersten Inhalt), nativ 300 ms, weil davor schon der
 /// native Splash steht.
 class LoaderGate extends StatefulWidget {
   const LoaderGate({super.key, required this.child, this.minDuration});
@@ -209,8 +210,8 @@ class LoaderGate extends StatefulWidget {
   /// Standard: [defaultMinDuration].
   final Duration? minDuration;
 
-  static const Duration webMinDuration = Duration(seconds: 2);
-  static const Duration nativeMinDuration = Duration(milliseconds: 1200);
+  static const Duration webMinDuration = Duration(milliseconds: 400);
+  static const Duration nativeMinDuration = Duration(milliseconds: 300);
   static const Duration fadeDuration = Duration(milliseconds: 350);
 
   static Duration get defaultMinDuration =>

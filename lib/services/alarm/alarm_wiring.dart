@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/core/clock.dart';
+import 'package:linefm_radio/core/logging.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/features/alarm/alarm_hooks.dart';
@@ -29,6 +30,7 @@ List<Override> alarmAndSleepOverrides({
   DesktopWindow? window,
   bool? isAndroid,
   AlarmPlatform Function(Clock clock) platformFactory = _defaultPlatform,
+  Duration retryDelay = const Duration(seconds: 30),
 }) => <Override>[
   alarmPermissionCheckProvider.overrideWith(
     (ref) =>
@@ -68,8 +70,10 @@ List<Override> alarmAndSleepOverrides({
     );
     ref.onDispose(() => unawaited(coordinator.dispose()));
     unawaited(
-      coordinator.platform.init().then(
-        (_) => coordinator.rescheduleAll(ref.read(alarmProvider)),
+      initAndReschedule(
+        coordinator,
+        () => ref.read(alarmProvider),
+        retryDelay: retryDelay,
       ),
     );
     return coordinator;
@@ -93,6 +97,29 @@ List<Override> alarmAndSleepOverrides({
     return service;
   }),
 ];
+
+/// Startet die Wecker-Plattform und plant alle Regeln (Q-04). Schlaegt das
+/// fehl (Plugin, Freigabe), wird der Fehler geloggt statt als unbehandelter
+/// Zonen-Fehler zu enden, und es gibt genau einen zweiten Versuch nach
+/// [retryDelay]. Gibt `true` zurueck, wenn die Wecker geplant sind.
+Future<bool> initAndReschedule(
+  DefaultAlarmCoordinator coordinator,
+  List<AlarmRule> Function() rules, {
+  Duration retryDelay = const Duration(seconds: 30),
+  Future<void> Function(Duration) sleep = Future<void>.delayed,
+}) async {
+  for (var attempt = 1; attempt <= 2; attempt++) {
+    try {
+      await coordinator.platform.init();
+      await coordinator.rescheduleAll(rules());
+      return true;
+    } on Object catch (e, stack) {
+      logError('Wecker nicht geplant (Versuch $attempt)', e, stack);
+      if (attempt == 1) await sleep(retryDelay);
+    }
+  }
+  return false;
+}
 
 AlarmPlatform _defaultPlatform(Clock clock) =>
     createAlarmPlatform(clock: clock);

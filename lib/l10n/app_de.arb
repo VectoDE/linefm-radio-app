@@ -84,6 +84,27 @@
       }
     }
   },
+  "stationFavoriteAdd": "{station} als Favoriten-Sender merken",
+  "@stationFavoriteAdd": {
+    "description": "Stern auf der Stationskarte (Screenreader/Tooltip), Issue #42",
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "stationFavoriteRemove": "{station} aus den Favoriten-Sendern entfernen",
+  "@stationFavoriteRemove": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "stationFavoriteBadge": "Favoriten-Sender",
+  "@stationFavoriteBadge": {
+    "description": "Zusatz im Screenreader-Text einer gemerkten Stationskarte"
+  },
   "playerCoverAlt": "Albumcover",
   "playerShuffle": "Zufällige Station abspielen",
   "playerShuffleTooltip": "Zufällige Station",
@@ -403,9 +424,17 @@
   "castDisconnect": "Übertragung beenden",
   "airplayButton": "AirPlay",
   "notificationChannelName": "Wiedergabe",
-  "browseFavorites": "Favoriten",
-  "@browseFavorites": {
-    "description": "Android-Auto-/CarPlay-Ordner"
+  "browseFavoriteStations": "Favoriten-Sender",
+  "@browseFavoriteStations": {
+    "description": "Ordner im Auto-Menü (Android Auto/CarPlay): gemerkte Sender, Issue #42"
+  },
+  "browseStations": "Stationen",
+  "@browseStations": {
+    "description": "Ordner im Auto-Menü: alle Sender"
+  },
+  "browseRecent": "Zuletzt gehört",
+  "@browseRecent": {
+    "description": "Ordner im Auto-Menü: zuletzt gehörte Station"
   },
   "widgetIdle": "Zum Abspielen tippen",
   "trayShowWindow": "Fenster zeigen",

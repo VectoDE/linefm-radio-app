@@ -123,6 +123,19 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String stationFavoriteAdd(String station) {
+    return '$station als Favoriten-Sender merken';
+  }
+
+  @override
+  String stationFavoriteRemove(String station) {
+    return '$station aus den Favoriten-Sendern entfernen';
+  }
+
+  @override
+  String get stationFavoriteBadge => 'Favoriten-Sender';
+
+  @override
   String get playerCoverAlt => 'Albumcover';
 
   @override
@@ -680,7 +693,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get notificationChannelName => 'Wiedergabe';
 
   @override
-  String get browseFavorites => 'Favoriten';
+  String get browseFavoriteStations => 'Favoriten-Sender';
+
+  @override
+  String get browseStations => 'Stationen';
+
+  @override
+  String get browseRecent => 'Zuletzt gehört';
 
   @override
   String get widgetIdle => 'Zum Abspielen tippen';

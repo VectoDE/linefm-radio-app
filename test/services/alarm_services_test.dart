@@ -60,8 +60,10 @@ class _FakePlatform implements AlarmPlatform {
   AlarmRingState state = AlarmRingState.ringing;
   bool disposed = false;
 
+  bool itself = true;
+
   @override
-  bool get ringsItself => true;
+  bool get ringsItself => itself;
 
   @override
   Stream<AlarmRing> get rings => controller.stream;
@@ -423,7 +425,7 @@ void main() {
           rule(id: 'b', enabled: false),
         ]);
         expect(platform.scheduled.map((r) => r.id), <String>['a', 'b']);
-        expect(platform.cancelled, <String>['b$snoozeSuffix']);
+        expect(platform.cancelled, isEmpty);
         await c.dispose();
       },
     );
@@ -538,19 +540,24 @@ void main() {
       fired = <AlarmRule>[];
     });
 
+    int beeps = 0;
+
     DefaultAlarmCoordinator build(
       _Playback playback, {
       Duration streamTimeout = const Duration(milliseconds: 30),
+      Duration bannerTimeout = const Duration(minutes: 3),
+      Future<void> Function(Station station)? startStation,
     }) => DefaultAlarmCoordinator(
       platform: platform,
       clock: clock,
       playback: playback,
-      startStation: playback.playStation,
+      startStation: startStation ?? playback.playStation,
       rules: () => ruleList,
       onRuleFired: (u) async => fired.add(u),
       rampDuration: Duration.zero,
       streamTimeout: streamTimeout,
-      beep: () async {},
+      bannerTimeout: bannerTimeout,
+      beep: () async => beeps++,
     );
 
     test('2: geloeschte Regel wird samt Schlummer abgemeldet', () async {
@@ -660,6 +667,116 @@ void main() {
       await c.dispose();
     });
 
+    test('B: Schlummern waehrend des Sendestarts stoppt das Radio', () async {
+      final playback = _Playback();
+      final gate = Completer<void>();
+      final c = build(
+        playback,
+        startStation: (s) async {
+          await gate.future;
+          await playback.playStation(s);
+        },
+      );
+      final ring = AlarmRing(ruleId: ruleList.first.id, handle: 1);
+      final pending = c.handleRing(ring);
+      await Future<void>.delayed(Duration.zero);
+      await c.snooze(ruleList.first.id);
+      gate.complete();
+      await pending;
+      expect(playback.state.status, PlayerStatus.idle);
+      expect(
+        playback.volumes.every((v) => v <= 0.2),
+        isTrue,
+        reason: 'keine Rampe nach Schlummern',
+      );
+      expect(
+        platform.scheduled.any((r) => r.id.endsWith(snoozeSuffix)),
+        isTrue,
+      );
+      await c.dispose();
+    });
+
+    test(
+      'B: Schlummern waehrend des Wartens: kein Piepton (Desktop)',
+      () async {
+        platform.itself = false;
+        final c = build(_Playback(autoPlay: false));
+        final pending = c.handleRing(
+          AlarmRing(ruleId: ruleList.first.id, handle: 1),
+        );
+        await Future<void>.delayed(Duration.zero);
+        await c.snooze(ruleList.first.id);
+        await pending;
+        expect(beeps, 0);
+        expect(c.ringing.value, isNull);
+        await c.dispose();
+      },
+    );
+
+    test('B: Aus waehrend des Wartens: kein Piepton, Banner weg', () async {
+      platform.itself = false;
+      final c = build(_Playback(autoPlay: false));
+      final pending = c.handleRing(
+        AlarmRing(ruleId: ruleList.first.id, handle: 1),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await c.dismiss(ruleList.first.id);
+      await pending;
+      expect(beeps, 0);
+      expect(c.ringing.value, isNull);
+      await c.dispose();
+    });
+
+    test('C: nach Neustart bleibt der Schlummer-Termin bei aus', () async {
+      final c1 = build(_Playback());
+      await c1.rescheduleAll(<AlarmRule>[rule()]);
+      await c1.dispose();
+      platform.cancelled.clear();
+      // Prozess-Neustart: neuer Koordinator ohne Vorzustand.
+      final c2 = build(_Playback());
+      await c2.rescheduleAll(<AlarmRule>[rule(enabled: false)]);
+      expect(platform.cancelled, isEmpty);
+      await c2.dispose();
+    });
+
+    test('C: Nutzer schaltet aus: Schlummer-Termin entfaellt', () async {
+      final c = build(_Playback());
+      await c.rescheduleAll(<AlarmRule>[rule()]);
+      await c.rescheduleAll(<AlarmRule>[rule(enabled: false)]);
+      expect(platform.cancelled, <String>['${rule().id}$snoozeSuffix']);
+      await c.dispose();
+    });
+
+    test(
+      'D: ohne Stream bleiben Banner und Piepton ueber das Timeout',
+      () async {
+        platform.itself = false;
+        final c = build(
+          _Playback(autoPlay: false),
+          bannerTimeout: const Duration(milliseconds: 40),
+        );
+        await c.handleRing(AlarmRing(ruleId: ruleList.first.id, handle: 1));
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+        expect(c.ringing.value, isNotNull);
+        expect(beeps, greaterThan(0));
+        await c.dismiss(ruleList.first.id);
+        expect(c.ringing.value, isNull);
+        await c.dispose();
+      },
+    );
+
+    test('D: laeuft der Stream, blendet sich das Banner aus', () async {
+      final c = build(
+        _Playback(),
+        bannerTimeout: const Duration(milliseconds: 40),
+      );
+      await c.handleRing(AlarmRing(ruleId: ruleList.first.id, handle: 1));
+      expect(c.ringing.value, isNotNull);
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      expect(c.ringing.value, isNull);
+      await c.dispose();
+    });
+
     test('13: dispose des Koordinators entsorgt die Plattform', () async {
       final c = build(_Playback());
       await c.dispose();
@@ -678,6 +795,25 @@ void main() {
         api: api,
         texts: AlarmTexts.german,
       );
+    });
+
+    test('A: belegte ID kostet keinen Termin, naechste freie Nummer', () async {
+      final daily = rule(weekdays: <int>{1, 2, 3, 4, 5, 6, 7});
+      await platform.schedule(daily);
+      final today = DateTime(2026, 11, 18, 7);
+      final first = AndroidAlarmPlatform.idFor(daily.id, 0);
+      expect(api.alarms[first]?.dateTime, today);
+      final before = api.alarms.length;
+      api.ringingIds.add(first); // klingelt oder geschlummert: ID belegt
+      await platform.schedule(daily);
+      final atToday = api.alarms.values.where((a) => a.dateTime == today);
+      expect(atToday.length, 2, reason: 'Termin heute behaelt eine freie ID');
+      expect(
+        api.alarms.values.any((a) => a.dateTime == DateTime(2026, 11, 19, 7)),
+        isTrue,
+        reason: 'Folgetag faellt nicht aus',
+      );
+      expect(api.alarms.length, before + 1);
     });
 
     test('2: verwaiste Alarme ohne Regel werden gestoppt', () async {
@@ -787,4 +923,7 @@ class _Gateway implements AlarmPermissionGateway {
 
   @override
   Future<void> requestNotifications() async => notificationRequests++;
+
+  @override
+  Future<bool> consumeRescheduleFlag() async => false;
 }

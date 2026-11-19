@@ -200,6 +200,17 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
   Timer? _beepTimer;
   Timer? _bannerTimer;
   AlarmRing? _activeRing;
+
+  /// Klingeln, das der Nutzer waehrend des Sendestarts geschlummert hat.
+  AlarmRing? _snoozedRing;
+
+  /// Aenderungen, die der Koordinator selbst ausloest (Einmal-Wecker schaltet
+  /// sich aus): kein Nutzer-Ausschalten.
+  int _internalChange = 0;
+
+  /// Zuletzt gesehener Einschaltzustand je Regel (erkennt Ausschalten durch
+  /// den Nutzer).
+  Map<String, bool> _enabledBefore = <String, bool>{};
   final Set<String> _handled = <String>{};
 
   /// Regel-IDs, die zuletzt geplant waren (erkennt geloeschte Regeln).
@@ -229,16 +240,23 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
     _known = ids;
 
     final now = _clock.now();
+    final before = _enabledBefore;
+    _enabledBefore = <String, bool>{for (final r in rules) r.id: r.enabled};
     for (final rule in rules) {
       final at = rule.firesAt;
       if (rule.enabled && !rule.repeats && at != null && !at.isAfter(now)) {
         // Einmaliger Termin liegt hinter uns (verpasst oder gerade
         // klingelnd): ausschalten statt auf morgen zu legen.
-        await onRuleFired?.call(rule.copyWith(enabled: false));
+        await _fired(rule.copyWith(enabled: false));
         continue;
       }
       await platform.schedule(rule);
-      if (!rule.enabled && !_snoozing.contains(rule.id)) {
+      // Nur wenn der Nutzer die Regel selbst von an auf aus stellt, entfaellt
+      // auch ihr Schlummer-Termin. Nach einem Neustart (kein Vorzustand) oder
+      // wenn sich ein Einmal-Wecker nach dem Klingeln selbst ausschaltet, bleibt
+      // ein geschlummerter Termin erhalten.
+      if (!rule.enabled && before[rule.id] == true && _internalChange == 0) {
+        _snoozing.remove(rule.id);
         await platform.cancel('${rule.id}$snoozeSuffix');
       }
     }
@@ -269,11 +287,20 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
     }
 
     final ok = await _startAndAwaitPlaying(station, start);
-    if (ok) {
+    if (!identical(_activeRing, ring)) {
+      // Der Nutzer hat im Banner waehrend der Wartezeit geschlummert oder
+      // ausgeschaltet: weder Rampe noch Piepton. Nach Schlummern das Radio
+      // wieder stoppen, das inzwischen angelaufen sein kann.
+      if (identical(_snoozedRing, ring)) {
+        _snoozedRing = null;
+        await _playback.stopPlayback();
+      }
+    } else if (ok) {
       switch (await platform.ringState(ring)) {
         case AlarmRingState.ringing:
           await platform.silence(ring);
           _startRamp(from: start, to: target);
+          _armBannerTimeout();
         case AlarmRingState.snoozed:
           // Nutzer hat in der Benachrichtigung geschlummert: Radio aus, der
           // native Termin bleibt bestehen.
@@ -282,8 +309,10 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
           _clearRinging();
         case AlarmRingState.ended:
           _startRamp(from: start, to: target);
+          _armBannerTimeout();
       }
     } else if (!platform.ringsItself) {
+      // Ohne Stream bleiben Banner und Piepton, bis der Nutzer waehlt.
       _startBeeping();
     }
     if (ring.isSnoozeRing) {
@@ -350,6 +379,12 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
   void _showRinging(AlarmRinging value) {
     _ringing.value = value;
     _bannerTimer?.cancel();
+  }
+
+  /// Banner blendet sich erst aus, wenn der Stream laeuft; ohne Stream bleibt
+  /// er samt Ersatzton, bis der Nutzer Schlummern oder Aus waehlt.
+  void _armBannerTimeout() {
+    _bannerTimer?.cancel();
     _bannerTimer = Timer(bannerTimeout, _clearRinging);
   }
 
@@ -366,9 +401,18 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
   Future<void> _afterFired(AlarmRule rule) async {
     final updated = AlarmSchedule.afterFired(rule);
     if (updated != rule) {
-      await onRuleFired?.call(updated);
+      await _fired(updated);
     } else {
       await platform.schedule(rule);
+    }
+  }
+
+  Future<void> _fired(AlarmRule updated) async {
+    _internalChange++;
+    try {
+      await onRuleFired?.call(updated);
+    } finally {
+      _internalChange--;
     }
   }
 
@@ -378,6 +422,7 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
     final rule = _ruleById(base);
     if (rule == null) return;
     _rampTimer?.cancel();
+    _snoozedRing = _activeRing;
     await _silenceActive();
     _clearRinging();
     if (_playback.state.status != PlayerStatus.idle) {

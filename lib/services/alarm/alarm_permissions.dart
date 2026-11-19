@@ -26,6 +26,10 @@ abstract interface class AlarmPermissionGateway {
 
   /// Mitteilungen erlauben (Android 13+, fuer die Weck-Benachrichtigung).
   Future<void> requestNotifications();
+
+  /// Hat sich seit dem letzten Aufruf Zeitzone oder Uhrzeit geaendert? Liest
+  /// und loescht das Merkzeichen des nativen `TimeChangeReceiver`.
+  Future<bool> consumeRescheduleFlag();
 }
 
 /// Kanal zu `AlarmChannel.kt` (android/app/src/main/kotlin/de/linefm/app).
@@ -72,6 +76,19 @@ class SystemAlarmPermissionGateway implements AlarmPermissionGateway {
 
   @override
   Future<void> requestNotifications() => _call('requestNotifications');
+
+  @override
+  Future<bool> consumeRescheduleFlag() async {
+    try {
+      return await _channel.invokeMethod<bool>('consumeRescheduleFlag') ??
+          false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException catch (e) {
+      debugPrint('Wecker-Merkzeichen: $e');
+      return false;
+    }
+  }
 }
 
 bool get _isAndroid =>
@@ -109,6 +126,15 @@ Future<AlarmPermissionStatus> alarmPermissionStatus(
     exactOk: await gateway.canScheduleExactAlarms(),
     fullScreenOk: await gateway.canUseFullScreenIntent(),
   );
+}
+
+/// Zeitzone/Uhrzeit seit dem letzten Mal geaendert (nur Android).
+Future<bool> alarmConsumeRescheduleFlag(
+  AlarmPermissionGateway gateway, {
+  bool? isAndroid,
+}) async {
+  if (!(isAndroid ?? _isAndroid)) return false;
+  return gateway.consumeRescheduleFlag();
 }
 
 /// Oeffnet die Systemeinstellung fuer Vollbild-Benachrichtigungen (Android).

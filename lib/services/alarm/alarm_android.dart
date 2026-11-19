@@ -167,8 +167,13 @@ class AndroidAlarmPlatform implements AlarmPlatform {
       final at = AlarmSchedule.nextOccurrence(rule, cursor);
       if (at == null || (planned > 0 && at.isAfter(limit))) break;
       cursor = at;
-      final id = idFor(rule.id, slot++);
-      if (busy.contains(id)) continue;
+      // Belegte ID (klingelt oder geschlummert): der Termin darf nicht
+      // verloren gehen, er bekommt die naechste freie Terminnummer.
+      var id = idFor(rule.id, slot++);
+      while (busy.contains(id) && slot < 256) {
+        id = idFor(rule.id, slot++);
+      }
+      if (busy.contains(id)) break;
       final ok = await _api.set(
         AlarmSettings(
           id: id,

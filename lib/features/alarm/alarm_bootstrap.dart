@@ -54,7 +54,10 @@ class _AlarmBootstrapState extends ConsumerState<AlarmBootstrap>
 
   Future<void> _refresh({required bool reschedule}) async {
     await ref.read(alarmPermissionStatusProvider.notifier).refresh();
-    if (!mounted || !reschedule) return;
+    // Zeitzonen-/Uhrzeitwechsel im Hintergrund: der native Empfaenger hat nur
+    // ein Merkzeichen gesetzt, hier wird neu geplant.
+    final timeChanged = await ref.read(alarmRescheduleFlagProvider)();
+    if (!mounted || !(reschedule || timeChanged)) return;
     await _coordinator.rescheduleAll(ref.read(alarmProvider));
   }
 

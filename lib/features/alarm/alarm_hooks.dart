@@ -48,6 +48,12 @@ final alarmOpenFullScreenSettingsProvider = Provider<Future<void> Function()>(
   (ref) => () async {},
 );
 
+/// Liest und loescht das Merkzeichen "Zeitzone/Uhrzeit geaendert" (Android).
+final alarmRescheduleFlagProvider = Provider<Future<bool> Function()>(
+  (ref) =>
+      () async => false,
+);
+
 class AlarmPermissionStatusNotifier extends Notifier<AlarmPermissionStatus> {
   @override
   AlarmPermissionStatus build() => const AlarmPermissionStatus();

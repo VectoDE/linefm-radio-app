@@ -49,6 +49,14 @@ class _Platform implements AlarmPlatform {
 
 class _Gateway implements AlarmPermissionGateway {
   bool exact = false;
+  bool timeChanged = false;
+
+  @override
+  Future<bool> consumeRescheduleFlag() async {
+    final v = timeChanged;
+    timeChanged = false;
+    return v;
+  }
 
   @override
   Future<bool> canScheduleExactAlarms() async => exact;
@@ -121,5 +129,15 @@ void main() {
     await tester.pump();
     expect(platform.scheduled, hasLength(2));
     expect(container.read(alarmPermissionStatusProvider).exactOk, isTrue);
+
+    // Zeitzonenwechsel im Hintergrund: Merkzeichen gesetzt, beim naechsten
+    // Oeffnen wird neu geplant und das Merkzeichen geloescht.
+    gateway.timeChanged = true;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await tester.pump();
+    expect(platform.scheduled, hasLength(3));
+    expect(gateway.timeChanged, isFalse);
   });
 }

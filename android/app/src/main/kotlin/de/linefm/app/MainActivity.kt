@@ -22,6 +22,7 @@ import io.flutter.plugin.common.MethodChannel
  */
 class MainActivity : AudioServiceActivity() {
     private var channel: MethodChannel? = null
+    private var alarmChannel: MethodChannel? = null
     private var initialLink: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,7 +32,7 @@ class MainActivity : AudioServiceActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        AlarmChannel.register(flutterEngine, this)
+        alarmChannel = AlarmChannel.register(flutterEngine, this)
         channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).apply {
             setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -48,6 +49,8 @@ class MainActivity : AudioServiceActivity() {
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         channel?.setMethodCallHandler(null)
         channel = null
+        alarmChannel?.setMethodCallHandler(null)
+        alarmChannel = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 

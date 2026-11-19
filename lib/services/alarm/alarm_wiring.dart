@@ -42,6 +42,10 @@ List<Override> alarmAndSleepOverrides({
     (ref) =>
         () => alarmPermissionStatus(permissions, isAndroid: isAndroid),
   ),
+  alarmRescheduleFlagProvider.overrideWith(
+    (ref) =>
+        () => alarmConsumeRescheduleFlag(permissions, isAndroid: isAndroid),
+  ),
   alarmOpenFullScreenSettingsProvider.overrideWith(
     (ref) =>
         () => alarmOpenFullScreenSettings(permissions, isAndroid: isAndroid),

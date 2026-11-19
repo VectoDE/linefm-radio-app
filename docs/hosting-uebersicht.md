@@ -28,9 +28,22 @@ dart run tool/web_postbuild.dart build/web
 
 Optionen: `--config`, `--csp-connect-extra`, `--targets cloudflare,plesk|none`, `--deploy-dir`, `--hosting-out`, `--base-url`, `--gsc`, `--keep-debug`. Ohne `--csp-connect-extra` werden die Telemetrie-Domains aus `config/app.json` abgeleitet (`UMAMI_URL`, `SENTRY_DSN`, `FIREBASE_ENABLED`). Wer die Server-Konfiguration einmal ohne Build rendern will, setzt `CSP_CONNECT_EXTRA` als Umgebungsvariable.
 
-**Keine `.htaccess` auf Cloudflare Pages:** Ohne `--targets` legt der Postbuild `_headers`, `_redirects` und `.htaccess` in `build/web`. Pages liefert jede Datei im Ausgabeordner öffentlich aus, auch `/.htaccess`. Für Pages deshalb `--targets cloudflare` verwenden oder `rm -f build/web/.htaccess` vor dem Upload. Der Workflow `deploy-web.yml` sollte das vor `pages deploy` tun; bis dahin gilt die Handarbeit. Auf nginx-Servern sperren die mitgelieferten Regeln `/.htaccess` und `/_headers` mit 404.
+**Keine `.htaccess` auf Cloudflare Pages:** Ohne `--targets` legt der Postbuild `_headers`, `_redirects` und `.htaccess` in `build/web`. Pages liefert jede Datei im Ausgabeordner öffentlich aus, auch `/.htaccess`. Wer von Hand auf Pages hochlädt, nimmt deshalb `--targets cloudflare` oder löscht `build/web/.htaccess` vor dem Upload. Der Workflow `deploy-web.yml` erledigt das selbst (`rm -f build/web/.htaccess` vor `pages deploy`). Auf nginx-Servern, auch in den Plesk-Zusatzanweisungen, sperren die mitgelieferten Regeln versteckte Dateien wie `/.htaccess` und dazu `/_headers` mit 404; Apache gibt `.htaccess` von sich aus nicht heraus.
 
 Wichtig: **Nach jeder Änderung der Telemetrie-Einstellungen neu bauen und die gerenderten Header-Dateien neu ausrollen.** Sonst blockiert die CSP die neuen Domains.
+
+### Ersatzschriften: CJK-Gruppe bleibt (Abwägung)
+
+Gemessen am Build vom 19.11.2026 (`build/web/assets/fonts/fallback/`): 730 Dateien mit 34,6 MiB. Davon gehören 568 Dateien mit 25,2 MiB zur CJK-Gruppe (Noto Sans SC, TC, HK, JP, KR). Die größte einzelne Datei hat 4,0 MiB. Der ganze Ausrollordner hat 799 Dateien.
+
+Entscheidung: Die CJK-Gruppe bleibt im Build.
+
+- Geladen wird sie nur, wenn ein Songtitel chinesische, japanische oder koreanische Zeichen enthält, und dann nur die Teil-Dateien für genau diese Zeichen. Wer deutsche oder englische Titel hört, lädt nichts davon.
+- Fehlt sie, zeigt die App solche Titel als Kästchen. Bei Sendern mit K-Pop- oder Anime-Titeln wäre das ein sichtbarer Fehler.
+- Cloudflare Pages erlaubt 20 000 Dateien je Deployment und 25 MiB je Datei. Mit 799 Dateien und höchstens 4,0 MiB je Datei liegt der Build weit darunter. nginx, Traefik und Plesk haben keine solche Grenze.
+- Kosten: Speicher und Upload-Zeit beim Ausrollen, sonst nichts. Dank `immutable` lädt ein Browser jede Datei höchstens einmal.
+
+Wer Platz sparen muss, baut mit `--groups core` und nimmt die Kästchen in Kauf.
 
 ## Cache-Strategie
 
@@ -39,6 +52,7 @@ Wichtig: **Nach jeder Änderung der Telemetrie-Einstellungen neu bauen und die g
 | `/`, `/index.html`, `/flutter_bootstrap.js`, `/sw.js`, `/manifest.webmanifest`, `/version.json`, `/asset-manifest.txt`, `/impressum/`, `/datenschutz/` | `no-cache` | Immer beim Server nachfragen. Mit ETag ist die Antwort meist ein billiges 304. |
 | `/main.<hash>.dart.js|mjs|wasm`, `/canvaskit/<revision>/**` | `public, max-age=31536000, immutable` | Der Hash steht im Dateinamen. Neue Version heißt neuer Name. |
 | `/assets/AssetManifest.*`, `/assets/FontManifest.json`, `/assets/NOTICES` | `no-cache` | Fester Dateiname, aber der Inhalt ändert sich mit jedem Build. Mit einem Tag Cache bekäme ein Nutzer nach einem Update bis zu 24 Stunden ein altes Manifest zu neuen Dateien. |
+| `/assets/fonts/fallback/**` | `public, max-age=31536000, immutable` | Ersatzschriften liegen unter versionierten Pfaden (`notosans/v39/<hash>.woff2`). Eine neue Schriftversion bekommt einen neuen Pfad. |
 | übrige `/assets/**`, `/icons/**`, `/favicon.png` | `public, max-age=86400, stale-while-revalidate=604800` | Nicht gehasht, ändert sich selten. |
 | `/robots.txt`, `/sitemap.xml`, `/llms.txt` | `public, max-age=3600` | Crawler sollen Änderungen innerhalb einer Stunde sehen. |
 

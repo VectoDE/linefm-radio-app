@@ -64,8 +64,12 @@
 /assets/assets/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
-/assets/fonts/*
+/assets/fonts/MaterialIcons-Regular.otf
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# Ersatzschriften (L14): Pfade tragen Version und Hash (notosans/v39/<hash>.woff2), daher unveraenderlich.
+/assets/fonts/fallback/*
+  Cache-Control: public, max-age=31536000, immutable
 
 /assets/packages/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800

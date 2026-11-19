@@ -6,9 +6,9 @@ name: Release
 # und legt das GitHub-Release an. Build-Provenance- und SBOM-Attestierungen (Sigstore)
 # entstehen nur, wo GitHub sie erlaubt (oeffentliches Repo oder Enterprise Cloud); im
 # privaten Repo darf der Schritt scheitern und die Zusammenfassung sagt das offen.
-# Die Release-Dateien selbst sind nicht zusaetzlich signiert; Android (APK/AAB) und
-# Windows (MSIX) tragen ihre Plattform-Signatur nur, wenn die Signier-Secrets gesetzt
-# sind. Pruefen der Downloads: docs/RELEASE-VERIFIZIEREN.md.
+# Die Release-Dateien selbst sind nicht zusaetzlich signiert; Android (APK/AAB),
+# Windows (EXE im ZIP) und macOS (DMG, notarisiert) tragen ihre Plattform-Signatur nur,
+# wenn die Signier-Secrets gesetzt sind. Pruefen der Downloads: docs/RELEASE-VERIFIZIEREN.md.
 # Danach starten die Store-Workflows; Google Play und Snap auch fuer rc-Tags, alle
 # anderen nur fuer Endversionen.
 
@@ -190,6 +190,8 @@ jobs:
             echo '```'
             echo "sha256sum -c SHA256SUMS.txt --ignore-missing"
             echo '```'
+            echo ""
+            echo "Signaturen, SBOM und Herkunft pruefen: docs/RELEASE-VERIFIZIEREN.md im Repository."
           } >> "$notes"
           echo "NOTES_FILE=$notes" >> "$GITHUB_ENV"
 

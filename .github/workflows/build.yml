@@ -235,6 +235,14 @@ jobs:
         with:
           persist-credentials: false
 
+      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
+      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
+      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
+      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+
       # Der Release-Build laedt NDK und CMake nach; ohne Aufraeumen lief der Runner
       # voll und wurde abgebrochen ("runner has received a shutdown signal").
       - name: Plattenplatz freigeben
@@ -348,6 +356,14 @@ jobs:
         with:
           persist-credentials: false
 
+      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
+      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
+      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
+      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 
@@ -439,6 +455,14 @@ jobs:
         with:
           persist-credentials: false
 
+      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
+      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
+      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
+      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+
       - name: Systempakete
         uses: ./.github/actions/linux-deps
 
@@ -503,6 +527,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
+      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
+      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
+      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
       - name: Rust-Toolchain (fuer smtc_windows)
         shell: bash
@@ -679,6 +711,14 @@ jobs:
         with:
           persist-credentials: false
 
+      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
+      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
+      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
+      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 
@@ -806,6 +846,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
+      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
+      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
+      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter

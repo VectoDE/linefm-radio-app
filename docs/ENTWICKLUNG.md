@@ -159,6 +159,13 @@ Format: `linefm://play?station=<slug>` und `https://app.linefm.de/?station=<slug
 
 Tests: `test/platform/deep_links_test.dart`, `android_deep_links_test.dart`, `web_routes_test.dart`.
 
+## Android: Zurück-Geste, Sprachen, Edge-to-Edge
+
+- **targetSdk** kommt aus Flutter (`flutter.targetSdkVersion`, mit Flutter 3.50 also API 36), `compileSdk` steht fest auf 37 (`android/app/build.gradle.kts`). Nach einem Flutter-Update prüfen, ob sich der Wert geändert hat, und die Punkte unten neu ansehen.
+- **Edge-to-Edge:** Ab targetSdk 35 zeichnet Android jede App unter Status- und Navigationsleiste; ab API 36 lässt sich das nicht mehr abschalten. Flutter zeichnet ohnehin randlos, die Shell hält Inhalte mit `SafeArea` von den Leisten fern. Neue Bildschirme brauchen das ebenfalls, sonst liegen Knöpfe unter der Gestenleiste.
+- **Vorhersagbares Zurück:** `android:enableOnBackInvokedCallback="true"` im Manifest. Die Shell nutzt `PopScope` (`canPop` nur auf der Senderliste), das mit der Geste zusammenarbeitet. Der Test „Vorhersagbares Zurueck“ in `test/app/shell_test.dart` spielt die Geste über den Kanal `flutter/backgesture` nach. Kein `WillPopScope` verwenden, das bricht die Geste.
+- **Sprachen pro App:** `res/xml/locales_config.xml` nennt de und en (Android 13+, Einstellungen > Apps > Sprache). Kommt eine Sprache unter `lib/l10n/` dazu, dort ergänzen.
+
 ## laut.fm: WebSocket bewusst aus
 
 Der WebSocket `wss://api.laut.fm/song_change.ws.json` meldet Titelwechsel **aller** Sender der Plattform. Gemessen am 19.11.2026:

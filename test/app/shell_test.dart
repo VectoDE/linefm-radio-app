@@ -145,6 +145,55 @@ void main() {
       handle.dispose();
     });
 
+    testWidgets('Vorhersagbares Zurueck (Android) fuehrt wie Zurueck (L3-03)', (
+      tester,
+    ) async {
+      useSize(tester, 390, 844);
+      final host = AppHost(settings: _noAutoplay);
+      await pumpApp(tester, host);
+
+      Future<void> gesture(String method, [Object? args]) async {
+        await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+          SystemChannels.backGesture.name,
+          SystemChannels.backGesture.codec.encodeMethodCall(
+            MethodCall(method, args),
+          ),
+          (_) {},
+        );
+        await settleApp(tester);
+      }
+
+      await tester.tap(find.text('VERLAUF'));
+      await settleApp(tester);
+      expect(host.container.read(navigationProvider), AppScreen.history);
+
+      // Wie OnBackInvokedCallback mit enableOnBackInvokedCallback="true".
+      await gesture('startBackGesture', <String, Object?>{
+        'touchOffset': <double>[5, 400],
+        'progress': 0.0,
+        'swipeEdge': 0,
+      });
+      await gesture('updateBackGestureProgress', <String, Object?>{
+        'touchOffset': <double>[120, 400],
+        'progress': 0.6,
+        'swipeEdge': 0,
+      });
+      await gesture('commitBackGesture');
+      expect(host.container.read(navigationProvider), AppScreen.stations);
+
+      // Abgebrochene Geste aendert nichts.
+      await tester.tap(find.text('VERLAUF'));
+      await settleApp(tester);
+      await gesture('startBackGesture', <String, Object?>{
+        'touchOffset': <double>[5, 400],
+        'progress': 0.0,
+        'swipeEdge': 0,
+      });
+      await gesture('cancelBackGesture');
+      expect(host.container.read(navigationProvider), AppScreen.history);
+      await disposeApp(tester, host);
+    });
+
     testWidgets('Offline-Leiste, wenn laut.fm nicht erreichbar ist', (
       tester,
     ) async {

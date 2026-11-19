@@ -28,7 +28,12 @@
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
+        android:localeConfig="@xml/locales_config"
         tools:replace="android:allowBackup">
+        <!-- Vorhersagbares Zurueck (Android 13+, L3-03): Die Shell nutzt PopScope,
+             das mit OnBackInvokedCallback zusammenarbeitet. localeConfig nennt
+             die Sprachen fuer die Spracheinstellung pro App (de, en). -->
         <!-- Keine Android-Sicherung (S10): Einwilligung und Speicher-Hinweis
              gelten je Geraet, ein wiederhergestelltes "Ja" zur Statistik auf
              einem neuen Geraet waere keine aktuelle Einwilligung. Favoriten
@@ -62,8 +67,10 @@
                 <data android:scheme="linefm" android:host="play" />
             </intent-filter>
             <!-- Geteilte Web-Links https://app.linefm.de/?station=SLUG.
-                 autoVerify erst, wenn /.well-known/assetlinks.json auf
-                 app.linefm.de liegt (SHA-256 des Play-Signaturschluessels). -->
+                 autoVerify bleibt false, bis /.well-known/assetlinks.json mit dem
+                 echten SHA-256 des Play-Signaturzertifikats live ist
+                 (Variable ANDROID_CERT_SHA256, tool/web_postbuild.dart, L3-01).
+                 Vorher wuerde Android die Verifizierung verwerfen. -->
             <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

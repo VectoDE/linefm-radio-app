@@ -280,7 +280,7 @@ const String legalCss =
   --muted: #a4a7b6;
   --line: rgba(255, 255, 255, 0.12);
   --link: #ffffff;
-  --mark: #ff4b6e;
+  --mark: #ff7a93;
 }
 @media (prefers-color-scheme: light) {
   :root {
@@ -289,7 +289,7 @@ const String legalCss =
     --muted: #4a4e62;
     --line: rgba(15, 18, 33, 0.14);
     --link: #0f1221;
-    --mark: #b3002b;
+    --mark: #9b0025;
   }
 }
 * { box-sizing: border-box; }

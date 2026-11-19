@@ -234,6 +234,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyEmpty => 'No tracks in the history yet.';
 
   @override
+  String get historyLoadFailed => 'Couldn’t load the history.';
+
+  @override
   String get favoritesTitle => 'Favorites';
 
   @override
@@ -266,6 +269,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get favoritesExportFailed => 'The export failed.';
+
+  @override
+  String get shareCopied => 'Copied to the clipboard.';
+
+  @override
+  String get shareFailed => 'Sharing didn’t work.';
 
   @override
   String get csvColumnTitle => 'Title';

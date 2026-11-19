@@ -46,6 +46,9 @@ class _RecordingShare implements ShareService {
       shared.add(track);
 
   @override
+  Future<void> shareText(String text) async {}
+
+  @override
   Future<void> openUrl(Uri uri) async => opened.add(uri);
 
   @override

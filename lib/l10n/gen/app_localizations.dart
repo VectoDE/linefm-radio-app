@@ -482,6 +482,12 @@ abstract class AppLocalizations {
   /// **'Noch keine Titel im Verlauf.'**
   String get historyEmpty;
 
+  /// No description provided for @historyLoadFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Verlauf konnte nicht geladen werden.'**
+  String get historyLoadFailed;
+
   /// No description provided for @favoritesTitle.
   ///
   /// In de, this message translates to:
@@ -541,6 +547,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Der Export hat nicht geklappt.'**
   String get favoritesExportFailed;
+
+  /// No description provided for @shareCopied.
+  ///
+  /// In de, this message translates to:
+  /// **'In die Zwischenablage kopiert.'**
+  String get shareCopied;
+
+  /// No description provided for @shareFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Teilen hat nicht geklappt.'**
+  String get shareFailed;
 
   /// CSV-Spaltenkopf
   ///

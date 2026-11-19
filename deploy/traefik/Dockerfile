@@ -2,7 +2,7 @@
 #   flutter build web ... && dart run tool/web_postbuild.dart build/web
 # docker build -f deploy/traefik/Dockerfile -t linefm-app-web .
 # Basisimage per Digest gepinnt (nginx 1.30 stable, alpine). Aktualisierung: docs/hosting-traefik.md
-FROM nginxinc/nginx-unprivileged:1.30-alpine@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03
+FROM nginxinc/nginx-unprivileged:1.31-alpine@sha256:b5047b9b76845eac124358373c6852377c52e4b05834a47647e955dd91cb8f1e
 
 COPY build/hosting/nginx/snippets/ /etc/nginx/snippets/
 COPY build/hosting/traefik/nginx.conf /etc/nginx/nginx.conf

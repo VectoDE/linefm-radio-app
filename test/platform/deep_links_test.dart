@@ -34,6 +34,16 @@ void main() {
       );
     });
 
+    test('Web: eigener Host der Seite zaehlt (Vorschau)', () {
+      expect(
+        DeepLinks.stationFromUri(
+          Uri.parse('http://localhost:8080/?station=linefmrap'),
+          ownHost: 'localhost',
+        ),
+        stationBySlug('linefmrap'),
+      );
+    });
+
     test('unbekannt, leer, falsches Ziel, fremdes Schema', () {
       for (final bad in <String>[
         'linefm://play?station=gibtsnicht',
@@ -43,6 +53,9 @@ void main() {
         'javascript:alert(1)?station=linefm',
         'file:///x?station=linefm',
         'https://app.linefm.de/',
+        // S6: fremde Hosts oeffnen keinen Sender.
+        'https://boese.example/?station=linefm',
+        'http://app.linefm.de.boese.example/?station=linefm',
       ]) {
         expect(DeepLinks.stationFromUri(Uri.parse(bad)), isNull, reason: bad);
       }

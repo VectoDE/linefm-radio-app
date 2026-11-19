@@ -8,12 +8,14 @@
   "@brandName": {
     "description": "Markenname im Header"
   },
-  "navStations": "Stationen",
+  "navStations": "Sender",
   "navPlayer": "Player",
   "navHistory": "Verlauf",
   "navFavorites": "Favoriten",
   "navSettings": "Einstellungen",
   "navMain": "Hauptnavigation",
+  "regionHeader": "Kopfbereich",
+  "regionNotices": "Hinweise",
   "loaderSemantics": "LINEFM wird geladen",
   "creditsMadeBy": "Made by .jaybelife with ♥",
   "@creditsMadeBy": {
@@ -35,10 +37,10 @@
   "creditsDevelopedBy": "Entwickelt von Tim Hauke (VectoDE) für jaybelife",
   "creditsOwnership": "LINEFM und die App gehören jaybelife.",
   "creditsDeveloperOpen": "Tim Hauke auf GitHub öffnen",
-  "radioGruppeName": "Radiogruppe",
-  "radioGruppeOpen": "Radiogruppe öffnen",
-  "storageNoticeBodyWeb": "Wir speichern kleine Daten in diesem Browser, um dein Nutzungserlebnis zu verbessern.",
-  "storageNoticeBodyDevice": "Wir speichern kleine Daten auf diesem Gerät, um dein Nutzungserlebnis zu verbessern.",
+  "radioGruppeName": "RadioGruppe Deutschland",
+  "radioGruppeOpen": "RadioGruppe Deutschland öffnen",
+  "storageNoticeBodyWeb": "LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt gehörten Sender in diesem Browser, damit die App sie beim nächsten Start kennt.",
+  "storageNoticeBodyDevice": "LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt gehörten Sender auf diesem Gerät, damit die App sie beim nächsten Start kennt.",
   "storageNoticePrivacy": "Datenschutz",
   "storageNoticeDismiss": "Verstanden",
   "favoritesButton": "Favoriten",
@@ -51,8 +53,8 @@
     }
   },
   "settingsButton": "Einstellungen",
-  "stationsTitle": "Alle Stationen",
-  "stationsListLabel": "Alle Stationen",
+  "stationsTitle": "Alle Sender",
+  "stationsListLabel": "Alle Sender",
   "stationCardLabel": "{station}, läuft: {track}",
   "@stationCardLabel": {
     "placeholders": {
@@ -106,8 +108,7 @@
     "description": "Zusatz im Screenreader-Text einer gemerkten Stationskarte"
   },
   "playerCoverAlt": "Albumcover",
-  "playerShuffle": "Zufällige Station abspielen",
-  "playerShuffleTooltip": "Zufällige Station",
+  "playerShuffle": "Zufälligen Sender abspielen",
   "playerStart": "Stream starten",
   "playerConnecting": "Stream wird verbunden",
   "playerStop": "Stream stoppen",
@@ -116,8 +117,7 @@
   "playerNext": "Nächster Sender",
   "playerPrevious": "Vorheriger Sender",
   "playerClose": "Player schließen",
-  "playerOpen": "Player öffnen",
-  "playerListeners": "{count, plural, =1{1 Person hört gerade zu} other{{count} hören gerade zu}}",
+  "playerListeners": "{count, plural, =0{Gerade hört niemand zu} =1{1 Person hört gerade zu} other{{count} hören gerade zu}}",
   "@playerListeners": {
     "placeholders": {
       "count": {
@@ -128,11 +128,8 @@
   "playerReconnecting": "Verbindung wird wiederhergestellt …",
   "playerStreamError": "Stream konnte nicht gestartet werden.",
   "playerRetry": "Erneut versuchen",
-  "playerStartRadio": "Radio starten",
-  "playerPlayNow": "Jetzt abspielen",
   "playerLive": "LIVE",
   "trackUnknownTitle": "Unbekannter Titel",
-  "trackUnknownArtist": "Unbekannter Künstler",
   "trackLoading": "Titel wird geladen …",
   "playerOpenSongIn": "Song öffnen in …",
   "playerShareSong": "Song teilen",
@@ -158,11 +155,9 @@
   },
   "linkOpenError": "Der Link konnte nicht geöffnet werden.",
   "historyTitle": "Zuletzt gespielt",
-  "historyListLabel": "Zuletzt gespielte Titel",
   "historyEmpty": "Noch keine Titel im Verlauf.",
   "historyLoadFailed": "Verlauf konnte nicht geladen werden.",
   "favoritesTitle": "Favoriten",
-  "favoritesListLabel": "Gespeicherte Songs",
   "favoritesEmpty": "Noch keine Favoriten gespeichert.",
   "favoritesRemove": "{title} aus Favoriten entfernen",
   "@favoritesRemove": {
@@ -184,39 +179,48 @@
       }
     }
   },
-  "favoritesExportFailed": "Der Export hat nicht geklappt.",
+  "favoritesExportFailed": "Der Export hat nicht geklappt. Versuche es noch einmal.",
+  "favoritesImport": "Favoriten importieren",
+  "@favoritesImport": {
+    "description": "Knopf/Tooltip: Favoriten aus einer eigenen Export-Datei (CSV oder Text) einlesen, Issue #9"
+  },
+  "favoritesImportDone": "{count, plural, =0{Keine neuen Favoriten in der Datei.} =1{1 Favorit importiert.} other{{count} Favoriten importiert.}}",
+  "@favoritesImportDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "favoritesImportSkipped": "{count, plural, =1{1 Eintrag übersprungen (unbekannter Sender oder unlesbar).} other{{count} Einträge übersprungen (unbekannter Sender oder unlesbar).}}",
+  "@favoritesImportSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "favoritesImportFailed": "Die Datei ließ sich nicht lesen. Wähle einen Export aus LINEFM Radio (CSV oder Text).",
+  "autoplayBlockedStart": "Radio starten",
+  "@autoplayBlockedStart": {
+    "description": "Großer Knopf, wenn der Browser den automatischen Start blockiert (Web-Autoplay-Sperre, Spec 2.2)"
+  },
+  "autoplayBlockedHint": "Dein Browser erlaubt Ton erst nach einem Klick. Klicke, um {station} zu starten.",
+  "@autoplayBlockedHint": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
   "shareCopied": "In die Zwischenablage kopiert.",
   "shareFailed": "Teilen hat nicht geklappt.",
-  "csvColumnTitle": "Titel",
-  "@csvColumnTitle": {
-    "description": "CSV-Spaltenkopf"
-  },
-  "csvColumnArtist": "Künstler",
-  "@csvColumnArtist": {
-    "description": "CSV-Spaltenkopf"
-  },
-  "csvColumnStation": "Sender",
-  "@csvColumnStation": {
-    "description": "CSV-Spaltenkopf"
-  },
-  "csvColumnSavedAt": "Gemerkt am",
-  "@csvColumnSavedAt": {
-    "description": "CSV-Spaltenkopf"
-  },
   "miniOpenPlayer": "Player öffnen",
   "volumeOpen": "Lautstärke öffnen",
   "volumeClose": "Lautstärke schließen",
   "volumeLabel": "Lautstärke",
   "volumePercent": "Lautstärke {percent} Prozent",
   "@volumePercent": {
-    "placeholders": {
-      "percent": {
-        "type": "int"
-      }
-    }
-  },
-  "volumeSliderValue": "{percent} Prozent",
-  "@volumeSliderValue": {
     "placeholders": {
       "percent": {
         "type": "int"
@@ -242,12 +246,10 @@
   "themeLight": "Hell",
   "themeDark": "Dunkel",
   "settingAutoplayTitle": "Beim Start abspielen",
-  "settingAutoplayBody": "Die zuletzt gehörte Station startet automatisch.",
-  "settingAutoplayBodyWeb": "Die zuletzt gehörte Station startet nach deinem ersten Tippen oder Klick.",
+  "settingAutoplayBody": "Der zuletzt gehörte Sender startet automatisch.",
+  "settingAutoplayBodyWeb": "Der zuletzt gehörte Sender startet nach deinem ersten Tippen oder Klick.",
   "settingTrayTitle": "Beim Schließen im Tray weiterlaufen",
   "settingTrayBody": "Das Fenster verschwindet, die Wiedergabe läuft weiter.",
-  "settingAlwaysOnTopTitle": "Immer im Vordergrund",
-  "settingMiniWindow": "Mini-Player",
   "settingAlarmTitle": "Wecker",
   "settingAlarmBodyOff": "Kein Wecker gestellt.",
   "settingAboutTitle": "Über LINEFM Radio",
@@ -275,15 +277,13 @@
   "sleepTimerStatusEndOfSong": "Wiedergabe stoppt am Ende des Songs.",
   "sleepTimerExpired": "Sleeptimer abgelaufen.",
   "settingStorageTitle": "Speicher",
-  "settingStorageBody": "Zuletzt gehörte Station, Favoriten, Lautstärke und Einstellungen werden lokal gespeichert.",
+  "settingStorageBody": "Lokal gespeichert werden: zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen, zwischengespeicherte Cover und am Computer die Fensterposition.",
   "settingStorageClear": "Speicher löschen",
   "clearStorageConfirmTitle": "Speicher löschen?",
-  "clearStorageConfirmBody": "Favoriten, Lautstärke, letzte Station und Einstellungen werden entfernt. Das lässt sich nicht rückgängig machen.",
+  "clearStorageConfirmBody": "Zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen. Nur „Cover laden: aus“ bleibt gespeichert, damit danach keine Anfragen an Apple gehen.",
   "clearStorageDone": "Speicher gelöscht.",
   "actionCancel": "Abbrechen",
   "actionDelete": "Löschen",
-  "actionClose": "Schließen",
-  "actionOk": "OK",
   "footerWebsite": "Website",
   "footerImprint": "Impressum",
   "footerPrivacy": "Datenschutz",
@@ -292,7 +292,20 @@
   "settingTelemetryBodyOn": "Erlaubt. Du kannst das jederzeit widerrufen.",
   "settingTelemetryBodyOff": "Nicht erlaubt. Es wird nichts gesendet.",
   "consentTitle": "Statistik und Fehlerberichte",
-  "consentBody": "Damit wir sehen, was gut läuft und wo die App hakt, würden wir gern Angaben zur Nutzung und zu Fehlern auswerten, ohne Namen und ohne Konto. Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.",
+  "consentIntro": "Damit wir sehen, was gut läuft und wo die App hakt, würden wir gern Angaben zur Nutzung und zu Fehlern auswerten, ohne Namen und ohne Konto.",
+  "consentRecipients": "Die Daten gehen an: {services}. Dabei wird technisch deine IP-Adresse übertragen.",
+  "@consentRecipients": {
+    "placeholders": {
+      "services": {
+        "type": "String"
+      }
+    }
+  },
+  "consentServiceUmami": "Umami (Nutzungsstatistik)",
+  "consentServiceSentry": "GlitchTip bzw. Sentry (Fehlerberichte)",
+  "consentServiceFirebase": "Google (Firebase Analytics und Crashlytics)",
+  "consentFirebaseTransfer": "Google kann die Daten in die USA übermitteln. Grundlage ist das EU-US Data Privacy Framework, für das die EU-Kommission ein angemessenes Datenschutzniveau festgestellt hat.",
+  "consentOutro": "Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.",
   "consentAllow": "Erlauben",
   "consentDecline": "Ablehnen",
   "consentPrivacyLink": "Mehr in der Datenschutzerklärung",
@@ -324,7 +337,6 @@
   "trustGridinsoft": "Website-Prüfung bei Gridinsoft",
   "trustTrustpilot": "Bewertungen bei Trustpilot",
   "alarmTitle": "Wecker",
-  "alarmEnabled": "Wecker aktiv",
   "alarmTime": "Uhrzeit",
   "alarmDays": "Wochentage",
   "alarmOnce": "Einmalig",
@@ -350,16 +362,14 @@
   },
   "alarmNone": "Kein Wecker gestellt.",
   "alarmAdd": "Wecker hinzufügen",
-  "alarmDelete": "Wecker löschen",
   "alarmNoteIos": "Auf iPhone und iPad weckt dich eine Mitteilung. Tippe darauf, um das Radio zu starten.",
-  "alarmNoteDesktop": "Der Wecker klingelt nur, solange LINEFM Radio läuft (auch im Tray).",
+  "alarmNoteDesktop": "Der Wecker klingelt nur, solange LINEFM Radio läuft, auch wenn es im Tray liegt.",
   "alarmNoteWeb": "Der Wecker klingelt nur, solange dieser Tab geöffnet ist.",
   "alarmNoteAndroid": "Dein Radio startet zur eingestellten Zeit, auch wenn die App geschlossen ist. Klappt der Stream nicht, klingelt ein Weckton.",
   "alarmPermissionTitle": "Wecker braucht eine Freigabe",
   "alarmPermissionBody": "Damit der Wecker pünktlich klingelt, muss Android genaue Alarme erlauben. Das stellst du in den Systemeinstellungen ein.",
   "alarmOpenSettings": "Einstellungen öffnen",
-  "alarmStop": "Aus",
-  "alarmRingingBody": "Wecker: {station} läuft.",
+  "alarmRingingBody": "{station} läuft gleich los.",
   "@alarmRingingBody": {
     "placeholders": {
       "station": {
@@ -370,17 +380,7 @@
   "alarmExactMissingNote": "Ohne die Freigabe „Alarme und Erinnerungen“ klingelt der Wecker nicht pünktlich. Erlaube sie in den Systemeinstellungen.",
   "alarmFullScreenMissingNote": "Ohne die Freigabe „Vollbild-Benachrichtigungen“ erscheint der Wecker nur als Mitteilung, nicht als Vollbild.",
   "alarmOpenFullScreenSettings": "Vollbild erlauben",
-  "alarmRingingTitle": "Guten Morgen",
-  "alarmRingingBody": "{station} läuft gleich los.",
-  "@alarmRingingBody": {
-    "placeholders": {
-      "station": {
-        "type": "String"
-      }
-    }
-  },
   "alarmDismiss": "Ausschalten",
-  "alarmSnoozeAction": "Schlummern",
   "alarmNotificationTitle": "LINEFM Wecker",
   "alarmNotificationBody": "{station} startet jetzt.",
   "@alarmNotificationBody": {
@@ -419,7 +419,6 @@
     "description": "Wochentag kurz, 1 = Montag"
   },
   "offlineBanner": "Keine Verbindung. LINEFM versucht es weiter.",
-  "genericError": "Da ist etwas schiefgelaufen.",
   "actionRetry": "Erneut versuchen",
   "loading": "Wird geladen …",
   "stationsOffline": "Die Titelinfos sind gerade nicht erreichbar.",
@@ -441,7 +440,7 @@
   "@browseFavoriteStations": {
     "description": "Ordner im Auto-Menü (Android Auto/CarPlay): gemerkte Sender, Issue #42"
   },
-  "browseStations": "Stationen",
+  "browseStations": "Sender",
   "@browseStations": {
     "description": "Ordner im Auto-Menü: alle Sender"
   },
@@ -456,5 +455,40 @@
   "trayStations": "Sender",
   "trayMiniPlayer": "Mini-Player",
   "trayQuit": "Beenden",
-  "trayAlwaysOnTop": "Immer im Vordergrund"
+  "trayAlwaysOnTop": "Immer im Vordergrund",
+  "actionUndo": "Rückgängig",
+  "favoritesRemoved": "„{title}“ entfernt.",
+  "@favoritesRemoved": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "stationsYours": "Deine Sender",
+  "@stationsYours": {
+    "description": "Gruppe der Favoriten-Sender oben in der Senderliste"
+  },
+  "stationsYoursListLabel": "Deine Favoriten-Sender",
+  "settingArtworkTitle": "Cover laden",
+  "settingArtworkBody": "Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfragen an Apple, die App zeigt das Cover von laut.fm oder das Senderlogo. Diese Einstellung bleibt auch ohne bestätigten Speicher-Hinweis und nach „Speicher löschen“ gespeichert.",
+  "settingShortcutsTitle": "Tastenkürzel mit einer Taste",
+  "settingShortcutsBody": "F merkt den Song, S spielt einen zufälligen Sender, 1 bis 6 wählen einen Sender.",
+  "playerSleepTimer": "Sleeptimer einstellen",
+  "alarmEnabledAt": "Wecker {time} aktiv",
+  "@alarmEnabledAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmDeleteAt": "Wecker {time} löschen",
+  "@alarmDeleteAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

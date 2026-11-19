@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/semantics.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:linefm_radio/domain/player_ui_state.dart';
@@ -14,6 +14,8 @@ import 'package:linefm_radio/ui/widgets/cover_image.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
 import 'package:linefm_radio/ui/widgets/marquee_text.dart';
 import 'package:linefm_radio/ui/widgets/play_button.dart';
+import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Anzeigedaten des Players. Reine Werte, damit die Ansicht ohne Provider
@@ -71,6 +73,8 @@ class PlayerView extends StatelessWidget {
     this.onRetry,
     this.castSlot,
     this.airPlaySlot,
+    this.onSleepTimer,
+    this.sleepTimerActive = false,
     this.topInset = 0,
     this.bottomInset = 0,
     this.embedded = false,
@@ -94,6 +98,12 @@ class PlayerView extends StatelessWidget {
   /// keinen Platz.
   final Widget? castSlot;
   final Widget? airPlaySlot;
+
+  /// Oeffnet die Sleeptimer-Auswahl (U2). `null` blendet den Knopf aus.
+  final VoidCallback? onSleepTimer;
+
+  /// Sleeptimer laeuft: Knopf hervorgehoben.
+  final bool sleepTimerActive;
   final double topInset;
   final double bottomInset;
 
@@ -203,6 +213,8 @@ class PlayerView extends StatelessWidget {
                       onOpenMusicLinks: onOpenMusicLinks,
                       castSlot: castSlot,
                       airPlaySlot: airPlaySlot,
+                      onSleepTimer: onSleepTimer,
+                      sleepTimerActive: sleepTimerActive,
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -289,9 +301,9 @@ class _StationLine extends StatelessWidget {
     final style = TextStyle(
       fontFamily: LinefmFonts.brand,
       fontWeight: FontWeight.w700,
-      fontSize: 10,
+      fontSize: 12,
       height: 1.4,
-      letterSpacing: 1.6,
+      letterSpacing: 1.2,
       color: color.withValues(alpha: 0.82),
     );
     return Row(
@@ -347,10 +359,16 @@ class _TrackInfo extends StatelessWidget {
     final track = data.track;
     final title = track?.title ?? data.station.displayName;
     final artist = track?.artist ?? strings.trackLoading;
-    return Semantics(
-      liveRegion: true,
-      container: true,
-      label: '$title, $artist',
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        liveRegion: true,
+        container: true,
+        label: '$title, $artist',
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: ExcludeSemantics(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -563,8 +581,12 @@ class _SecondaryRow extends StatelessWidget {
     required this.onOpenMusicLinks,
     required this.castSlot,
     required this.airPlaySlot,
+    this.onSleepTimer,
+    this.sleepTimerActive = false,
   });
 
+  final VoidCallback? onSleepTimer;
+  final bool sleepTimerActive;
   final PlayerViewData data;
   final PlayerStrings strings;
   final Color color;
@@ -577,12 +599,9 @@ class _SecondaryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasTrack = data.track != null;
     final border = color.withValues(alpha: 0.32);
-    // Abstand ueber Padding statt Wrap-spacing: leere Slots (SizedBox.shrink)
-    // verschieben sonst die Mitte.
-    Widget gap(Widget child) => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5),
-      child: child,
-    );
+    // Abstand nur um sichtbare Elemente: Cast- und AirPlay-Slot sind ohne
+    // Geraet leer (SizedBox.shrink) und duerfen die Mitte nicht verschieben.
+    Widget gap(Widget child) => SlotGap(child: child);
     return Wrap(
       alignment: WrapAlignment.center,
       crossAxisAlignment: WrapCrossAlignment.center,
@@ -607,6 +626,20 @@ class _SecondaryRow extends StatelessWidget {
               child: FaIcon(
                 FontAwesomeIcons.shareNodes,
                 size: 18,
+                color: color,
+              ),
+            ),
+          ),
+        if (onSleepTimer != null)
+          gap(
+            _IconAction(
+              label: strings.sleepTimer,
+              onPressed: onSleepTimer,
+              color: color,
+              border: sleepTimerActive ? color : border,
+              child: Icon(
+                sleepTimerActive ? Icons.bedtime : Icons.bedtime_outlined,
+                size: 20,
                 color: color,
               ),
             ),
@@ -637,15 +670,21 @@ class _IconAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
+    return QuietTooltip(
       message: label,
-      excludeFromSemantics: true,
-      child: Semantics(
-        button: true,
-        enabled: onPressed != null,
-        label: label,
-        excludeSemantics: true,
-        onTap: onPressed,
+      child: SemanticFocus(
+        builder: (_, focused, onFocus, child) => Semantics(
+          container: true,
+          button: true,
+          enabled: onPressed != null,
+          label: label,
+          excludeSemantics: true,
+          onTap: onPressed,
+          focusable: true,
+          focused: focused,
+          onFocus: onFocus,
+          child: child,
+        ),
         child: FocusRing(
           shape: BoxShape.circle,
           borderRadius: LinefmMetrics.minTarget / 2,
@@ -689,11 +728,23 @@ class _PillAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      onTap: onPressed,
+    // NEU-4: Eigener, fokussierbarer Semantik-Knoten wie bei _IconAction.
+    // Ohne container/focusable gab es kein DOM-Element fuer den Knopf: Der
+    // Tastaturfokus landete in Flutter auf dem InkWell, der Browser blieb aber
+    // auf "Song merken" stehen (doppelter Tab-Stopp, Knopf fuer Screenreader
+    // nicht erreichbar).
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
+        button: true,
+        label: label,
+        excludeSemantics: true,
+        onTap: onPressed,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: FocusRing(
         borderRadius: LinefmMetrics.minTarget / 2,
         child: InkWell(
@@ -723,6 +774,83 @@ class _PillAction extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Waagerechter Abstand von [gap] links und rechts, aber nur, wenn das Kind
+/// sichtbar ist (Breite > 0). Ein leerer Slot belegt so keinen Platz.
+class SlotGap extends SingleChildRenderObjectWidget {
+  const SlotGap({super.key, this.gap = 5, required Widget super.child});
+
+  final double gap;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => RenderSlotGap(gap);
+
+  @override
+  void updateRenderObject(BuildContext context, RenderSlotGap renderObject) {
+    renderObject.gap = gap;
+  }
+}
+
+class RenderSlotGap extends RenderShiftedBox {
+  RenderSlotGap(this._gap) : super(null);
+
+  double _gap;
+
+  double get gap => _gap;
+
+  set gap(double value) {
+    if (value == _gap) return;
+    _gap = value;
+    markNeedsLayout();
+  }
+
+  BoxConstraints _inner(BoxConstraints c) =>
+      c.loosen().deflate(EdgeInsets.symmetric(horizontal: _gap));
+
+  Size _outer(BoxConstraints c, Size child) => child.width <= 0
+      ? c.constrain(Size.zero)
+      : c.constrain(Size(child.width + 2 * _gap, child.height));
+
+  double _pad(double width) => width <= 0 ? 0 : width + 2 * _gap;
+
+  @override
+  double computeMinIntrinsicWidth(double height) =>
+      _pad(child?.getMinIntrinsicWidth(height) ?? 0);
+
+  @override
+  double computeMaxIntrinsicWidth(double height) =>
+      _pad(child?.getMaxIntrinsicWidth(height) ?? 0);
+
+  @override
+  double computeMinIntrinsicHeight(double width) =>
+      child?.getMinIntrinsicHeight(math.max(0, width - 2 * _gap)) ?? 0;
+
+  @override
+  double computeMaxIntrinsicHeight(double width) =>
+      child?.getMaxIntrinsicHeight(math.max(0, width - 2 * _gap)) ?? 0;
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) {
+    final child = this.child;
+    if (child == null) return constraints.constrain(Size.zero);
+    return _outer(constraints, child.getDryLayout(_inner(constraints)));
+  }
+
+  @override
+  void performLayout() {
+    final child = this.child;
+    if (child == null) {
+      size = constraints.constrain(Size.zero);
+      return;
+    }
+    child.layout(_inner(constraints), parentUsesSize: true);
+    size = _outer(constraints, child.size);
+    (child.parentData! as BoxParentData).offset = Offset(
+      child.size.width <= 0 ? 0 : _gap,
+      0,
     );
   }
 }

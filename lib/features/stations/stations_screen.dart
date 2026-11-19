@@ -13,6 +13,7 @@ import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/breakpoints.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:linefm_radio/ui/widgets/section_heading.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -54,6 +55,7 @@ class StationsScreen extends ConsumerWidget {
     );
     final marquee = ref.watch(settingsProvider.select((s) => s.marquee));
     final favoriteSlugs = ref.watch(favoriteStationsProvider);
+    final favoriteStations = ref.watch(favoriteStationListProvider);
 
     final tracks = <String, StationLive>{
       for (final item in live.value ?? const <StationLive>[])
@@ -94,28 +96,32 @@ class StationsScreen extends ConsumerWidget {
       );
     }
 
-    final Widget stations;
-    if (grid) {
-      final scale = MediaQuery.textScalerOf(context).scale(1);
-      stations = SliverGrid(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columns,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          mainAxisExtent: 196 * math.max(1, scale * 0.9),
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, i) => card(stationsCatalog[i]),
-          childCount: stationsCatalog.length,
-        ),
-      );
-    } else {
-      stations = SliverList.separated(
-        itemCount: stationsCatalog.length,
+    Widget section(List<Station> list) {
+      if (grid) {
+        final scale = MediaQuery.textScalerOf(context).scale(1);
+        return SliverGrid(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            mainAxisExtent: 196 * math.max(1, scale * 0.9),
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (context, i) => card(list[i]),
+            childCount: list.length,
+          ),
+        );
+      }
+      return SliverList.separated(
+        itemCount: list.length,
         separatorBuilder: (context, i) => const SizedBox(height: 9),
-        itemBuilder: (context, i) => card(stationsCatalog[i]),
+        itemBuilder: (context, i) => card(list[i]),
       );
     }
+
+    // Favoriten-Sender (Stern) oben als eigene Gruppe, nur wenn welche
+    // gemerkt sind (U4). Die Gesamtliste darunter bleibt vollstaendig.
+    final hasFavorites = favoriteStations.isNotEmpty;
 
     return RefreshIndicator(
       onRefresh: () => ref.read(nowPlayingRepositoryProvider).refresh(),
@@ -128,9 +134,19 @@ class StationsScreen extends ConsumerWidget {
             padding: padding,
             sliver: SliverMainAxisGroup(
               slivers: <Widget>[
+                if (hasFavorites) ...<Widget>[
+                  SliverToBoxAdapter(child: SectionHeading(l10n.stationsYours)),
+                  SliverSemantics(
+                    container: true,
+                    label: l10n.stationsYoursListLabel,
+                    sliver: section(favoriteStations),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 28)),
+                ],
                 SliverToBoxAdapter(
                   child: SectionHeading(
                     l10n.stationsTitle,
+                    headingLevel: hasFavorites ? 2 : 1,
                     padding: EdgeInsets.only(bottom: offline ? 10 : 20),
                   ),
                 ),
@@ -167,7 +183,7 @@ class StationsScreen extends ConsumerWidget {
                 SliverSemantics(
                   container: true,
                   label: l10n.stationsListLabel,
-                  sliver: stations,
+                  sliver: section(stationsCatalog),
                 ),
               ],
             ),
@@ -188,11 +204,17 @@ class StationsScreen extends ConsumerWidget {
       context: context,
       backgroundColor: colors.surfaceRaised,
       showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: ListTile(
-          leading: FaIcon(FontAwesomeIcons.shareNodes, color: colors.text),
-          title: Text(l10n.stationLongPressShare, style: LinefmText.listTitle),
-          onTap: () => Navigator.of(context).pop(true),
+      builder: (context) => NamedSheet(
+        label: station.displayName,
+        child: SafeArea(
+          child: ListTile(
+            leading: FaIcon(FontAwesomeIcons.shareNodes, color: colors.text),
+            title: Text(
+              l10n.stationLongPressShare,
+              style: LinefmText.listTitle,
+            ),
+            onTap: () => Navigator.of(context).pop(true),
+          ),
         ),
       ),
     );

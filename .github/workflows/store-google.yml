@@ -26,6 +26,8 @@ on:
     secrets:
       PLAY_SERVICE_ACCOUNT_JSON:
         required: false
+      FIREBASE_CONFIG_JSON:
+        required: false
   workflow_dispatch:
     inputs:
       tag:
@@ -82,6 +84,13 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
+      # S3-04: auch bei manuellem Start (workflow_dispatch) muss der Tag zu pubspec.yaml
+      # passen, wie im Job "version" von release.yml.
+      - name: Tag und pubspec-Version vergleichen
+        uses: ./.github/actions/tag-version
+        with:
+          tag: ${{ inputs.tag }}
+
       - name: Gate Google Play
         id: gate
         uses: ./.github/actions/secret-gate
@@ -110,6 +119,27 @@ jobs:
           fi
           echo "AAB: $aab (signiert)"
           echo "AAB_PATH=$aab" >> "$GITHUB_ENV"
+
+      # N7: Kein Store-Upload mit offenen Pflicht-Platzhaltern im Impressum oder in der
+      # Datenschutzerklaerung, auch nicht fuer Vorabversionen. Geprueft werden die Texte im
+      # AAB selbst, mit dem Pruefskript aus dem Checkout des Tags: Tags, die das Skript noch
+      # nicht enthalten, scheitern hier (gewollt, kein Upload ohne Pruefung).
+      # Die aktiven Telemetrie-Anbieter leiten sich wie in write-config aus denselben
+      # Variablen/Secrets ab, mit denen build.yml das AAB gebaut hat (R3-P02).
+      - name: Rechtstexte im AAB pruefen
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          HAS_UMAMI: ${{ vars.UMAMI_URL != '' && vars.UMAMI_WEBSITE_ID != '' }}
+          HAS_SENTRY: ${{ vars.SENTRY_DSN != '' }}
+          HAS_FIREBASE: ${{ secrets.FIREBASE_CONFIG_JSON != '' }}
+        run: |
+          set -euo pipefail
+          providers=()
+          if [ "$HAS_UMAMI" = "true" ]; then providers+=(umami); fi
+          if [ "$HAS_SENTRY" = "true" ]; then providers+=(sentry); fi
+          if [ "$HAS_FIREBASE" = "true" ]; then providers+=(firebase); fi
+          list="$(IFS=,; echo "${providers[*]:-}")"
+          python3 -I tool/legal_store_check.py --aab "$AAB_PATH" --providers="$list"
 
       - name: Nach Google Play hochladen
         if: steps.gate.outputs.ready == 'true'

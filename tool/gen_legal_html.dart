@@ -8,7 +8,13 @@
 //
 // --providers  aktive Telemetrie-Anbieter (Bloecke mit "requires").
 // --values     JSON-Objekt Platzhalter -> Wert (z. B. BETREIBER_NAME).
-// --strict     Exit-Code 1, solange Pflicht-Platzhalter offen sind.
+// --strict     Exit-Code 1, solange Pflicht-Platzhalter offen sind (leere oder
+//              nur aus Leerzeichen bestehende Werte gelten als offen, nicht in
+//              placeholders.json registrierte Platzhalter als Pflicht, "required_if"
+//              macht optionale Angaben bei aktivem Anbieter zur Pflicht). Prueft
+//              zusaetzlich [strictFiles] (Sicherheitskontakt, Barrierefreiheit,
+//              Verhaltenskodex) auf offene {{...}}; die traegt der Betreiber
+//              selbst im Repo ein, sie kommen nicht aus --values.
 // --fill-assets setzt die Werte zusaetzlich direkt in assets/legal/**.json ein.
 //
 // Solange Platzhalter offen sind, setzt die Seite "noindex".
@@ -18,7 +24,47 @@ import 'dart:io';
 /// Bekannte Anbieter-Schluessel fuer `requires`.
 const Set<String> telemetryProviders = <String>{'umami', 'sentry', 'firebase'};
 
-final RegExp _placeholder = RegExp(r'\{\{(\w+)\}\}');
+/// Lockeres Platzhalter-Muster, Zeichen fuer Zeichen gleich mit
+/// `PLACEHOLDER_PATTERN` in tool/legal_store_check.py (ein Test vergleicht
+/// beide). Erkennt neben `{{NAME}}` auch `{{ NAME }}`, `{{A-B}}`, Umlaute und
+/// vollbreite Klammern (U+FF5B/U+FF5D), damit keine verschriebene Angabe
+/// durch die Pruefung rutscht. Gruppe 1 ist der Name (vor dem Trimmen).
+const String placeholderPattern =
+    r'[{\uFF5B][ \t\u00A0\u3000]*[{\uFF5B][ \t\u00A0\u3000]*'
+    r'([^{}\uFF5B\uFF5D\r\n]{1,80}?)'
+    r'[ \t\u00A0\u3000]*[}\uFF5D][ \t\u00A0\u3000]*[}\uFF5D]';
+
+final RegExp _placeholder = RegExp(placeholderPattern);
+
+/// Name eines Treffers ohne Leerzeichen am Rand.
+String _name(Match m) => m.group(1)!.trim();
+
+/// Leer-, Trenn- und unsichtbare Formatzeichen (Unicode Zs, Cf, Whitespace).
+final RegExp _invisible = RegExp(r'[\p{Cf}\p{Zs}\s]', unicode: true);
+
+/// Hat [value] sichtbaren Inhalt (nach Entfernen von Cf/Zs/Whitespace)?
+bool hasVisibleContent(String value) =>
+    value.replaceAll(_invisible, '').isNotEmpty;
+
+/// Weitere Dateien, die mit --strict keine Platzhalter mehr haben duerfen.
+const List<String> strictFiles = <String>[
+  'SECURITY.md',
+  'CODE_OF_CONDUCT.md',
+  'docs/BARRIEREFREIHEIT.md',
+  'web/.well-known/security.txt',
+];
+
+/// Offene Platzhalter je Datei aus [paths] (fehlende Dateien zaehlen nicht).
+Map<String, Set<String>> openPlaceholdersInFiles(Iterable<String> paths) {
+  final Map<String, Set<String>> open = <String, Set<String>>{};
+  for (final String path in paths) {
+    final File file = File(path);
+    if (!file.existsSync()) continue;
+    final Set<String> found = findPlaceholders(file.readAsStringSync());
+    if (found.isNotEmpty) open[path] = found;
+  }
+  return open;
+}
 
 /// Ist ein `requires`-Ausdruck (String oder Liste, "!x" = Negation) erfuellt?
 /// Mehrere Eintraege einer Liste muessen alle gelten.
@@ -38,21 +84,68 @@ bool requirementMet(Object? requires, Set<String> providers) {
   return true;
 }
 
+/// Nur Werte mit Inhalt: leere oder nur aus Leer- und unsichtbaren
+/// Formatzeichen (Unicode Cf, Zs, z. B. U+200B, U+FEFF, U+00A0) bestehende
+/// Werte zaehlen als nicht gesetzt (der Platzhalter bleibt offen und
+/// markiert).
+Map<String, String> nonBlankValues(Map<String, String> values) =>
+    <String, String>{
+      for (final MapEntry<String, String> e in values.entries)
+        if (hasVisibleContent(e.value)) e.key: e.value,
+    };
+
+/// Werte aus einem dekodierten JSON-Objekt: nur nicht-leere Strings zaehlen
+/// (Zahlen, null, Listen usw. bleiben offen, statt als "null" zu gelten).
+Map<String, String> stringValues(Map<String, Object?> decoded) =>
+    nonBlankValues(<String, String>{
+      for (final MapEntry<String, Object?> e in decoded.entries)
+        if (e.value is String) e.key: e.value! as String,
+    });
+
+/// Ist der Platzhalter [name] bei den aktiven [providers] Pflicht?
+///
+/// [registry] ist der Inhalt von placeholders.json unter "placeholders".
+/// Nicht registrierte Namen sind Pflicht (Tippfehler fallen so auf).
+/// `"required": false` macht eine Angabe optional, ausser `"required_if"`
+/// (gleiche Syntax wie `requires`) ist mit den aktiven Anbietern erfuellt.
+bool isRequiredPlaceholder(
+  String name,
+  Map<String, Object?> registry,
+  Set<String> providers,
+) {
+  final Object? info = registry[name];
+  if (info is! Map<String, Object?>) return true;
+  if (info['required'] != false) return true;
+  final Object? cond = info['required_if'];
+  return cond != null && requirementMet(cond, providers);
+}
+
+/// Offene Pflicht-Platzhalter (sortiert) aus [open].
+List<String> requiredOpen(
+  Set<String> open,
+  Map<String, Object?> registry,
+  Set<String> providers,
+) =>
+    open
+        .where((String k) => isRequiredPlaceholder(k, registry, providers))
+        .toList()
+      ..sort();
+
 /// Alle Platzhalter-Namen in [text].
 Set<String> findPlaceholders(String text) =>
-    _placeholder.allMatches(text).map((Match m) => m.group(1)!).toSet();
+    _placeholder.allMatches(text).map(_name).toSet();
 
 /// Ersetzt bekannte Platzhalter; unbekannte bleiben stehen.
 String substitute(String text, Map<String, String> values) =>
     text.replaceAllMapped(
       _placeholder,
-      (Match m) => values[m.group(1)] ?? m.group(0)!,
+      (Match m) => values[_name(m)] ?? m.group(0)!,
     );
 
 /// Wie [substitute], aber fuer Rohtext einer JSON-Datei (Werte werden escaped).
 String substituteJsonText(String raw, Map<String, String> values) =>
     raw.replaceAllMapped(_placeholder, (Match m) {
-      final String? v = values[m.group(1)];
+      final String? v = values[_name(m)];
       if (v == null) return m.group(0)!;
       final String encoded = jsonEncode(v);
       return encoded.substring(1, encoded.length - 1);
@@ -71,7 +164,7 @@ String inlineHtml(String text, Map<String, String> values) {
   int last = 0;
   for (final Match m in _placeholder.allMatches(text)) {
     out.write(escapeHtml(text.substring(last, m.start)));
-    final String? v = values[m.group(1)];
+    final String? v = values[_name(m)];
     out.write(
       v != null
           ? escapeHtml(v)
@@ -115,7 +208,8 @@ Set<String> openPlaceholders(
     ];
     for (final String t in texts) {
       open.addAll(
-        findPlaceholders(t).where((String k) => !values.containsKey(k)),
+        findPlaceholders(t)
+            .where((String k) => (values[k] ?? '').trim().isEmpty),
       );
     }
   }
@@ -168,7 +262,10 @@ String _blockHtml(Map<String, Object?> b, Map<String, String> values) {
           .join('\n');
       return '<ul>\n$items\n</ul>';
     case 'link':
-      final String url = substitute('${b['url'] ?? ''}', values);
+      final String url = substitute('${b['url'] ?? ''}', values).trim();
+      // Nur http(s) und mailto werden zum Link (kein javascript:, data:, ...);
+      // alles andere, auch ein offener Platzhalter, bleibt Text.
+      if (!isSafeLinkUrl(url)) return '<p>${inlineHtml(text, values)}</p>';
       return '<p><a href="${escapeHtml(url)}" rel="noopener noreferrer">'
           '${inlineHtml(text, values)}</a></p>';
     case 'mail':
@@ -181,6 +278,46 @@ String _blockHtml(Map<String, Object?> b, Map<String, String> values) {
     default:
       throw FormatException('Unbekannter Blocktyp: ${b['type']}');
   }
+}
+
+/// Erlaubte Link-Ziele in Rechtstexten: absolute http(s)-Adressen mit Host
+/// und mailto.
+bool isSafeLinkUrl(String url) {
+  final Uri? uri = Uri.tryParse(url);
+  if (uri == null) return false;
+  final String scheme = uri.scheme.toLowerCase();
+  if (scheme == 'mailto') return uri.path.isNotEmpty;
+  return (scheme == 'https' || scheme == 'http') && uri.host.isNotEmpty;
+}
+
+/// Prueft `--base-url`: absolute http(s)-Adresse ohne Anfrage und Fragment.
+String checkedBaseUrl(String raw) {
+  final Uri? uri = Uri.tryParse(raw.trim());
+  if (uri == null ||
+      !(uri.scheme == 'https' || uri.scheme == 'http') ||
+      uri.host.isEmpty ||
+      uri.hasQuery ||
+      uri.hasFragment) {
+    throw FormatException('--base-url muss eine http(s)-Adresse sein: $raw');
+  }
+  return raw.trim();
+}
+
+/// Liest `--providers` und lehnt unbekannte Anbieter ab (wie
+/// legal_store_check.py).
+Set<String> parseProviders(String raw) {
+  final Set<String> providers = raw
+      .split(',')
+      .map((String s) => s.trim())
+      .where((String s) => s.isNotEmpty)
+      .toSet();
+  final Set<String> unknown = providers.difference(telemetryProviders);
+  if (unknown.isNotEmpty) {
+    throw FormatException(
+      'unbekannte Anbieter: ${(unknown.toList()..sort()).join(", ")}',
+    );
+  }
+  return providers;
 }
 
 /// Rendert eine komplette HTML-Seite.
@@ -230,7 +367,7 @@ String renderPage(
 <body>
 <!-- ENTWURF: Rechtstext muss vor Veroeffentlichung anwaltlich geprueft werden. -->
 <header class="site-header">
-<a class="brand" href="$base/">${ui['siteName']}</a>
+<a class="brand" href="${escapeHtml(base)}/">${ui['siteName']}</a>
 <nav aria-label="${ui['nav']}">
 <a href="${pagePath('impressum', lang)}"${kind == 'impressum' ? ' aria-current="page"' : ''}>${ui['imprint']}</a>
 <a href="${pagePath('datenschutz', lang)}"${kind == 'datenschutz' ? ' aria-current="page"' : ''}>${ui['privacy']}</a>
@@ -240,7 +377,7 @@ String renderPage(
 <main>
 $body
 <p class="meta">${ui['updated']}: ${escapeHtml(updated)}</p>
-<p><a href="$base/">${ui['home']}</a></p>
+<p><a href="${escapeHtml(base)}/">${ui['home']}</a></p>
 </main>
 </body>
 </html>
@@ -257,7 +394,7 @@ const String legalCss =
   --muted: #a4a7b6;
   --line: rgba(255, 255, 255, 0.12);
   --link: #ffffff;
-  --mark: #ff4b6e;
+  --mark: #ff7a93;
 }
 @media (prefers-color-scheme: light) {
   :root {
@@ -266,7 +403,7 @@ const String legalCss =
     --muted: #4a4e62;
     --line: rgba(15, 18, 33, 0.14);
     --link: #0f1221;
-    --mark: #b3002b;
+    --mark: #9b0025;
   }
 }
 * { box-sizing: border-box; }
@@ -307,9 +444,7 @@ Map<String, String> _loadValues(String? path) {
   if (decoded is! Map<String, Object?>) {
     throw const FormatException('--values muss ein JSON-Objekt sein.');
   }
-  return decoded.map(
-    (String k, Object? v) => MapEntry<String, String>(k, '$v'),
-  );
+  return stringValues(decoded);
 }
 
 String? _arg(List<String> args, String name) {
@@ -328,14 +463,20 @@ void _write(String path, String content) {
 }
 
 Future<void> main(List<String> args) async {
-  final Set<String> providers = (_arg(args, 'providers') ?? '')
-      .split(',')
-      .map((String s) => s.trim())
-      .where((String s) => s.isNotEmpty)
-      .toSet();
-  final String baseUrl = _arg(args, 'base-url') ?? 'https://app.linefm.de';
+  final Set<String> providers;
+  final String baseUrl;
+  try {
+    providers = parseProviders(_arg(args, 'providers') ?? '');
+    baseUrl = checkedBaseUrl(_arg(args, 'base-url') ?? 'https://app.linefm.de');
+  } on FormatException catch (e) {
+    stderr.writeln('FEHLER: ${e.message}');
+    exitCode = 2;
+    return;
+  }
   final String out = _arg(args, 'out') ?? 'web';
-  final Map<String, String> values = _loadValues(_arg(args, 'values'));
+  final Map<String, String> values = nonBlankValues(
+    _loadValues(_arg(args, 'values')),
+  );
   final bool strict = args.contains('--strict');
 
   final Object? meta = jsonDecode(
@@ -377,14 +518,7 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  final List<String> openRequired =
-      allOpen
-          .where(
-            (String k) =>
-                (required[k] as Map<String, Object?>?)?['required'] != false,
-          )
-          .toList()
-        ..sort();
+  final List<String> openRequired = requiredOpen(allOpen, required, providers);
   stdout.writeln(
     'Seiten geschrieben nach $out/ (Anbieter: ${providers.isEmpty ? "keine" : providers.join(", ")}).',
   );
@@ -401,5 +535,15 @@ Future<void> main(List<String> args) async {
       'FEHLER (--strict): Pflichtangaben fehlen: ${openRequired.join(", ")}',
     );
     exitCode = 1;
+  }
+  if (strict) {
+    final Map<String, Set<String>> files = openPlaceholdersInFiles(strictFiles);
+    for (final MapEntry<String, Set<String>> e in files.entries) {
+      stderr.writeln(
+        'FEHLER (--strict): ${e.key} enthaelt noch Platzhalter: '
+        '${(e.value.toList()..sort()).join(", ")}',
+      );
+      exitCode = 1;
+    }
   }
 }

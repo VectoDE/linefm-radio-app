@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
@@ -12,6 +13,7 @@ import 'package:linefm_radio/features/alarm/alarm_hooks.dart';
 import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
 import 'package:linefm_radio/services/alarm/alarm_permissions.dart';
 import 'package:linefm_radio/services/alarm/alarm_wiring.dart';
+import 'package:linefm_radio/services/audio/playback_service.dart';
 
 class _Platform implements AlarmPlatform {
   final StreamController<AlarmRing> controller =
@@ -24,8 +26,16 @@ class _Platform implements AlarmPlatform {
   @override
   bool get ringsItself => true;
 
+  /// Anzahl der Aufrufe von init, die noch fehlschlagen sollen (Q-04).
+  int initFailures = 0;
+
   @override
-  Future<void> init() async {}
+  Future<void> init() async {
+    if (initFailures > 0) {
+      initFailures--;
+      throw StateError('Plugin nicht bereit');
+    }
+  }
 
   @override
   Future<void> schedule(AlarmRule rule) async => scheduled.add(rule);
@@ -139,5 +149,48 @@ void main() {
     await tester.pump();
     expect(platform.scheduled, hasLength(3));
     expect(gateway.timeChanged, isFalse);
+  });
+
+  group('initAndReschedule (Q-04)', () {
+    final rule = AlarmRule(
+      id: 'r1',
+      hour: 7,
+      minute: 0,
+      stationSlug: stationsCatalog.first.slug,
+    );
+
+    DefaultAlarmCoordinator coordinator(_Platform platform) =>
+        DefaultAlarmCoordinator(
+          platform: platform,
+          clock: FakeClock(DateTime(2026, 11, 19, 6)),
+          playback: NoopPlaybackService(),
+          startStation: (_) async {},
+          rules: () => <AlarmRule>[rule],
+        );
+
+    test('Fehler beim Start: geloggt, zweiter Versuch plant', () async {
+      final platform = _Platform()..initFailures = 1;
+      final waits = <Duration>[];
+      final ok = await initAndReschedule(
+        coordinator(platform),
+        () => <AlarmRule>[rule],
+        retryDelay: const Duration(seconds: 30),
+        sleep: (d) async => waits.add(d),
+      );
+      expect(ok, isTrue);
+      expect(waits, <Duration>[const Duration(seconds: 30)]);
+      expect(platform.scheduled.map((r) => r.id), <String>['r1']);
+    });
+
+    test('zweimal Fehler: false, kein unbehandelter Fehler', () async {
+      final platform = _Platform()..initFailures = 2;
+      final ok = await initAndReschedule(
+        coordinator(platform),
+        () => <AlarmRule>[rule],
+        sleep: (_) async {},
+      );
+      expect(ok, isFalse);
+      expect(platform.scheduled, isEmpty);
+    });
   });
 }

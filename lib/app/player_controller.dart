@@ -94,10 +94,19 @@ class PlayerController {
   }
 
   /// Waehlt die Station und spielt sie ab.
+  ///
+  /// Web ohne bisherige Nutzeraktion (Wecker, Link, Autoplay): Der Browser
+  /// wuerde den Ton blockieren. Dann bleibt es bei der Auswahl, und die Shell
+  /// zeigt "Radio starten" ([autoplayBlockedProvider]).
   Future<void> startStation(Station station) async {
     _userStarted = true;
     _autoplayPending = false;
     await selectStation(station);
+    if (!_ref.read(userActivationProvider)()) {
+      _setAutoplayBlocked(value: true);
+      return;
+    }
+    _setAutoplayBlocked(value: false);
     await _service.playStation(station);
   }
 
@@ -111,6 +120,10 @@ class PlayerController {
     if (playingActive) {
       _userStarted = true;
       await _service.stopPlayback();
+    } else if (_ref.read(castServiceProvider).state.isPlayingMedia) {
+      // Lokal still, der Sender laeuft am Cast-Geraet: Stop beendet ihn dort.
+      _userStarted = true;
+      await _ref.read(castServiceProvider).stopMedia();
     } else {
       await startStation(active);
     }
@@ -162,6 +175,11 @@ class PlayerController {
     if (state.isPlaying || state.isBusy) return;
     if (web) {
       _autoplayPending = true;
+      // Ohne bisherige Nutzeraktion blockiert der Browser den Ton: grosser
+      // Knopf "Radio starten" (Spec 2.2); jede andere Aktion startet auch.
+      if (!_ref.read(userActivationProvider)()) {
+        _setAutoplayBlocked(value: true);
+      }
       return;
     }
     await _service.playStation(_ref.read(activeStationProvider));
@@ -177,6 +195,7 @@ class PlayerController {
     _autoplayTimer = Timer(const Duration(milliseconds: 350), () {
       final state = _service.state;
       if (_userStarted || state.isPlaying || state.isBusy) return;
+      _setAutoplayBlocked(value: false);
       unawaited(_service.playStation(_ref.read(activeStationProvider)));
     });
   }
@@ -186,11 +205,17 @@ class PlayerController {
 
   // ------------------------------------------------------------- intern
 
+  void _setAutoplayBlocked({required bool value}) {
+    if (_ref.read(autoplayBlockedProvider) == value) return;
+    _ref.read(autoplayBlockedProvider.notifier).set(value: value);
+  }
+
   void _onState(PlayerUiState next) {
     final prev = _last;
     _last = next;
     final wasActive = prev.isPlaying || prev.isBusy;
     final isActive = next.isPlaying || next.isBusy;
+    if (isActive) _setAutoplayBlocked(value: false);
     final Station? before = prev.station;
     final Station after =
         next.station ?? before ?? _ref.read(activeStationProvider);

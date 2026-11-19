@@ -1,0 +1,105 @@
+name: Barrierefreiheit
+
+# axe-core-Pruefung der Web-Version (A4). Baut wie ci.yml (web-smoke), startet
+# tool/a11y/run.mjs (Playwright + @axe-core/playwright, Versionen in
+# tool/a11y/package-lock.json) und prueft Sender, Player, Verlauf, Favoriten,
+# Einstellungen, Wecker, Ueber, die Dialoge "Speicher loeschen" und Uhrzeit,
+# die Sheets "Sleeptimer" und "Favoriten exportieren" sowie Impressum und
+# Datenschutz (de/en) bei 390 und 1280 px, hell und dunkel (58 Laeufe).
+# Gate: kein Verstoss gleich welcher Stufe (Baseline 0), jede Ansicht
+# erreichbar. Von axe nicht entscheidbare Pruefungen ("incomplete") stehen in
+# Bericht und Zusammenfassung, brechen aber nicht ab.
+# Laufzeit lokal (19.11.2026, Windows, 8 Kerne): Web-Build 95 s, axe 142 s;
+# auf dem 4-Kern-Runner grob das Doppelte plus Installation, daher 25 Minuten.
+# Was axe nicht findet (Screenreader-Ablauf, Tastaturfallen, Verstaendlichkeit),
+# bleibt Handarbeit, siehe docs/BARRIEREFREIHEIT.md.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: a11y-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  axe:
+    name: axe (WCAG 2.2, Web)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Konfiguration schreiben
+        uses: ./.github/actions/write-config
+        with:
+          app-env: dev
+
+      - name: Web bauen
+        run: >-
+          flutter build web --release --wasm --no-web-resources-cdn
+          --dart-define-from-file=config/app.json --base-href /
+
+      - name: Ersatzschriften und Postbuild
+        run: |
+          # Ausserhalb des Pakets starten (nur dart:-Importe), wie in ci.yml.
+          cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
+          dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
+          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
+
+      - name: Node einrichten
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tool/a11y/package-lock.json
+
+      - name: Pruefwerkzeug installieren
+        working-directory: tool/a11y
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npx --no-install playwright install --with-deps chromium
+
+      - name: axe-Pruefung
+        working-directory: tool/a11y
+        timeout-minutes: 12
+        run: node run.mjs --web ../../build/web --out out
+
+      - name: Zusammenfassung
+        if: ${{ always() }}
+        working-directory: tool/a11y
+        run: |
+          if [ -f out/axe-report.json ]; then
+            jq -r '"**axe:** \(.summary.runs) Laeufe, \(.summary.violations) Verstoesse, \(.summary.unreachable) nicht erreichbar, \(.summary.incomplete) unentschieden (\(.summary.incompleteRules | join(", "))), \(.durationMs / 1000 | floor) s, Commit `\(.commit)`"' out/axe-report.json >> "$GITHUB_STEP_SUMMARY"
+            jq -r '.results[] | select(.error or ((.violations // []) | length > 0)) | "- \(.theme) \(.layout) \(.view): \(.error // ([.violations[] | "\(.id) (\(.impact))"] | join(", ")))"' out/axe-report.json >> "$GITHUB_STEP_SUMMARY"
+            printf '\nUnentschieden je Regel (von Hand pruefen):\n' >> "$GITHUB_STEP_SUMMARY"
+            jq -r '[.results[] | (.incomplete // [])[] | .id] | group_by(.) | map("- \(.[0]): \(length) Ansichten") | .[]' out/axe-report.json >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**axe:** kein Bericht erzeugt" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Bericht hochladen
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: axe-report-${{ github.sha }}
+          path: tool/a11y/out/
+          retention-days: 30
+          if-no-files-found: warn

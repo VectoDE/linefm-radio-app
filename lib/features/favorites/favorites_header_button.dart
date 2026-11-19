@@ -5,6 +5,7 @@ import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Herz im Header mit Zaehler-Badge (`.favorites-button` + `.favorite-count`).
@@ -29,11 +30,18 @@ class FavoritesHeaderButton extends ConsumerWidget {
         ? l10n.favoritesButton
         : l10n.favoritesButtonCount(count);
 
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      onTap: () => _open(ref),
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
+        button: true,
+        label: label,
+        excludeSemantics: true,
+        onTap: () => _open(ref),
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: FocusRing(
         shape: BoxShape.circle,
         offset: 0,
@@ -82,7 +90,7 @@ class _CountBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.linefm;
     return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: c.accent,
@@ -97,8 +105,8 @@ class _CountBadge extends StatelessWidget {
               maxLines: 1,
               style: TextStyle(
                 color: c.onAccent,
-                fontSize: 9,
-                height: 1.6,
+                fontSize: 12,
+                height: 1.2,
                 fontWeight: FontWeight.w600,
               ),
             ),

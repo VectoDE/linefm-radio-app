@@ -49,7 +49,7 @@ void main() {
       ]);
       expect(root.map((e) => e.title), <String>[
         'Favoriten-Sender',
-        'Stationen',
+        'Sender',
         'Zuletzt gehört',
       ]);
       expect(root.every((e) => e.playable == false), isTrue);
@@ -158,7 +158,7 @@ void main() {
       final de = LinefmAudioHandler.autoMenuTitles(const Locale('de', 'AT'));
       expect(
         <String>[de.favoriteStations, de.stations, de.recent],
-        <String>['Favoriten-Sender', 'Stationen', 'Zuletzt gehört'],
+        <String>['Favoriten-Sender', 'Sender', 'Zuletzt gehört'],
       );
       final fr = LinefmAudioHandler.autoMenuTitles(const Locale('fr'));
       expect(

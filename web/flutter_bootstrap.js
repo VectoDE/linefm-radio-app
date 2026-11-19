@@ -7,12 +7,26 @@
 // canvaskit/<engineRevision>/ und ersetzt die Marke in der naechsten Zeile.
 (function () {
   // COEP bleibt bewusst aus (Fremdbilder), Skwasm laeuft einthreadig; Warnung daher stumm.
-  var config = { suppressMultithreadingWarning: true };
+  // Ersatzschriften (fehlende Zeichen, z. B. Emoji oder kyrillische Titel)
+  // nicht von fonts.gstatic.com laden (L14, keine IP-Adresse an Google).
+  // Die App bringt Poppins und Syncopate selbst mit; was dort fehlt, sucht
+  // die Engine unter assets/fonts/fallback/ auf dem eigenen Server.
+  var config = {
+    suppressMultithreadingWarning: true,
+    fontFallbackBaseUrl: 'assets/fonts/fallback/',
+  };
   /*__CANVASKIT_BASE_URL__*/
 
+  // Nach dem Start zeichnet Flutter die Oberflaeche. Die statische Huelle
+  // bleibt fuer Crawler im DOM, ist aber fuer Screenreader und Tastatur
+  // weg: kein zweites h1, keine unsichtbaren 0x0-Links im Tab-Weg (A11Y-03,
+  // A11Y-07).
   function showApp() {
     var shell = document.getElementById('static-shell');
-    if (shell) shell.hidden = true;
+    if (!shell) return;
+    shell.hidden = true;
+    shell.setAttribute('aria-hidden', 'true');
+    shell.setAttribute('inert', '');
   }
 
   _flutter.loader.load({

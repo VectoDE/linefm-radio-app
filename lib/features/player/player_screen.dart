@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -10,12 +12,14 @@ import 'package:linefm_radio/features/player/music_links_sheet.dart';
 import 'package:linefm_radio/features/player/player_actions.dart';
 import 'package:linefm_radio/features/player/player_strings.dart';
 import 'package:linefm_radio/features/player/player_view.dart';
+import 'package:linefm_radio/features/settings/sleep_timer_row.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/platform/airplay_button.dart';
 import 'package:linefm_radio/services/cast/cast_button.dart';
 import 'package:linefm_radio/services/share/music_links.dart';
 import 'package:linefm_radio/ui/theme/breakpoints.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
+import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Player-Screen der App. Liest die Provider, uebergibt Daten und Texte an
@@ -50,6 +54,26 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.macOS);
+
+  /// Sleeptimer direkt aus dem Player (U2): dieselbe Auswahl wie in den
+  /// Einstellungen, als Sheet.
+  Future<void> _openSleepTimer(BuildContext context) {
+    final c = context.linefm;
+    return showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: c.surface,
+      builder: (context) => NamedSheet(
+        label: AppLocalizations.of(context).sleepTimerTitle,
+        child: const SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
+            child: SleepTimerRow(showDivider: false),
+          ),
+        ),
+      ),
+    );
+  }
 
   Future<void> _openMusicLinks(PlayerStrings strings, Track track) {
     final actions = ref.read(playerActionsProvider);
@@ -164,6 +188,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       onOpenMusicLinks: () {
         if (track != null) _openMusicLinks(strings, track).ignore();
       },
+      onSleepTimer: () => unawaited(_openSleepTimer(context)),
+      sleepTimerActive: ref.watch(sleepTimerProvider.select((s) => s.isActive)),
       onNextStation: () => actions.stepStation(1).ignore(),
       onPreviousStation: () => actions.stepStation(-1).ignore(),
       onClose: embedded

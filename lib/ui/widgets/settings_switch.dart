@@ -1,5 +1,6 @@
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Einstellungszeile mit Titel, Beschreibung und Schalter wie `.settings-row`
@@ -45,14 +46,20 @@ class _SettingsSwitchState extends State<SettingsSwitch> {
         _focusRing &&
         FocusManager.instance.highlightMode == FocusHighlightMode.traditional;
 
-    return Semantics(
-      container: true,
-      toggled: widget.value,
-      enabled: enabled,
-      label: widget.title,
-      hint: widget.subtitle,
-      onTap: enabled ? () => widget.onChanged!(!widget.value) : null,
-      excludeSemantics: true,
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
+        toggled: widget.value,
+        enabled: enabled,
+        label: widget.title,
+        hint: widget.subtitle,
+        onTap: enabled ? () => widget.onChanged!(!widget.value) : null,
+        excludeSemantics: true,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: Opacity(
         opacity: enabled ? 1 : 0.38,
         child: DecoratedBox(

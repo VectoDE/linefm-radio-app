@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/core/config/app_config.dart';
 import 'package:linefm_radio/features/legal/legal_document.dart';
 import 'package:linefm_radio/features/legal/legal_screen.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Soll der Einwilligungsdialog erscheinen? Nur wenn Telemetrie konfiguriert
@@ -13,6 +15,24 @@ bool shouldAskTelemetryConsent({
   required bool consentRequired,
   required bool? decision,
 }) => consentRequired && decision == null;
+
+/// Einwilligungstext aus den aktiven Anbietern (R3-P05): nennt nur die
+/// Dienste, die in [config] wirklich konfiguriert sind; bei Firebase zusaetzlich
+/// Google als Empfaenger und die USA-Uebermittlung (EU-US Data Privacy
+/// Framework). Absaetze durch Leerzeile getrennt.
+String telemetryConsentText(AppLocalizations l10n, AppConfig config) {
+  final services = <String>[
+    if (config.umamiConfigured) l10n.consentServiceUmami,
+    if (config.sentryConfigured) l10n.consentServiceSentry,
+    if (config.firebaseConfigured) l10n.consentServiceFirebase,
+  ];
+  return <String>[
+    l10n.consentIntro,
+    if (services.isNotEmpty) l10n.consentRecipients(services.join(', ')),
+    if (config.firebaseConfigured) l10n.consentFirebaseTransfer,
+    l10n.consentOutro,
+  ].join('\n\n');
+}
 
 /// Rahmen um die App: zeigt den Einwilligungsdialog "Statistik und
 /// Fehlerberichte" einmalig, sobald der erste Frame steht.
@@ -84,40 +104,47 @@ class TelemetryConsentDialog extends ConsumerWidget {
       onPressed: () => Navigator.of(context).pop(true),
       child: Text(l10n.consentAllow),
     );
-    return AlertDialog(
-      scrollable: true,
-      title: Semantics(header: true, child: Text(l10n.consentTitle)),
-      content: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              l10n.consentBody,
-              style: LinefmText.listTitle.copyWith(color: c.text, height: 1.55),
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton(
-                onPressed: () => openLegal(context, LegalKind.privacy),
-                child: Text(l10n.consentPrivacyLink),
+    return NamedDialog(
+      label: l10n.consentTitle,
+      child: AlertDialog(
+        semanticLabel: l10n.consentTitle,
+        scrollable: true,
+        title: Semantics(header: true, child: Text(l10n.consentTitle)),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                telemetryConsentText(l10n, ref.watch(appConfigProvider)),
+                style: LinefmText.listTitle.copyWith(
+                  color: c.text,
+                  height: 1.55,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () => openLegal(context, LegalKind.privacy),
+                  child: Text(l10n.consentPrivacyLink),
+                ),
+              ),
+            ],
+          ),
         ),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+        actions: <Widget>[
+          Row(
+            children: <Widget>[
+              Expanded(child: decline),
+              const SizedBox(width: 12),
+              Expanded(child: allow),
+            ],
+          ),
+        ],
       ),
-      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-      actions: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(child: decline),
-            const SizedBox(width: 12),
-            Expanded(child: allow),
-          ],
-        ),
-      ],
     );
   }
 }

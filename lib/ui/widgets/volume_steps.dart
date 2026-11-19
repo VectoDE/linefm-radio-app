@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Lautstaerke in 10 Stufen (10 % bis 100 %) wie das Popover der Web-App
@@ -97,15 +98,22 @@ class VolumeSteps extends StatelessWidget {
             ],
           );
 
-    return Semantics(
-      slider: true,
-      label: semanticLabel,
-      value: text,
-      increasedValue: label((level + 1).clamp(1, steps) * 10),
-      decreasedValue: label((level - 1).clamp(1, steps) * 10),
-      onIncrease: () => _setLevel(level + 1),
-      onDecrease: () => _setLevel(level - 1),
-      excludeSemantics: true,
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
+        slider: true,
+        label: semanticLabel,
+        value: text,
+        increasedValue: label((level + 1).clamp(1, steps) * 10),
+        decreasedValue: label((level - 1).clamp(1, steps) * 10),
+        onIncrease: () => _setLevel(level + 1),
+        onDecrease: () => _setLevel(level - 1),
+        excludeSemantics: true,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: FocusRing(
         borderRadius: LinefmMetrics.radiusLogo,
         child: Shortcuts(

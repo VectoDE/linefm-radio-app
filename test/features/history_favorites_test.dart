@@ -201,10 +201,15 @@ _pump(
 
 void main() {
   group('formatClock', () {
-    test('HH:mm mit fuehrender Null, 24 Stunden', () {
-      expect(formatClock(DateTime(2026, 11, 18, 8, 7)), '08:07');
-      expect(formatClock(DateTime(2026, 11, 18, 21, 40)), '21:40');
-      expect(formatClock(DateTime(2026, 11, 18, 0, 0)), '00:00');
+    const en = DefaultMaterialLocalizations();
+    test('24-Stunden-Einstellung: HH:mm mit fuehrender Null', () {
+      String f(DateTime t) => formatClock(t, en, alwaysUse24HourFormat: true);
+      expect(f(DateTime(2026, 11, 18, 8, 7)), '08:07');
+      expect(f(DateTime(2026, 11, 18, 21, 40)), '21:40');
+      expect(f(DateTime(2026, 11, 18, 0, 0)), '00:00');
+    });
+    test('Englisch ohne 24-Stunden-Einstellung: 12 Stunden (I02)', () {
+      expect(formatClock(DateTime(2026, 11, 18, 21, 40), en), '9:40 PM');
     });
   });
 
@@ -376,7 +381,10 @@ void main() {
       await _settle(tester);
       await tester.tap(find.text('Als Text'));
       await _settle(tester);
-      expect(find.text('Der Export hat nicht geklappt.'), findsOneWidget);
+      expect(
+        find.text('Der Export hat nicht geklappt. Versuche es noch einmal.'),
+        findsOneWidget,
+      );
       expect(ctx.telemetry.events, isEmpty);
     });
 

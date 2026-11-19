@@ -71,6 +71,13 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
+      # S3-04: auch bei manuellem Start (workflow_dispatch) muss der Tag zu pubspec.yaml
+      # passen, wie im Job "version" von release.yml.
+      - name: Tag und pubspec-Version vergleichen
+        uses: ./.github/actions/tag-version
+        with:
+          tag: ${{ inputs.tag }}
+
       - name: Gate Snap Store
         id: gate
         uses: ./.github/actions/secret-gate
@@ -98,6 +105,16 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
           persist-credentials: false
+
+      # N7: snapcraft baut aus dem Quelltext, ohne write-config. Deshalb hier die Werte
+      # aus LEGAL_VALUES_JSON einsetzen und auf offene Pflicht-Platzhalter pruefen.
+      # Ohne config/app.json ist im Snap keine Telemetrie aktiv; die Pruefung laeuft daher
+      # ohne --providers (Anbieterangaben bleiben optional). Das Pruefskript stammt aus
+      # dem Checkout des Tags; aeltere Tags ohne Skript scheitern hier (gewollt).
+      - name: Rechtstexte fuellen und pruefen
+        env:
+          LEGAL_VALUES_JSON: ${{ vars.LEGAL_VALUES_JSON }}
+        run: python3 -I tool/legal_store_check.py --fill
 
       - name: snapcraft.yaml nach snap/ kopieren
         run: |

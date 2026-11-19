@@ -9,7 +9,7 @@ import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Speicher-Hinweis wie in der Web-App, auf allen Plattformen (Entscheidung
-/// 39): "Wir speichern kleine Daten in diesem Browser / auf diesem Geraet ...".
+/// 39), mit sachlichem Wortlaut (L13/C16): was gespeichert wird und wozu.
 ///
 /// Erscheint, solange die Speicher-Bestaetigung fehlt. "Verstanden" setzt sie,
 /// "Speicher loeschen" in den Einstellungen setzt sie zurueck. Die Shell
@@ -48,74 +48,91 @@ class _NoticeCard extends ConsumerWidget {
         ? l10n.storageNoticeBodyWeb
         : l10n.storageNoticeBodyDevice;
 
+    const compactButton = ButtonStyle(
+      minimumSize: WidgetStatePropertyAll<Size>(
+        Size(0, LinefmMetrics.minTarget),
+      ),
+      padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
+        EdgeInsets.symmetric(horizontal: 12),
+      ),
+      visualDensity: VisualDensity.compact,
+      tapTargetSize: MaterialTapTargetSize.padded,
+    );
     final privacy = TextButton(
       onPressed: () => openLegal(context, LegalKind.privacy),
-      style: TextButton.styleFrom(foregroundColor: c.text),
+      style: TextButton.styleFrom(foregroundColor: c.text).merge(compactButton),
       child: Text(l10n.storageNoticePrivacy),
     );
     final dismiss = OutlinedButton(
       onPressed: () =>
           ref.read(storageConsentProvider.notifier).set(value: true),
+      style: compactButton,
       child: Text(l10n.storageNoticeDismiss),
     );
 
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 760),
-        child: Semantics(
-          container: true,
-          liveRegion: true,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: c.navBg,
-              border: Border.all(color: c.line),
-              borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
-              boxShadow: const <BoxShadow>[
-                BoxShadow(
-                  color: Color(0x47000000),
-                  blurRadius: 26,
-                  offset: Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
-              child: LayoutBuilder(
-                builder: (context, box) {
-                  final copy = Text(
+        child: DecoratedBox(
+          // Deckend: Karten und Ticker duerfen nicht durchscheinen (D2).
+          decoration: BoxDecoration(
+            color: c.surface,
+            border: Border.all(color: c.line),
+            borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: c.noticeShadow,
+                blurRadius: 26,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 6, 6, 6),
+            child: LayoutBuilder(
+              builder: (context, box) {
+                // Live-Region nur um den Text, nicht um die Knoepfe.
+                final copy = Semantics(
+                  container: true,
+                  liveRegion: true,
+                  child: Text(
                     text,
-                    style: LinefmText.notice.copyWith(color: c.muted),
-                  );
-                  if (box.maxWidth < 520) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        copy,
-                        const SizedBox(height: 8),
-                        // Wrap statt Row: lange Beschriftungen (DE, grosse
-                        // Schrift) brechen um statt ueberzulaufen.
-                        Wrap(
-                          alignment: WrapAlignment.end,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: <Widget>[privacy, dismiss],
-                        ),
-                      ],
-                    );
-                  }
+                    style: LinefmText.notice.copyWith(color: c.text),
+                  ),
+                );
+                if (box.maxWidth < 520) {
+                  // Schmal: Text links, die beiden Knoepfe rechts
+                  // untereinander. Das spart gegenueber Text-ueber-Knoepfen
+                  // eine ganze Zeile (U1, A11Y-13).
                   return Row(
                     children: <Widget>[
-                      Expanded(child: copy),
-                      const SizedBox(width: 16),
-                      privacy,
-                      const SizedBox(width: 8),
-                      dismiss,
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: copy,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      IntrinsicWidth(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[dismiss, privacy],
+                        ),
+                      ),
                     ],
                   );
-                },
-              ),
+                }
+                return Row(
+                  children: <Widget>[
+                    Expanded(child: copy),
+                    const SizedBox(width: 16),
+                    privacy,
+                    const SizedBox(width: 8),
+                    dismiss,
+                  ],
+                );
+              },
             ),
           ),
         ),

@@ -1,7 +1,7 @@
 # Snapcraft-Definition fuer LINEFM Radio (strict, core24).
 #
 # snapcraft erwartet die Datei unter snap/snapcraft.yaml im Projektstamm.
-# Die CI (store-snap.yml, P27) kopiert sie dorthin:
+# Die CI (store-snap.yml) kopiert sie dorthin:
 #   mkdir -p snap && cp packaging/snap/snapcraft.yaml snap/snapcraft.yaml
 #   snapcraft pack
 # Ungetestet: snapcraft laeuft nur unter Linux (LXD/Multipass).
@@ -37,8 +37,10 @@ apps:
       - mpris
 
 slots:
-  # MPRIS: Medientasten und Sperrbildschirm-Steuerung.
-  # TODO(P28): Name gegen die Einstellung in audio_service_mpris pruefen.
+  # MPRIS: Medientasten und Sperrbildschirm-Steuerung. audio_service_mpris
+  # meldet org.mpris.MediaPlayer2.linefm_radio.instance<PID> (Kanal-ID unter
+  # Linux, lib/services/audio/audio_backend.dart); der mpris-Slot erlaubt den
+  # Namen samt ".*"-Endung.
   mpris:
     interface: mpris
     name: linefm_radio

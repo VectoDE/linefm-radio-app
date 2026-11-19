@@ -8,7 +8,7 @@ Für Entwickler, die LINEFM Radio bauen, testen oder erweitern. Betreiber lesen 
 |---|---|---|
 | Flutter | 3.50.0 (Dart 3.14) | `pubspec.yaml` verlangt `sdk: ^3.14.0` und `flutter: >=3.50.0` |
 | Git | aktuell | |
-| Android | JDK 17, Android SDK (Plattform 35 und höher, Build-Tools) | Lizenzen mit `flutter doctor --android-licenses` bestätigen |
+| Android | JDK 17, Android SDK (Plattform 37 (`compileSdk`) und höher, Build-Tools) | Lizenzen mit `flutter doctor --android-licenses` bestätigen |
 | Windows | Visual Studio 2022 mit Workload "Desktop development with C++", **Rust** (rustup) | siehe unten |
 | Linux | Flutter-Linux-Pakete (clang, cmake, ninja, pkg-config, GTK 3), libmpv | ungetestet, kein Linux-Rechner in der bisherigen Entwicklung |
 | macOS und iOS | Xcode, CocoaPods | ungetestet, kein Mac in der bisherigen Entwicklung |
@@ -152,14 +152,21 @@ Format: `linefm://play?station=<slug>` und `https://app.linefm.de/?station=<slug
 |---|---|
 | Web | Start-Adresse (`Uri.base`), vom `PlayerController` beim Start ausgewertet. Die Seite nutzt Pfad-URLs (`web_routes.dart`, `pushState`). |
 | Android | Eigener Kanal `de.linefm.app/deep_links` in `MainActivity` (Start-Link und laufende Links). Flutters eigenes Deep-Linking ist abgeschaltet (`flutter_deeplinking_enabled=false`), damit nichts doppelt ankommt. Intent-Filter für `linefm://play` und `https://app.linefm.de`. `autoVerify` ist aus, bis `assetlinks.json` auf dem Server liegt (siehe [EINRICHTUNG.md](EINRICHTUNG.md), Abschnitt 2.8). Quelle ist auch das Homescreen-Widget. |
-| iOS | Schema `linefm` in `Info.plist`. Das Framework meldet den Link beim Kaltstart über `PlatformDispatcher.defaultRouteName`, laufend über `didPushRouteInformation` (`DeepLinkObserver`). Universal Links brauchen Associated Domains und die AASA-Datei, noch offen. |
+| iOS | Schema `linefm` in `Info.plist`. Das Framework meldet den Link beim Kaltstart über `PlatformDispatcher.defaultRouteName`, laufend über `didPushRouteInformation` (`DeepLinkObserver`). Universal Links: `Runner.entitlements` enthält Associated Domains (`applinks:app.linefm.de`), die AASA-Vorlage liegt in `web/.well-known/apple-app-site-association` und der Web-Postbuild füllt `APPLE_TEAM_ID` ein. Auf einem Gerät noch nicht getestet. |
 | macOS | Schema `linefm` in `Info.plist`. Auslieferung wie bei iOS, auf dem Mac ungetestet. |
 | Windows | Link als Startargument. Eine zweite Instanz (Mutex pro Benutzersitzung) reicht ihre Argumente an die erste weiter und holt deren Fenster nach vorn. `DeepLinks.dispatchFromArguments(args)`. Der Installer registriert das Schema `linefm://`. |
 | Linux | Startargument über die `.desktop`-Datei. Die Einzel-Instanz ist nur unter Windows umgesetzt. |
 
 Tests: `test/platform/deep_links_test.dart`, `android_deep_links_test.dart`, `web_routes_test.dart`.
 
-## laut.fm: WebSocket bewusst aus (Entscheidung 50)
+## Android: Zurück-Geste, Sprachen, Edge-to-Edge
+
+- **targetSdk** kommt aus Flutter (`flutter.targetSdkVersion`, mit Flutter 3.50 also API 36), `compileSdk` steht fest auf 37 (`android/app/build.gradle.kts`). Nach einem Flutter-Update prüfen, ob sich der Wert geändert hat, und die Punkte unten neu ansehen.
+- **Edge-to-Edge:** Ab targetSdk 35 zeichnet Android jede App unter Status- und Navigationsleiste; ab API 36 lässt sich das nicht mehr abschalten. Flutter zeichnet ohnehin randlos, die Shell hält Inhalte mit `SafeArea` von den Leisten fern. Neue Bildschirme brauchen das ebenfalls, sonst liegen Knöpfe unter der Gestenleiste.
+- **Vorhersagbares Zurück:** `android:enableOnBackInvokedCallback="true"` im Manifest. Die Shell nutzt `PopScope` (`canPop` nur auf der Senderliste), das mit der Geste zusammenarbeitet. Der Test „Vorhersagbares Zurueck“ in `test/app/shell_test.dart` spielt die Geste über den Kanal `flutter/backgesture` nach. Kein `WillPopScope` verwenden, das bricht die Geste.
+- **Sprachen pro App:** `res/xml/locales_config.xml` nennt de und en (Android 13+, Einstellungen > Apps > Sprache). Kommt eine Sprache unter `lib/l10n/` dazu, dort ergänzen.
+
+## laut.fm: WebSocket bewusst aus
 
 Der WebSocket `wss://api.laut.fm/song_change.ws.json` meldet Titelwechsel **aller** Sender der Plattform. Gemessen am 19.11.2026:
 
@@ -174,6 +181,12 @@ Das ist für Mobilfunk und Akku nicht vertretbar. Deshalb ist `WS_ENABLED` stand
 4. Antworten werden zwischengespeichert (die API liefert etwa 121 Sekunden Cache). Der Code steht noch, nur der Schalter ist aus. Wer ihn mit `WS_ENABLED=true` einschaltet, bekommt zusätzlich einen Traffic-Wächter.
 
 Ein Titel erscheint dadurch bis zu einige Sekunden später als mit WebSocket. Die ICY-Metadaten des Streams sind nur auf Android, iOS und macOS lesbar, deshalb kommen Titel überall aus der API.
+
+## Google Cast: offener Punkt beim Plugin
+
+Die App startet das Cast-SDK erst beim ersten Tippen auf den Cast-Knopf (`initCast`, L4). Das Plugin `flutter_chrome_cast` 2.0.0 ruft auf Android aber in `onDetachedFromEngine` `CastContext.getSharedInstance(appContext)` auf (`android/src/main/kotlin/com/felnanuke/google_cast/CastContextMethodChannel.kt`, Zeile 139), um einen Listener abzumelden. Läuft das, ohne dass Cast vorher genutzt wurde, initialisiert genau dieser Aufruf das SDK, also beim Beenden der App.
+
+Entscheidung: kein eigener Fork des Plugins. Die Datenschutzerklärung (Abschnitt 7) nennt die Ausnahme. Upstream-Wunsch an das Plugin: im Abbau `CastContext.getSharedInstance()` nur aufrufen, wenn der Kontext schon initialisiert ist (eigenes Flag oder `CastContext.getSharedInstance()` ohne Kontext-Argument mit try/catch). Bei jedem Update von `flutter_chrome_cast` die Stelle neu prüfen und die Datenschutzerklärung anpassen, sobald sie behoben ist.
 
 ## Weiterführende Dokumente
 

@@ -2,83 +2,75 @@
   "version": 1,
   "lang": "en",
   "title": "Privacy policy",
-  "updated": "2026-11-18",
-  "reviewNote": "DRAFT. A lawyer must review this and the operator data must be filled in before publication. Sources: Art. 13 GDPR, Section 25 TDDDG, Art. 44 ff. GDPR. Blocks with requires appear only if the provider is configured (umami, sentry, firebase; telemetry = at least one). The German version is the legally binding one.",
+  "updated": "2026-11-19",
+  "reviewNote": "DRAFT. A lawyer must review this and the operator data must be filled in before publication. Sources: Art. 13 GDPR, Section 25 TDDDG, Art. 44 ff. GDPR. Blocks with requires appear only if the provider is configured (umami, sentry, firebase; telemetry = at least one). The German version is the legally binding one. Added 19 Nov 2026: section on radiogruppe.de (Art. 6(1)(f)), Google Cast SDK (usage data according to Google, (f)), the Load covers switch, data processing agreements and DPF. Lawyer: check the statement about laut.fm, the Cast classification (joint controllership?) and the advertising ID (Firebase AD_ID). Round 3 (19 Nov 2026): “Clear storage” keeps “Load covers: off”; note on Apple/iCloud backups; sections from “Recipients” are numbered one lower without telemetry, cross-references name the title instead of the number. Lawyer: check the statement on Apple backups.",
   "blocks": [
     {"type": "h1", "text": "Privacy policy"},
     {"type": "p", "text": "This page explains which data LINEFM Radio processes and why. It applies to the apps (Android, iOS, macOS, Windows, Linux) and to the web version at app.linefm.de."},
-
     {"type": "h2", "text": "1. Controller"},
     {"type": "p", "text": "{{BETREIBER_NAME}}\n{{BETREIBER_RECHTSFORM}}\n{{BETREIBER_STRASSE}}\n{{BETREIBER_PLZ_ORT}}"},
     {"type": "p", "text": "Email:"},
     {"type": "mail", "text": "{{BETREIBER_EMAIL}}", "address": "{{BETREIBER_EMAIL}}"},
     {"type": "p", "text": "Data protection officer: {{DATENSCHUTZBEAUFTRAGTER}}"},
-
     {"type": "h2", "text": "2. The short version"},
-    {"type": "ul", "items": [
-      "You don’t need an account. We never ask for your name or email address.",
-      "The app has no ads, uses no advertising ID and doesn’t ask for your location.",
-      "To play the radio, your device connects directly to the laut.fm server. We don’t receive any connection data from that.",
-      "Favorites, volume and settings stay on your device."
-    ]},
+    {"type": "ul", "items": ["You don’t need an account. We never ask for your name or email address.", "The app has no ads, uses no advertising ID and doesn’t ask for your location.", "To play the radio, your device connects directly to the laut.fm server. We don’t run that server and don’t see this connection data ourselves.", "Favorites, volume and settings stay on your device."]},
     {"type": "p", "text": "We only send usage statistics and error reports if you explicitly agree. Without your consent nothing leaves your device.", "requires": "telemetry"},
     {"type": "p", "text": "This version of the app sends no usage statistics and no error data.", "requires": "!telemetry"},
-
     {"type": "h2", "text": "3. Data on your device (Section 25 TDDDG)"},
-    {"type": "p", "text": "The app keeps small amounts of data locally on your device, or in your browser storage in the web version. That covers: your last station, your favorites (station, artist, title, time), volume, settings (for example scrolling text, appearance, sleep timer, alarm, autostart), the confirmation of the storage notice and, if asked, your choice on statistics and error reports. Cached track information and covers make the app start faster."},
-    {"type": "p", "text": "We need this data for the features you use yourself: remembering favorites, finding your station again, keeping your volume. It never leaves your device and contains no identifier that lets us recognise you. The legal basis is Section 25(2) no. 2 TDDDG and, where the data is personal, Art. 6(1)(b) and (f) GDPR."},
-    {"type": "p", "text": "On first launch the app shows a notice about this storage on every platform. It is for your information. You can remove everything at any time under Settings > Clear storage. Uninstalling the app or clearing your browser data removes it too."},
-
+    {"type": "p", "text": "The app keeps small amounts of data locally on your device, or in your browser storage in the web version. That covers: your last station, your favorites (station, artist, title, time), volume, settings (for example scrolling text, appearance, sleep timer, alarm, autostart), the confirmation of the storage notice and, if asked, your choice on statistics and error reports. Cached track information and covers make the app start faster. If you turn off “Load covers”, the app remembers that even without a confirmed storage notice. Otherwise the next start would send requests to Apple again. This one privacy setting is therefore technically necessary (Section 25(2) no. 2 TDDDG)."},
+    {"type": "p", "text": "We need this data for the features you use yourself: remembering favorites, finding your station again, keeping your volume. We never receive it, and it contains no identifier that lets us recognise you. On Android it is excluded from Google backup and device transfer. On iPhone, iPad and Mac it can end up in a backup you create yourself with Apple (iCloud) or on your computer; we have no access to it. The legal basis is Section 25(2) no. 2 TDDDG and, where the data is personal, Art. 6(1)(b) and (f) GDPR."},
+    {"type": "p", "text": "On first launch the app shows a notice about this storage on every platform. It is for your information. You can remove everything at any time under Settings > Clear storage. Only the setting “Load covers: off” is kept, so the app sends no requests to Apple afterwards; you switch it back on with the switch itself. Uninstalling the app or clearing your browser data removes everything."},
     {"type": "h2", "text": "4. Radio stream and track information (laut.fm)"},
-    {"type": "p", "text": "We broadcast through the platform laut.fm run by LAUT AG. When you start a station, your device loads the stream straight from laut.fm. The same goes for track information, listener count and the live notice when a track changes (api.laut.fm). laut.fm receives the technical data it needs for this: your IP address, date and time, the requested address and details about your device and software. The radio can’t play without this connection."},
+    {"type": "p", "text": "LINEFM is broadcast through the platform laut.fm run by LAUT AG. When you start a station, your device loads the stream straight from laut.fm. The same goes for track information, listener count and the live notice when a track changes (api.laut.fm). laut.fm receives the technical data it needs for this: your IP address, date and time, the requested address and details about your device and software. The radio can’t play without this connection. We don’t run that server and don’t see this data ourselves."},
     {"type": "p", "text": "The legal basis is Art. 6(1)(b) GDPR (you request the service), alternatively (f). laut.fm is responsible for this processing itself. How laut.fm handles it is described in its privacy policy:"},
     {"type": "link", "text": "laut.fm/datenschutz", "url": "https://laut.fm/datenschutz"},
-
     {"type": "h2", "text": "5. Album covers (Apple iTunes Search API)"},
     {"type": "p", "text": "The app looks for a cover for each track. Your device queries Apple’s iTunes Search API (itunes.apple.com) and loads the image from Apple servers. Apple receives artist and title as the search term, your IP address and details about your device and software. If nothing is found, the app shows the station logo."},
-    {"type": "p", "text": "The legal basis is Art. 6(1)(f) GDPR. Our interest: the player should show the matching cover. You can object (section 14). The cover then stays empty. Apple Inc. is based in the USA, see section 12."},
-
-    {"type": "h2", "text": "6. Station logos (cdn.linefm.de)"},
+    {"type": "p", "text": "The legal basis is Art. 6(1)(f) GDPR. Our interest: the player should show the matching cover. You can switch the loading off: turn off Settings > “Load covers”. The app then sends no requests to Apple. It shows the cover that laut.fm supplies with the track and, if there is none, the station logo. Your right to object (see “Your rights”) applies in addition. Apple Inc. is based in the USA, see “Recipients and transfers to third countries”."},
+    {"type": "h2", "text": "6. Logos (cdn.linefm.de, radiogruppe.de)"},
     {"type": "p", "text": "The app loads station logos from cdn.linefm.de, operated by {{CDN_ANBIETER}}. This briefly creates server log data (IP address, time, requested file). The legal basis is Art. 6(1)(f) GDPR: we want to deliver the logos securely and quickly."},
-
+    {"type": "p", "text": "The app loads the logo of RadioGruppe Deutschland from radiogruppe.de. The operators of that site receive technically necessary data: your IP address, the time and the requested file. The legal basis is Art. 6(1)(f) GDPR: we want to show the logo of the app’s provider. We have no influence on the processing there; their privacy policy applies."},
+    {"type": "link", "text": "radiogruppe.de", "url": "https://radiogruppe.de"},
     {"type": "h2", "text": "7. Casting to other devices (Chromecast, AirPlay, Android Auto, CarPlay)"},
-    {"type": "p", "text": "If you use casting, the app looks for Chromecast devices on your local network. On Android this runs through the Google Cast feature of Google Play services (Google Ireland Limited, Google LLC). When you cast, the app sends the stream address plus station and track name to the chosen device, which then loads the stream from laut.fm itself. The legal basis is Art. 6(1)(b) GDPR, because you start the casting."},
+    {"type": "p", "text": "The Google Cast SDK only becomes active when you tap the Cast button in the app for the first time. Only then does the app look for Chromecast devices on your local network. There is one technical exception on Android: the Cast plugin we use may initialise the SDK when the app closes, even if you never used Cast. On Android this runs through the Google Cast SDK of Google Play services (Google Ireland Limited, Google LLC). When you cast, the app sends the stream address plus station and track name to the chosen device, which then loads the stream from laut.fm itself. The legal basis is Art. 6(1)(b) GDPR, because you start the casting."},
+    {"type": "p", "text": "According to Google, the Google Cast SDK itself sends usage data to Google, for example about the Cast session and the device. Google describes how it processes this data in its privacy policy. The legal basis for our part is Art. 6(1)(f) GDPR: we want casting to work reliably. You can object by not using Cast. The app then does not start the SDK on its own; the exception on Android when closing is described above. Google LLC is based in the USA, see “Recipients and transfers to third countries”."},
+    {"type": "link", "text": "policies.google.com/privacy", "url": "https://policies.google.com/privacy"},
     {"type": "p", "text": "AirPlay, Android Auto and CarPlay are operating system features (Apple, Google). The app only hands the system station, title and cover to display. We receive no data from this."},
-
     {"type": "h2", "text": "8. Notifications, background playback and alarm"},
     {"type": "p", "text": "Lock screen media controls and the alarm run entirely on your device. No push messages come from a server. Your operating system asks for permission for notifications, exact alarms and showing the alarm over the lock screen. You can withdraw these in the system settings at any time."},
-
     {"type": "h2", "text": "9. Sharing and external links"},
     {"type": "p", "text": "When you share a song or export favorites, the app creates the text only at that moment and hands it to your device’s share feature. You choose the recipients."},
     {"type": "p", "text": "Links such as “Open song in Apple Music, Spotify or YouTube Music”, linefm.de or radiogruppe.de open in your browser or the respective app only after you tap them. For the music services, artist and title go along as a search term. After that the provider’s own privacy policy applies."},
-
     {"type": "h2", "text": "10. Web version: hosting and server logs"},
     {"type": "p", "text": "The web version at app.linefm.de is hosted by {{HOSTING_ANBIETER}}. On every request the server automatically stores: IP address, date and time, requested address, status code, amount of data transferred and browser identifier. We need this to run and secure the site. The legal basis is Art. 6(1)(f) GDPR. Logs are kept for {{LOG_AUFBEWAHRUNG}}. A data processing agreement under Art. 28 GDPR is in place with the hosting provider."},
     {"type": "p", "text": "Fonts and all program files of the web version come from our own server. We don’t load anything from third-party CDNs. A service worker stores files in your browser cache so the page starts faster."},
-
     {"type": "h2", "text": "11. Usage statistics and error reports", "requires": "telemetry"},
     {"type": "p", "text": "We’d like to know which features get used and where the app crashes. For this the app asks for your consent at launch. Before that, no such service starts and no data is sent. The legal basis is your consent under Art. 6(1)(a) GDPR and Section 25(1) TDDDG.", "requires": "telemetry"},
     {"type": "p", "text": "You can withdraw consent at any time under Settings > Usage statistics and error reports. The withdrawal applies from then on; processing before it stays lawful. If you decline, you can still use the app without restrictions. No names and no account data are sent, because neither exists. Retention: {{TELEMETRIE_AUFBEWAHRUNG}}.", "requires": "telemetry"},
-    {"type": "p", "text": "Umami (usage statistics). The app sends which areas of the app were opened and which events were triggered (for example station started), plus rough device details such as operating system, app version and language. The instance is run by {{UMAMI_BETREIBER}}. According to the manufacturer, Umami sets no cookies and stores no full IP addresses.", "requires": "umami"},
+    {"type": "p", "text": "Umami (usage statistics). The app sends which areas of the app were opened and which events were triggered (for example station started), plus rough device details such as operating system, app version and language. The instance is run by {{UMAMI_BETREIBER}}. For technical reasons the instance receives your IP address with every request. According to the manufacturer, Umami sets no cookies and stores no full IP addresses.", "requires": "umami"},
     {"type": "p", "text": "Error reports via Sentry or GlitchTip. On a crash or error the app sends the error message, technical trace, app version, operating system and device model. The service technically receives the IP address as well. It is run by {{SENTRY_BETREIBER}}.", "requires": "sentry"},
-    {"type": "p", "text": "Firebase Analytics and Crashlytics (Google Ireland Limited, Google LLC). Google receives usage events and crash reports along with a random installation ID, app version, operating system and device model. Advertising features and personalisation are not enabled. The data may be transferred to the USA, see section 12.", "requires": "firebase"},
-
-    {"type": "h2", "text": "12. Recipients and transfers to third countries"},
-    {"type": "p", "text": "Depending on how you use the app, recipients are: LAUT AG (laut.fm), Apple (covers, AirPlay, CarPlay), Google (Chromecast, Android Auto, Play services), {{HOSTING_ANBIETER}} and {{CDN_ANBIETER}} for delivery and, if you consented, the statistics and error services named above."},
-    {"type": "p", "text": "Apple Inc. and Google LLC are based in the USA. Transfers rely on the European Commission’s adequacy decision on the EU-US Data Privacy Framework of 10 July 2023 where the provider is certified under it, and otherwise on standard contractual clauses under Art. 46 GDPR."},
-
-    {"type": "h2", "text": "13. Retention"},
+    {"type": "p", "text": "Firebase Analytics and Crashlytics (Google Ireland Limited, Google LLC). Google receives usage events and crash reports along with a random installation ID, app version, operating system and device model. Advertising features and personalisation are not enabled. The data may be transferred to the USA, see “Recipients and transfers to third countries”.", "requires": "firebase"},
+    {"type": "h2", "text": "12. Recipients and transfers to third countries", "requires": "telemetry"},
+    {"type": "h2", "text": "11. Recipients and transfers to third countries", "requires": "!telemetry"},
+    {"type": "p", "text": "Depending on how you use the app, recipients are: LAUT AG (laut.fm), Apple (covers, AirPlay, CarPlay), Google (Chromecast with the Cast SDK, Android Auto, Play services), the operators of radiogruppe.de (logo), {{HOSTING_ANBIETER}} and {{CDN_ANBIETER}} for delivery and, if you consented, the statistics and error services named above.", "requires": "telemetry"},
+    {"type": "p", "text": "Depending on how you use the app, recipients are: LAUT AG (laut.fm), Apple (covers, AirPlay, CarPlay), Google (Chromecast with the Cast SDK, Android Auto, Play services), the operators of radiogruppe.de (logo), {{HOSTING_ANBIETER}} and {{CDN_ANBIETER}} for delivery.", "requires": "!telemetry"},
+    {"type": "p", "text": "We have data processing agreements under Art. 28 GDPR with service providers who process data on our behalf (hosting, delivery of logos, operators of the statistics and error services).", "requires": "telemetry"},
+    {"type": "p", "text": "We have data processing agreements under Art. 28 GDPR with service providers who process data on our behalf (hosting, delivery of logos).", "requires": "!telemetry"},
+    {"type": "p", "text": "Apple Inc. and Google LLC are based in the USA. Transfers rely on the European Commission’s adequacy decision on the EU-US Data Privacy Framework of 10 July 2023 where the provider is certified under it, and otherwise on standard contractual clauses under Art. 46 GDPR. Whether a provider is certified can be looked up in the public directory:"},
+    {"type": "link", "text": "dataprivacyframework.gov/list", "url": "https://www.dataprivacyframework.gov/list"},
+    {"type": "h2", "text": "13. Retention", "requires": "telemetry"},
+    {"type": "h2", "text": "12. Retention", "requires": "!telemetry"},
     {"type": "p", "text": "Local data stays until you delete it or remove the app. Server logs of the web version are kept for {{LOG_AUFBEWAHRUNG}}. laut.fm, Apple and Google apply their own retention periods."},
-
-    {"type": "h2", "text": "14. Your rights"},
+    {"type": "h2", "text": "14. Your rights", "requires": "telemetry"},
+    {"type": "h2", "text": "13. Your rights", "requires": "!telemetry"},
     {"type": "p", "text": "You have the right of access (Art. 15 GDPR), rectification (Art. 16), erasure (Art. 17), restriction of processing (Art. 18), data portability (Art. 20) and objection (Art. 21). Where processing is based on consent, you can withdraw it at any time with effect for the future (Art. 7(3)). Where we process data based on legitimate interests, you can object on grounds relating to your particular situation."},
     {"type": "p", "text": "Write to us at the email address in section 1. Since we don’t know you through an account, we can only link data on your device to you if you show it to us. Most of it you can delete directly in the app (Settings > Clear storage)."},
     {"type": "p", "text": "You also have the right to lodge a complaint with a data protection supervisory authority (Art. 77 GDPR). The one responsible for us: {{AUFSICHTSBEHOERDE_DATENSCHUTZ}}."},
-
-    {"type": "h2", "text": "15. Obligation to provide data, automated decisions"},
+    {"type": "h2", "text": "15. Obligation to provide data, automated decisions", "requires": "telemetry"},
+    {"type": "h2", "text": "14. Obligation to provide data, automated decisions", "requires": "!telemetry"},
     {"type": "p", "text": "You don’t have to provide any personal data to use the app. Only the connection to laut.fm is technically required. There is no automated decision-making, including profiling, under Art. 22 GDPR."},
-
-    {"type": "h2", "text": "16. Changes"},
-    {"type": "p", "text": "We update this policy when the app or the law changes. The version shown in the app at the time you use it applies. As of: 18 November 2026."}
+    {"type": "h2", "text": "16. Changes", "requires": "telemetry"},
+    {"type": "h2", "text": "15. Changes", "requires": "!telemetry"},
+    {"type": "p", "text": "We update this policy when the app or the law changes. The version shown in the app at the time you use it applies. As of: 19 November 2026."}
   ]
 }

@@ -1,4 +1,6 @@
+import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/features/legal/external_link.dart';
 import 'package:linefm_radio/features/legal/legal_document.dart';
@@ -37,45 +39,51 @@ class LegalScreen extends ConsumerWidget {
         ? l10n.legalImprintTitle
         : l10n.legalPrivacyTitle;
 
-    return Scaffold(
-      appBar: AppBar(
-        actions: <Widget>[
-          if (!platform.isWeb)
-            IconButton(
-              tooltip: l10n.legalOpenInBrowser,
-              icon: const Icon(Icons.open_in_new),
-              onPressed: () => openExternalUrl(
-                context,
-                ref,
-                _webUrl(config.webBaseUrl, kind, lang),
+    // Eigene Seite: als Hauptinhalt kennzeichnen (NEU-2, Landmarke).
+    return Semantics(
+      container: true,
+      explicitChildNodes: true,
+      role: SemanticsRole.main,
+      child: Scaffold(
+        appBar: AppBar(
+          actions: <Widget>[
+            if (!platform.isWeb)
+              IconButton(
+                tooltip: l10n.legalOpenInBrowser,
+                icon: const Icon(Icons.open_in_new),
+                onPressed: () => openExternalUrl(
+                  context,
+                  ref,
+                  _webUrl(config.webBaseUrl, kind, lang),
+                ),
               ),
-            ),
-        ],
-      ),
-      body: Semantics(
-        scopesRoute: true,
-        explicitChildNodes: true,
-        namesRoute: true,
-        label: title,
-        child: doc.when(
-          data: (d) =>
-              LegalBody(document: d, providers: activeLegalProviders(config)),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(l10n.legalLoadError, textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
-                  OutlinedButton(
-                    onPressed: () => ref.invalidate(
-                      legalDocumentProvider((kind: kind, lang: lang)),
+          ],
+        ),
+        body: Semantics(
+          scopesRoute: true,
+          explicitChildNodes: true,
+          namesRoute: true,
+          label: title,
+          child: doc.when(
+            data: (d) =>
+                LegalBody(document: d, providers: activeLegalProviders(config)),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(l10n.legalLoadError, textAlign: TextAlign.center),
+                    const SizedBox(height: 16),
+                    OutlinedButton(
+                      onPressed: () => ref.invalidate(
+                        legalDocumentProvider((kind: kind, lang: lang)),
+                      ),
+                      child: Text(l10n.actionRetry),
                     ),
-                    child: Text(l10n.actionRetry),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -117,7 +125,9 @@ class LegalBody extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(top: 24),
               child: Text(
-                l10n.legalUpdated(document.updated),
+                l10n.legalUpdated(
+                  formatLegalDate(document.updated, l10n.localeName),
+                ),
                 style: LinefmText.listMeta.copyWith(color: c.muted),
               ),
             ),
@@ -285,4 +295,13 @@ class _LinkBlock extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Stand-Datum der Rechtstexte (`2026-11-18` in der JSON) nach Sprache
+/// (I01): Deutsch "18. November 2026", Englisch "November 18, 2026".
+/// Unlesbare Werte bleiben unveraendert.
+String formatLegalDate(String raw, String localeName) {
+  final date = DateTime.tryParse(raw);
+  if (date == null) return raw;
+  return DateFormat.yMMMMd(localeName).format(date);
 }

@@ -8,17 +8,19 @@ import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/features/favorites/favorite_actions.dart';
 import 'package:linefm_radio/features/favorites/favorites_export_sheet.dart';
+import 'package:linefm_radio/features/favorites/favorites_import_action.dart';
 import 'package:linefm_radio/features/history/icon_action.dart';
 import 'package:linefm_radio/features/history/list_screen.dart';
 import 'package:linefm_radio/features/history/stagger_in.dart';
 import 'package:linefm_radio/features/history/track_row.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/ui/theme/breakpoints.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Screen "Favoriten": gemerkte Songs (neueste zuerst) mit Papierkorb zum
-/// Entfernen, Export-Einstieg (CSV/Text) und Leerzustand. Meldet
+/// Entfernen, Import und Export (CSV/Text) und Leerzustand. Meldet
 /// `screen_favorites`, `favorite_remove` und `export_favorites`.
 class FavoritesScreen extends ConsumerStatefulWidget {
   const FavoritesScreen({super.key});
@@ -34,6 +36,33 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
     unawaited(ref.read(telemetryProvider).screen('favorites'));
   }
 
+  /// Entfernt sofort und bietet 5 s lang "Rueckgaengig" an (U3).
+  void _removeWithUndo(Favorite favorite, int index) {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final expanded = WindowClass.of(context) == WindowClass.expanded;
+    // Kompakt: ueber Mini-Player und Navigation, nicht darauf (U6).
+    final bottom = expanded
+        ? 16.0
+        : MediaQuery.paddingOf(context).bottom + LinefmMetrics.navHeight + 102;
+    removeFavoriteWithTelemetry(ref, favorite);
+    messenger
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.fromLTRB(16, 0, 16, bottom),
+          duration: const Duration(seconds: 5),
+          content: Text(l10n.favoritesRemoved(favorite.title)),
+          action: SnackBarAction(
+            label: l10n.actionUndo,
+            onPressed: () =>
+                ref.read(favoritesProvider.notifier).restore(favorite, index),
+          ),
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -42,13 +71,22 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
 
     return ListScreen(
       title: l10n.favoritesTitle,
-      trailing: favorites.isEmpty
-          ? null
-          : IconAction(
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          IconAction(
+            icon: FontAwesomeIcons.fileImport,
+            label: l10n.favoritesImport,
+            onPressed: () => unawaited(startFavoritesImport(context, ref)),
+          ),
+          if (favorites.isNotEmpty)
+            IconAction(
               icon: FontAwesomeIcons.fileExport,
               label: l10n.favoritesExport,
               onPressed: () => unawaited(startFavoritesExport(context, ref)),
             ),
+        ],
+      ),
       itemCount: favorites.length,
       emptyState: Padding(
         padding: const EdgeInsets.only(top: 4),
@@ -69,7 +107,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
             favorite: favorite,
             marquee: marquee,
             removeLabel: l10n.favoritesRemove(favorite.title),
-            onRemoved: () => removeFavoriteWithTelemetry(ref, favorite),
+            onRemoved: () => _removeWithUndo(favorite, index),
           ),
         );
       },

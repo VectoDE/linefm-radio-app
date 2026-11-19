@@ -1,0 +1,49 @@
+name: Doku verbessern
+description: Etwas in README, docs/ oder in den Texten der App ist falsch, veraltet oder unklar.
+title: "Doku: "
+labels: ["documentation"]
+body:
+  - type: input
+    id: wo
+    attributes:
+      label: Wo steht es?
+      description: Datei und Abschnitt oder Link, zum Beispiel docs/EINRICHTUNG.md, Abschnitt „Signieren“.
+      placeholder: docs/EINRICHTUNG.md#signieren
+    validations:
+      required: true
+  - type: dropdown
+    id: art
+    attributes:
+      label: Was stimmt nicht?
+      options:
+        - Falsch oder veraltet
+        - Unklar oder schwer verständlich
+        - Es fehlt etwas
+        - Link funktioniert nicht
+        - Tippfehler oder Sprache
+    validations:
+      required: true
+  - type: textarea
+    id: was
+    attributes:
+      label: Beschreibung
+      description: Was steht dort, und was sollte dort stehen? Gern mit Vorschlag für den neuen Text.
+    validations:
+      required: true
+  - type: dropdown
+    id: leser
+    attributes:
+      label: Für wen ist die Stelle gedacht?
+      description: Optional. Hilft, den richtigen Ton zu treffen.
+      multiple: true
+      options:
+        - Hörerinnen und Hörer
+        - Betreiber und Admins
+        - Entwicklerinnen und Entwickler
+        - Entscheider
+  - type: checkboxes
+    id: barrierefreiheit
+    attributes:
+      label: Barrierefreiheit
+      options:
+        - label: Die Stelle betrifft Barrierefreiheit (BARRIEREFREIHEIT.md, Screenreader, Tastatur).

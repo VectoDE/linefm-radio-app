@@ -1,8 +1,16 @@
 name: Release
 
-# Ausloeser: Tag vX.Y.Z (oder vX.Y.Z-suffix, wird als Vorabversion veroeffentlicht).
-# Baut alle Plattformen ueber build.yml, erzeugt SHA256SUMS.txt, SBOM (SPDX),
-# Build-Provenance- und SBOM-Attestierungen und legt das GitHub-Release an.
+# Ausloeser: Tag vX.Y.Z oder vX.Y.Z-rc.N (der Trigger nimmt jedes v*.*.*, der Job
+# "version" laesst aber nur diese beiden Formen zu; rc-Tags werden Vorabversionen).
+# Baut alle Plattformen ueber build.yml, erzeugt SHA256SUMS.txt und eine SBOM (SPDX)
+# und legt das GitHub-Release an. Build-Provenance- und SBOM-Attestierungen (Sigstore)
+# entstehen nur, wo GitHub sie erlaubt (oeffentliches Repo oder Enterprise Cloud); im
+# privaten Repo darf der Schritt scheitern und die Zusammenfassung sagt das offen.
+# Die Release-Dateien selbst sind nicht zusaetzlich signiert; Android (APK/AAB),
+# Windows (EXE im ZIP) und macOS (DMG, notarisiert) tragen ihre Plattform-Signatur nur,
+# wenn die Signier-Secrets gesetzt sind. Pruefen der Downloads: docs/RELEASE-VERIFIZIEREN.md.
+# Danach starten die Store-Workflows; Google Play und Snap auch fuer rc-Tags, alle
+# anderen nur fuer Endversionen.
 
 on:
   push:
@@ -16,8 +24,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  version:
+    name: Tag und pubspec-Version pruefen
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Tag und pubspec-Version vergleichen
+        uses: ./.github/actions/tag-version
+        with:
+          tag: ${{ github.ref_name }}
+
   build:
     name: Build
+    needs: version
     uses: ./.github/workflows/build.yml
     with:
       version: ${{ github.ref_name }}
@@ -157,6 +190,8 @@ jobs:
             echo '```'
             echo "sha256sum -c SHA256SUMS.txt --ignore-missing"
             echo '```'
+            echo ""
+            echo "Signaturen, SBOM und Herkunft pruefen: docs/RELEASE-VERIFIZIEREN.md im Repository."
           } >> "$notes"
           echo "NOTES_FILE=$notes" >> "$GITHUB_ENV"
 
@@ -185,6 +220,7 @@ jobs:
       tag: ${{ github.ref_name }}
     secrets:
       PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
     permissions:
       contents: read
 

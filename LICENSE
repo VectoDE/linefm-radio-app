@@ -1,0 +1,58 @@
+LINEFM Radio
+Copyright (c) 2026 jaybelife (LINEFM). Alle Rechte vorbehalten.
+Entwicklung: Tim Hauke (VectoDE), https://github.com/VectoDE
+
+DEUTSCH
+
+Diese Software, ihr Quellcode und alle zugehoerigen Dateien sind urheberrechtlich
+geschuetzt. Inhaber aller Rechte ist jaybelife (Betreiber von LINEFM).
+
+Es wird keine Lizenz erteilt, weder ausdruecklich noch stillschweigend. Insbesondere
+handelt es sich nicht um Open-Source-Software. Dass der Quellcode einsehbar ist,
+berechtigt nicht dazu, ihn zu nutzen, zu kopieren, zu veraendern, zu veroeffentlichen,
+weiterzugeben, unterzulizenzieren oder zu verkaufen, auch nicht in Teilen. Jede solche
+Nutzung braucht die vorherige schriftliche Erlaubnis von jaybelife.
+
+Wer die App ueber einen offiziellen Vertriebsweg (App-Store, Website app.linefm.de,
+Release-Seite des Repositorys) bezieht, darf sie fuer den persoenlichen Gebrauch
+installieren und nutzen.
+
+LINEFM, die Senderlogos, das App-Icon und die Sendernamen sind Marken bzw. Eigentum
+des Betreibers oder der jeweiligen Inhaber (u. a. LINEFM, Radio3FM, FobFM,
+RadioGruppe Deutschland, laut.fm). Fuer sie gelten keine Rechte aus dieser Datei.
+
+Mitgelieferte Drittkomponenten (Flutter, Dart-Pakete, Schriften Poppins und
+Syncopate) stehen unter ihren eigenen Lizenzen. Deren Texte zeigt die App unter
+"Ueber LINEFM Radio" > "Open-Source-Lizenzen".
+
+DIE SOFTWARE WIRD OHNE GEWAEHR BEREITGESTELLT, SOWEIT GESETZLICH ZULAESSIG.
+
+ENGLISH
+
+Copyright (c) 2026 jaybelife (LINEFM). All rights reserved.
+Developed by Tim Hauke (VectoDE), https://github.com/VectoDE
+
+This software, its source code and all accompanying files are protected by
+copyright. All rights are held by jaybelife (operator of LINEFM).
+
+No license is granted, express or implied. In particular, this is not open-source
+software. Being able to view the source code does not permit anyone to use, copy,
+modify, publish, distribute, sublicense or sell it, in whole or in part. Any such
+use requires prior written permission from jaybelife.
+
+If you obtained the app through an official channel (app store, the website
+app.linefm.de, the release page of this repository), you may install and use it
+for personal purposes.
+
+LINEFM, the station logos, the app icon and the station names are trademarks or
+property of the operator or their respective owners (including LINEFM, Radio3FM,
+FobFM, RadioGruppe Deutschland, laut.fm). This file grants no rights to them.
+
+Bundled third-party components are covered by their own licenses: Flutter and
+the Dart packages, the Poppins and Syncopate fonts, the Noto fallback fonts of
+the web version (SIL Open Font License 1.1) and, on Windows and Linux, libmpv
+and FFmpeg (LGPL or GPL depending on the build). The app lists the Dart
+packages under "About LINEFM Radio" > "Open-source licenses". The full list
+with sources and open questions is in docs/LIZENZEN-DRITTE.md.
+
+THE SOFTWARE IS PROVIDED "AS IS", TO THE EXTENT PERMITTED BY LAW.

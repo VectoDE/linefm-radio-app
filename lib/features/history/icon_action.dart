@@ -1,6 +1,8 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
+import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Runder Icon-Knopf mit 48 dp Tippflaeche (WCAG 2.5.8), Tastaturfokus-Ring,
@@ -83,11 +85,7 @@ class _IconActionState extends State<IconAction> {
     );
 
     if (widget.tooltip) {
-      button = Tooltip(
-        message: widget.label,
-        excludeFromSemantics: true,
-        child: button,
-      );
+      button = QuietTooltip(message: widget.label, child: button);
     }
 
     // Umschalter wie `SettingsSwitch`: Schalter-Rolle (toggled), KEINE
@@ -95,14 +93,20 @@ class _IconActionState extends State<IconAction> {
     // zusammen (button + toggled) wurde von Screenreadern/Web-Semantik nicht
     // als Schalter aktiviert; nur der Mausklick griff.
     final isToggle = widget.toggled != null;
-    return Semantics(
-      container: true,
-      button: !isToggle,
-      toggled: widget.toggled,
-      enabled: true,
-      label: widget.label,
-      onTap: widget.onPressed,
-      excludeSemantics: true,
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
+        button: !isToggle,
+        toggled: widget.toggled,
+        enabled: true,
+        label: widget.label,
+        onTap: widget.onPressed,
+        excludeSemantics: true,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: button,
     );
   }

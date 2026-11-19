@@ -2,44 +2,34 @@
   "version": 1,
   "lang": "en",
   "title": "Imprint",
-  "updated": "2026-11-18",
+  "updated": "2026-11-19",
   "reviewNote": "DRAFT. A lawyer must review this and the operator data must be filled in before publication. Sources: Section 5 DDG, Section 18(2) MStV, Section 27a UStG. The German version is the legally binding one.",
   "blocks": [
     {"type": "h1", "text": "Imprint"},
     {"type": "p", "text": "Information pursuant to Section 5 of the German Digital Services Act (DDG)."},
-
     {"type": "h2", "text": "Provider"},
     {"type": "p", "text": "{{BETREIBER_NAME}}\n{{BETREIBER_RECHTSFORM}}\n{{BETREIBER_STRASSE}}\n{{BETREIBER_PLZ_ORT}}"},
     {"type": "p", "text": "Authorised representative: {{BETREIBER_VERTRETER}}"},
-
     {"type": "h2", "text": "Contact"},
     {"type": "p", "text": "Email:"},
     {"type": "mail", "text": "{{BETREIBER_EMAIL}}", "address": "{{BETREIBER_EMAIL}}"},
     {"type": "p", "text": "Phone: {{BETREIBER_TELEFON}}"},
-
     {"type": "h2", "text": "Commercial register"},
     {"type": "p", "text": "Register and court: {{REGISTERGERICHT}}\nRegistration number: {{REGISTERNUMMER}}"},
-
     {"type": "h2", "text": "VAT"},
     {"type": "p", "text": "VAT identification number under Section 27a UStG: {{USTID}}"},
-
     {"type": "h2", "text": "Supervisory authority"},
     {"type": "p", "text": "{{AUFSICHTSBEHOERDE_MEDIEN}}"},
-
     {"type": "h2", "text": "Responsible for content under Section 18(2) MStV"},
     {"type": "p", "text": "{{VERANTWORTLICHER_MSTV}}"},
-
     {"type": "h2", "text": "About this app"},
-    {"type": "p", "text": "LINEFM Radio plays the programmes of the web radio LINEFM and other stations. LINEFM is part of RadioGruppe Deutschland."},
+    {"type": "p", "text": "LINEFM Radio plays the programmes of the web radio LINEFM and of the partner stations Radio3FM and FobFM. Radio3FM and FobFM are stations of other operators, not LINEFM stations. LINEFM is part of RadioGruppe Deutschland."},
     {"type": "link", "text": "radiogruppe.de", "url": "https://radiogruppe.de"},
-    {"type": "p", "text": "The app was developed by Tim Hauke (VectoDE)."},
-
+    {"type": "p", "text": "Tim Hauke (VectoDE) developed the app for {{APP_AUFTRAGGEBER}}."},
     {"type": "h2", "text": "Music and licence"},
-    {"type": "p", "text": "We broadcast through the platform laut.fm and hold our own licence for it. The app plays the laut.fm stream and shows the track information provided there. It does not store or copy any music."},
-
+    {"type": "p", "text": "The programmes run through the platform laut.fm. Licensing of the music played lies with the respective stations or with laut.fm. The app plays the laut.fm stream and shows the track information provided there. It does not store or copy any music."},
     {"type": "h2", "text": "Rights to names, logos and covers"},
     {"type": "p", "text": "Station names and logos belong to their respective operators. Album covers come from Apple (iTunes Search API); the rights to them rest with their respective owners."},
-
     {"type": "h2", "text": "Consumer dispute resolution"},
     {"type": "p", "text": "We do not take part in dispute resolution proceedings before a consumer arbitration board and are not obliged to."}
   ]

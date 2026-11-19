@@ -20,12 +20,14 @@ import 'package:linefm_radio/core/clock.dart';
 ///
 /// Gleiche URL in Arbeit -> selbes Future (Deduplizierung). Bei
 /// Netzwerkfehlern wird ein vorhandener (auch veralteter) Eintrag geliefert;
-/// er traegt dann den Header [staleHeader].
+/// er traegt dann den Header [staleHeader]. Jede Anfrage bricht nach
+/// [timeout] ab und zaehlt dann als Netzwerkfehler (S5).
 class HttpCache {
   HttpCache({
     http.Client? client,
     this._clock = const SystemClock(),
     bool? conditionalHeaders,
+    this.timeout = const Duration(seconds: 10),
   }) : _client = client ?? http.Client(),
        _conditional = conditionalHeaders ?? !kIsWeb;
 
@@ -35,6 +37,9 @@ class HttpCache {
 
   /// Markiert eine Antwort, die ohne Netzwerkzugriff aus dem Cache kommt.
   static const String cacheHeader = 'x-linefm-cache';
+
+  /// Hoechstdauer einer Anfrage.
+  final Duration timeout;
 
   final http.Client _client;
   final Clock _clock;
@@ -84,7 +89,7 @@ class HttpCache {
     final http.Response response;
     try {
       networkRequests++;
-      response = await _client.get(uri, headers: headers);
+      response = await _client.get(uri, headers: headers).timeout(timeout);
     } on Object {
       if (entry != null) {
         return entry.toResponse(<String, String>{staleHeader: '1'});

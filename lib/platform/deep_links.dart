@@ -90,20 +90,30 @@ class DeepLinks {
     items.forEach(_controller.add);
   }
 
+  /// Host der Web-App; nur dessen Links oeffnen einen Sender.
+  static const String webHost = 'app.linefm.de';
+
   /// Liest den Sender aus einem Link, null wenn unbekannt oder kein
   /// LINEFM-Link.
   ///
-  /// Gueltig: `linefm://play?station=slug` und `http(s)://<Host>/?station=slug`
-  /// (beliebiger Pfad, damit benannte Web-Routen wie `/history?station=slug`
-  /// funktionieren). Andere Schemata (z. B. `javascript:`) werden abgelehnt.
-  static Station? stationFromUri(Uri uri) {
+  /// Gueltig: `linefm://play?station=slug` und
+  /// `https://app.linefm.de/...?station=slug` (beliebiger Pfad, damit
+  /// benannte Web-Routen wie `/history?station=slug` funktionieren). Fremde
+  /// Hosts und Schemata (z. B. `javascript:`) werden abgelehnt (S6/Q-08).
+  /// Im Browser zaehlt zusaetzlich der eigene Host der Seite ([ownHost],
+  /// Standard `Uri.base.host`), damit Vorschau- und Testumgebungen gehen.
+  static Station? stationFromUri(Uri uri, {String? ownHost}) {
     final scheme = uri.scheme.toLowerCase();
     if (scheme == 'linefm') {
       final target = uri.host.isNotEmpty
           ? uri.host
           : uri.pathSegments.firstOrNull;
       if (target?.toLowerCase() != 'play') return null;
-    } else if (scheme != 'http' && scheme != 'https') {
+    } else if (scheme == 'http' || scheme == 'https') {
+      final host = uri.host.toLowerCase();
+      final own = (ownHost ?? (kIsWeb ? Uri.base.host : '')).toLowerCase();
+      if (host != webHost && (own.isEmpty || host != own)) return null;
+    } else {
       return null;
     }
     final slug = uri.queryParameters['station'];

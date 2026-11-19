@@ -23,6 +23,11 @@ abstract final class PrefsKeys {
   static const String autoplay = 'linefm-setting-autoplay';
   static const String closeToTray = 'linefm-setting-close-to-tray';
   static const String themeMode = 'linefm-setting-theme';
+
+  /// Cover von Apple laden (L5) und Ein-Zeichen-Kuerzel (A11Y-08). Gibt es
+  /// in der Web-App nicht.
+  static const String loadArtwork = 'linefm-setting-artwork';
+  static const String keyboardShortcuts = 'linefm-setting-shortcuts';
   static const String alarms = 'linefm-alarms';
   static const String telemetryConsent = 'linefm-telemetry-consent';
   static const String coverCache = 'linefm-cover-cache';
@@ -33,6 +38,12 @@ abstract final class PrefsKeys {
   /// Fenstergroesse/-position und Mini-Fenster (Desktop, P18).
   static const String desktopWindow = 'linefm-desktop-window';
   static const String desktopMini = 'linefm-desktop-mini';
+
+  /// Datenschutz-Praeferenzen, die auch ohne Speicher-Bestaetigung bleiben
+  /// (technisch notwendig, N4): "Cover laden: aus" muss beim naechsten
+  /// Start gelten, sonst ginge wieder eine Anfrage an Apple raus. Gespeichert
+  /// wird nur das "aus"; "an" ist der Standard und entfernt den Eintrag.
+  static const List<String> privacyPreferences = <String>[loadArtwork];
 
   /// Alle Daten-Schluessel, also alles ausser der Speicher-Bestaetigung.
   static const List<String> data = <String>[
@@ -45,6 +56,8 @@ abstract final class PrefsKeys {
     autoplay,
     closeToTray,
     themeMode,
+    loadArtwork,
+    keyboardShortcuts,
     alarms,
     telemetryConsent,
     coverCache,
@@ -59,9 +72,13 @@ abstract final class PrefsKeys {
 /// `clearAppStorage`):
 /// * Ohne Speicher-Bestaetigung wird nichts geschrieben, Lesen liefert die
 ///   Standardwerte. Beim Start ohne Bestaetigung werden Altdaten entfernt.
-/// * [clearAll] loescht alle Daten samt Bestaetigung.
+/// * [clearAll] loescht alle Daten samt Bestaetigung, behaelt aber
+///   "Cover laden: aus" (R3-P03), damit danach keine Anfrage an Apple startet.
 /// * Die Telemetrie-Einwilligung zaehlt ebenfalls als Speicherung und folgt
 ///   derselben Regel; ohne Bestaetigung wird die Entscheidung nicht gemerkt.
+/// * Ausnahme: "Cover laden: aus" wird auch ohne Bestaetigung gemerkt
+///   ([PrefsKeys.privacyPreferences]) und uebersteht [clearAll]. Zurueck auf
+///   "an" geht es nur ueber den Schalter selbst.
 /// * Die Lautstaerke wird nur gelesen und geschrieben, solange
 ///   "Lautstaerke merken" aktiv ist.
 ///
@@ -155,25 +172,42 @@ class SharedPrefsStore implements PrefsStore {
   @override
   AppSettings readSettings() {
     const defaults = AppSettings();
-    if (!_consent) return defaults;
+    if (!_consent) {
+      final artwork = _readBool(_prefs, PrefsKeys.loadArtwork);
+      return defaults.copyWith(loadArtwork: artwork ?? defaults.loadArtwork);
+    }
     return AppSettings.fromJson(<String, Object?>{
       'marquee': _readBool(_prefs, PrefsKeys.marquee),
       'rememberVolume': _readBool(_prefs, PrefsKeys.rememberVolume),
       'autoplay': _readBool(_prefs, PrefsKeys.autoplay),
       'closeToTray': _readBool(_prefs, PrefsKeys.closeToTray),
       'themeMode': _readString(PrefsKeys.themeMode),
+      'loadArtwork': _readBool(_prefs, PrefsKeys.loadArtwork),
+      'keyboardShortcuts': _readBool(_prefs, PrefsKeys.keyboardShortcuts),
     });
   }
 
   @override
   Future<void> writeSettings(AppSettings settings) async {
-    if (!_consent) return;
+    if (!_consent) {
+      await _write(
+        () => settings.loadArtwork
+            ? _prefs.remove(PrefsKeys.loadArtwork)
+            : _prefs.setBool(PrefsKeys.loadArtwork, false),
+      );
+      return;
+    }
     await _write(() async {
       await _prefs.setBool(PrefsKeys.marquee, settings.marquee);
       await _prefs.setBool(PrefsKeys.rememberVolume, settings.rememberVolume);
       await _prefs.setBool(PrefsKeys.autoplay, settings.autoplay);
       await _prefs.setBool(PrefsKeys.closeToTray, settings.closeToTray);
       await _prefs.setString(PrefsKeys.themeMode, settings.themeMode.name);
+      await _prefs.setBool(PrefsKeys.loadArtwork, settings.loadArtwork);
+      await _prefs.setBool(
+        PrefsKeys.keyboardShortcuts,
+        settings.keyboardShortcuts,
+      );
       return true;
     });
   }
@@ -246,6 +280,10 @@ class SharedPrefsStore implements PrefsStore {
 
   Future<void> _removeData() async {
     for (final key in PrefsKeys.data) {
+      if (PrefsKeys.privacyPreferences.contains(key) &&
+          _readBool(_prefs, key) == false) {
+        continue;
+      }
       await _write(() => _prefs.remove(key));
     }
   }

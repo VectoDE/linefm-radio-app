@@ -11,7 +11,6 @@ dependencies:
   flutter:
     sdk: flutter
   material_ui: ^1.1.0
-  cupertino_icons: ^1.0.8
   just_audio: ^0.10.6
   audio_session: ^0.2.4
   audio_service: ^0.18.19
@@ -40,6 +39,9 @@ dependencies:
     sdk: flutter
   audio_service_mpris: ^0.2.1
   smtc_windows: ^1.1.0
+  # Favoriten-Import (Issue #9): Datei-Dialog auf allen Plattformen, im Web
+  # <input type=file> (file_selector_web). Offizielles Paket von flutter.dev.
+  file_selector: ^1.1.0
 # smtc_windows (Windows-Mediensteuerung) ist gegen flutter_rust_bridge 2.11.1
 # generiert; neuere Versionen brechen die Laufzeitpruefung der Bruecke.
 dependency_overrides:
@@ -87,3 +89,5 @@ msix_config:
   msix_version: 1.0.0.0
   logo_path: assets/branding/icon_1024.png
   capabilities: internetClient
+  # Deep Links linefm://play?station=... (P21); Startargument -> main(args).
+  protocol_activation: linefm

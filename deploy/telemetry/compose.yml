@@ -15,6 +15,13 @@ x-hardening: &hardening
   restart: unless-stopped
   security_opt:
     - no-new-privileges:true
+  # Alle Linux-Capabilities weg; Dienste, die sie beim Start brauchen, bekommen
+  # nur das Noetigste per cap_add zurueck (Postgres/Valkey: Rechte abgeben).
+  cap_drop:
+    - ALL
+
+x-privdrop-caps: &privdrop_caps
+  cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
 
 services:
   # ---------------------------------------------------------------- Umami
@@ -25,6 +32,9 @@ services:
     init: true
     ports:
       - "127.0.0.1:${UMAMI_PORT:-3000}:3000"
+    # ACHTUNG: Umami legt beim ersten Start das Konto admin mit dem Standardpasswort "umami" an.
+    # Vor jeder Erreichbarkeit aus dem Netz sofort aendern (Einstellungen > Profil > Passwort),
+    # Ablauf in docs/telemetry.md. Der Port ist deshalb nur an 127.0.0.1 gebunden.
     environment:
       DATABASE_URL: postgresql://umami:${UMAMI_DB_PASSWORD:?UMAMI_DB_PASSWORD in .env setzen}@umami-db:5432/umami
       APP_SECRET: ${UMAMI_APP_SECRET:?UMAMI_APP_SECRET in .env setzen (openssl rand -hex 32)}
@@ -41,7 +51,7 @@ services:
       start_period: 30s
 
   umami-db:
-    <<: *hardening
+    <<: [*hardening, *privdrop_caps]
     # postgres:18-alpine, Stand 18.11.2026
     image: postgres:18-alpine@sha256:b6972e1115a4ff8eba5d7f7d19184926d1e16d7d1136ae1e1a7ebf286da0f015
     environment:
@@ -72,9 +82,10 @@ services:
       DEFAULT_FROM_EMAIL: ${GLITCHTIP_FROM_EMAIL:-glitchtip@localhost}
       # consolemail:// schreibt Mails ins Log; fuer Produktion SMTP-URL setzen.
       EMAIL_URL: ${GLITCHTIP_EMAIL_URL:-consolemail://}
-      # Nach dem Anlegen des ersten Kontos auf "false" stellen.
-      ENABLE_USER_REGISTRATION: ${GLITCHTIP_ENABLE_USER_REGISTRATION:-true}
-      ENABLE_ORGANIZATION_CREATION: ${GLITCHTIP_ENABLE_ORGANIZATION_CREATION:-true}
+      # Registrierung ist aus (offene Registrierung auf einer oeffentlich erreichbaren Instanz
+      # erlaubt jedem ein Konto). Erstes Konto per Kommandozeile, siehe docs/telemetry.md.
+      ENABLE_USER_REGISTRATION: ${GLITCHTIP_ENABLE_USER_REGISTRATION:-false}
+      ENABLE_ORGANIZATION_CREATION: ${GLITCHTIP_ENABLE_ORGANIZATION_CREATION:-false}
     volumes:
       - glitchtip-uploads:/code/uploads
     depends_on:
@@ -85,7 +96,7 @@ services:
     networks: [default, glitchtip-internal]
 
   glitchtip-db:
-    <<: *hardening
+    <<: [*hardening, *privdrop_caps]
     image: postgres:18-alpine@sha256:b6972e1115a4ff8eba5d7f7d19184926d1e16d7d1136ae1e1a7ebf286da0f015
     # GlitchTip nutzt partitionierte Tabellen und braucht mehr Sperren.
     command: ["postgres", "-c", "max_locks_per_transaction=512"]
@@ -103,7 +114,7 @@ services:
       retries: 5
 
   glitchtip-valkey:
-    <<: *hardening
+    <<: [*hardening, *privdrop_caps]
     # valkey/valkey:9-alpine, Stand 18.11.2026
     image: valkey/valkey:9-alpine@sha256:bf09d58e96d6b4524a15396b65b242bbe18beebbcc15a04d8ee75ddac62fae0b
     networks: [glitchtip-internal]

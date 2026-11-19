@@ -58,7 +58,7 @@ Alles hinter der Variable `APPLE_PUBLISHING_ENABLED`. Solange sie nicht `true` i
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|
-| `APPLE_PUBLISHING_ENABLED` | Variable | `true`, erst wenn alles andere vorliegt (Entscheidung 21) | jaybelife |
+| `APPLE_PUBLISHING_ENABLED` | Variable | `true`, erst wenn alles andere vorliegt | jaybelife |
 | `APPLE_TEAM_ID` | Secret | 10-stellige Team-ID (Account > Mitgliedschaft) | jaybelife |
 | `APP_STORE_CONNECT_API_KEY_ID` | Secret | Schlüssel-ID des App-Store-Connect-API-Schlüssels | jaybelife |
 | `APP_STORE_CONNECT_API_KEY_ISSUER_ID` | Secret | Issuer-ID (Nutzer und Zugriff > Integrationen) | jaybelife |
@@ -126,6 +126,13 @@ Diese Variablen schreibt die CI in `config/app.json`. Sie landen im fertigen Pro
 | `TRUST_GRIDINSOFT_URL`, `TRUST_TRUSTPILOT_URL` | Variable | Profil-Links für die Vertrauens-Badges (optional) |
 | `LEGAL_VALUES_JSON` | Variable | JSON mit den Impressums-/Datenschutz-Platzhaltern, siehe EINRICHTUNG Abschnitt 9 |
 | `FIREBASE_CONFIG_JSON` | Secret, optional | JSON mit `FIREBASE_*`-Schlüsseln (aktiviert Firebase) |
+| `ANDROID_CERT_SHA256` | Variable, optional | SHA-256-Fingerabdrücke, Form `AA:BB:…` (32 Byte), kommagetrennt, **beide** eintragen: der App-Signaturschlüssel (Play Console > App-Integrität, für Play-Installationen) und der Upload-Schlüssel (Play Console oder `keytool -list -v -keystore upload.jks`, für die APK aus den GitHub-Releases, die damit signiert ist). Der Web-Postbuild prüft das Format je Eintrag, entfernt doppelte und setzt sie in `/.well-known/assetlinks.json` ein; ohne Wert fehlt die Datei. Erst danach `autoVerify` im Manifest einschalten. Nicht in `config/app.json`. |
+| `SCORECARD_TOKEN` | Secret, optional | Fine-grained-PAT (nur lesend) für `scorecard.yml`, damit Checks wie Branch-Protection auswertbar sind. Ohne Wert nimmt der Workflow `github.token`; einzelne Checks fallen dann niedriger aus. |
+| `CODE_SCANNING_ENABLED` | Variable, optional | `true` lädt die CodeQL-Ergebnisse (`codeql.yml`) auch in einem privaten Repository in Code Scanning hoch. Voraussetzung ist GitHub Code Security. In öffentlichen Repositories geschieht das ohnehin. Ohne Wert läuft die Analyse, der Upload entfällt. |
+
+`APPLE_TEAM_ID` (Secret, siehe Apple) füllt zusätzlich `/.well-known/apple-app-site-association` für die Universal Links.
+
+Für die Store-Prüfung der Rechtstexte gilt: Ist Telemetrie aktiv (`UMAMI_*`, `SENTRY_DSN` oder `FIREBASE_CONFIG_JSON` gesetzt), sind in `LEGAL_VALUES_JSON` auch `TELEMETRIE_AUFBEWAHRUNG` und der Betreiber des jeweiligen Dienstes (`UMAMI_BETREIBER`, `SENTRY_BETREIBER`) Pflicht. Leere Werte zählen als offen.
 
 ## Sicherheitsregeln der Abläufe
 

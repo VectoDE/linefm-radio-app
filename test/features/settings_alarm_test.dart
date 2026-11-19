@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show ValueListenable;
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' show AsyncData;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -81,8 +82,9 @@ void main() {
         'Sleeptimer',
         'Kein Sleeptimer aktiv.',
         'Speicher',
-        'Zuletzt gehörte Station, Favoriten, Lautstärke und Einstellungen '
-            'werden lokal gespeichert.',
+        'Lokal gespeichert werden: zuletzt gehörter Sender, Lautstärke, '
+            'Favoriten, Favoriten-Sender, Wecker, Einstellungen, '
+            'zwischengespeicherte Cover und am Computer die Fensterposition.',
         'Speicher löschen',
         'Ein Angebot von',
         'Website',
@@ -161,7 +163,7 @@ void main() {
       );
       expect(
         find.text(
-          'Die zuletzt gehörte Station startet nach deinem ersten Tippen '
+          'Der zuletzt gehörte Sender startet nach deinem ersten Tippen '
           'oder Klick.',
         ),
         findsOneWidget,
@@ -213,6 +215,21 @@ void main() {
       await tester.tap(find.text('Speicher löschen'));
       await tester.pumpAndSettle();
       expect(find.text('Speicher löschen?'), findsOneWidget);
+      // Dialog hat einen Namen am Knoten mit role alertDialog (Web:
+      // aria-label am role="alertdialog", axe aria-dialog-name).
+      final semantics = tester.ensureSemantics();
+      final dialogNode = tester.getSemantics(find.byType(AlertDialog));
+      SemanticsData? roleData;
+      for (SemanticsNode? n = dialogNode; n != null; n = n.parent) {
+        if (n.getSemanticsData().role == SemanticsRole.alertDialog) {
+          roleData = n.getSemanticsData();
+          break;
+        }
+      }
+      expect(roleData, isNotNull);
+      expect(roleData!.label, 'Speicher löschen?');
+      expect(roleData.flagsCollection.namesRoute, isTrue);
+      semantics.dispose();
 
       // Abbrechen laesst alles stehen.
       await tester.tap(find.text('Abbrechen'));
@@ -228,6 +245,31 @@ void main() {
       expect(host.prefs.readTelemetryConsent(), isNull);
       expect(alarms.calls.last, isEmpty);
       expect(find.text('Speicher gelöscht.'), findsOneWidget);
+    });
+
+    testWidgets('Speicher loeschen behaelt "Cover laden: aus" (R3-P03)', (
+      tester,
+    ) async {
+      useSize(tester, 420, 2600);
+      final host = FeatureHost(
+        extra: <Override>[
+          alarmCoordinatorProvider.overrideWithValue(_RecordingAlarms()),
+        ],
+      );
+      await host.prefs.setStorageConsent(value: true);
+      await host.prefs.writeSettings(
+        const AppSettings(loadArtwork: false, marquee: false),
+      );
+      await tester.pumpWidget(host.app(const SettingsScreen()));
+      await tester.pump();
+
+      await tester.tap(find.text('Speicher löschen'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('„Cover laden: aus“ bleibt'), findsOneWidget);
+      await tester.tap(find.text('Löschen'));
+      await tester.pumpAndSettle();
+      expect(host.prefs.storageConsent, isFalse);
+      expect(host.prefs.readSettings(), const AppSettings(loadArtwork: false));
     });
 
     testWidgets('Footer-Links: Rechtstexte in der App, Website extern', (
@@ -256,6 +298,20 @@ void main() {
       );
       await tester.pump();
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('neuer Wecker: Abbrechen in der Zeitauswahl legt nichts an', (
+      tester,
+    ) async {
+      useSize(tester, 420, 1400);
+      final host = FeatureHost();
+      await tester.pumpWidget(host.app(const AlarmScreen(), scaffold: false));
+      await tester.pump();
+      await tester.tap(find.text('Wecker hinzufügen'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Abbrechen'));
+      await tester.pumpAndSettle();
+      expect(host.prefs.readAlarms(), isEmpty);
     });
 
     testWidgets('schmal mit grosser Schrift ohne Ueberlauf', (tester) async {
@@ -415,6 +471,9 @@ void main() {
 
       await tester.tap(find.text('Wecker hinzufügen'));
       await tester.pumpAndSettle();
+      // U2: zuerst die Uhrzeit (Vorgabe 07:00) bestaetigen.
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
       expect(host.prefs.readAlarms(), hasLength(1));
       expect(host.prefs.readAlarms().single.hour, 7);
       expect(alarms.calls, isNotEmpty);
@@ -428,10 +487,34 @@ void main() {
       expect(host.prefs.readAlarms().single.weekdays, <int>{1, 3});
       expect(find.text('Mo, Mi'), findsOneWidget);
 
-      await tester.tap(find.byTooltip('Wecker löschen'));
+      // A5: Loeschknopf mit Knopf-Rolle, Label genau einmal, Semantik-Tap.
+      final handle = tester.ensureSemantics();
+      await tester.pump();
+      expect(find.semantics.byLabel('Wecker 07:00 löschen'), findsOneWidget);
+      final del = tester
+          .getSemantics(find.bySemanticsLabel('Wecker 07:00 löschen'))
+          .getSemanticsData();
+      expect(del.flagsCollection.isButton, isTrue);
+      expect(del.hasAction(SemanticsAction.tap), isTrue);
+      tester.semantics.tap(find.semantics.byLabel('Wecker 07:00 löschen'));
       await tester.pumpAndSettle();
+      handle.dispose();
       expect(host.prefs.readAlarms(), isEmpty);
       expect(alarms.calls.last, isEmpty);
+    });
+
+    testWidgets('neuer Wecker: Abbrechen in der Zeitauswahl legt nichts an', (
+      tester,
+    ) async {
+      useSize(tester, 420, 1400);
+      final host = FeatureHost();
+      await tester.pumpWidget(host.app(const AlarmScreen(), scaffold: false));
+      await tester.pump();
+      await tester.tap(find.text('Wecker hinzufügen'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Abbrechen'));
+      await tester.pumpAndSettle();
+      expect(host.prefs.readAlarms(), isEmpty);
     });
 
     testWidgets('schmal mit grosser Schrift ohne Ueberlauf', (tester) async {
@@ -469,6 +552,9 @@ void main() {
       await tester.pumpWidget(host.app(const AlarmScreen(), scaffold: false));
       await tester.pump();
       await tester.tap(find.text('Wecker hinzufügen'));
+      await tester.pumpAndSettle();
+      // U2: zuerst die Uhrzeit (Vorgabe 07:00) bestaetigen.
+      await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
       expect(find.text('Wecker braucht eine Freigabe'), findsOneWidget);
       await tester.tap(find.text('Einstellungen öffnen'));

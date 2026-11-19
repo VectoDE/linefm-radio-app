@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb, visibleForTesting;
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/services/cast/cast_backend.dart';
@@ -23,6 +25,7 @@ class CastState {
     this.devices = const <CastDevice>[],
     this.connectedDevice,
     this.connecting = false,
+    this.station,
   });
 
   /// false auf Plattformen ohne Cast und ohne Google Play Services.
@@ -33,7 +36,13 @@ class CastState {
   /// Sitzung wird gerade aufgebaut.
   final bool connecting;
 
+  /// Sender, der gerade auf dem Gerät läuft (übergeben und nicht gestoppt).
+  final Station? station;
+
   bool get isCasting => connectedDevice != null;
+
+  /// Auf dem Gerät läuft ein Sender (Player zeigt „Stop“).
+  bool get isPlayingMedia => isCasting && station != null;
 
   @override
   bool operator ==(Object other) =>
@@ -41,11 +50,17 @@ class CastState {
       other.available == available &&
       other.connectedDevice == connectedDevice &&
       other.connecting == connecting &&
+      other.station == station &&
       _sameDevices(other.devices, devices);
 
   @override
-  int get hashCode =>
-      Object.hash(available, connectedDevice, connecting, devices.length);
+  int get hashCode => Object.hash(
+    available,
+    connectedDevice,
+    connecting,
+    station,
+    devices.length,
+  );
 
   static bool _sameDevices(List<CastDevice> a, List<CastDevice> b) {
     if (a.length != b.length) return false;
@@ -81,6 +96,9 @@ abstract interface class CastService {
   /// wechseln.
   Future<void> updateTrack(Station station, Track? track);
 
+  /// Stoppt die Wiedergabe auf dem Gerät; die Sitzung bleibt bestehen.
+  Future<void> stopMedia();
+
   /// Lautstärke des Cast-Geräts, 0.0 bis 1.0.
   Future<void> setVolume(double volume);
 
@@ -115,15 +133,35 @@ class NoopCastService implements CastService {
   Future<void> updateTrack(Station station, Track? track) async {}
 
   @override
+  Future<void> stopMedia() async {}
+
+  @override
   Future<void> setVolume(double volume) async {}
 
   @override
   Future<void> dispose() async {}
 }
 
-/// Initialisiert Cast beim Start. Ohne Cast-Unterstützung (Web, Desktop,
-/// fehlende Google Play Services) bleibt [castBackend] `null`, der
-/// Cast-Knopf erscheint dann nie.
-Future<void> initCast() async {
-  castBackend = await createPluginBackend();
-}
+/// Startet das Cast-SDK, erst beim ersten Tippen auf den Cast-Knopf (L4),
+/// nicht beim App-Start: Vorher sendet das SDK nichts an Google. Ohne
+/// Cast-Unterstützung (Web, Desktop, fehlende Google Play Services) bleibt
+/// [castBackend] `null`. Mehrfachaufrufe teilen sich einen Start.
+Future<void> initCast() => _castInit ??= () async {
+  castBackend = await castBackendFactory();
+}();
+
+/// Erzeugt das Backend beim ersten Tippen; Tests setzen ein Fake.
+@visibleForTesting
+Future<CastBackend?> Function() castBackendFactory = createPluginBackend;
+
+Future<void>? _castInit;
+
+/// Android und iOS (nicht Web): Plattformen, auf denen Cast gehen kann.
+bool castPlatformSupported() =>
+    !kIsWeb &&
+    (defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS);
+
+/// Nur fuer Tests: Start-Zustand zuruecksetzen.
+@visibleForTesting
+void resetCastInitForTest() => _castInit = null;

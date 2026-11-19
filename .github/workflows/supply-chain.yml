@@ -1,0 +1,145 @@
+name: Supply Chain
+
+# Zwei Pruefungen, die SECURITY.md verspricht. Beide Berichte (JSON) liegen als
+# Artefakt am Lauf (14 Tage), die Zusammenfassung nennt die Zahl der Funde.
+# - OSV: bekannte Schwachstellen in den Dart-Abhaengigkeiten (pubspec.lock) und im
+#   Pruefwerkzeug der Barrierefreiheit (tool/a11y/package-lock.json) ueber die
+#   offizielle Action google/osv-scanner-action. packages/linefm_firebase hat keine
+#   eigene Lock-Datei (Bibliothekspaket); seine Abhaengigkeiten stehen erst nach
+#   tool/enable_firebase.dart in pubspec.lock und sind dann abgedeckt.
+# - Secret-Scan: gitleaks ueber die gesamte Git-Historie. Als CLI aus dem Release,
+#   weil die gitleaks-Action fuer Organisationen eine Lizenz verlangt. Version und
+#   SHA-256 sind hier fest eingetragen; ein Update aendert beide Werte zusammen.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "23 5 * * 3"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: supply-chain-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  osv:
+    name: OSV (pubspec.lock, a11y-Werkzeug)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: OSV-Scanner
+        uses: google/osv-scanner-action/osv-scanner-action@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+        with:
+          scan-args: |-
+            --format=json
+            --output=osv-results.json
+            --lockfile=pubspec.lock
+            --lockfile=tool/a11y/package-lock.json
+
+      - name: OSV-Zusammenfassung
+        if: always()
+        run: |
+          set -euo pipefail
+          {
+            echo "### OSV (pubspec.lock, tool/a11y/package-lock.json)"
+            if [ -s osv-results.json ]; then
+              pkgs="$(jq '[.results[]?.packages[]? | select((.vulnerabilities // []) | length > 0)] | length' osv-results.json)"
+              vulns="$(jq '[.results[]?.packages[]?.vulnerabilities[]?] | length' osv-results.json)"
+              echo "- Betroffene Pakete: ${pkgs}, Schwachstellen: ${vulns}"
+              if [ "$vulns" != "0" ]; then
+                echo ""
+                echo "| Paket | Version | IDs |"
+                echo "|---|---|---|"
+                jq -r '.results[]?.packages[]? | select((.vulnerabilities // []) | length > 0)
+                  | "| \(.package.name) | \(.package.version) | \([.vulnerabilities[].id] | join(", ")) |"' osv-results.json
+              fi
+            else
+              echo "- Kein Bericht erzeugt (Scanner nicht gelaufen?)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: OSV-Bericht hochladen
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: osv-report
+          path: osv-results.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+  gitleaks:
+    name: Secret-Scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout (ganze Historie)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: gitleaks laden und Pruefsumme pruefen
+        run: |
+          set -euo pipefail
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/$archive" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${archive}"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/$archive" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" version
+
+      - name: Historie scannen
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/gitleaks" git --redact --no-banner --exit-code 1 \
+            --report-format json --report-path "$RUNNER_TEMP/gitleaks.json" .
+
+      - name: Zusammenfassung
+        if: always()
+        run: |
+          set -euo pipefail
+          count=0
+          if [ -f "$RUNNER_TEMP/gitleaks.json" ]; then
+            count="$(jq 'length' "$RUNNER_TEMP/gitleaks.json")"
+          fi
+          {
+            echo "### Secret-Scan"
+            echo "- gitleaks ${GITLEAKS_VERSION}, Funde (geschwaerzt): ${count}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          cp "$RUNNER_TEMP/gitleaks.json" gitleaks-report.json 2>/dev/null || true
+
+      # Der Bericht ist mit --redact erzeugt: Fundstellen ohne Geheimniswerte.
+      - name: gitleaks-Bericht hochladen
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+          if-no-files-found: ignore
+          retention-days: 14

@@ -146,6 +146,9 @@ ThemeData buildLinefmTheme(Brightness brightness) {
       ),
     ),
     dialogTheme: DialogThemeData(
+      // Breite Fenster: Dialoge nicht ueber die Lesebreite ziehen (R4-D2,
+      // Material 3: 280 bis 560 dp).
+      constraints: const BoxConstraints(minWidth: 280, maxWidth: 560),
       backgroundColor: tokens.surface,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(

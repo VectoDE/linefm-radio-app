@@ -1,0 +1,19 @@
+{
+  "name": "linefm-a11y",
+  "private": true,
+  "description": "axe-Pruefung der Web-Version (Playwright + @axe-core/playwright), siehe tool/a11y/run.mjs",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node run.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "playwright": "1.64.1"
+  },
+  "overrides": {
+    "axe-core": "4.14.0"
+  }
+}

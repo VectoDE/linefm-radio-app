@@ -1,7 +1,9 @@
-import 'dart:ui' show Color, PlatformDispatcher;
+import 'dart:ui' show Color;
 
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, debugPrint, defaultTargetPlatform, kIsWeb;
+import 'package:linefm_radio/l10n/system_l10n.dart';
 import 'package:linefm_radio/services/audio/audio_handler.dart';
 import 'package:linefm_radio/services/audio/native_audio_init_io.dart'
     if (dart.library.js_interop) 'package:linefm_radio/services/audio/native_audio_init_web.dart';
@@ -9,6 +11,11 @@ import 'package:linefm_radio/services/audio/playback_service.dart';
 
 /// Kanal-ID der Android-Wiedergabe-Benachrichtigung.
 const String audioNotificationChannelId = 'de.linefm.app.audio';
+
+/// MPRIS-Name unter Linux (packaging/flathub, packaging/snap).
+const String mprisName = 'linefm_radio';
+
+bool get _isLinux => !kIsWeb && defaultTargetPlatform == TargetPlatform.linux;
 
 /// Einfarbiges Statusleisten-Icon (Android-Ressource aus P05).
 const String audioNotificationIcon = 'drawable/ic_stat_linefm';
@@ -27,8 +34,16 @@ Future<PlaybackService> initAudio() async {
     handler = await AudioService.init<LinefmAudioHandler>(
       builder: LinefmAudioHandler.new,
       config: AudioServiceConfig(
-        androidNotificationChannelId: audioNotificationChannelId,
-        androidNotificationChannelName: _channelName(),
+        // Unter Linux bildet audio_service_mpris daraus den MPRIS-Namen
+        // (org.mpris.MediaPlayer2.<ID>.instance<PID>) und die Anzeige im
+        // Medien-Widget; Flatpak --own-name und Snap-Slot erwarten
+        // "linefm_radio".
+        androidNotificationChannelId: _isLinux
+            ? mprisName
+            : audioNotificationChannelId,
+        androidNotificationChannelName: _isLinux
+            ? 'LINEFM Radio'
+            : _channelName(),
         androidNotificationIcon: audioNotificationIcon,
         androidNotificationOngoing: true,
         androidStopForegroundOnPause: true,
@@ -54,6 +69,5 @@ Future<PlaybackService> initAudio() async {
   return handler;
 }
 
-String _channelName() => PlatformDispatcher.instance.locale.languageCode == 'de'
-    ? 'Wiedergabe'
-    : 'Playback';
+/// Kanalname der Wiedergabe-Benachrichtigung aus der ARB (I07).
+String _channelName() => systemLocalizations().notificationChannelName;

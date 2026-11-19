@@ -4,10 +4,10 @@ Diese Anleitung sagt dir, was du selbst eintragen oder beantragen musst, damit L
 
 Wichtig vorab:
 
-- Du trägst nur Zugangsdaten und Kontoangaben ein. Passwörter, Schlüssel und Tokens gehören **nie** in eine E-Mail oder einen Chat. Sie kommen als "Secret" in die GitHub-Einstellungen des Repos (Abschnitt 1) oder in deinen Passwortmanager.
+- Du trägst nur Zugangsdaten und Kontoangaben ein. Passwörter, Schlüssel und Tokens (geheime Zugangscodes) gehören **nie** in eine E-Mail oder einen Chat. Sie kommen als "Secret" in die GitHub-Einstellungen des Repos (Abschnitt 1) oder in deinen Passwortmanager.
 - Erst die [Freigabe-Checkliste](FREIGABE-CHECKLISTE.md) abarbeiten, dann veröffentlichen.
 - Preise und Formulare der Anbieter ändern sich. Die Angaben unten stammen aus unserer Recherche vom November 2026. Im Zweifel gilt, was der Anbieter gerade anzeigt.
-- Apple ist bewusst **nicht Teil der ersten Veröffentlichung** (Entscheidung 21). Der Code ist vorbereitet, Abschnitt 3 beschreibt, was später nötig ist.
+- Apple ist bewusst **nicht Teil der ersten Veröffentlichung**. Der Code ist vorbereitet, Abschnitt 3 beschreibt, was später nötig ist.
 
 Fortschritt: Haken setzen, sobald ein Schritt erledigt ist. Reihenfolge der Abschnitte ist eine Empfehlung, nicht Pflicht.
 
@@ -47,7 +47,7 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 ### 2.1 Konto
 
 - [ ] Entwicklerkonto auf <https://play.google.com/console/signup> anlegen und einmalig 25 US-Dollar zahlen.
-- [ ] Kontoart wählen. Ein **privates** Konto braucht für die Erstveröffentlichung einen geschlossenen Test mit mindestens 12 Testern über mindestens 14 Tage (Entscheidung 17). Ein Organisationskonto (mit D-U-N-S-Nummer) braucht das nicht.
+- [ ] Kontoart wählen. Ein **privates** Konto braucht für die Erstveröffentlichung einen geschlossenen Test mit mindestens 12 Testern über mindestens 14 Tage. Ein Organisationskonto (mit D-U-N-S-Nummer) braucht das nicht.
 - [ ] Identität bestätigen (Ausweis, Adresse, Telefon). Google verlangt das, auch für sideloadbare APKs ab 2027 (Entwicklerverifizierung).
 - [ ] Tim Hauke als Nutzer einladen: Nutzer und Berechtigungen > Neue Nutzer einladen, mit App-Rechten für Veröffentlichung.
 
@@ -74,52 +74,41 @@ Play Console > Richtlinie > App-Inhalte. Alles muss ausgefüllt sein, sonst bloc
 
 - [ ] **Datenschutzerklärung**: URL eintragen, `https://app.linefm.de/datenschutz/`.
 - [ ] **Datensicherheit**: Die Antworten hängen davon ab, welche Telemetrie du aktivierst (Abschnitt 6).
-  - Keine Telemetrie konfiguriert: App erhebt und teilt keine Daten. Favoriten, Verlauf und Einstellungen bleiben auf dem Gerät.
+  - Cast immer mit bedenken: Das Cast-SDK der Google Play-Dienste sendet laut Google Nutzungsdaten an Google. Die App startet es erst, wenn jemand auf den Cast-Knopf tippt. Auf Android kann das Cast-Plugin das SDK aber schon beim Beenden der App initialisieren, auch ohne dass Cast genutzt wurde (siehe [ENTWICKLUNG.md](ENTWICKLUNG.md), Abschnitt Google Cast). In der Play Console deshalb "App-Aktivität" und "Geräte- oder andere IDs" mit Zweck "App-Funktionen" und Weitergabe an Google angeben, auch wenn du keine eigene Telemetrie nutzt. Welche Daten genau, steht in der aktuellen Google-Dokumentation zum Cast-SDK. Dort vor dem Ausfüllen nachlesen. Die Datenschutzerklärung beschreibt das in Abschnitt 7.
+  - Keine Telemetrie konfiguriert und kein Cast genutzt: App erhebt und teilt keine Daten. Favoriten, Verlauf und Einstellungen bleiben auf dem Gerät.
   - Umami, GlitchTip, Sentry oder Firebase aktiv: Nutzungsdaten (App-Aktivität) und Absturzdaten angeben, Verschlüsselung bei der Übertragung "ja", Löschung auf Anfrage nach deinem tatsächlichen Verfahren.
   - Die Antworten müssen zur Datenschutzerklärung passen. Im Zweifel anwaltlich prüfen lassen.
-- [ ] **Werbung**: "Keine Werbung".
+- [ ] **Werbung**: "Keine Werbung". Die Werbe-ID (Advertising ID) wird nicht verwendet. Vorsicht bei Firebase: Das Firebase-Analytics-Paket kann die Berechtigung `com.google.android.gms.permission.AD_ID` in das Manifest einmischen. Dann müsste in der Play Console "Werbe-ID: ja" stehen und die Datenschutzerklärung dazu passen. Ob sie im fertigen Manifest steht, prüft man mit `aapt dump permissions app-release.apk`. Das Manifest entfernt sie bereits per `tools:node="remove"` (`android/app/src/main/AndroidManifest.xml`). Nach dem Release-Build trotzdem mit `aapt` nachsehen, ob sie fehlt.
 - [ ] **Zielgruppe und Inhalte**: Altersgruppe wählen (nicht für Kinder), Inhaltseinstufung per Fragebogen. Hinweis: Der Sender +RAP kann Texte mit Kraftausdrücken senden, das beim Fragebogen ehrlich angeben (siehe auch Flathub-Altersangabe in der Freigabe-Checkliste).
-- [ ] **Foreground-Service-Erklärung** (`FOREGROUND_SERVICE_MEDIA_PLAYBACK`): Typ "Media playback" wählen. Begründung: Die App spielt Live-Radio im Hintergrund und bei gesperrtem Bildschirm, mit Benachrichtigung und Medientasten. Google kann ein kurzes Video verlangen, das den Ablauf zeigt (Wiedergabe starten, App verlassen, Benachrichtigung bedienen).
+- [ ] **Foreground-Service-Erklärung** (`FOREGROUND_SERVICE_MEDIA_PLAYBACK`, Dienst für die Wiedergabe im Hintergrund): Typ "Media playback" wählen. Begründung: Die App spielt Live-Radio im Hintergrund und bei gesperrtem Bildschirm, mit Benachrichtigung und Medientasten. Google kann ein kurzes Video verlangen, das den Ablauf zeigt (Wiedergabe starten, App verlassen, Benachrichtigung bedienen).
 - [ ] **Vollbild-Benachrichtigung** (`USE_FULL_SCREEN_INTENT`): Wird für den Radiowecker gebraucht, damit der Wecker bei gesperrtem Bildschirm sichtbar klingelt. Play lässt die Berechtigung seit Android 14 nur für Anruf- und Wecker-Apps standardmäßig zu. In der Erklärung angeben: Kernfunktion ist ein Radiowecker, der zur eingestellten Zeit den Sender startet. **Risiko:** Bei einer Radio-App kann Google das ablehnen. Fällt die Erklärung durch, entfernt der Entwickler die Berechtigung und der Wecker meldet sich dann ohne Vollbild. Das ist offen und wird mit dir abgestimmt.
 - [ ] **Exakte Alarme** (`SCHEDULE_EXACT_ALARM`): Die App nutzt bewusst nicht `USE_EXACT_ALARM`. Beim Wecker fragt die App den Nutzer, ob exakte Alarme erlaubt sind.
-- [ ] Weitere Pflichtangaben: Kontaktdaten der Store-Seite (E-Mail, optional Website), Behördenapp "nein", Finanzfunktionen "nein", Gesundheit "nein", Werbe-ID "nein".
+- [ ] Weitere Pflichtangaben: Kontaktdaten der Store-Seite (E-Mail, optional Website), Behördenapp "nein", Finanzfunktionen "nein", Gesundheit "nein", Werbe-ID "nein" (außer die AD_ID-Berechtigung aus Firebase bleibt im Manifest, siehe oben).
 
 ### 2.6 Store-Eintrag
 
-- [ ] Kurzbeschreibung (80 Zeichen) und ausführliche Beschreibung auf Deutsch und Englisch eintragen. Texte liefert der Entwickler mit den Store-Listing-Texten (Paket P29, folgt).
+- [ ] Kurzbeschreibung (80 Zeichen) und ausführliche Beschreibung auf Deutsch und Englisch eintragen. Die Texte stehen fertig in [STORE-TEXTE.md](STORE-TEXTE.md).
 - [ ] Grafiken hochladen: App-Icon 512 x 512 (liegt in `assets/branding/play_store_512.png`), Feature-Grafik 1024 x 500, mindestens 2 Telefon-Screenshots, für Tablets je 7 und 10 Zoll empfohlen. Siehe Abschnitt 8.
 - [ ] Kategorie "Musik & Audio".
 
 ### 2.7 Geschlossener Test (nur privates Konto)
 
 - [ ] Testspur "Geschlossener Test" anlegen, Release hochladen.
-- [ ] Mindestens 12 Tester per E-Mail-Liste oder Google-Gruppe eintragen und einladen. Einladungstext und Testerliste-Vorlage liefert der Entwickler (Paket P29, folgt).
+- [ ] Mindestens 12 Tester per E-Mail-Liste oder Google-Gruppe eintragen und einladen. Einladungstext und Testerliste-Vorlage stehen in [STORE-TEXTE.md](STORE-TEXTE.md).
 - [ ] 14 Tage laufen lassen, dann "Zugriff auf Produktion beantragen".
 
 ### 2.8 Links für Android: assetlinks.json
 
 Damit Links `https://app.linefm.de/?station=...` direkt in der App statt im Browser öffnen, muss die Web-Seite die App bestätigen.
 
-- [ ] SHA-256-Fingerabdruck des **App-Signaturschlüssels** kopieren: Play Console > Test und Veröffentlichung > Einrichtung > App-Integrität > App-Signatur. (Nicht den Upload-Schlüssel.)
-- [ ] Datei `assetlinks.json` unter `https://app.linefm.de/.well-known/assetlinks.json` bereitstellen. Inhalt:
-
-```json
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "de.linefm.app",
-    "sha256_cert_fingerprints": ["HIER:DER:SHA-256:FINGERABDRUCK"]
-  }
-}]
-```
-
-- [ ] Prüfen: Die Datei muss ohne Weiterleitung mit Status 200 und `application/json` erreichbar sein. Die mitgelieferten Server-Konfigurationen lassen den Ordner `/.well-known/` zu.
+- [ ] Zwei SHA-256-Fingerabdrücke besorgen: den des **App-Signaturschlüssels** (Play Console > Test und Veröffentlichung > Einrichtung > App-Integrität > App-Signatur; gilt für Installationen aus Google Play) und den des **Upload-Schlüssels** (ebenfalls dort, oder lokal mit `keytool -list -v -keystore upload.jks`; gilt für die APK aus den GitHub-Releases, weil sie mit dem Upload-Schlüssel signiert wird).
+- [ ] Beide kommagetrennt als Repository-Variable `ANDROID_CERT_SHA256` eintragen (`AA:BB:…,CC:DD:…`, je 32 Byte, siehe [secrets.md](secrets.md)). Die Datei `assetlinks.json` schreibst du nicht von Hand: Der Web-Postbuild erzeugt sie beim Web-Build aus dieser Variable und legt sie unter `https://app.linefm.de/.well-known/assetlinks.json` ab. Ohne Wert fehlt die Datei.
+- [ ] Prüfen: Nach dem nächsten Web-Deploy muss die Datei ohne Weiterleitung mit Status 200 und `application/json` erreichbar sein und beide Fingerabdrücke enthalten. Die mitgelieferten Server-Konfigurationen lassen den Ordner `/.well-known/` zu.
 - [ ] Entwickler bitten, im Android-Manifest `autoVerify` auf `true` zu setzen und neu zu veröffentlichen. Bis dahin öffnen Links im Browser, die App funktioniert trotzdem.
 
 ## 3. Apple (vorbereitet, vorerst nicht veröffentlicht)
 
-Entscheidung 21: Apple ist für die Veröffentlichung herausgenommen. iOS, macOS, CarPlay und AirPlay sind im Code vorbereitet. Wenn du Apple später aktivieren willst:
+Apple ist für die Veröffentlichung herausgenommen. iOS, macOS, CarPlay und AirPlay sind im Code vorbereitet. Wenn du Apple später aktivieren willst:
 
 - [ ] Apple Developer Program beitreten (<https://developer.apple.com/programs/>), 99 US-Dollar pro Jahr. Für eine Firma wird eine D-U-N-S-Nummer verlangt.
 - [ ] **Team-ID** notieren (Account > Mitgliedschaft, 10 Zeichen). Secret `APPLE_TEAM_ID`.
@@ -129,18 +118,8 @@ Entscheidung 21: Apple ist für die Veröffentlichung herausgenommen. iOS, macOS
 - [ ] Zertifikate und Profile: "Apple Distribution" (iOS und Mac) und "Mac Installer Distribution" (nur Mac App Store) als `.p12` exportieren, dazu je ein App-Store-Profil für `de.linefm.app` und `de.linefm.app.widget` (iOS) sowie `de.linefm.app` (macOS). Secrets `APPLE_DISTRIBUTION_CERT_P12_BASE64`, `APPLE_DISTRIBUTION_CERT_PASSWORD`, `APPLE_MAC_INSTALLER_CERT_P12_BASE64`, `APPLE_MAC_INSTALLER_CERT_PASSWORD`, `APPLE_IOS_PROVISIONING_PROFILES_BASE64`, `APPLE_MACOS_PROVISIONING_PROFILE_BASE64`. Für das signierte DMG außerhalb des Stores zusätzlich `APPLE_DEVELOPER_ID_CERT_P12_BASE64` und `APPLE_DEVELOPER_ID_CERT_PASSWORD`. Die Pipeline (`store-apple.yml`) nutzt kein fastlane, Details in [secrets.md](secrets.md). Vorlagen für die Exportoptionen: [packaging/ios/README.md](../packaging/ios/README.md).
 - [ ] Schalter `APPLE_PUBLISHING_ENABLED` (Repository-Variable, nicht Secret) erst dann auf `true` setzen, wenn alles vorliegt.
 - [ ] **CarPlay-Audio-Berechtigung** beantragen (Formular im Apple-Entwicklerportal, "CarPlay App Entitlement Request", Kategorie Audio). Apple prüft von Hand, das kann Wochen dauern. Ohne Freigabe zeigt die App kein CarPlay.
-- [ ] **AASA-Datei** für Universal Links: `https://app.linefm.de/.well-known/apple-app-site-association` (ohne Dateiendung, Antwort `application/json`, keine Weiterleitung). Inhalt, mit deiner Team-ID:
-
-```json
-{
-  "applinks": {
-    "details": [{ "appIDs": ["TEAMID.de.linefm.app"], "components": [{ "/": "/", "?": { "station": "*" } }] }]
-  }
-}
-```
-
-- [ ] Entwickler muss dafür im iOS-Projekt die Fähigkeit "Associated Domains" (`applinks:app.linefm.de`) ergänzen. Das ist noch nicht belegt und wird bei Aktivierung geprüft.
-- [ ] macOS ohne Apple-Konto: Es gibt ein unsigniertes DMG auf GitHub Releases mit Öffnen-Anleitung ([packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt)). Mit Apple-Daten wird automatisch signiert und notarisiert (Entscheidung 22).
+- [ ] **AASA-Datei** (Bestätigungsdatei für Links, die direkt in der iOS-App öffnen, Universal Links): Die Vorlage liegt in `web/.well-known/apple-app-site-association`, die Fähigkeit "Associated Domains" (`applinks:app.linefm.de`) steht in `Runner.entitlements`. Der Web-Postbuild setzt die Team-ID (Secret `APPLE_TEAM_ID`) ein und legt die Datei unter `https://app.linefm.de/.well-known/apple-app-site-association` ab (ohne Dateiendung, `application/json`, keine Weiterleitung). Ohne Team-ID entfernt er die Vorlage. Nach dem ersten Deploy prüfen, ob die Datei so erreichbar ist.
+- [ ] macOS ohne Apple-Konto: Es gibt ein unsigniertes DMG auf GitHub Releases mit Öffnen-Anleitung ([packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt)). Mit Apple-Daten wird automatisch signiert und notarisiert.
 - [ ] Review-Risiko beachten: Apple lehnt reine Webseiten-Hüllen ab (Richtlinien 4.2 und 4.3). Die App bringt Favoriten, Verlauf, Sleeptimer, Wecker, Sperrbildschirm-Steuerung und CarPlay als Mehrwert mit.
 
 ## 4. Microsoft Partner Center (Windows-Store)
@@ -163,7 +142,7 @@ Quelle: [packaging/flathub/README.md](../packaging/flathub/README.md).
 - [ ] Domain bestätigen: Datei `https://linefm.de/.well-known/org.flathub.VerifiedApps.txt` bereitstellen (Inhalt nennt Flathub bei der Einreichung). Das geht nur über die Hauptdomain, die du verwaltest.
 - [ ] Weitergabe erlauben: Flathub muss die App weiterverteilen dürfen. LINEFM Radio ist **proprietär** (alle Rechte vorbehalten, keine Open-Source-Lizenz). Das ist bei Flathub erlaubt, wenn du die Weitergabe ausdrücklich erlaubst. Schriftlich bestätigen.
 - [ ] **Ehrlicher Hinweis:** Unser Paket enthält die fertig gebaute Binärdatei, nicht den Quelltext. Flathub verlangt bei nicht offener Software meist den Bau aus dem Quelltext oder besondere Regeln. Es kann sein, dass Flathub die Einreichung ablehnt oder eine Ausnahme verlangt. Das lässt sich nur durch Nachfragen bei den Flathub-Betreuern klären (Issue im Repo `flathub/flathub`). Wenn es scheitert, bleiben Snap Store und der Tarball auf GitHub.
-- [ ] Altersangabe (OARS) in der Metainfo bestätigen, wegen Kraftausdrücken bei +RAP.
+- [ ] Altersangabe (OARS, die Alterseinstufung bei Linux-Stores) in der Metainfo (der Beschreibungsdatei für die Stores) bestätigen, wegen Kraftausdrücken bei +RAP.
 - [ ] Screenshots im Netz bereitstellen und die URLs in der Metainfo eintragen (Platzhalter).
 - [ ] Einreichung: Pull Request gegen `flathub/flathub`. Der Entwickler bereitet ihn vor, du reichst mit deinem GitHub-Konto ein oder gibst Tim Hauke die Vollmacht.
 
@@ -180,10 +159,11 @@ Quelle: [packaging/flathub/README.md](../packaging/flathub/README.md).
 Ohne Konfiguration sendet die App nichts und fragt auch nicht nach Einwilligung. Wenn du Auswertung willst:
 
 - [ ] Anbieter wählen: Umami (Statistik), GlitchTip oder Sentry (Abstürze), Firebase (beides). Technische Details: [telemetry.md](telemetry.md).
-- [ ] Selbst hosten: Docker-Compose-Dateien liegen in `deploy/telemetry/`. Passwörter und Schlüssel erzeugen und nach der ersten Anmeldung das Standard-Passwort von Umami ändern.
+- [ ] Selbst hosten: Docker-Compose-Dateien liegen in `deploy/telemetry/`. Passwörter und Schlüssel erzeugen. **Wichtig vor jeder Veröffentlichung:** Umami legt beim ersten Start das Konto `admin` mit dem Passwort `umami` an. Das Passwort direkt nach der ersten Anmeldung ändern, bevor Umami aus dem Internet erreichbar ist. GlitchTip hat die Registrierung ausgeschaltet, das erste Konto entsteht auf der Kommandozeile (Ablauf in [telemetry.md](telemetry.md)).
 - [ ] Werte in `config/app.json` eintragen (Vorlage `config/app.example.json`): `UMAMI_URL`, `UMAMI_WEBSITE_ID`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT`, für Firebase `FIREBASE_*`. Es sind nur öffentliche IDs, keine Geheimnisse. Die Datei wird nicht ins Repo eingecheckt, die CI schreibt sie aus Secrets oder Variables.
 - [ ] Nach jeder Änderung die Web-Version neu bauen und die Server-Header neu ausrollen, sonst blockiert die Sicherheitsrichtlinie die neuen Domains.
 - [ ] Datenschutzerklärung anpassen: Abschnitte für aktivierte Anbieter einblenden (siehe Abschnitt 9, Impressum) und Betreiber sowie Speicherdauer ausfüllen (`UMAMI_BETREIBER`, `SENTRY_BETREIBER`, `TELEMETRIE_AUFBEWAHRUNG`).
+- [ ] Mit jedem Dienstleister, der in deinem Auftrag Daten verarbeitet (Hosting, CDN, Betreiber der Umami- oder GlitchTip-Instanz), einen Vertrag zur Auftragsverarbeitung (AVV, Art. 28 DSGVO) abschließen. Bei Cloudflare, Google und Apple sind die Standardverträge der Anbieter ein Weg. Ob ein US-Anbieter unter dem EU-US Data Privacy Framework (DPF) zertifiziert ist, steht im öffentlichen Verzeichnis auf <https://www.dataprivacyframework.gov/list>. Eine Zertifizierung gilt nicht für immer, deshalb vor dem Start und danach regelmäßig nachsehen. Das ist eine Vorprüfung, keine Rechtsberatung.
 - [ ] Google Play "Datensicherheit" entsprechend ausfüllen (Abschnitt 2.5).
 
 ## 7. Web-Hosting (app.linefm.de)
@@ -208,13 +188,13 @@ Die Web-App besteht nur aus Dateien. Such dir **einen** Weg aus. Jede Anleitung 
   - Google Play: 2 bis 8 Telefon-Screenshots, 16:9 bis 9:16, Kanten 320 bis 3840 px.
   - Microsoft Store: mindestens 1, empfohlen 4 oder mehr, 1366 x 768 oder größer.
   - Flathub: mindestens 1, über URL erreichbar.
-- [ ] Alt-Texte für alle Bilder bereithalten (Barrierefreiheit).
+- [ ] Alt-Texte (Bildbeschreibungen für Screenreader) für alle Bilder bereithalten (Barrierefreiheit).
 
 ## 9. Impressum und Datenschutz mit deinen Daten füllen
 
-Die Rechtstexte liegen als Entwurf in der App (`assets/legal/`) und als Webseiten (`/impressum/`, `/datenschutz/`). Die Betreiberdaten werden aus `https://linefm.de/impressum` übernommen (Entscheidung 45). Du bestätigst sie.
+Die Rechtstexte liegen als Entwurf in der App (`assets/legal/`) und als Webseiten (`/impressum/`, `/datenschutz/`). Die Betreiberdaten werden aus `https://linefm.de/impressum` übernommen. Du bestätigst sie.
 
-- [ ] Liste der Platzhalter ansehen: `assets/legal/placeholders.json`. Pflichtfelder sind Name, Rechtsform, Anschrift, Vertreter, E-Mail, Telefon oder Kontaktweg, Medienaufsicht, Verantwortlicher nach § 18 MStV, Datenschutzbeauftragter, Datenschutzbehörde, Hosting-Anbieter, CDN-Betreiber und Aufbewahrungsdauer der Logs.
+- [ ] Liste der Platzhalter ansehen: `assets/legal/placeholders.json`. Pflichtfelder sind Name, Rechtsform, Anschrift, Vertreter, E-Mail, Telefon oder Kontaktweg, Medienaufsicht, Verantwortlicher nach § 18 MStV, Datenschutzbeauftragter, Datenschutzbehörde, Hosting-Anbieter, CDN-Betreiber, Aufbewahrungsdauer der Logs und der Auftraggeber der App (Impressum, `APP_AUFTRAGGEBER`).
 - [ ] Werte in eine Datei `legal_values.json` schreiben (Schlüssel = Platzhalter, Wert = Text). Nicht zutreffende Angaben als `"Nicht zutreffend."` eintragen, nicht leer lassen. Die Datei nicht ins Repo einchecken.
 - [ ] Entwickler lässt den Generator laufen:
 
@@ -224,6 +204,8 @@ dart run tool/gen_legal_html.dart --values=legal_values.json --fill-assets --str
 
   `--providers` nennt die aktivierten Telemetrie-Dienste, `--strict` bricht ab, solange Pflichtfelder offen sind. Solange etwas offen ist, setzt die Webseite `noindex`.
 - [ ] Texte lesen und mit Anwalt abstimmen. Die Rechtstexte sind ein Entwurf nach Stand November 2026 und ersetzen keine Rechtsberatung.
+- [ ] Vor dem Veröffentlichen prüft der Generator, dass kein Pflicht-Platzhalter mehr offen ist (`--strict`). Mit `--strict` prüft er zusätzlich `SECURITY.md`, `CODE_OF_CONDUCT.md`, `docs/BARRIEREFREIHEIT.md` und `web/.well-known/security.txt` auf `{{` (zum Beispiel `{{SECURITY_KONTAKT}}`). Diese Angaben trägst du selbst im Repo ein, keine Adresse wird vom Entwickler erfunden. Die CI baut jeden Tag-Build (auch Vorabversionen, denn auch die gehen in die Store-Testspuren) und jeden Store-Upload mit `--strict`.
+- [ ] Der Einwilligungstext in der App (Dialog für Statistik und Fehlerberichte) nennt den Empfänger (Betreiber der Umami- bzw. GlitchTip-Instanz) und sagt, dass technisch die IP-Adresse übertragen wird. Prüfe, ob die Angabe zu deiner Konfiguration passt, und lass sie mit der Datenschutzerklärung abstimmen. Der Text liegt in den Sprachdateien der App (`lib/l10n/`), nicht in `assets/legal/`.
 
 ## 10. Wenn etwas hakt
 

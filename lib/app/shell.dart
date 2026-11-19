@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/rendering.dart' show RenderProxyBox;
+import 'package:flutter/semantics.dart' show OrdinalSortKey, SemanticsRole;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -20,6 +22,7 @@ import 'package:linefm_radio/features/mini_player/mini_player.dart';
 import 'package:linefm_radio/features/player/player_actions.dart';
 import 'package:linefm_radio/features/player/player_screen.dart';
 import 'package:linefm_radio/features/settings/settings_screen.dart';
+import 'package:linefm_radio/features/stations/favorite_stations.dart';
 import 'package:linefm_radio/features/stations/stations_screen.dart';
 import 'package:linefm_radio/features/storage_notice/storage_notice.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
@@ -27,6 +30,8 @@ import 'package:linefm_radio/ui/theme/breakpoints.dart';
 import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Hoehe des Mini-Players samt Abstand darueber (Web: 90 + 12).
@@ -66,7 +71,14 @@ class _AppShellState extends ConsumerState<AppShell> {
     final controller = ref
         .listenManual(playerControllerProvider, (_, _) {})
         .read();
-    ref.listenManual(nowPlayingRepositoryProvider, (_, _) {});
+    ref
+      ..listenManual(nowPlayingRepositoryProvider, (_, _) {})
+      // Cast-Dienst dauerhaft abonnieren: haelt die Uebergabe lokal/Cast
+      // aktiv, auch ohne geoeffneten Player. Das SDK selbst startet erst
+      // beim ersten Tippen auf den Cast-Knopf (L4, initCast).
+      ..listenManual(castServiceProvider, (_, _) {})
+      // Favoriten-Sender fuer das Auto-Menue, auch nach "Speicher loeschen".
+      ..listenManual(favoriteStationsProvider, (_, _) {});
     _lifecycle = AppLifecycleListener(
       onStateChange: (state) => ref
           .read(nowPlayingRepositoryProvider)
@@ -203,6 +215,11 @@ class _AppShellState extends ConsumerState<AppShell> {
             ? KeyEventResult.handled
             : KeyEventResult.ignored;
       }
+      // Ein-Zeichen-Kuerzel (F, S, 1-6) lassen sich in den Einstellungen
+      // abschalten (WCAG 2.1.4, A11Y-08).
+      if (!ref.read(settingsProvider).keyboardShortcuts) {
+        return KeyEventResult.ignored;
+      }
       if (key == LogicalKeyboardKey.keyF) {
         final track = ref.read(currentTrackProvider).value;
         if (track == null) return KeyEventResult.ignored;
@@ -283,6 +300,65 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 }
 
+/// Ein Bereich der Shell mit fester Tab- und Screenreader-Position.
+///
+/// Jeder Bereich ist eine eigene [FocusTraversalGroup]: Tab laeuft erst
+/// durch den ganzen Bereich, dann zum naechsten. Ohne diese Ordnung sortiert
+/// Flutter nach Lage auf dem Schirm; im Kompakt-Layout liegen Karten hinter
+/// Mini-Player und Navigation, und der Fokus sprang zwischen beiden hin
+/// und her (NEU-1).
+///
+/// [role] und [label] machen den Bereich zur Landmarke (main, navigation,
+/// complementary, region), damit Screenreader direkt hinspringen koennen
+/// und alle Inhalte in einer Landmarke liegen (NEU-2, axe `region`).
+Widget _ordered(
+  int order,
+  Widget child, {
+  SemanticsRole role = SemanticsRole.none,
+  String? label,
+}) => FocusTraversalOrder(
+  order: NumericFocusOrder(order.toDouble()),
+  child: FocusTraversalGroup(
+    child: Semantics(
+      container: true,
+      explicitChildNodes: true,
+      sortKey: OrdinalSortKey(order.toDouble()),
+      role: role,
+      label: label,
+      child: child,
+    ),
+  ),
+);
+
+/// Bereich fuer Hinweise (Offline, Speicher, Autoplay). Landmarke nur,
+/// solange wirklich ein Hinweis steht; sonst gaebe es eine leere Region.
+class _NoticesRegion extends ConsumerWidget {
+  const _NoticesRegion({required this.compact, required this.child});
+
+  /// Kompakt-Layout: Autoplay-Leiste steht im Mini-Player-Platz und laesst
+  /// den Speicher-Hinweis warten (siehe [_StorageNoticeSlot]).
+  final bool compact;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final offline = !(ref.watch(onlineProvider).value ?? true);
+    final blocked = ref.watch(autoplayBlockedProvider);
+    final player = ref.watch(navigationProvider) == AppScreen.player;
+    final storage =
+        !ref.watch(storageConsentProvider) && !(compact && blocked && !player);
+    final visible = offline || storage || (!compact && blocked);
+    if (!visible) return child;
+    return Semantics(
+      container: true,
+      explicitChildNodes: true,
+      role: SemanticsRole.region,
+      label: AppLocalizations.of(context).regionNotices,
+      child: child,
+    );
+  }
+}
+
 /// Inhalt eines Bereichs der Shell (ohne Player).
 Widget _content(AppScreen screen, {required EdgeInsets stationsPadding}) =>
     switch (screen) {
@@ -294,22 +370,47 @@ Widget _content(AppScreen screen, {required EdgeInsets stationsPadding}) =>
 
 // ------------------------------------------------------------ Kompakt
 
-class _CompactLayout extends ConsumerWidget {
+class _CompactLayout extends StatefulWidget {
   const _CompactLayout({required this.screen});
 
   final AppScreen screen;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  State<_CompactLayout> createState() => _CompactLayoutState();
+}
+
+class _CompactLayoutState extends State<_CompactLayout> {
+  /// Gemessene Hoehe des unteren Stapels (Hinweise, Mini-Player,
+  /// Navigation). Der Inhalt haelt so viel Platz frei, damit z. B. der
+  /// Speicher-Hinweis keine Player-Knoepfe verdeckt (NEU-3).
+  double _bottomStack = 0;
+
+  void _onBottomStack(Size size) {
+    if (!mounted || (size.height - _bottomStack).abs() < 0.5) return;
+    setState(() => _bottomStack = size.height);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screen = widget.screen;
     final padding = MediaQuery.paddingOf(context);
     final player = screen == AppScreen.player;
     final top = padding.top + LinefmMetrics.headerHeight;
-    final bottom = padding.bottom + LinefmMetrics.navHeight + _miniReserve;
+    final bottom = math.max(
+      padding.bottom + LinefmMetrics.navHeight + _miniReserve,
+      _bottomStack + 12,
+    );
     final reduce = MediaQuery.disableAnimationsOf(context);
+    final l10n = AppLocalizations.of(context);
 
     final Widget content;
     if (player) {
-      content = const PlayerScreen(embedded: false);
+      content = PlayerScreen(
+        embedded: false,
+        bottomInset:
+            math.max(padding.bottom + LinefmMetrics.navHeight, _bottomStack) +
+            24,
+      );
     } else {
       final inner = _content(
         screen,
@@ -327,41 +428,119 @@ class _CompactLayout extends ConsumerWidget {
       );
     }
 
-    return Stack(
-      children: <Widget>[
-        Positioned.fill(
-          child: AnimatedSwitcher(
-            duration: reduce ? Duration.zero : LinefmMetrics.fast,
-            child: KeyedSubtree(
-              key: ValueKey<AppScreen>(screen),
-              child: content,
+    // Reihenfolge fuer Tab und Screenreader: Header, Inhalt, Hinweise,
+    // Mini-Player, Navigation. Kein umlaufender Bereich: nach der
+    // Navigation verlaesst Tab die App wie gewohnt (NEU-1).
+    return FocusTraversalGroup(
+      policy: OrderedTraversalPolicy(),
+      child: Stack(
+        children: <Widget>[
+          Positioned.fill(
+            child: _ordered(
+              2,
+              role: SemanticsRole.main,
+              AnimatedSwitcher(
+                duration: reduce ? Duration.zero : LinefmMetrics.fast,
+                child: KeyedSubtree(
+                  key: ValueKey<AppScreen>(screen),
+                  child: content,
+                ),
+              ),
             ),
           ),
-        ),
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: _Header(transparent: player),
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              const _OfflineBanner(),
-              const _StorageNoticeSlot(),
-              const MiniPlayerSlot(),
-              SizedBox(height: player ? 0 : 12),
-              _BottomNav(screen: screen),
-            ],
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _ordered(
+              1,
+              role: SemanticsRole.region,
+              label: l10n.regionHeader,
+              _Header(transparent: player),
+            ),
           ),
-        ),
-      ],
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _SizeReporter(
+              onSize: _onBottomStack,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  _ordered(
+                    3,
+                    const _NoticesRegion(
+                      compact: true,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          _OfflineBanner(),
+                          // Handy: nur ein Hinweis zur Zeit. Steht die
+                          // Start-Leiste, wartet der Speicher-Hinweis, damit
+                          // bei 320 x 640 Inhalt sichtbar bleibt (U1).
+                          _StorageNoticeSlot(yieldToAutoplay: true),
+                        ],
+                      ),
+                    ),
+                  ),
+                  _ordered(
+                    4,
+                    role: player
+                        ? SemanticsRole.none
+                        : SemanticsRole.complementary,
+                    label: player ? null : l10n.navPlayer,
+                    const _MiniPlayerOrStart(),
+                  ),
+                  SizedBox(height: player ? 0 : 12),
+                  _ordered(
+                    5,
+                    role: SemanticsRole.navigation,
+                    label: l10n.navMain,
+                    _BottomNav(screen: screen),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
+}
+
+/// Meldet die Groesse des Kindes nach jedem Layout, wenn sie sich aendert.
+class _SizeReporter extends SingleChildRenderObjectWidget {
+  const _SizeReporter({required this.onSize, required super.child});
+
+  final ValueChanged<Size> onSize;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderSizeReporter(onSize);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderSizeReporter renderObject,
+  ) => renderObject.onSize = onSize;
+}
+
+class _RenderSizeReporter extends RenderProxyBox {
+  _RenderSizeReporter(this.onSize);
+
+  ValueChanged<Size> onSize;
+  Size? _last;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    if (size == _last) return;
+    _last = size;
+    final reported = size;
+    WidgetsBinding.instance.addPostFrameCallback((_) => onSize(reported));
   }
 }
 
@@ -387,50 +566,99 @@ class _ExpandedLayout extends ConsumerWidget {
     ];
     final index = railScreens.indexOf(shown);
 
+    // Tab- und Screenreader-Reihenfolge wie die Optik: Navigation, Header,
+    // Inhalt, Hinweise, Player (A11Y-04). Ohne feste Ordnung kam der Header
+    // erst nach den Karten.
     return SafeArea(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Semantics(
-            container: true,
-            explicitChildNodes: true,
-            label: l10n.navMain,
-            child: NavigationRail(
-              selectedIndex: index < 0 ? null : index,
-              labelType: NavigationRailLabelType.all,
-              groupAlignment: -0.85,
-              onDestinationSelected: (i) =>
-                  ref.read(navigationProvider.notifier).go(railScreens[i]),
-              destinations: <NavigationRailDestination>[
-                _railItem(FontAwesomeIcons.play, l10n.navStations),
-                _railItem(FontAwesomeIcons.clockRotateLeft, l10n.navHistory),
-                _railItem(FontAwesomeIcons.heart, l10n.navFavorites),
-                _railItem(FontAwesomeIcons.gear, l10n.navSettings),
-              ],
-            ),
-          ),
-          VerticalDivider(width: 1, thickness: 1, color: c.line),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                const _Header(transparent: false, inset: false),
-                Expanded(
-                  child: _content(
-                    shown,
-                    stationsPadding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-                  ),
+      child: FocusTraversalGroup(
+        policy: OrderedTraversalPolicy(),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            _ordered(
+              1,
+              role: SemanticsRole.navigation,
+              label: l10n.navMain,
+              Semantics(
+                container: true,
+                explicitChildNodes: true,
+                child: NavigationRail(
+                  selectedIndex: index < 0 ? null : index,
+                  labelType: NavigationRailLabelType.all,
+                  groupAlignment: -0.85,
+                  onDestinationSelected: (i) =>
+                      ref.read(navigationProvider.notifier).go(railScreens[i]),
+                  destinations: <NavigationRailDestination>[
+                    _railItem(FontAwesomeIcons.play, l10n.navStations),
+                    _railItem(
+                      FontAwesomeIcons.clockRotateLeft,
+                      l10n.navHistory,
+                    ),
+                    _railItem(FontAwesomeIcons.heart, l10n.navFavorites),
+                    _railItem(FontAwesomeIcons.gear, l10n.navSettings),
+                  ],
                 ),
-                const _OfflineBanner(),
-                const _StorageNoticeSlot(),
-              ],
+              ),
             ),
-          ),
-          SizedBox(
-            width: playerWidth,
-            child: const PlayerScreen(embedded: true),
-          ),
-        ],
+            VerticalDivider(width: 1, thickness: 1, color: c.line),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  _ordered(
+                    2,
+                    role: SemanticsRole.region,
+                    label: l10n.regionHeader,
+                    const _Header(transparent: false, inset: false),
+                  ),
+                  Expanded(
+                    child: _ordered(
+                      3,
+                      role: SemanticsRole.main,
+                      _content(
+                        shown,
+                        stationsPadding: const EdgeInsets.fromLTRB(
+                          24,
+                          20,
+                          24,
+                          32,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Im Fluss unter dem Inhalt statt als Overlay: verdeckt
+                  // nichts und liegt nicht ueber der ganzen App (A11Y-01).
+                  _ordered(
+                    4,
+                    const _NoticesRegion(
+                      compact: false,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          AutoplayStartButton(
+                            padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          ),
+                          _OfflineBanner(),
+                          _StorageNoticeSlot(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              width: playerWidth,
+              child: _ordered(
+                5,
+                role: SemanticsRole.complementary,
+                label: l10n.navPlayer,
+                const PlayerScreen(embedded: true),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -479,11 +707,11 @@ class _Header extends ConsumerWidget {
         color: transparent ? Colors.transparent : c.background,
         boxShadow: transparent
             ? const <BoxShadow>[]
-            : const <BoxShadow>[
+            : <BoxShadow>[
                 BoxShadow(
-                  color: Color(0x80000000),
+                  color: c.headerShadow,
                   blurRadius: 10,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ],
       ),
@@ -491,6 +719,8 @@ class _Header extends ConsumerWidget {
         children: <Widget>[
           Semantics(
             header: true,
+            headingLevel: 2,
+            container: true,
             label: l10n.brandName,
             excludeSemantics: true,
             child: Padding(
@@ -507,17 +737,24 @@ class _Header extends ConsumerWidget {
           const Spacer(),
           FavoritesHeaderButton(color: tint),
           const SizedBox(width: 4),
-          IconButton(
-            tooltip: l10n.settingsButton,
-            onPressed: () {
-              final nav = ref.read(navigationProvider.notifier);
-              if (ref.read(navigationProvider) == AppScreen.settings) {
-                nav.back();
-              } else {
-                nav.go(AppScreen.settings);
-              }
-            },
-            icon: FaIcon(FontAwesomeIcons.gear, size: 18, color: tint),
+          QuietTooltip(
+            message: l10n.settingsButton,
+            child: IconButton(
+              onPressed: () {
+                final nav = ref.read(navigationProvider.notifier);
+                if (ref.read(navigationProvider) == AppScreen.settings) {
+                  nav.back();
+                } else {
+                  nav.go(AppScreen.settings);
+                }
+              },
+              icon: FaIcon(
+                FontAwesomeIcons.gear,
+                size: 18,
+                color: tint,
+                semanticLabel: l10n.settingsButton,
+              ),
+            ),
           ),
         ],
       ),
@@ -545,10 +782,10 @@ class _BottomNav extends ConsumerWidget {
       (AppScreen.player, FontAwesomeIcons.headphones, l10n.navPlayer),
       (AppScreen.history, FontAwesomeIcons.clockRotateLeft, l10n.navHistory),
     ];
+    // Landmarke und Name setzt die Shell (_ordered, NEU-2).
     return Semantics(
       container: true,
       explicitChildNodes: true,
-      label: l10n.navMain,
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: c.navBg,
@@ -596,11 +833,22 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.linefm;
     final color = selected ? c.accent : c.muted;
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      excludeSemantics: true,
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
+        button: true,
+        selected: selected,
+        label: label,
+        excludeSemantics: true,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        // excludeSemantics verwirft auch die Tap-Aktion des InkResponse; ohne
+        // eigenes onTap liess sich die Leiste per Screenreader nicht bedienen
+        // (Web: Klick auf den Knopf ohne Wirkung, gefunden mit tool/a11y).
+        onTap: onTap,
+        child: child,
+      ),
       child: InkResponse(
         onTap: onTap,
         containedInkWell: true,
@@ -632,15 +880,114 @@ class _NavItem extends StatelessWidget {
 /// Speicher-Hinweis unten ueber Mini-Player und Navigation (Web: 16 dp
 /// Rand, max. 760 dp breit).
 class _StorageNoticeSlot extends ConsumerWidget {
-  const _StorageNoticeSlot();
+  const _StorageNoticeSlot({this.yieldToAutoplay = false});
+
+  /// Ausblenden, solange die Autoplay-Leiste steht (Kompakt-Layout).
+  final bool yieldToAutoplay;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final confirmed = ref.watch(storageConsentProvider);
     if (confirmed) return const SizedBox.shrink();
+    if (yieldToAutoplay &&
+        ref.watch(autoplayBlockedProvider) &&
+        ref.watch(navigationProvider) != AppScreen.player) {
+      return const SizedBox.shrink();
+    }
     return const Padding(
       padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: StorageNotice(),
+    );
+  }
+}
+
+/// Kompakt-Layout: Im Platz des Mini-Players steht bei Autoplay-Sperre die
+/// Start-Leiste (U1, A11Y-13). So ueberdeckt sie keine Karte und der Inhalt
+/// bleibt auch bei 320 x 640 sichtbar.
+class _MiniPlayerOrStart extends ConsumerWidget {
+  const _MiniPlayerOrStart();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final blocked = ref.watch(autoplayBlockedProvider);
+    final player = ref.watch(navigationProvider) == AppScreen.player;
+    if (blocked && !player) {
+      return const AutoplayStartButton(
+        padding: EdgeInsets.symmetric(horizontal: 12),
+      );
+    }
+    return const MiniPlayerSlot();
+  }
+}
+
+/// Web-Autoplay-Sperre (Spec 2.2): Ein Start ohne vorherige Nutzeraktion
+/// (Autoplay, Wecker, Link) waere stumm geblieben. Die Leiste erklaert das
+/// und startet den gewaehlten Sender mit dem Klick als Nutzeraktion.
+///
+/// Nur der Hinweistext ist Live-Region; der Knopf ist ein eigener, normaler
+/// Knopf ohne umschliessenden Semantik-Knoten (A11Y-01).
+class AutoplayStartButton extends ConsumerWidget {
+  const AutoplayStartButton({super.key, this.padding = EdgeInsets.zero});
+
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(autoplayBlockedProvider)) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context);
+    final c = context.linefm;
+    final station = ref.watch(activeStationProvider);
+    final button = FilledButton.icon(
+      key: const ValueKey<String>('autoplay-start'),
+      style: FilledButton.styleFrom(
+        backgroundColor: c.accent,
+        foregroundColor: c.onAccent,
+        minimumSize: const Size(0, LinefmMetrics.minTarget),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        shape: const StadiumBorder(),
+        textStyle: LinefmText.listTitle.copyWith(fontWeight: FontWeight.w600),
+      ),
+      onPressed: () => unawaited(
+        ref
+            .read(playerControllerProvider)
+            .startStation(ref.read(activeStationProvider)),
+      ),
+      icon: const FaIcon(FontAwesomeIcons.play, size: 16),
+      label: Text(l10n.autoplayBlockedStart),
+    );
+    return Padding(
+      padding: padding,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 760),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: c.surface,
+              border: Border.all(color: c.line),
+              borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Semantics(
+                      container: true,
+                      liveRegion: true,
+                      child: Text(
+                        l10n.autoplayBlockedHint(station.displayName),
+                        style: LinefmText.notice.copyWith(color: c.text),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  button,
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

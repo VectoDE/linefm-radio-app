@@ -14,7 +14,9 @@ import 'package:linefm_radio/features/settings/sleep_timer_row.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:linefm_radio/ui/widgets/section_heading.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:linefm_radio/ui/widgets/settings_switch.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -36,14 +38,10 @@ class SettingsScreen extends ConsumerWidget {
     final platform = ref.watch(platformInfoProvider);
     final telemetry = ref.watch(telemetryProvider);
     final consent = ref.watch(telemetryConsentProvider);
-    final width = MediaQuery.sizeOf(context).width;
-    final side = width > 760 ? (width - 720) / 2 : 20.0;
-
-    return ListView(
-      // Oben 20 dp wie die Stationsliste, damit die Ueberschrift auf allen
-      // Screens gleich weit unter dem Header sitzt.
-      padding: EdgeInsets.fromLTRB(side, 20, side, 32),
-      children: <Widget>[
+    // Breite der Inhaltsflaeche, nicht des Fensters: im breiten Layout
+    // stehen links die Navigation und rechts der Player (A11Y-06).
+    return LayoutBuilder(
+      builder: (context, box) => _list(context, ref, box.maxWidth, <Widget>[
         SectionHeading(l10n.settingsTitle),
         Divider(color: context.linefm.line),
         SettingsSwitch(
@@ -77,6 +75,20 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: (v) =>
                 notifier.update((s) => s.copyWith(closeToTray: v)),
           ),
+        SettingsSwitch(
+          title: l10n.settingArtworkTitle,
+          subtitle: l10n.settingArtworkBody,
+          value: settings.loadArtwork,
+          onChanged: (v) => notifier.update((s) => s.copyWith(loadArtwork: v)),
+        ),
+        if (platform.isDesktop || platform.isWeb)
+          SettingsSwitch(
+            title: l10n.settingShortcutsTitle,
+            subtitle: l10n.settingShortcutsBody,
+            value: settings.keyboardShortcuts,
+            onChanged: (v) =>
+                notifier.update((s) => s.copyWith(keyboardShortcuts: v)),
+          ),
         _ThemeRow(
           mode: settings.themeMode,
           onChanged: (m) => notifier.update((s) => s.copyWith(themeMode: m)),
@@ -97,7 +109,22 @@ class SettingsScreen extends ConsumerWidget {
         _NavRow(title: l10n.settingAboutTitle, onTap: () => openAbout(context)),
         const SizedBox(height: 40),
         const _Footer(),
-      ],
+      ]),
+    );
+  }
+
+  Widget _list(
+    BuildContext context,
+    WidgetRef ref,
+    double width,
+    List<Widget> children,
+  ) {
+    final side = width > 760 ? (width - 720) / 2 : 20.0;
+    return ListView(
+      // Oben 20 dp wie die Stationsliste, damit die Ueberschrift auf allen
+      // Screens gleich weit unter dem Header sitzt.
+      padding: EdgeInsets.fromLTRB(side, 20, side, 32),
+      children: children,
     );
   }
 }
@@ -124,49 +151,63 @@ class _ThemeRow extends StatelessWidget {
           children: <Widget>[
             Semantics(
               header: true,
+              headingLevel: 2,
+              container: true,
               child: Text(
                 l10n.settingThemeTitle,
                 style: LinefmText.settingTitle.copyWith(color: c.text),
               ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: SegmentedButton<AppThemeMode>(
-                showSelectedIcon: false,
-                style: SegmentedButton.styleFrom(
-                  foregroundColor: c.text,
-                  backgroundColor: Colors.transparent,
-                  selectedForegroundColor: c.onAccent,
-                  selectedBackgroundColor: c.accent,
-                  side: BorderSide(color: c.muted.withValues(alpha: 0.6)),
-                  textStyle: LinefmText.listMeta,
-                  minimumSize: const Size(0, LinefmMetrics.minTarget),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      LinefmMetrics.radiusLogo,
+            LayoutBuilder(
+              // Zu schmal fuer drei Segmente nebeneinander (320 dp, grosse
+              // Schrift): untereinander statt Buchstabe fuer Buchstabe.
+              builder: (context, box) => SizedBox(
+                width: double.infinity,
+                child: SegmentedButton<AppThemeMode>(
+                  direction:
+                      box.maxWidth <
+                          330 * MediaQuery.textScalerOf(context).scale(1)
+                      ? Axis.vertical
+                      : Axis.horizontal,
+                  showSelectedIcon: false,
+                  style: SegmentedButton.styleFrom(
+                    foregroundColor: c.text,
+                    backgroundColor: Colors.transparent,
+                    selectedForegroundColor: c.onAccent,
+                    selectedBackgroundColor: c.accent,
+                    side: BorderSide(color: c.muted),
+                    textStyle: LinefmText.listMeta,
+                    minimumSize: const Size(0, LinefmMetrics.minTarget),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        LinefmMetrics.radiusLogo,
+                      ),
                     ),
                   ),
+                  segments: <ButtonSegment<AppThemeMode>>[
+                    ButtonSegment<AppThemeMode>(
+                      value: AppThemeMode.system,
+                      label: Text(l10n.themeSystem),
+                      icon: const Icon(
+                        Icons.brightness_auto_outlined,
+                        size: 18,
+                      ),
+                    ),
+                    ButtonSegment<AppThemeMode>(
+                      value: AppThemeMode.light,
+                      label: Text(l10n.themeLight),
+                      icon: const Icon(Icons.light_mode_outlined, size: 18),
+                    ),
+                    ButtonSegment<AppThemeMode>(
+                      value: AppThemeMode.dark,
+                      label: Text(l10n.themeDark),
+                      icon: const Icon(Icons.dark_mode_outlined, size: 18),
+                    ),
+                  ],
+                  selected: <AppThemeMode>{mode},
+                  onSelectionChanged: (s) => onChanged(s.first),
                 ),
-                segments: <ButtonSegment<AppThemeMode>>[
-                  ButtonSegment<AppThemeMode>(
-                    value: AppThemeMode.system,
-                    label: Text(l10n.themeSystem),
-                    icon: const Icon(Icons.brightness_auto_outlined, size: 18),
-                  ),
-                  ButtonSegment<AppThemeMode>(
-                    value: AppThemeMode.light,
-                    label: Text(l10n.themeLight),
-                    icon: const Icon(Icons.light_mode_outlined, size: 18),
-                  ),
-                  ButtonSegment<AppThemeMode>(
-                    value: AppThemeMode.dark,
-                    label: Text(l10n.themeDark),
-                    icon: const Icon(Icons.dark_mode_outlined, size: 18),
-                  ),
-                ],
-                selected: <AppThemeMode>{mode},
-                onSelectionChanged: (s) => onChanged(s.first),
               ),
             ),
           ],
@@ -207,12 +248,19 @@ class _NavRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.linefm;
-    return Semantics(
-      button: true,
-      label: title,
-      hint: subtitle,
-      excludeSemantics: true,
-      onTap: onTap,
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
+        button: true,
+        label: title,
+        hint: subtitle,
+        excludeSemantics: true,
+        onTap: onTap,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: c.line)),
@@ -271,19 +319,23 @@ class _StorageSection extends ConsumerWidget {
     final messenger = ScaffoldMessenger.maybeOf(context);
     final ok = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.clearStorageConfirmTitle),
-        content: Text(l10n.clearStorageConfirmBody),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.actionDelete),
-          ),
-        ],
+      builder: (context) => NamedDialog(
+        label: l10n.clearStorageConfirmTitle,
+        child: AlertDialog(
+          semanticLabel: l10n.clearStorageConfirmTitle,
+          title: Text(l10n.clearStorageConfirmTitle),
+          content: Text(l10n.clearStorageConfirmBody),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.actionDelete),
+            ),
+          ],
+        ),
       ),
     );
     if (ok != true) return;
@@ -305,6 +357,8 @@ class _StorageSection extends ConsumerWidget {
       children: <Widget>[
         Semantics(
           header: true,
+          headingLevel: 2,
+          container: true,
           child: Text(
             l10n.settingStorageTitle,
             style: LinefmText.settingTitle.copyWith(color: c.text),
@@ -354,10 +408,19 @@ class _Footer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final c = context.linefm;
-    Widget link(String label, VoidCallback onTap) => Semantics(
-      link: true,
-      label: label,
-      excludeSemantics: true,
+    Widget link(String label, Uri url, VoidCallback onTap) => SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
+        link: true,
+        linkUrl: url,
+        label: label,
+        excludeSemantics: true,
+        onTap: onTap,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(LinefmMetrics.radiusLogo),
@@ -399,16 +462,19 @@ class _Footer extends ConsumerWidget {
             children: <Widget>[
               link(
                 l10n.footerWebsite,
+                Uri.parse(websiteUrl),
                 () => openExternalUrl(context, ref, websiteUrl),
               ),
               dot,
               link(
                 l10n.footerImprint,
+                LegalKind.imprint.webUri,
                 () => openLegal(context, LegalKind.imprint),
               ),
               dot,
               link(
                 l10n.footerPrivacy,
+                LegalKind.privacy.webUri,
                 () => openLegal(context, LegalKind.privacy),
               ),
             ],

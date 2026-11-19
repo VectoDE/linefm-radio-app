@@ -5,9 +5,18 @@
 // Schritte:
 //  1. main.dart.{js,wasm,mjs} -> main.<sha8>.dart.<ext>, flutter_bootstrap.js anpassen
 //  2. canvaskit/ -> canvaskit/<engineRevision>/, canvasKitBaseUrl im Bootstrap setzen
-//  3. Platzhalter ersetzen (Basis-URL, Search-Console-Verifikation, Build-ID im sw.js)
+//  3. Platzhalter ersetzen (Basis-URL, Search-Console-Verifikation, Build-ID im sw.js,
+//     lastmod der Sitemap = Build-Datum, SOURCE_DATE_EPOCH falls gesetzt)
 //  4. Hosting-Dateien aus deploy/ rendern (Header-Dateien, __CSP_CONNECT_EXTRA__)
-//  5. asset-manifest.txt mit SHA-256 aller Dateien schreiben
+//  5. Ballast entfernen (Sourcemaps, *.symbols, ungenutzte Engine-Varianten, Flutter-Standard-SW)
+//  6. asset-manifest.txt mit SHA-256 aller Dateien schreiben
+//
+// Vorab: security.txt ohne Platzhalter, Ersatzschriften samt OFL.txt (R3-P07),
+// App-Links unter .well-known/ (assetlinks.json, apple-app-site-association) mit
+// Werten aus der Umgebung bzw. Konfiguration: ANDROID_CERT_SHA256 (SHA-256 des
+// Play-Signaturzertifikats, mehrere kommagetrennt) und APPLE_TEAM_ID. Ohne Wert
+// wird die Datei aus der Ausgabe entfernt (Warnung, mit --strict Abbruch), damit
+// kein Platzhalter live geht (L3-01).
 //
 // Optionen:
 //  --config <datei>            Dart-Define-Datei (Standard: config/app.json, falls vorhanden)
@@ -17,6 +26,8 @@
 //  --hosting-out <ordner>      Standard: build/hosting
 //  --base-url <url>            Standard: WEB_BASE_URL aus der Konfiguration
 //  --gsc <token>               Search-Console-Verifikation (sonst GSC_VERIFICATION)
+//  --strict                    Abbruch, solange Platzhalter ({{...}}) in .well-known/ stehen
+//  --keep-debug                Sourcemaps, *.symbols und Engine-Varianten nicht entfernen
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -223,6 +234,71 @@ String rewriteBootstrap(
   return out;
 }
 
+/// Engine-Varianten, die das eigene Bootstrap nie laedt (flutter_bootstrap.js, Flutter 3.50):
+///  - `wimp.*` nur bei `enableWimp`, `webparagraph/` nur bei `preferWebParagraph`
+///    (beides setzt web/flutter_bootstrap.js nicht).
+///  - `*.symbols` sind Debug-Symbole fuer Stacktraces, nie Teil des Ladepfads.
+/// Behalten werden canvaskit.{js,wasm} (dart2js-Rueckfall in Firefox/Safari),
+/// chromium/ (dart2js-Rueckfall in Chromium), skwasm.* und skwasm_heavy.* (dart2wasm).
+bool isPrunableEngineFile(String relPath) {
+  final p = relPath.replaceAll('\\', '/');
+  final name = p.split('/').last;
+  if (name.endsWith('.symbols') || name.endsWith('.map')) {
+    return true;
+  }
+  if (p.contains('webparagraph/')) {
+    return true;
+  }
+  return RegExp(r'^wimp\.(js|wasm)$').hasMatch(name) &&
+      p.contains('canvaskit/');
+}
+
+/// Entfernt Eintraege fuer entfernte Engine-Varianten aus `wasmHashes`.
+String pruneWasmHashes(String bootstrap) {
+  final pattern = RegExp(
+    r'^_flutter.buildConfig = (\{.*\});$',
+    multiLine: true,
+  );
+  final match = pattern.firstMatch(bootstrap);
+  if (match == null) {
+    return bootstrap;
+  }
+  final cfg = jsonDecode(match.group(1)!) as Map<String, dynamic>;
+  final hashes = cfg['wasmHashes'];
+  if (hashes is Map<String, dynamic>) {
+    hashes.removeWhere(
+      (k, _) => k == 'wimp.wasm' || k.startsWith('webparagraph/'),
+    );
+  }
+  return bootstrap.replaceRange(
+    match.start,
+    match.end,
+    '_flutter.buildConfig = ${jsonEncode(cfg)};',
+  );
+}
+
+/// Setzt jedes `<lastmod>` der Sitemap auf [date] (UTC, `YYYY-MM-DD`).
+/// Idempotent: ein zweiter Lauf schreibt nur das Datum neu.
+String renderSitemapLastmod(String xml, DateTime date) {
+  final utc = date.toUtc();
+  String two(int n) => n.toString().padLeft(2, '0');
+  final day = '${utc.year}-${two(utc.month)}-${two(utc.day)}';
+  return xml.replaceAll(
+    RegExp('<lastmod>[^<]*</lastmod>'),
+    '<lastmod>$day</lastmod>',
+  );
+}
+
+/// Build-Datum: SOURCE_DATE_EPOCH (reproduzierbare Builds), sonst jetzt.
+DateTime buildDate([Map<String, String>? env]) {
+  final epoch = int.tryParse(
+    (env ?? Platform.environment)['SOURCE_DATE_EPOCH'] ?? '',
+  );
+  return epoch == null
+      ? DateTime.now().toUtc()
+      : DateTime.fromMillisecondsSinceEpoch(epoch * 1000, isUtc: true);
+}
+
 /// Ersetzt die Standard-Domain durch eine andere Basis-URL (nur Textdateien).
 String rewriteBaseUrl(String text, String baseUrl) {
   final clean = baseUrl.endsWith('/')
@@ -231,6 +307,92 @@ String rewriteBaseUrl(String text, String baseUrl) {
   return clean == defaultBaseUrl
       ? text
       : text.replaceAll(defaultBaseUrl, clean);
+}
+
+// ---------------------------------------------------------------------------
+// App-Links (.well-known, L3-01)
+// ---------------------------------------------------------------------------
+
+/// Vorlagen unter .well-known/ mit ihrem Platzhalter.
+const Map<String, String> appLinkTemplates = <String, String>{
+  'assetlinks.json': 'ANDROID_CERT_SHA256',
+  'apple-app-site-association': 'APPLE_TEAM_ID',
+};
+
+final RegExp _certFingerprint = RegExp(r'^([0-9A-F]{2}:){31}[0-9A-F]{2}$');
+final RegExp _teamId = RegExp(r'^[A-Z0-9]{10}$');
+
+/// Wert fuer [key]: Umgebung vor Konfiguration, leer = nicht gesetzt.
+String? appLinkValue(
+  String key,
+  Map<String, dynamic> config, [
+  Map<String, String>? env,
+]) {
+  final raw =
+      (env ?? Platform.environment)[key] ?? (config[key] as String?) ?? '';
+  final v = raw.trim();
+  return v.isEmpty ? null : v;
+}
+
+/// Setzt [value] in die Vorlage [file] ein. Fingerprints: kommagetrennt, je
+/// 32 Byte als Hex mit Doppelpunkten (Grossbuchstaben); Team-ID: 10 Zeichen.
+String renderAppLinkTemplate(String file, String text, String value) {
+  final key = appLinkTemplates[file]!;
+  if (key == 'ANDROID_CERT_SHA256') {
+    // Mehrere Fingerprints (App-Signatur aus Play und Upload-Schluessel fuer
+    // die GitHub-APK), Reihenfolge bleibt, doppelte fallen weg.
+    final prints = value
+        .split(',')
+        .map((s) => s.trim().toUpperCase())
+        .where((s) => s.isNotEmpty)
+        .toSet()
+        .toList();
+    if (prints.isEmpty || !prints.every(_certFingerprint.hasMatch)) {
+      throw PostbuildException(
+        'ANDROID_CERT_SHA256 hat nicht das Format AA:BB:...(32 Byte)',
+      );
+    }
+    return text.replaceAll('"{{$key}}"', prints.map(jsonEncode).join(', '));
+  }
+  if (!_teamId.hasMatch(value)) {
+    throw PostbuildException('APPLE_TEAM_ID muss 10 Zeichen (A-Z, 0-9) haben');
+  }
+  return text.replaceAll('{{$key}}', value);
+}
+
+/// Fuellt oder entfernt die App-Link-Dateien; liefert die Namen der gefuellten.
+List<String> renderAppLinks(
+  Directory web,
+  Map<String, dynamic> config, {
+  required bool strict,
+  Map<String, String>? env,
+}) {
+  final done = <String>[];
+  for (final entry in appLinkTemplates.entries) {
+    final f = File('${web.path}/.well-known/${entry.key}');
+    if (!f.existsSync()) {
+      continue;
+    }
+    final text = f.readAsStringSync();
+    if (!text.contains('{{${entry.value}}}')) {
+      done.add(entry.key); // schon gefuellt (erneuter Lauf)
+      continue;
+    }
+    final value = appLinkValue(entry.value, config, env);
+    if (value == null) {
+      final msg =
+          '.well-known/${entry.key}: ${entry.value} fehlt (Umgebung oder Konfiguration), Datei entfernt';
+      if (strict) {
+        throw PostbuildException(msg);
+      }
+      stderr.writeln('web_postbuild: WARNUNG: $msg');
+      f.deleteSync();
+      continue;
+    }
+    f.writeAsStringSync(renderAppLinkTemplate(entry.key, text, value));
+    done.add(entry.key);
+  }
+  return done;
 }
 
 // ---------------------------------------------------------------------------
@@ -247,8 +409,13 @@ class PostbuildOptions {
     this.hostingOut = 'build/hosting',
     this.baseUrl,
     this.gsc,
+    this.keepDebug = false,
+    this.strict = false,
   });
 
+  final bool strict;
+
+  final bool keepDebug;
   final Directory webDir;
   final Map<String, dynamic> config;
   final String? cspConnectExtra;
@@ -264,6 +431,13 @@ String _rel(Directory root, FileSystemEntity e) {
   final p = e.absolute.path.replaceAll('\\', '/');
   return p.substring(rootPath.length).replaceFirst(RegExp('^/'), '');
 }
+
+/// Flutter-Standarddateien, die dieses Bootstrap nicht verwendet: flutter.js ist im
+/// Bootstrap enthalten, flutter_service_worker.js ersetzt web/sw.js.
+bool _isFlutterDefaultLeftover(String rel) =>
+    rel == 'flutter.js' ||
+    rel == 'flutter_service_worker.js' ||
+    rel == '.last_build_id';
 
 List<File> _filesIn(Directory dir) =>
     dir.listSync(recursive: true).whereType<File>().toList()
@@ -290,6 +464,48 @@ bool _isText(String path) {
   return dot >= 0 && _textExt.contains(name.substring(dot + 1));
 }
 
+/// Liegen Noto-Ersatzschriften (.woff2) unter assets/fonts/fallback/?
+bool hasFontFallback(Directory web) {
+  final dir = Directory('${web.path}/assets/fonts/fallback');
+  return dir.existsSync() &&
+      dir
+          .listSync(recursive: true)
+          .any((e) => e is File && e.path.endsWith('.woff2'));
+}
+
+final RegExp _revisionDirName = RegExp(r'^[0-9a-f]{40}$');
+
+/// Verschiebt den Inhalt von `canvaskit/` nach `canvaskit/<revision>/`.
+///
+/// Idempotent: Ordner mit 40-stelligem Hex-Namen gelten als schon verschoben.
+/// Der zur aktuellen Revision bleibt, aeltere Revisionen werden entfernt. Liegen
+/// nach einem erneuten flutter build web frische Dateien direkt in canvaskit/,
+/// ersetzen sie die gleichnamigen unter `canvaskit/<revision>/` (keine Verschachtelung).
+void relocateCanvasKit(Directory web, String revision) {
+  final canvasKit = Directory('${web.path}/canvaskit');
+  if (!canvasKit.existsSync()) {
+    return;
+  }
+  final target = Directory('${canvasKit.path}/$revision')
+    ..createSync(recursive: true);
+  for (final e in canvasKit.listSync()) {
+    final name = _rel(canvasKit, e);
+    if (_revisionDirName.hasMatch(name) && e is Directory) {
+      if (name != revision) {
+        e.deleteSync(recursive: true);
+      }
+      continue;
+    }
+    final dst = '${target.path}/$name';
+    if (FileSystemEntity.typeSync(dst) != FileSystemEntityType.notFound) {
+      Directory(dst).existsSync()
+          ? Directory(dst).deleteSync(recursive: true)
+          : File(dst).deleteSync();
+    }
+    e.renameSync(dst);
+  }
+}
+
 /// Fuehrt alle Schritte aus; liefert die geschriebenen Hosting-Dateien (relativ).
 List<String> runPostbuild(PostbuildOptions o) {
   final web = o.webDir;
@@ -303,24 +519,43 @@ List<String> runPostbuild(PostbuildOptions o) {
     throw PostbuildException('flutter_bootstrap.js fehlt');
   }
 
-  // 1. main.dart.* umbenennen
-  final renamed = <String, String>{};
-  for (final ext in <String>['js', 'wasm', 'mjs']) {
-    final f = File('${web.path}/main.dart.$ext');
-    if (!f.existsSync()) {
-      continue;
+  // 0. Platzhalter in security.txt (Kontakt) duerfen nicht live gehen.
+  final securityTxt = File('${web.path}/.well-known/security.txt');
+  if (securityTxt.existsSync() &&
+      securityTxt.readAsStringSync().contains('{{')) {
+    const msg =
+        '.well-known/security.txt enthaelt noch Platzhalter ({{...}}), Kontakt eintragen';
+    if (o.strict) {
+      throw PostbuildException(msg);
     }
-    final hash = sha256Hex(f.readAsBytesSync()).substring(0, 8);
-    final name = 'main.$hash.dart.$ext';
-    f.renameSync('${web.path}/$name');
-    renamed['main.dart.$ext'] = name;
+    stderr.writeln('web_postbuild: WARNUNG: $msg');
   }
-  if (renamed.isEmpty) {
+
+  // 0b. Ersatzschriften (L14): ohne Noto-Dateien unter assets/fonts/fallback/
+  // zeigt die App Emoji, Kyrillisch und CJK als Kaestchen. Flutter legt dort
+  // selbst nur Roboto-Regular.ttf ab, daher zaehlen nur .woff2-Dateien.
+  if (!hasFontFallback(web)) {
+    const msg =
+        'keine Ersatzschriften unter assets/fonts/fallback/ (zuerst dart run tool/fetch_font_fallback.dart build/web)';
+    if (o.strict) {
+      throw PostbuildException(msg);
+    }
+    stderr.writeln('web_postbuild: WARNUNG: $msg');
+  }
+
+  // 0c. Ersatzschriften nur mit Lizenztext (OFL 1.1 verlangt ihn bei Weitergabe).
+  if (hasFontFallback(web) &&
+      !File('${web.path}/assets/fonts/fallback/OFL.txt').existsSync()) {
     throw PostbuildException(
-      'keine main.dart.* gefunden (Postbuild schon gelaufen?)',
+      'assets/fonts/fallback/OFL.txt fehlt (fetch_font_fallback.dart erneut ausfuehren)',
     );
   }
 
+  // 0d. App-Links (.well-known) fuellen oder entfernen.
+  renderAppLinks(web, o.config, strict: o.strict);
+
+  // 1. main.dart.* umbenennen. Idempotent: Ist das Bootstrap schon bearbeitet
+  // (Marke ersetzt) und liegt kein neues main.dart.* vor, bleibt Schritt 1 aus.
   final bootstrap = bootstrapFile.readAsStringSync();
   final revMatch = RegExp(r'"engineRevision":"([0-9a-f]{40})"')
       .firstMatch(bootstrap);
@@ -328,21 +563,60 @@ List<String> runPostbuild(PostbuildOptions o) {
     throw PostbuildException('engineRevision nicht gefunden');
   }
   final revision = revMatch.group(1)!;
-  bootstrapFile.writeAsStringSync(
-    rewriteBootstrap(bootstrap, renamedMain: renamed, engineRevision: revision),
-  );
+  final mains = <String>[
+    for (final ext in <String>['js', 'wasm', 'mjs'])
+      if (File('${web.path}/main.dart.$ext').existsSync()) ext,
+  ];
+  if (!bootstrap.contains(canvasKitMarker)) {
+    if (mains.isNotEmpty) {
+      throw PostbuildException(
+        'main.dart.* liegt neu vor, flutter_bootstrap.js ist aber schon bearbeitet '
+        '(build/web loeschen und neu bauen)',
+      );
+    }
+    if (!bootstrap.contains("canvasKitBaseUrl = 'canvaskit/$revision/'")) {
+      throw PostbuildException(
+        'Marke $canvasKitMarker fehlt: web/flutter_bootstrap.js muss das eigene Template sein',
+      );
+    }
+    stdout.writeln(
+      'web_postbuild: Umbenennung schon erledigt, nur Folgeschritte',
+    );
+  } else {
+    if (mains.isEmpty) {
+      throw PostbuildException('keine main.dart.* gefunden');
+    }
+    final renamed = <String, String>{};
+    for (final ext in mains) {
+      final f = File('${web.path}/main.dart.$ext');
+      final hash = sha256Hex(f.readAsBytesSync()).substring(0, 8);
+      final name = 'main.$hash.dart.$ext';
+      final dst = File('${web.path}/$name');
+      if (dst.existsSync()) {
+        dst.deleteSync();
+      }
+      f.renameSync(dst.path);
+      renamed['main.dart.$ext'] = name;
+    }
+    // Reste frueherer Builds in derselben Ausgabe (ohne rm -rf build/web).
+    for (final f in web.listSync().whereType<File>()) {
+      final name = _rel(web, f);
+      if (RegExp(r'^main\.[0-9a-f]{8}\.dart\.(js|wasm|mjs)$').hasMatch(name) &&
+          !renamed.containsValue(name)) {
+        f.deleteSync();
+      }
+    }
+    bootstrapFile.writeAsStringSync(
+      rewriteBootstrap(
+        bootstrap,
+        renamedMain: renamed,
+        engineRevision: revision,
+      ),
+    );
+  }
 
   // 2. canvaskit/ -> canvaskit/<revision>/
-  final canvasKit = Directory('${web.path}/canvaskit');
-  if (canvasKit.existsSync()) {
-    final tmp = Directory('${web.path}/.canvaskit_tmp');
-    if (tmp.existsSync()) {
-      tmp.deleteSync(recursive: true);
-    }
-    canvasKit.renameSync(tmp.path);
-    Directory('${web.path}/canvaskit').createSync();
-    tmp.renameSync('${web.path}/canvaskit/$revision');
-  }
+  relocateCanvasKit(web, revision);
 
   // 3. Platzhalter
   final baseUrl =
@@ -362,6 +636,9 @@ List<String> runPostbuild(PostbuildOptions o) {
     var text = rewriteBaseUrl(f.readAsStringSync(), baseUrl);
     if (name == 'index.html') {
       text = renderGscVerification(text, gsc);
+    }
+    if (name == 'sitemap.xml') {
+      text = renderSitemapLastmod(text, buildDate());
     }
     f.writeAsStringSync(text);
   }
@@ -412,7 +689,24 @@ List<String> runPostbuild(PostbuildOptions o) {
     }
   }
 
-  // 5. Build-ID (sw.js) und asset-manifest.txt
+  // 5. Ballast entfernen
+  if (!o.keepDebug) {
+    for (final f in _filesIn(web)) {
+      final rel = _rel(web, f);
+      if (isPrunableEngineFile(rel) || _isFlutterDefaultLeftover(rel)) {
+        f.deleteSync();
+      }
+    }
+    final wp = Directory('${web.path}/canvaskit/$revision/webparagraph');
+    if (wp.existsSync()) {
+      wp.deleteSync(recursive: true);
+    }
+    bootstrapFile.writeAsStringSync(
+      pruneWasmHashes(bootstrapFile.readAsStringSync()),
+    );
+  }
+
+  // 6. Build-ID (sw.js) und asset-manifest.txt
   final entries = <String, (String, int)>{};
   for (final f in _filesIn(web)) {
     final rel = _rel(web, f);
@@ -429,7 +723,14 @@ List<String> runPostbuild(PostbuildOptions o) {
   ).substring(0, 12);
   final sw = File('${web.path}/sw.js');
   if (sw.existsSync()) {
-    final text = sw.readAsStringSync().replaceAll(buildIdPlaceholder, buildId);
+    // Auch bei erneutem Lauf: eine schon gesetzte Build-ID wird ersetzt.
+    final text = sw
+        .readAsStringSync()
+        .replaceAll(buildIdPlaceholder, buildId)
+        .replaceAll(
+          RegExp(r"const BUILD_ID = '[0-9a-f]{12}';"),
+          "const BUILD_ID = '$buildId';",
+        );
     sw.writeAsStringSync(text);
     entries['sw.js'] = (sha256Hex(utf8.encode(text)), utf8.encode(text).length);
   }
@@ -468,6 +769,8 @@ int runCli(List<String> args) {
       baseUrl,
       gsc,
       targets;
+  var keepDebug = false;
+  var strict = false;
   for (var i = 0; i < args.length; i++) {
     String next() {
       if (i + 1 >= args.length) {
@@ -491,6 +794,10 @@ int runCli(List<String> args) {
         baseUrl = next();
       case '--gsc':
         gsc = next();
+      case '--keep-debug':
+        keepDebug = true;
+      case '--strict':
+        strict = true;
       case final a when a.startsWith('--'):
         stderr.writeln('Unbekannte Option $a');
         return 64;
@@ -521,6 +828,8 @@ int runCli(List<String> args) {
         hostingOut: hostingOut ?? 'build/hosting',
         baseUrl: baseUrl,
         gsc: gsc,
+        keepDebug: keepDebug,
+        strict: strict,
       ),
     );
     stdout.writeln(

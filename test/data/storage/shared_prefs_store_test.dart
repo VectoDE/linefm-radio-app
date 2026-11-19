@@ -338,4 +338,75 @@ void main() {
       expect(await createPrefsStore(), isA<SharedPrefsStore>());
     });
   });
+
+  group('Cover aus ohne Speicher-Bestaetigung (N4)', () {
+    test('wird gemerkt und gilt nach Neustart', () async {
+      final store = await open();
+      expect(store.storageConsent, isFalse);
+      await store.writeSettings(const AppSettings(loadArtwork: false));
+      expect(store.readSettings().loadArtwork, isFalse);
+
+      final again = await reopen();
+      expect(again.readSettings().loadArtwork, isFalse);
+      // Andere Einstellungen bleiben ohne Bestaetigung beim Standard.
+      expect(again.readSettings().marquee, const AppSettings().marquee);
+    });
+
+    test(
+      '"an" entfernt den Eintrag, Speicher loeschen behaelt "aus"',
+      () async {
+        final store = await open();
+        await store.writeSettings(const AppSettings(loadArtwork: false));
+        await store.writeSettings(const AppSettings());
+        expect(
+          (await SharedPreferences.getInstance()).containsKey(
+            PrefsKeys.loadArtwork,
+          ),
+          isFalse,
+        );
+
+        await store.writeSettings(const AppSettings(loadArtwork: false));
+        await store.clearAll();
+        expect((await reopen()).readSettings().loadArtwork, isFalse);
+      },
+    );
+
+    test('Speicher loeschen behaelt nur "Cover aus" (R3-P03)', () async {
+      final s = await openConsented();
+      await s.writeFavorites(<Favorite>[fav('T')]);
+      await s.writeSettings(
+        const AppSettings(loadArtwork: false, marquee: false),
+      );
+      await s.writeLastStation('fobfm');
+      await s.clearAll();
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getKeys(), <String>{PrefsKeys.loadArtwork});
+      final again = await reopen();
+      expect(again.storageConsent, isFalse);
+      expect(again.readFavorites(), isEmpty);
+      expect(again.readLastStation(), isNull);
+      expect(again.readSettings(), const AppSettings(loadArtwork: false));
+    });
+
+    test('InMemoryPrefsStore behaelt "Cover aus" beim Loeschen', () async {
+      final m = InMemoryPrefsStore();
+      await m.setStorageConsent(value: true);
+      await m.writeSettings(
+        const AppSettings(loadArtwork: false, marquee: false),
+      );
+      await m.clearAll();
+      expect(m.readSettings(), const AppSettings(loadArtwork: false));
+    });
+
+    test('Widerruf der Bestaetigung behaelt "aus"', () async {
+      final store = await openConsented();
+      await store.writeSettings(
+        const AppSettings(loadArtwork: false, marquee: false),
+      );
+      await store.setStorageConsent(value: false);
+      final settings = (await reopen()).readSettings();
+      expect(settings.loadArtwork, isFalse);
+      expect(settings.marquee, const AppSettings().marquee);
+    });
+  });
 }

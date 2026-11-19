@@ -1,4 +1,4 @@
-# Cloudflare Pages (Spec 6.2/6.3). Pages setzt ETags selbst.
+# Cloudflare Pages (Spec 6.2/6.3). Pages setzt ETags selbst und komprimiert automatisch (gzip/Brotli).
 # Mehrere passende Regeln werden zusammengefuehrt; Cache-Control steht darum nur in den Pfadregeln,
 # die Security-Header nur in /*. __CSP_CONNECT_EXTRA__ ersetzt tool/web_postbuild.dart.
 /*
@@ -44,7 +44,37 @@
 /canvaskit/*
   Cache-Control: public, max-age=31536000, immutable
 
-/assets/*
+# Unterordner einzeln statt /assets/*: Pages fuehrt passende Regeln zusammen, und AssetManifest.*,
+# FontManifest.json und NOTICES (fester Name, Inhalt aendert sich pro Build) muessen no-cache bleiben.
+/assets/AssetManifest.bin
+  Cache-Control: no-cache
+
+/assets/AssetManifest.bin.json
+  Cache-Control: no-cache
+
+/assets/AssetManifest.json
+  Cache-Control: no-cache
+
+/assets/FontManifest.json
+  Cache-Control: no-cache
+
+/assets/NOTICES
+  Cache-Control: no-cache
+
+/assets/assets/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/assets/fonts/MaterialIcons-Regular.otf
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# Ersatzschriften (L14): Pfade tragen Version und Hash (notosans/v39/<hash>.woff2), daher unveraenderlich.
+/assets/fonts/fallback/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/packages/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/assets/shaders/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
 /icons/*
@@ -62,3 +92,10 @@
 
 /llms.txt
   Cache-Control: public, max-age=3600
+
+# App-Links (L3-01): Datei ohne Endung, Apple verlangt application/json.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+
+/.well-known/assetlinks.json
+  Content-Type: application/json

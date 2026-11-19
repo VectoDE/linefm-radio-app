@@ -4,12 +4,17 @@
 
 Die App hat Favoriten ("Song merken"), einen Verlauf der zuletzt gespielten Titel, Lautstärkeregelung und einen Sleeptimer (15, 30, 45 oder 60 Minuten). Sprachen: Deutsch und Englisch. Native Apps für Android, Windows, Linux, macOS und iOS sind geplant.
 
-## Sender
+## LINEFM-Sender
 
 - LineFM +MAIN: https://linefm.stream.laut.fm/linefm
 - LineFM +RAP: https://linefmrap.stream.laut.fm/linefmrap
 - LineFM +GAMING: https://linefmgaming.stream.laut.fm/linefmgaming
 - LineFM +LOFI: https://linefmlofi.stream.laut.fm/linefmlofi
+
+## Partnersender
+
+Radio3FM und FobFM laufen ebenfalls in der App. Es sind Sender anderer Betreiber, keine LINEFM-Sender.
+
 - Radio3FM: https://radio3fm.stream.laut.fm/radio3fm
 - FobFM: https://fobfm.stream.laut.fm/fobfm
 

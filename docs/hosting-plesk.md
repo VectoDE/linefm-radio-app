@@ -32,6 +32,10 @@ Immer nur **eine** der beiden Header-Quellen verwenden. Sonst entstehen doppelte
 
 **Automatisch per SSH (`deploy-web.yml`, Ziel `plesk`):** Der Workflow synchronisiert `build/web` per `rsync` über SSH in den Dokumentstamm. `.well-known/` (z. B. `assetlinks.json`) und `cgi-bin/` bleiben unberührt, die `.htaccess` aus dem Upload wird mitgeliefert. Voraussetzung ist ein Plesk-Abonnement mit SSH-Zugang und Schlüssel-Login (Plesk > Websites & Domains > Webspace-Zugang, Shell aktivieren, öffentlichen Schlüssel unter "SSH-Schlüssel" eintragen). Der Betreiber trägt die Secrets `PLESK_SSH_HOST`, `PLESK_SSH_USER`, `PLESK_SSH_KEY`, `PLESK_SSH_KNOWN_HOSTS` und die Variable `PLESK_DOCROOT` (z. B. `httpdocs`) ein, dazu `plesk` in `WEB_DEPLOY_TARGETS` ([secrets.md](secrets.md)). Passwort-Login per SFTP wird bewusst nicht unterstützt. Wer nur SFTP hat, nimmt die Git-Erweiterung oder lädt von Hand hoch.
 
+## Komprimierung und Brotli
+
+Beide Varianten komprimieren auch `application/octet-stream` und Schriften, damit `assets/NOTICES` und `AssetManifest.bin` nicht unkomprimiert rausgehen. Brotli geht bei Plesk nur, wenn der Server `mod_brotli` (Apache) bzw. `ngx_brotli` (nginx) mitbringt. Plesk liefert beides nicht fest mit. Fehlt das Modul, bleibt gzip aktiv. Prüfen mit `curl -sI -H 'Accept-Encoding: br' https://app.linefm.de/ | grep -i content-encoding`.
+
 ## Was die Dateien tun
 
 - `.htaccess`: Security-Header (`mod_headers`), Cache-Regeln, `AddType application/wasm`, ETag (`FileETag MTime Size`), Deflate, SPA-Fallback über `mod_rewrite`. Fehlende Dateien mit Endung und fehlende Rechtstext-Unterseiten liefern 404.

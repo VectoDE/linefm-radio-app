@@ -211,13 +211,112 @@ void main() {
       expect(manifest, contains('  canvaskit/$_rev/canvaskit.wasm'));
       expect(written, isNotEmpty);
 
-      // Zweiter Lauf ist ein klarer Fehler statt stiller Doppelbearbeitung.
-      expect(
-        () => runPostbuild(
-          PostbuildOptions(webDir: Directory('${tmp.path}/web')),
+      // Zweiter Lauf auf dieselbe Ausgabe aendert nichts mehr (idempotent).
+      Map<String, String> snapshot() => <String, String>{
+        for (final f in Directory(
+          '${tmp.path}/web',
+        ).listSync(recursive: true).whereType<File>())
+          f.path.replaceAll('\\', '/').split('/web/').last: f
+              .readAsStringSync(),
+      };
+      final before = snapshot();
+      runPostbuild(
+        PostbuildOptions(
+          webDir: Directory('${tmp.path}/web'),
+          deployDir: '${tmp.path}/deploy',
+          hostingOut: '${tmp.path}/hosting',
+          cspConnectExtra: 'https://t.example',
         ),
-        throwsA(isA<PostbuildException>()),
       );
+      expect(snapshot(), before);
+      expect(
+        Directory('${tmp.path}/web/canvaskit/$_rev/$_rev').existsSync(),
+        isFalse,
+      );
+    });
+
+    test(
+      'erneuter Build in dieselbe Ausgabe verschachtelt canvaskit nicht',
+      () {
+        void freshBuild(String js) {
+          write('web/flutter_bootstrap.js', _bootstrap());
+          write('web/main.dart.js', js);
+          write('web/canvaskit/canvaskit.wasm', 'ck-$js');
+          write('web/canvaskit/chromium/canvaskit.wasm', 'ck2-$js');
+        }
+
+        PostbuildOptions opts() => PostbuildOptions(
+          webDir: Directory('${tmp.path}/web'),
+          deployDir: '${tmp.path}/none',
+          targets: const <String>{},
+        );
+
+        freshBuild('v1');
+        write('web/canvaskit/${'0' * 40}/alt.wasm', 'alte Revision');
+        runPostbuild(opts());
+        freshBuild('v2');
+        runPostbuild(opts());
+        runPostbuild(opts());
+
+        final ck = Directory('${tmp.path}/web/canvaskit');
+        expect(
+          ck.listSync().map((e) => e.path.split(RegExp(r'[\\/]')).last),
+          <String>[_rev],
+        );
+        expect(
+          File('${ck.path}/$_rev/canvaskit.wasm').readAsStringSync(),
+          'ck-v2',
+        );
+        expect(
+          File('${ck.path}/$_rev/chromium/canvaskit.wasm').readAsStringSync(),
+          'ck2-v2',
+        );
+        expect(Directory('${ck.path}/$_rev/$_rev').existsSync(), isFalse);
+        final mains = Directory('${tmp.path}/web')
+            .listSync()
+            .map((e) => e.path.split(RegExp(r'[\\/]')).last)
+            .where((n) => n.startsWith('main.'))
+            .toList();
+        expect(mains, hasLength(1));
+        expect(
+          File('${tmp.path}/web/flutter_bootstrap.js').readAsStringSync(),
+          contains(mains.single),
+        );
+      },
+    );
+
+    test('erneuter Lauf nach neuen Dateien setzt eine neue Build-ID', () {
+      write('web/flutter_bootstrap.js', _bootstrap());
+      write('web/main.dart.js', 'js');
+      write('web/sw.js', "const BUILD_ID = '__BUILD_ID__';");
+      final opts = PostbuildOptions(
+        webDir: Directory('${tmp.path}/web'),
+        deployDir: '${tmp.path}/none',
+        targets: const <String>{},
+      );
+      runPostbuild(opts);
+      final first = File('${tmp.path}/web/sw.js').readAsStringSync();
+      write('web/assets/fonts/fallback/notosans/v1/a.woff2', 'font');
+      expect(hasFontFallback(Directory('${tmp.path}/web')), isTrue);
+      expect(() => runPostbuild(opts), throwsA(isA<PostbuildException>()));
+      write('web/assets/fonts/fallback/OFL.txt', 'OFL');
+      runPostbuild(opts);
+      final second = File('${tmp.path}/web/sw.js').readAsStringSync();
+      expect(second, matches(RegExp(r"^const BUILD_ID = '[0-9a-f]{12}';$")));
+      expect(second, isNot(first));
+    });
+
+    test('neues main.dart.* bei bearbeitetem Bootstrap ist ein Fehler', () {
+      write('web/flutter_bootstrap.js', _bootstrap());
+      write('web/main.dart.js', 'js');
+      final opts = PostbuildOptions(
+        webDir: Directory('${tmp.path}/web'),
+        deployDir: '${tmp.path}/none',
+        targets: const <String>{},
+      );
+      runPostbuild(opts);
+      write('web/main.dart.js', 'js2');
+      expect(() => runPostbuild(opts), throwsA(isA<PostbuildException>()));
     });
   });
 
@@ -280,6 +379,190 @@ void main() {
       expect(
         RegExp(r"script-src[^;]*'unsafe-inline'").hasMatch(nginx),
         isFalse,
+      );
+    });
+  });
+
+  group('Sitemap lastmod (SEO-03)', () {
+    test('setzt jedes lastmod auf das Build-Datum, idempotent', () {
+      const xml =
+          '<url><loc>a</loc><lastmod>2020-01-01</lastmod></url>'
+          '<url><lastmod>x</lastmod></url>';
+      final date = DateTime.utc(2026, 11, 19, 23, 59);
+      final once = renderSitemapLastmod(xml, date);
+      expect(once, contains('<lastmod>2026-11-19</lastmod>'));
+      expect(once, isNot(contains('2020-01-01')));
+      expect(renderSitemapLastmod(once, date), once);
+    });
+
+    test('SOURCE_DATE_EPOCH bestimmt das Datum', () {
+      expect(
+        buildDate(<String, String>{'SOURCE_DATE_EPOCH': '1795046400'}),
+        DateTime.utc(2026, 11, 19),
+      );
+    });
+
+    test('eingecheckte Sitemap: lastmod, kein hreflang en', () {
+      final xml = File('web/sitemap.xml').readAsStringSync();
+      expect(xml, contains('<lastmod>'));
+      expect(xml, isNot(contains('hreflang="en"')));
+      expect(
+        File('web/index.html').readAsStringSync(),
+        isNot(contains('hreflang="en"')),
+      );
+    });
+  });
+
+  group('App-Links .well-known (L3-01)', () {
+    late Directory web;
+    const fp =
+        'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:'
+        'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99';
+    setUp(() {
+      web = Directory.systemTemp.createTempSync('applinks');
+      Directory('${web.path}/.well-known').createSync();
+      for (final name in appLinkTemplates.keys) {
+        File('web/.well-known/$name').copySync('${web.path}/.well-known/$name');
+      }
+    });
+    tearDown(() => web.deleteSync(recursive: true));
+
+    test('Vorlagen im Repo sind gueltiges JSON mit Platzhalter', () {
+      for (final e in appLinkTemplates.entries) {
+        final text = File('web/.well-known/${e.key}').readAsStringSync();
+        expect(text, contains('{{${e.value}}}'));
+        expect(() => jsonDecode(text), returnsNormally);
+      }
+    });
+
+    test('fuellt beide Dateien aus der Umgebung, gueltiges JSON', () {
+      final done = renderAppLinks(
+        web,
+        const <String, dynamic>{},
+        strict: true,
+        env: <String, String>{
+          'ANDROID_CERT_SHA256': '${fp.toLowerCase()}, $fp',
+          'APPLE_TEAM_ID': 'ABCDE12345',
+        },
+      );
+      expect(done, hasLength(2));
+      final links = jsonDecode(
+        File('${web.path}/.well-known/assetlinks.json').readAsStringSync(),
+      ) as List<dynamic>;
+      expect(
+        (links.single
+            as Map<String, dynamic>)['target']['sha256_cert_fingerprints'],
+        <String>[fp],
+        reason: 'doppelter Fingerprint (Gross/klein) nur einmal',
+      );
+      final aasa = jsonDecode(
+        File('${web.path}/.well-known/apple-app-site-association')
+            .readAsStringSync(),
+      ) as Map<String, dynamic>;
+      expect(aasa['applinks']['details'][0]['appIDs'], <String>[
+        'ABCDE12345.de.linefm.app',
+      ]);
+    });
+
+    test('App-Signatur und Upload-Schluessel: beide Fingerprints (R4-C5)', () {
+      final upload = List<String>.filled(32, 'CD').join(':');
+      renderAppLinks(
+        web,
+        const <String, dynamic>{},
+        strict: true,
+        env: <String, String>{
+          'ANDROID_CERT_SHA256': ' $fp ,${upload.toLowerCase()},',
+          'APPLE_TEAM_ID': 'ABCDE12345',
+        },
+      );
+      final links = jsonDecode(
+        File('${web.path}/.well-known/assetlinks.json').readAsStringSync(),
+      ) as List<dynamic>;
+      expect(
+        (links.single
+            as Map<String, dynamic>)['target']['sha256_cert_fingerprints'],
+        <String>[fp, upload],
+      );
+    });
+
+    test('Konfiguration als Quelle, Umgebung hat Vorrang', () {
+      renderAppLinks(
+        web,
+        const <String, dynamic>{'APPLE_TEAM_ID': 'ZZZZZZZZZZ'},
+        strict: false,
+        env: <String, String>{'APPLE_TEAM_ID': 'ABCDE12345'},
+      );
+      expect(
+        File('${web.path}/.well-known/apple-app-site-association')
+            .readAsStringSync(),
+        contains('ABCDE12345.de.linefm.app'),
+      );
+    });
+
+    test('ohne Werte: Warnung und Datei entfernt', () {
+      final done = renderAppLinks(
+        web,
+        const <String, dynamic>{},
+        strict: false,
+        env: const <String, String>{'APPLE_TEAM_ID': '  '},
+      );
+      expect(done, isEmpty);
+      expect(
+        File('${web.path}/.well-known/assetlinks.json').existsSync(),
+        isFalse,
+      );
+      expect(
+        File('${web.path}/.well-known/apple-app-site-association').existsSync(),
+        isFalse,
+      );
+    });
+
+    test('ohne Werte mit --strict: Abbruch', () {
+      expect(
+        () => renderAppLinks(
+          web,
+          const <String, dynamic>{},
+          strict: true,
+          env: const <String, String>{},
+        ),
+        throwsA(isA<PostbuildException>()),
+      );
+    });
+
+    test('falsches Format ist immer ein Fehler', () {
+      expect(
+        () => renderAppLinks(
+          web,
+          const <String, dynamic>{},
+          strict: false,
+          env: const <String, String>{
+            'ANDROID_CERT_SHA256': 'AA:BB',
+            'APPLE_TEAM_ID': 'ABCDE12345',
+          },
+        ),
+        throwsA(isA<PostbuildException>()),
+      );
+    });
+
+    test('Hosting-Ziele liefern die AASA als application/json', () {
+      expect(
+        File('deploy/nginx/snippets/linefm-locations.conf').readAsStringSync(),
+        contains('location = /.well-known/apple-app-site-association'),
+      );
+      expect(
+        File('deploy/plesk/nginx-additional.conf').readAsStringSync(),
+        contains('location = /.well-known/apple-app-site-association'),
+      );
+      expect(
+        File('deploy/plesk/.htaccess').readAsStringSync(),
+        contains('ForceType application/json'),
+      );
+      expect(
+        File('deploy/cloudflare/_headers').readAsStringSync(),
+        contains(
+          '/.well-known/apple-app-site-association\n'
+          '  Content-Type: application/json',
+        ),
       );
     });
   });

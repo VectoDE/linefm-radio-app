@@ -227,6 +227,12 @@ jobs:
           flutter build web --release --wasm --no-web-resources-cdn
           --dart-define-from-file=config/app.json --base-href /
 
+      - name: Ersatzschriften selbst hosten (L14)
+        run: |
+          # Noto-Fallback nach build/web/assets/fonts/fallback/ (Pruefsummen aus tool/font_fallback.lock.json).
+          cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
+          dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
+
       - name: Postbuild (falls vorhanden)
         run: |
           if [ -f tool/web_postbuild.dart ]; then

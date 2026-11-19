@@ -1,6 +1,8 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
+import 'package:linefm_radio/ui/widgets/named_dialog.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Ein Eintrag im "Song oeffnen in ..."-Sheet.
@@ -90,11 +92,18 @@ class _MusicRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.linefm;
-    return Semantics(
-      button: true,
-      label: item.label,
-      excludeSemantics: true,
-      onTap: onTap,
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
+        button: true,
+        label: item.label,
+        excludeSemantics: true,
+        onTap: onTap,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: FocusRing(
         borderRadius: LinefmMetrics.radiusPopover,
         child: InkWell(
@@ -155,13 +164,16 @@ Future<void> showMusicLinksSheet(
         top: Radius.circular(LinefmMetrics.radiusCover),
       ),
     ),
-    builder: (sheetContext) => MusicLinksSheet(
-      title: title,
-      items: items,
-      onSelected: (item) {
-        Navigator.of(sheetContext).pop();
-        item.onOpen();
-      },
+    builder: (sheetContext) => NamedSheet(
+      label: title,
+      child: MusicLinksSheet(
+        title: title,
+        items: items,
+        onSelected: (item) {
+          Navigator.of(sheetContext).pop();
+          item.onOpen();
+        },
+      ),
     ),
   );
 }

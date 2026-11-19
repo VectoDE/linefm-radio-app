@@ -3,6 +3,7 @@ import 'package:linefm_radio/features/legal/external_link.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Adresse des RadioGruppe-Logos. Wird wie in der Web-App zur Laufzeit von
@@ -38,11 +39,19 @@ class RadioGruppeCredit extends ConsumerWidget {
           style: LinefmText.listTitle.copyWith(color: c.muted, fontSize: 13),
         ),
         const SizedBox(height: 12),
-        Semantics(
-          link: true,
-          button: true,
-          label: l10n.radioGruppeOpen,
-          excludeSemantics: true,
+        SemanticFocus(
+          builder: (_, focused, onFocus, child) => Semantics(
+            container: true,
+            link: true,
+            linkUrl: Uri.parse(radioGruppeUrl),
+            label: l10n.radioGruppeOpen,
+            excludeSemantics: true,
+            onTap: () => openExternalUrl(context, ref, radioGruppeUrl),
+            focusable: true,
+            focused: focused,
+            onFocus: onFocus,
+            child: child,
+          ),
           child: Material(
             type: MaterialType.transparency,
             child: InkWell(
@@ -82,17 +91,22 @@ class _Logo extends StatelessWidget {
         fontSize: 16,
       ),
     );
-    final image = Image.network(
-      radioGruppeLogoUrl,
-      width: 190,
-      height: 48,
-      fit: BoxFit.contain,
-      alignment: Alignment.centerLeft,
-      excludeFromSemantics: true,
-      webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
-      loadingBuilder: (context, child, progress) =>
-          progress == null ? child : const SizedBox(width: 190, height: 48),
-      errorBuilder: (context, error, stack) => fallback,
+    // Im Web kann das Bild als <img>-Plattformansicht landen, und die hat
+    // einen eigenen Fokusknoten: ein zweiter, unsichtbarer Tab-Stopp im Link.
+    // Das Logo ist Dekoration, der Link drumherum traegt Fokus und Label.
+    final image = ExcludeFocus(
+      child: Image.network(
+        radioGruppeLogoUrl,
+        width: 190,
+        height: 48,
+        fit: BoxFit.contain,
+        alignment: Alignment.centerLeft,
+        excludeFromSemantics: true,
+        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+        loadingBuilder: (context, child, progress) =>
+            progress == null ? child : const SizedBox(width: 190, height: 48),
+        errorBuilder: (context, error, stack) => fallback,
+      ),
     );
     if (!light) return image;
     return DecoratedBox(

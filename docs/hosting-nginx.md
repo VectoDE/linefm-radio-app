@@ -36,14 +36,18 @@ ssh deploy@server "ln -sfn /var/www/linefm-app/releases/$V /var/www/linefm-app/c
 
 Der GitHub-Workflow `deploy-web.yml` macht genau diese Schritte per SSH (Ziel `ssh`, Umgebung `production`). Dafür trägt der Betreiber die Secrets `DEPLOY_SSH_KEY`, `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_KNOWN_HOSTS` und die Variable `DEPLOY_PATH` ein, optional `DEPLOY_PORT` und `DEPLOY_RELOAD_COMMAND` (z. B. `sudo systemctl reload nginx`). Die Header-Snippets legt der Workflow unter `$DEPLOY_PATH/hosting/` ab, sie müssen bei Änderungen von Hand nach `/etc/nginx/snippets/`. Details in [secrets.md](secrets.md).
 
+## OCSP-Stapling (bewusst aus)
+
+`linefm-app.conf` setzt `ssl_stapling off`. Let's Encrypt hat die OCSP-Dienste 2025 abgeschaltet und setzt auf Zertifikatssperrlisten (CRL). Bei Zertifikaten ohne OCSP-Adresse ist `ssl_stapling on` wirkungslos und erzeugt nur Warnungen im Log. Stapling nur einschalten, wenn die Zertifizierungsstelle des eigenen Zertifikats noch OCSP anbietet (die Zeilen dazu stehen als Kommentar in der Datei). Bitte vor dem Ausrollen gegen die aktuelle Ankündigung von Let's Encrypt prüfen.
+
 ## Brotli (optional)
 
-Mit dem Modul `libnginx-mod-http-brotli-filter` (Debian/Ubuntu-Paket) in `linefm-locations.conf` unter `gzip_types` ergänzen:
+Mit dem Modul `libnginx-mod-http-brotli-filter` (Debian/Ubuntu-Paket) in `linefm-locations.conf` unter `gzip_types` ergänzen. Die Typliste muss dieselben Typen enthalten wie `gzip_types`, vor allem `application/octet-stream` (NOTICES, AssetManifest.bin) und Schriften:
 
 ```nginx
 brotli on;
 brotli_comp_level 5;
-brotli_types text/plain text/css text/xml application/xml application/json application/javascript text/javascript application/manifest+json application/wasm image/svg+xml;
+brotli_types text/plain text/css text/xml application/xml application/json application/javascript text/javascript application/manifest+json application/wasm image/svg+xml application/octet-stream font/otf font/ttf application/vnd.ms-fontobject;
 ```
 
 ## Traefik vor diesem nginx
@@ -51,6 +55,8 @@ brotli_types text/plain text/css text/xml application/xml application/json appli
 Siehe [hosting-traefik.md](hosting-traefik.md), Abschnitt "Traefik vor nativem nginx".
 
 ## Prüfen
+
+`nginx -t` stand in der Entwicklungsumgebung nicht zur Verfügung. Die Konfigurationen sind von Hand gegengelesen, nicht von nginx geprüft. Auf dem Server vor jedem Reload `nginx -t` laufen lassen.
 
 ```bash
 sudo nginx -t

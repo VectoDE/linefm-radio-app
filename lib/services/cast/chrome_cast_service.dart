@@ -63,6 +63,7 @@ class ChromeCastService implements CastService {
       devices: List<CastDevice>.unmodifiable(_backend.devices),
       connectedDevice: connected,
       connecting: link.link == CastLink.connecting,
+      station: connected == null ? null : _castStation,
     );
   }
 
@@ -119,6 +120,7 @@ class ChromeCastService implements CastService {
     _desired = null;
     _castStation = null;
     _loaded = null;
+    _refresh();
     try {
       await _backend.endSession();
     } on Object catch (e) {
@@ -131,7 +133,23 @@ class ChromeCastService implements CastService {
     _castStation = station;
     _desired = (station, track);
     _force = true;
+    _refresh();
     return _pump();
+  }
+
+  @override
+  Future<void> stopMedia() async {
+    _desired = null;
+    _castStation = null;
+    _force = false;
+    _loaded = null;
+    _refresh();
+    if (_backend.link.link != CastLink.connected) return;
+    try {
+      await _backend.stopMedia();
+    } on Object catch (e) {
+      logError('Cast-Wiedergabe nicht gestoppt', e);
+    }
   }
 
   @override
@@ -174,6 +192,8 @@ class ChromeCastService implements CastService {
           continue;
         }
         if (_disposed || !_state.isCasting) return;
+        // Inzwischen gestoppt (stopMedia): nichts mehr laden.
+        if (_castStation != station) continue;
         final media = buildCastMedia(station, track, url);
         if (!force && media == _loaded) continue;
         _loaded = media;

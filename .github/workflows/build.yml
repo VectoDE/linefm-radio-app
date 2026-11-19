@@ -151,10 +151,12 @@ jobs:
           may_sign=false
           if [ "$EVENT_NAME" != "pull_request" ]; then may_sign=true; fi
 
-          # Endgueltige Releases (Tag ohne Suffix) brauchen vollstaendige Rechtstexte;
-          # Vorabversionen und Dev-Builds melden offene Platzhalter nur.
+          # Jeder Tag-Build (prod) braucht vollstaendige Rechtstexte (N7): release.yml
+          # laedt auch Vorabversionen (vX.Y.Z-rc.N) zu Google Play und Snap hoch, also
+          # gilt dieselbe Bedingung wie fuer die Store-Uploads. Dev-Builds melden
+          # offene Platzhalter nur.
           legal_strict=false
-          if [ "$app_env" = "prod" ] && [[ "$label" != *-* ]]; then legal_strict=true; fi
+          if [ "$app_env" = "prod" ]; then legal_strict=true; fi
 
           {
             echo "legal_strict=$legal_strict"
@@ -232,6 +234,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
+      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
+      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
+      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
       # Der Release-Build laedt NDK und CMake nach; ohne Aufraeumen lief der Runner
       # voll und wurde abgebrochen ("runner has received a shutdown signal").
@@ -346,6 +356,14 @@ jobs:
         with:
           persist-credentials: false
 
+      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
+      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
+      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
+      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 
@@ -371,12 +389,26 @@ jobs:
           flutter build web $FLUTTER_BUILD_FLAGS --wasm --no-web-resources-cdn --base-href /
           --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
+      - name: Ersatzschriften selbst hosten (L14)
+        run: |
+          # Noto-Fallback nach build/web/assets/fonts/fallback/ (Pruefsummen aus tool/font_fallback.lock.json).
+          cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
+          dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
+
       - name: Postbuild (Hashes, Header-Dateien)
+        env:
+          LEGAL_STRICT: ${{ needs.meta.outputs.legal_strict }}
+          # App-Links (L3-01): Play-Signaturzertifikat (SHA-256) und Apple-Team-ID sind
+          # oeffentliche Werte; ohne sie entfernt der Postbuild die Vorlagen (Warnung).
+          ANDROID_CERT_SHA256: ${{ vars.ANDROID_CERT_SHA256 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           if [ -f tool/web_postbuild.dart ]; then
+            strict=""
+            if [ "$LEGAL_STRICT" = "true" ]; then strict="--strict"; fi
             # Ausserhalb des Pakets starten (nur dart:-Importe), sonst baut "dart run" die Native-Asset-Hooks (GTK).
             cp tool/web_postbuild.dart "$RUNNER_TEMP/web_postbuild.dart"
-            dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
+            dart run "$RUNNER_TEMP/web_postbuild.dart" build/web $strict
           else
             echo "- Web: tool/web_postbuild.dart fehlt (P22), Postbuild uebersprungen" >> "$GITHUB_STEP_SUMMARY"
           fi
@@ -422,6 +454,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
+      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
+      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
+      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
       - name: Systempakete
         uses: ./.github/actions/linux-deps
@@ -487,6 +527,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
+      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
+      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
+      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
       - name: Rust-Toolchain (fuer smtc_windows)
         shell: bash
@@ -663,6 +711,14 @@ jobs:
         with:
           persist-credentials: false
 
+      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
+      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
+      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
+      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 
@@ -790,6 +846,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
+      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
+      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
+      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter

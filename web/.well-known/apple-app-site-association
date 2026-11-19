@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["{{APPLE_TEAM_ID}}.de.linefm.app"],
+        "components": [
+          {
+            "/": "/",
+            "?": { "station": "?*" },
+            "comment": "Geteilte Sender-Links https://app.linefm.de/?station=SLUG"
+          }
+        ]
+      }
+    ]
+  }
+}

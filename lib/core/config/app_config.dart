@@ -1,3 +1,6 @@
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
+
 /// Build-Konfiguration (Spec 2.4). Werte kommen per
 /// --dart-define-from-file=config/app.json; fehlende Werte bleiben leer.
 class AppConfig {
@@ -56,7 +59,19 @@ class AppConfig {
 
   bool get umamiConfigured => umamiUrl.isNotEmpty && umamiWebsiteId.isNotEmpty;
   bool get sentryConfigured => sentryDsn.isNotEmpty;
-  bool get firebaseConfigured => firebaseEnabled;
+
+  /// Firebase nur dort, wo `LinefmFirebase.supported` es zulaesst (Web,
+  /// Android, iOS, macOS). Auf Windows und Linux startet kein Firebase, also
+  /// duerfen Einwilligung und Datenschutzerklaerung dort auch keine Google-
+  /// bzw. USA-Angaben machen (R4-S05). Muss mit
+  /// `packages/linefm_firebase` gleich bleiben (Test in app_config_test).
+  static bool get firebasePlatformSupported =>
+      kIsWeb ||
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.macOS;
+
+  bool get firebaseConfigured => firebaseEnabled && firebasePlatformSupported;
 
   /// Ist false: kein Einwilligungsdialog, keine Sinks, NoOp-Hub.
   bool get telemetryConfigured =>

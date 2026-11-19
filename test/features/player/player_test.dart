@@ -150,7 +150,7 @@ void main() {
       expect(find.text('1234 hören gerade zu'), findsOneWidget);
       expect(find.bySemanticsLabel('Stream starten'), findsOneWidget);
       expect(find.bySemanticsLabel('Song merken'), findsOneWidget);
-      expect(find.bySemanticsLabel('Zufällige Station abspielen'), findsOne);
+      expect(find.bySemanticsLabel('Zufälligen Sender abspielen'), findsOne);
       expect(find.bySemanticsLabel('Song öffnen in …'), findsOneWidget);
       expect(find.bySemanticsLabel('Song teilen'), findsOneWidget);
     });
@@ -203,7 +203,7 @@ void main() {
       await _pump(tester, h);
       final before = h.container.read(activeStationProvider);
 
-      await tester.tap(find.bySemanticsLabel('Zufällige Station abspielen'));
+      await tester.tap(find.bySemanticsLabel('Zufälligen Sender abspielen'));
       await tester.pump(const Duration(milliseconds: 400));
 
       expect(h.container.read(activeStationProvider), isNot(before));
@@ -302,6 +302,37 @@ void main() {
           'Player schließen',
         ]),
       );
+      handle.dispose();
+    });
+
+    testWidgets('Jeder Knopf ist ein eigener, fokussierbarer Knoten (NEU-4)', (
+      tester,
+    ) async {
+      final h = _Harness();
+      addTearDown(h.container.dispose);
+      final handle = tester.ensureSemantics();
+      await _pump(tester, h);
+
+      // Im Web wird nur ein eigener, fokussierbarer Semantik-Knoten zu einem
+      // DOM-Element. Fehlt er, bleibt der Browser-Fokus beim Tabben auf dem
+      // vorigen Knopf stehen (doppelter Tab-Stopp).
+      for (final label in <String>[
+        'Zufälligen Sender abspielen',
+        'Stream starten',
+        'Song merken',
+        'Song öffnen in …',
+        'Song teilen',
+      ]) {
+        final data = tester
+            .getSemantics(find.bySemanticsLabel(label))
+            .getSemanticsData();
+        expect(data.label, label, reason: '$label: eigener Knoten');
+        expect(
+          data.hasAction(SemanticsAction.focus),
+          isTrue,
+          reason: '$label: onFocus fuer den Browser-Fokus',
+        );
+      }
       handle.dispose();
     });
 

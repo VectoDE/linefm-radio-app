@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/ui/theme/contrast.dart';
@@ -57,6 +59,100 @@ void main() {
           greaterThanOrEqualTo(3),
         );
         expect(Contrast.ratio(track, c.background), greaterThanOrEqualTo(3));
+      });
+    }
+  });
+
+  // Ziel je Paar (R4-A): `text` und `tickerText` erreichen AAA (7:1), `muted`
+  // ist bewusst nur AA (4,5:1, Sekundaertext wie in der Web-App; Tabelle in
+  // lib/ui/theme/tokens.dart und docs/BARRIEREFREIHEIT.md).
+  group('Token-Kontraste nach Ziel (AAA wo vorgesehen)', () {
+    for (final entry in <String, LinefmColors>{
+      'dunkel': LinefmColors.dark,
+      'hell': LinefmColors.light,
+    }.entries) {
+      final c = entry.value;
+      final surfaces = <String, Color>{
+        'background': c.background,
+        'surface': c.surface,
+        'surfaceRaised': c.surfaceRaised,
+        'miniPlayerBg': Color.alphaBlend(c.miniPlayerBg, c.background),
+        'navBg': Color.alphaBlend(c.navBg, c.background),
+        'popoverBg': Color.alphaBlend(c.popoverBg, c.background),
+      };
+      test('text auf allen Flaechen >= 7:1 (${entry.key})', () {
+        for (final s in surfaces.entries) {
+          expect(
+            Contrast.ratio(c.text, s.value),
+            greaterThanOrEqualTo(Contrast.aaaText),
+            reason: 'text auf ${s.key}',
+          );
+        }
+      });
+      test('tickerText auf Grund und Karte >= 7:1 (${entry.key})', () {
+        for (final bg in <Color>[c.background, c.surface]) {
+          expect(
+            Contrast.ratio(c.tickerText, bg),
+            greaterThanOrEqualTo(Contrast.aaaText),
+          );
+        }
+      });
+      test('muted auf allen Flaechen >= 4,5:1, Ziel AA (${entry.key})', () {
+        for (final s in surfaces.entries) {
+          expect(
+            Contrast.ratio(c.muted, s.value),
+            greaterThanOrEqualTo(Contrast.aaText),
+            reason: 'muted auf ${s.key}',
+          );
+        }
+      });
+      test('onAccent auf accent >= 7:1 (${entry.key})', () {
+        expect(
+          Contrast.ratio(c.onAccent, c.accent),
+          greaterThanOrEqualTo(Contrast.aaaText),
+        );
+      });
+    }
+  });
+
+  // Statische Startseite (web/index.html, R4-E/R4-D3): gleiche Farben wie die
+  // Tokens, Fliesstext und `.muted` mit 7:1 in beiden Schemata.
+  group('Statische Web-Shell', () {
+    final html = File('web/index.html').readAsStringSync();
+    const marker = '@media (prefers-color-scheme: light) {';
+    final style = html.substring(html.indexOf('<style>'));
+    final light = style.substring(style.indexOf(marker));
+    final dark = style.substring(0, style.indexOf(marker));
+
+    Color css(String block, String pattern) {
+      final m = RegExp(pattern).firstMatch(block);
+      expect(m, isNotNull, reason: pattern);
+      return Color(int.parse('FF${m!.group(1)}', radix: 16));
+    }
+
+    const bg = r'html, body \{[^}]*background: #([0-9a-fA-F]{6})';
+    const fg = r'html, body \{[^}]*[^-]color: #([0-9a-fA-F]{6})';
+    const muted = r'\.muted \{ color: #([0-9a-fA-F]{6})';
+
+    for (final (name, block, tokens) in <(String, String, LinefmColors)>[
+      ('dunkel', dark, LinefmColors.dark),
+      ('hell', light, LinefmColors.light),
+    ]) {
+      test('Farben = Tokens ($name)', () {
+        expect(css(block, bg), tokens.background);
+        expect(css(block, fg), tokens.text);
+        expect(css(block, muted), tokens.tickerText);
+      });
+      test('.muted und Text >= 7:1 ($name)', () {
+        final b = css(block, bg);
+        expect(
+          Contrast.ratio(css(block, muted), b),
+          greaterThanOrEqualTo(Contrast.aaaText),
+        );
+        expect(
+          Contrast.ratio(css(block, fg), b),
+          greaterThanOrEqualTo(Contrast.aaaText),
+        );
       });
     }
   });

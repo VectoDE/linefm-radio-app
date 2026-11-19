@@ -37,7 +37,8 @@ abstract interface class PrefsStore {
   String? readCoverCache();
   Future<void> writeCoverCache(String json);
 
-  /// Speicher loeschen: setzt alles inklusive Bestaetigung zurueck.
+  /// Speicher loeschen: setzt alles inklusive Bestaetigung zurueck, ausser
+  /// "Cover laden: aus" (Datenschutz-Praeferenz, R3-P03).
   Future<void> clearAll();
 }
 
@@ -123,7 +124,8 @@ class InMemoryPrefsStore implements PrefsStore {
     _favorites = <Favorite>[];
     _favoriteStations = const <String>{};
     _volume = null;
-    _settings = const AppSettings();
+    // "Cover laden: aus" bleibt (wie SharedPrefsStore, R3-P03).
+    _settings = AppSettings(loadArtwork: _settings.loadArtwork);
     _lastStation = null;
     _alarms = <AlarmRule>[];
     _telemetry = null;

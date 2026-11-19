@@ -16,6 +16,10 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: scorecard-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   analysis:
     name: Scorecard-Analyse

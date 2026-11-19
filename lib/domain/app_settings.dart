@@ -9,6 +9,8 @@ class AppSettings {
     this.autoplay = true,
     this.closeToTray = true,
     this.themeMode = AppThemeMode.system,
+    this.loadArtwork = true,
+    this.keyboardShortcuts = true,
   });
 
   /// Tolerant: fehlende oder falsch typisierte Felder erhalten den Standard.
@@ -30,6 +32,8 @@ class AppSettings {
         (m) => m.name == theme,
         orElse: () => defaults.themeMode,
       ),
+      loadArtwork: flag('loadArtwork', defaults.loadArtwork),
+      keyboardShortcuts: flag('keyboardShortcuts', defaults.keyboardShortcuts),
     );
   }
 
@@ -46,18 +50,29 @@ class AppSettings {
   final bool closeToTray;
   final AppThemeMode themeMode;
 
+  /// Cover ueber die iTunes-Suche von Apple laden (L5). Aus: keine Anfrage
+  /// an Apple, der Player zeigt das Senderlogo.
+  final bool loadArtwork;
+
+  /// Ein-Zeichen-Tastenkuerzel (F, S, 1-6) aktiv (WCAG 2.1.4, A11Y-08).
+  final bool keyboardShortcuts;
+
   AppSettings copyWith({
     bool? marquee,
     bool? rememberVolume,
     bool? autoplay,
     bool? closeToTray,
     AppThemeMode? themeMode,
+    bool? loadArtwork,
+    bool? keyboardShortcuts,
   }) => AppSettings(
     marquee: marquee ?? this.marquee,
     rememberVolume: rememberVolume ?? this.rememberVolume,
     autoplay: autoplay ?? this.autoplay,
     closeToTray: closeToTray ?? this.closeToTray,
     themeMode: themeMode ?? this.themeMode,
+    loadArtwork: loadArtwork ?? this.loadArtwork,
+    keyboardShortcuts: keyboardShortcuts ?? this.keyboardShortcuts,
   );
 
   Map<String, Object?> toJson() => <String, Object?>{
@@ -66,6 +81,8 @@ class AppSettings {
     'autoplay': autoplay,
     'closeToTray': closeToTray,
     'themeMode': themeMode.name,
+    'loadArtwork': loadArtwork,
+    'keyboardShortcuts': keyboardShortcuts,
   };
 
   @override
@@ -75,9 +92,18 @@ class AppSettings {
       other.rememberVolume == rememberVolume &&
       other.autoplay == autoplay &&
       other.closeToTray == closeToTray &&
-      other.themeMode == themeMode;
+      other.themeMode == themeMode &&
+      other.loadArtwork == loadArtwork &&
+      other.keyboardShortcuts == keyboardShortcuts;
 
   @override
-  int get hashCode =>
-      Object.hash(marquee, rememberVolume, autoplay, closeToTray, themeMode);
+  int get hashCode => Object.hash(
+    marquee,
+    rememberVolume,
+    autoplay,
+    closeToTray,
+    themeMode,
+    loadArtwork,
+    keyboardShortcuts,
+  );
 }

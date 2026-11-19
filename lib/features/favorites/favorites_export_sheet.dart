@@ -7,6 +7,7 @@ import 'package:linefm_radio/domain/favorites/favorites_export.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Export-Einstieg: Auswahl CSV oder Text, danach uebergibt der
@@ -33,7 +34,10 @@ Future<void> startFavoritesExport(BuildContext context, WidgetRef ref) async {
         top: Radius.circular(LinefmMetrics.radiusMiniPlayer),
       ),
     ),
-    builder: (context) => const _ExportSheet(),
+    builder: (context) => NamedSheet(
+      label: AppLocalizations.of(context).favoritesExport,
+      child: const _ExportSheet(),
+    ),
   );
   if (format == null) return;
 

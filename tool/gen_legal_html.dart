@@ -24,7 +24,27 @@ import 'dart:io';
 /// Bekannte Anbieter-Schluessel fuer `requires`.
 const Set<String> telemetryProviders = <String>{'umami', 'sentry', 'firebase'};
 
-final RegExp _placeholder = RegExp(r'\{\{(\w+)\}\}');
+/// Lockeres Platzhalter-Muster, Zeichen fuer Zeichen gleich mit
+/// `PLACEHOLDER_PATTERN` in tool/legal_store_check.py (ein Test vergleicht
+/// beide). Erkennt neben `{{NAME}}` auch `{{ NAME }}`, `{{A-B}}`, Umlaute und
+/// vollbreite Klammern (U+FF5B/U+FF5D), damit keine verschriebene Angabe
+/// durch die Pruefung rutscht. Gruppe 1 ist der Name (vor dem Trimmen).
+const String placeholderPattern =
+    r'[{\uFF5B][ \t\u00A0\u3000]*[{\uFF5B][ \t\u00A0\u3000]*'
+    r'([^{}\uFF5B\uFF5D\r\n]{1,80}?)'
+    r'[ \t\u00A0\u3000]*[}\uFF5D][ \t\u00A0\u3000]*[}\uFF5D]';
+
+final RegExp _placeholder = RegExp(placeholderPattern);
+
+/// Name eines Treffers ohne Leerzeichen am Rand.
+String _name(Match m) => m.group(1)!.trim();
+
+/// Leer-, Trenn- und unsichtbare Formatzeichen (Unicode Zs, Cf, Whitespace).
+final RegExp _invisible = RegExp(r'[\p{Cf}\p{Zs}\s]', unicode: true);
+
+/// Hat [value] sichtbaren Inhalt (nach Entfernen von Cf/Zs/Whitespace)?
+bool hasVisibleContent(String value) =>
+    value.replaceAll(_invisible, '').isNotEmpty;
 
 /// Weitere Dateien, die mit --strict keine Platzhalter mehr haben duerfen.
 const List<String> strictFiles = <String>[
@@ -64,13 +84,23 @@ bool requirementMet(Object? requires, Set<String> providers) {
   return true;
 }
 
-/// Nur Werte mit Inhalt: leere oder nur aus Leerzeichen bestehende Werte
-/// zaehlen als nicht gesetzt (der Platzhalter bleibt offen und markiert).
+/// Nur Werte mit Inhalt: leere oder nur aus Leer- und unsichtbaren
+/// Formatzeichen (Unicode Cf, Zs, z. B. U+200B, U+FEFF, U+00A0) bestehende
+/// Werte zaehlen als nicht gesetzt (der Platzhalter bleibt offen und
+/// markiert).
 Map<String, String> nonBlankValues(Map<String, String> values) =>
     <String, String>{
       for (final MapEntry<String, String> e in values.entries)
-        if (e.value.trim().isNotEmpty) e.key: e.value,
+        if (hasVisibleContent(e.value)) e.key: e.value,
     };
+
+/// Werte aus einem dekodierten JSON-Objekt: nur nicht-leere Strings zaehlen
+/// (Zahlen, null, Listen usw. bleiben offen, statt als "null" zu gelten).
+Map<String, String> stringValues(Map<String, Object?> decoded) =>
+    nonBlankValues(<String, String>{
+      for (final MapEntry<String, Object?> e in decoded.entries)
+        if (e.value is String) e.key: e.value! as String,
+    });
 
 /// Ist der Platzhalter [name] bei den aktiven [providers] Pflicht?
 ///
@@ -103,19 +133,19 @@ List<String> requiredOpen(
 
 /// Alle Platzhalter-Namen in [text].
 Set<String> findPlaceholders(String text) =>
-    _placeholder.allMatches(text).map((Match m) => m.group(1)!).toSet();
+    _placeholder.allMatches(text).map(_name).toSet();
 
 /// Ersetzt bekannte Platzhalter; unbekannte bleiben stehen.
 String substitute(String text, Map<String, String> values) =>
     text.replaceAllMapped(
       _placeholder,
-      (Match m) => values[m.group(1)] ?? m.group(0)!,
+      (Match m) => values[_name(m)] ?? m.group(0)!,
     );
 
 /// Wie [substitute], aber fuer Rohtext einer JSON-Datei (Werte werden escaped).
 String substituteJsonText(String raw, Map<String, String> values) =>
     raw.replaceAllMapped(_placeholder, (Match m) {
-      final String? v = values[m.group(1)];
+      final String? v = values[_name(m)];
       if (v == null) return m.group(0)!;
       final String encoded = jsonEncode(v);
       return encoded.substring(1, encoded.length - 1);
@@ -134,7 +164,7 @@ String inlineHtml(String text, Map<String, String> values) {
   int last = 0;
   for (final Match m in _placeholder.allMatches(text)) {
     out.write(escapeHtml(text.substring(last, m.start)));
-    final String? v = values[m.group(1)];
+    final String? v = values[_name(m)];
     out.write(
       v != null
           ? escapeHtml(v)
@@ -232,7 +262,10 @@ String _blockHtml(Map<String, Object?> b, Map<String, String> values) {
           .join('\n');
       return '<ul>\n$items\n</ul>';
     case 'link':
-      final String url = substitute('${b['url'] ?? ''}', values);
+      final String url = substitute('${b['url'] ?? ''}', values).trim();
+      // Nur http(s) und mailto werden zum Link (kein javascript:, data:, ...);
+      // alles andere, auch ein offener Platzhalter, bleibt Text.
+      if (!isSafeLinkUrl(url)) return '<p>${inlineHtml(text, values)}</p>';
       return '<p><a href="${escapeHtml(url)}" rel="noopener noreferrer">'
           '${inlineHtml(text, values)}</a></p>';
     case 'mail':
@@ -245,6 +278,46 @@ String _blockHtml(Map<String, Object?> b, Map<String, String> values) {
     default:
       throw FormatException('Unbekannter Blocktyp: ${b['type']}');
   }
+}
+
+/// Erlaubte Link-Ziele in Rechtstexten: absolute http(s)-Adressen mit Host
+/// und mailto.
+bool isSafeLinkUrl(String url) {
+  final Uri? uri = Uri.tryParse(url);
+  if (uri == null) return false;
+  final String scheme = uri.scheme.toLowerCase();
+  if (scheme == 'mailto') return uri.path.isNotEmpty;
+  return (scheme == 'https' || scheme == 'http') && uri.host.isNotEmpty;
+}
+
+/// Prueft `--base-url`: absolute http(s)-Adresse ohne Anfrage und Fragment.
+String checkedBaseUrl(String raw) {
+  final Uri? uri = Uri.tryParse(raw.trim());
+  if (uri == null ||
+      !(uri.scheme == 'https' || uri.scheme == 'http') ||
+      uri.host.isEmpty ||
+      uri.hasQuery ||
+      uri.hasFragment) {
+    throw FormatException('--base-url muss eine http(s)-Adresse sein: $raw');
+  }
+  return raw.trim();
+}
+
+/// Liest `--providers` und lehnt unbekannte Anbieter ab (wie
+/// legal_store_check.py).
+Set<String> parseProviders(String raw) {
+  final Set<String> providers = raw
+      .split(',')
+      .map((String s) => s.trim())
+      .where((String s) => s.isNotEmpty)
+      .toSet();
+  final Set<String> unknown = providers.difference(telemetryProviders);
+  if (unknown.isNotEmpty) {
+    throw FormatException(
+      'unbekannte Anbieter: ${(unknown.toList()..sort()).join(", ")}',
+    );
+  }
+  return providers;
 }
 
 /// Rendert eine komplette HTML-Seite.
@@ -294,7 +367,7 @@ String renderPage(
 <body>
 <!-- ENTWURF: Rechtstext muss vor Veroeffentlichung anwaltlich geprueft werden. -->
 <header class="site-header">
-<a class="brand" href="$base/">${ui['siteName']}</a>
+<a class="brand" href="${escapeHtml(base)}/">${ui['siteName']}</a>
 <nav aria-label="${ui['nav']}">
 <a href="${pagePath('impressum', lang)}"${kind == 'impressum' ? ' aria-current="page"' : ''}>${ui['imprint']}</a>
 <a href="${pagePath('datenschutz', lang)}"${kind == 'datenschutz' ? ' aria-current="page"' : ''}>${ui['privacy']}</a>
@@ -304,7 +377,7 @@ String renderPage(
 <main>
 $body
 <p class="meta">${ui['updated']}: ${escapeHtml(updated)}</p>
-<p><a href="$base/">${ui['home']}</a></p>
+<p><a href="${escapeHtml(base)}/">${ui['home']}</a></p>
 </main>
 </body>
 </html>
@@ -371,9 +444,7 @@ Map<String, String> _loadValues(String? path) {
   if (decoded is! Map<String, Object?>) {
     throw const FormatException('--values muss ein JSON-Objekt sein.');
   }
-  return decoded.map(
-    (String k, Object? v) => MapEntry<String, String>(k, '$v'),
-  );
+  return stringValues(decoded);
 }
 
 String? _arg(List<String> args, String name) {
@@ -392,12 +463,16 @@ void _write(String path, String content) {
 }
 
 Future<void> main(List<String> args) async {
-  final Set<String> providers = (_arg(args, 'providers') ?? '')
-      .split(',')
-      .map((String s) => s.trim())
-      .where((String s) => s.isNotEmpty)
-      .toSet();
-  final String baseUrl = _arg(args, 'base-url') ?? 'https://app.linefm.de';
+  final Set<String> providers;
+  final String baseUrl;
+  try {
+    providers = parseProviders(_arg(args, 'providers') ?? '');
+    baseUrl = checkedBaseUrl(_arg(args, 'base-url') ?? 'https://app.linefm.de');
+  } on FormatException catch (e) {
+    stderr.writeln('FEHLER: ${e.message}');
+    exitCode = 2;
+    return;
+  }
   final String out = _arg(args, 'out') ?? 'web';
   final Map<String, String> values = nonBlankValues(
     _loadValues(_arg(args, 'values')),

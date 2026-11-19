@@ -14,7 +14,13 @@ Regeln wie in gen_legal_html.dart --strict:
     traegt. Nicht registrierte Platzhalter sind ebenfalls Pflicht.
   - "required_if" (z. B. "telemetry", "umami") macht eine optionale Angabe zur
     Pflicht, sobald der Anbieter aktiv ist (--providers=umami,sentry,firebase).
-  - Leere oder nur aus Leerzeichen bestehende Werte gelten als offen.
+  - Als Wert zaehlen nur nicht-leere JSON-Strings. Zahlen, null, Listen usw.
+    und Werte, die nach Entfernen von Leer- und unsichtbaren Formatzeichen
+    (Unicode Cf, Zs, z. B. U+200B, U+FEFF, U+00A0) leer sind, gelten als offen.
+  - Platzhalter werden locker erkannt (PLACEHOLDER_PATTERN, identisch in
+    gen_legal_html.dart): {{ X }}, {{X-Y}}, Umlaute, Vollbreite (U+FF5B/U+FF5D).
+    Die Rechtstexte werden als JSON dekodiert geprueft, damit auch
+    Escapes wie \\u007b\\u007bNAME\\u007d\\u007d auffallen.
   - Die Dateien aus STRICT_FILES (Sicherheitskontakt, Verhaltenskodex,
     Barrierefreiheit) duerfen gar keine Platzhalter mehr enthalten.
 
@@ -28,10 +34,19 @@ import json
 import os
 import re
 import sys
+import unicodedata
 import zipfile
 from pathlib import Path
 
-PLACEHOLDER = re.compile(r"\{\{(\w+)\}\}")
+# Gleiches Muster wie placeholderPattern in tool/gen_legal_html.dart (ein Test
+# vergleicht beide). Erkennt bewusst mehr als die gueltige Schreibweise {{NAME}}:
+# Leerzeichen innen, Bindestriche, Umlaute und vollbreite Klammern.
+PLACEHOLDER_PATTERN = (
+    r"[{\uFF5B][ \t\u00A0\u3000]*[{\uFF5B][ \t\u00A0\u3000]*"
+    r"([^{}\uFF5B\uFF5D\r\n]{1,80}?)"
+    r"[ \t\u00A0\u3000]*[}\uFF5D][ \t\u00A0\u3000]*[}\uFF5D]"
+)
+PLACEHOLDER = re.compile(PLACEHOLDER_PATTERN)
 KINDS = ("impressum", "datenschutz")
 LANGS = ("de", "en")
 AAB_PREFIX = "base/assets/flutter_assets/assets/legal"
@@ -77,8 +92,47 @@ def is_required(name: str, registry: dict[str, object], providers: set[str]) -> 
     return cond is not None and requirement_met(cond, providers)
 
 
-def non_blank(values: dict[str, str]) -> dict[str, str]:
-    return {k: v for k, v in values.items() if v.strip()}
+def visible(value: str) -> str:
+    """Wert ohne Leer- und Formatzeichen (Unicode Cf, Zs) und Whitespace."""
+    return "".join(
+        ch for ch in value if not ch.isspace() and unicodedata.category(ch) not in ("Cf", "Zs")
+    )
+
+
+def non_blank(values: dict[str, object]) -> dict[str, str]:
+    """Nur nicht-leere JSON-Strings zaehlen als gesetzt."""
+    return {k: v for k, v in values.items() if isinstance(v, str) and visible(v)}
+
+
+def names(text: str) -> set[str]:
+    """Namen aller (auch locker geschriebenen) Platzhalter in text."""
+    return {m.group(1).strip() for m in PLACEHOLDER.finditer(text)}
+
+
+def json_strings(node: object) -> list[str]:
+    """Alle Strings (Werte und Schluessel) eines dekodierten JSON-Dokuments."""
+    if isinstance(node, str):
+        return [node]
+    if isinstance(node, dict):
+        out: list[str] = []
+        for k, v in node.items():
+            out.append(str(k))
+            out.extend(json_strings(v))
+        return out
+    if isinstance(node, list):
+        out = []
+        for v in node:
+            out.extend(json_strings(v))
+        return out
+    return []
+
+
+def placeholders_in_json(text: str) -> set[str]:
+    """Platzhalter im dekodierten JSON (findet auch \\u007b-Escapes)."""
+    found = set()
+    for s in json_strings(json.loads(text)):
+        found |= names(s)
+    return found
 
 
 def fill(text: str, values: dict[str, str]) -> str:
@@ -87,7 +141,7 @@ def fill(text: str, values: dict[str, str]) -> str:
     values = non_blank(values)
 
     def repl(m: re.Match[str]) -> str:
-        name = m.group(1)
+        name = m.group(1).strip()
         if name not in values:
             return m.group(0)
         return json.dumps(values[name], ensure_ascii=False)[1:-1]
@@ -153,7 +207,7 @@ def main(argv: list[str]) -> int:
             values = json.loads(raw) if raw else {}
             if not isinstance(values, dict):
                 raise SystemExit("FEHLER: LEGAL_VALUES_JSON ist kein JSON-Objekt")
-            values = {str(k): str(v) for k, v in values.items()}
+            values = non_blank({str(k): v for k, v in values.items()})
             for rel, text in texts.items():
                 filled = fill(text, values)
                 texts[rel] = filled
@@ -161,16 +215,19 @@ def main(argv: list[str]) -> int:
 
     problems = []
     for rel, text in sorted(texts.items()):
-        open_required = sorted(
-            n for n in set(PLACEHOLDER.findall(text)) if is_required(n, registry, providers)
-        )
+        try:
+            found = placeholders_in_json(text)
+        except json.JSONDecodeError as e:
+            problems.append(f"{rel}: kein gueltiges JSON ({e})")
+            continue
+        open_required = sorted(n for n in found if is_required(n, registry, providers))
         if open_required:
             problems.append(f"{rel}: {', '.join(open_required)}")
     for rel in STRICT_FILES:
         path = root / rel
         if not path.is_file():
             continue
-        found = sorted(set(PLACEHOLDER.findall(path.read_text(encoding="utf-8"))))
+        found = sorted(names(path.read_text(encoding="utf-8")))
         if found:
             problems.append(f"{rel}: {', '.join(found)}")
     if problems:

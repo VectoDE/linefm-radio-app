@@ -346,4 +346,130 @@ void main() {
       expect(requiredOpen(open, registry, <String>{}), isEmpty);
     });
   });
+
+  group('R4-S01/S02/S03', () {
+    test('Muster ist identisch mit legal_store_check.py', () {
+      final String py = File('tool/legal_store_check.py').readAsStringSync();
+      final String block = RegExp(
+        r'PLACEHOLDER_PATTERN = \(\n((?:    r"[^\n]*"\n)+)\)',
+      ).firstMatch(py)!.group(1)!;
+      final String pattern = RegExp(r'r"([^\n]*)"')
+          .allMatches(block)
+          .map((Match m) => m.group(1))
+          .join();
+      expect(pattern, placeholderPattern);
+    });
+
+    test('lockere Schreibweisen werden erkannt', () {
+      final Map<String, String> cases = <String, String>{
+        '{{BETREIBER_NAME}}': 'BETREIBER_NAME',
+        '{{ BETREIBER_NAME }}': 'BETREIBER_NAME',
+        '{{X-Y}}': 'X-Y',
+        '{{STRASSE_ÄÖÜ}}': 'STRASSE_ÄÖÜ',
+        '\uFF5B\uFF5BVOLLBREIT\uFF5D\uFF5D': 'VOLLBREIT',
+      };
+      for (final MapEntry<String, String> c in cases.entries) {
+        expect(findPlaceholders('a ${c.key} b'), <String>{c.value});
+      }
+      expect(findPlaceholders('{einfach} {{\n}}'), isEmpty);
+    });
+
+    test('Escapes im JSON fallen nach dem Dekodieren auf', () {
+      const String raw =
+          r'{"blocks":[{"type":"p","text":"\u007b\u007bVERSTECKT\u007d\u007d"}]}';
+      expect(findPlaceholders(raw), isEmpty);
+      final Map<String, Object?> doc = jsonDecode(raw) as Map<String, Object?>;
+      expect(openPlaceholders(doc, <String>{}, <String, String>{}), <String>{
+        'VERSTECKT',
+      });
+    });
+
+    test('ersetzt auch locker geschriebene Platzhalter', () {
+      expect(substitute('{{ A }} {{A}}', <String, String>{'A': 'x'}), 'x x');
+    });
+
+    test('nur nicht-leere Strings, ohne Cf/Zs', () {
+      expect(
+        nonBlankValues(<String, String>{
+          'A': '\u200B',
+          'B': '\uFEFF\u00A0',
+          'C': '\u2009\u3000',
+          'D': '\u200Bx',
+        }),
+        <String, String>{'D': '\u200Bx'},
+      );
+      expect(
+        stringValues(<String, Object?>{
+          'A': null,
+          'B': 0,
+          'C': false,
+          'D': <String>['x'],
+          'E': 'x',
+        }),
+        <String, String>{'E': 'x'},
+      );
+    });
+
+    test('Link-Ziele nur http(s) und mailto', () {
+      expect(isSafeLinkUrl('https://example.org/x'), isTrue);
+      expect(isSafeLinkUrl('mailto:a@b.de'), isTrue);
+      for (final String bad in <String>[
+        'javascript:alert(1)',
+        'JAVASCRIPT:alert(1)',
+        'data:text/html,x',
+        '//example.org',
+        '{{URL}}',
+        'https://',
+        '',
+      ]) {
+        expect(isSafeLinkUrl(bad), isFalse, reason: bad);
+      }
+      final String html = renderPage(
+        <String, Object?>{
+          'title': 'T',
+          'blocks': <Object?>[
+            <String, Object?>{
+              'type': 'link',
+              'text': 'Klick',
+              'url': 'javascript:alert(1)',
+            },
+          ],
+        },
+        kind: 'impressum',
+        lang: 'de',
+        baseUrl: 'https://app.linefm.de',
+        providers: <String>{},
+        values: <String, String>{},
+      );
+      expect(html, isNot(contains('javascript:')));
+      expect(html, contains('<p>Klick</p>'));
+    });
+
+    test('Basis-URL wird geprueft und escaped', () {
+      expect(checkedBaseUrl('https://app.linefm.de'), 'https://app.linefm.de');
+      for (final String bad in <String>[
+        'javascript:alert(1)',
+        'app.linefm.de',
+        'https://x.de/?a=1',
+        'https://x.de/#f',
+      ]) {
+        expect(() => checkedBaseUrl(bad), throwsFormatException, reason: bad);
+      }
+      final String html = renderPage(
+        <String, Object?>{'title': 'T', 'blocks': <Object?>[]},
+        kind: 'impressum',
+        lang: 'de',
+        baseUrl: 'https://x.de/a"b',
+        providers: <String>{},
+        values: <String, String>{},
+      );
+      expect(html, isNot(contains('a"b')));
+      expect(html, contains('a&quot;b'));
+    });
+
+    test('--providers lehnt Unbekanntes ab', () {
+      expect(parseProviders(' umami, sentry ,'), <String>{'umami', 'sentry'});
+      expect(() => parseProviders('umami,matomo'), throwsFormatException);
+    });
+  });
 }

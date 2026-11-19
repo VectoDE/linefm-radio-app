@@ -372,11 +372,15 @@ jobs:
           --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
       - name: Postbuild (Hashes, Header-Dateien)
+        env:
+          LEGAL_STRICT: ${{ needs.meta.outputs.legal_strict }}
         run: |
           if [ -f tool/web_postbuild.dart ]; then
+            strict=""
+            if [ "$LEGAL_STRICT" = "true" ]; then strict="--strict"; fi
             # Ausserhalb des Pakets starten (nur dart:-Importe), sonst baut "dart run" die Native-Asset-Hooks (GTK).
             cp tool/web_postbuild.dart "$RUNNER_TEMP/web_postbuild.dart"
-            dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
+            dart run "$RUNNER_TEMP/web_postbuild.dart" build/web $strict
           else
             echo "- Web: tool/web_postbuild.dart fehlt (P22), Postbuild uebersprungen" >> "$GITHUB_STEP_SUMMARY"
           fi

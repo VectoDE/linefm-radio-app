@@ -161,6 +161,8 @@ jobs:
           mkdir -p build/web
           unzip -q dist/*-web.zip -d build/web
           test -f build/web/index.html
+          # Pages wertet .htaccess nicht aus; Header kommen aus _headers.
+          rm -f build/web/.htaccess
 
       - name: Nach Cloudflare Pages ausrollen
         if: steps.gate.outputs.ready == 'true'

@@ -36,8 +36,10 @@ Future<void> startFavoritesImport(
 }) async {
   final l10n = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.maybeOf(context);
-  void show(String text) =>
-      messenger?.showSnackBar(SnackBar(content: Text(text)));
+  // Vorige Meldung (z. B. vom letzten Import) sofort ersetzen statt anstellen.
+  void show(String text) => messenger
+    ?..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(text)));
 
   final XFile? file;
   try {

@@ -9,6 +9,10 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Das Paket alarm bringt USE_EXACT_ALARM mit. Play erlaubt es nur
+         Wecker-/Kalender-Apps als Kernfunktion; LINEFM nutzt stattdessen
+         SCHEDULE_EXACT_ALARM mit Erklaerdialog (Spec 2.2). -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" tools:node="remove" />
 
     <application
         android:label="LINEFM Radio"

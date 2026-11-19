@@ -382,6 +382,10 @@ jobs:
       - name: Postbuild (Hashes, Header-Dateien)
         env:
           LEGAL_STRICT: ${{ needs.meta.outputs.legal_strict }}
+          # App-Links (L3-01): Play-Signaturzertifikat (SHA-256) und Apple-Team-ID sind
+          # oeffentliche Werte; ohne sie entfernt der Postbuild die Vorlagen (Warnung).
+          ANDROID_CERT_SHA256: ${{ vars.ANDROID_CERT_SHA256 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           if [ -f tool/web_postbuild.dart ]; then
             strict=""

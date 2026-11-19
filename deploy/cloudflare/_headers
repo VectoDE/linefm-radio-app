@@ -92,3 +92,10 @@
 
 /llms.txt
   Cache-Control: public, max-age=3600
+
+# App-Links (L3-01): Datei ohne Endung, Apple verlangt application/json.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+
+/.well-known/assetlinks.json
+  Content-Type: application/json

@@ -298,6 +298,8 @@ void main() {
       final first = File('${tmp.path}/web/sw.js').readAsStringSync();
       write('web/assets/fonts/fallback/notosans/v1/a.woff2', 'font');
       expect(hasFontFallback(Directory('${tmp.path}/web')), isTrue);
+      expect(() => runPostbuild(opts), throwsA(isA<PostbuildException>()));
+      write('web/assets/fonts/fallback/OFL.txt', 'OFL');
       runPostbuild(opts);
       final second = File('${tmp.path}/web/sw.js').readAsStringSync();
       expect(second, matches(RegExp(r"^const BUILD_ID = '[0-9a-f]{12}';$")));
@@ -407,6 +409,138 @@ void main() {
       expect(
         File('web/index.html').readAsStringSync(),
         isNot(contains('hreflang="en"')),
+      );
+    });
+  });
+
+  group('App-Links .well-known (L3-01)', () {
+    late Directory web;
+    const fp =
+        'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:'
+        'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99';
+    setUp(() {
+      web = Directory.systemTemp.createTempSync('applinks');
+      Directory('${web.path}/.well-known').createSync();
+      for (final name in appLinkTemplates.keys) {
+        File('web/.well-known/$name').copySync('${web.path}/.well-known/$name');
+      }
+    });
+    tearDown(() => web.deleteSync(recursive: true));
+
+    test('Vorlagen im Repo sind gueltiges JSON mit Platzhalter', () {
+      for (final e in appLinkTemplates.entries) {
+        final text = File('web/.well-known/${e.key}').readAsStringSync();
+        expect(text, contains('{{${e.value}}}'));
+        expect(() => jsonDecode(text), returnsNormally);
+      }
+    });
+
+    test('fuellt beide Dateien aus der Umgebung, gueltiges JSON', () {
+      final done = renderAppLinks(
+        web,
+        const <String, dynamic>{},
+        strict: true,
+        env: <String, String>{
+          'ANDROID_CERT_SHA256': '${fp.toLowerCase()}, $fp',
+          'APPLE_TEAM_ID': 'ABCDE12345',
+        },
+      );
+      expect(done, hasLength(2));
+      final links = jsonDecode(
+        File('${web.path}/.well-known/assetlinks.json').readAsStringSync(),
+      ) as List<dynamic>;
+      expect(
+        (links.single
+            as Map<String, dynamic>)['target']['sha256_cert_fingerprints'],
+        <String>[fp, fp],
+      );
+      final aasa = jsonDecode(
+        File('${web.path}/.well-known/apple-app-site-association')
+            .readAsStringSync(),
+      ) as Map<String, dynamic>;
+      expect(aasa['applinks']['details'][0]['appIDs'], <String>[
+        'ABCDE12345.de.linefm.app',
+      ]);
+    });
+
+    test('Konfiguration als Quelle, Umgebung hat Vorrang', () {
+      renderAppLinks(
+        web,
+        const <String, dynamic>{'APPLE_TEAM_ID': 'ZZZZZZZZZZ'},
+        strict: false,
+        env: <String, String>{'APPLE_TEAM_ID': 'ABCDE12345'},
+      );
+      expect(
+        File('${web.path}/.well-known/apple-app-site-association')
+            .readAsStringSync(),
+        contains('ABCDE12345.de.linefm.app'),
+      );
+    });
+
+    test('ohne Werte: Warnung und Datei entfernt', () {
+      final done = renderAppLinks(
+        web,
+        const <String, dynamic>{},
+        strict: false,
+        env: const <String, String>{'APPLE_TEAM_ID': '  '},
+      );
+      expect(done, isEmpty);
+      expect(
+        File('${web.path}/.well-known/assetlinks.json').existsSync(),
+        isFalse,
+      );
+      expect(
+        File('${web.path}/.well-known/apple-app-site-association').existsSync(),
+        isFalse,
+      );
+    });
+
+    test('ohne Werte mit --strict: Abbruch', () {
+      expect(
+        () => renderAppLinks(
+          web,
+          const <String, dynamic>{},
+          strict: true,
+          env: const <String, String>{},
+        ),
+        throwsA(isA<PostbuildException>()),
+      );
+    });
+
+    test('falsches Format ist immer ein Fehler', () {
+      expect(
+        () => renderAppLinks(
+          web,
+          const <String, dynamic>{},
+          strict: false,
+          env: const <String, String>{
+            'ANDROID_CERT_SHA256': 'AA:BB',
+            'APPLE_TEAM_ID': 'ABCDE12345',
+          },
+        ),
+        throwsA(isA<PostbuildException>()),
+      );
+    });
+
+    test('Hosting-Ziele liefern die AASA als application/json', () {
+      expect(
+        File('deploy/nginx/snippets/linefm-locations.conf').readAsStringSync(),
+        contains('location = /.well-known/apple-app-site-association'),
+      );
+      expect(
+        File('deploy/plesk/nginx-additional.conf').readAsStringSync(),
+        contains('location = /.well-known/apple-app-site-association'),
+      );
+      expect(
+        File('deploy/plesk/.htaccess').readAsStringSync(),
+        contains('ForceType application/json'),
+      );
+      expect(
+        File('deploy/cloudflare/_headers').readAsStringSync(),
+        contains(
+          '/.well-known/apple-app-site-association\n'
+          '  Content-Type: application/json',
+        ),
       );
     });
   });

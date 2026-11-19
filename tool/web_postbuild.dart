@@ -11,6 +11,13 @@
 //  5. Ballast entfernen (Sourcemaps, *.symbols, ungenutzte Engine-Varianten, Flutter-Standard-SW)
 //  6. asset-manifest.txt mit SHA-256 aller Dateien schreiben
 //
+// Vorab: security.txt ohne Platzhalter, Ersatzschriften samt OFL.txt (R3-P07),
+// App-Links unter .well-known/ (assetlinks.json, apple-app-site-association) mit
+// Werten aus der Umgebung bzw. Konfiguration: ANDROID_CERT_SHA256 (SHA-256 des
+// Play-Signaturzertifikats, mehrere kommagetrennt) und APPLE_TEAM_ID. Ohne Wert
+// wird die Datei aus der Ausgabe entfernt (Warnung, mit --strict Abbruch), damit
+// kein Platzhalter live geht (L3-01).
+//
 // Optionen:
 //  --config <datei>            Dart-Define-Datei (Standard: config/app.json, falls vorhanden)
 //  --csp-connect-extra "<..>"  zusaetzliche connect-src-Quellen (sonst aus Konfiguration abgeleitet)
@@ -19,7 +26,7 @@
 //  --hosting-out <ordner>      Standard: build/hosting
 //  --base-url <url>            Standard: WEB_BASE_URL aus der Konfiguration
 //  --gsc <token>               Search-Console-Verifikation (sonst GSC_VERIFICATION)
-//  --strict                    Abbruch, solange Platzhalter ({{...}}) in .well-known/security.txt stehen
+//  --strict                    Abbruch, solange Platzhalter ({{...}}) in .well-known/ stehen
 //  --keep-debug                Sourcemaps, *.symbols und Engine-Varianten nicht entfernen
 import 'dart:convert';
 import 'dart:io';
@@ -303,6 +310,89 @@ String rewriteBaseUrl(String text, String baseUrl) {
 }
 
 // ---------------------------------------------------------------------------
+// App-Links (.well-known, L3-01)
+// ---------------------------------------------------------------------------
+
+/// Vorlagen unter .well-known/ mit ihrem Platzhalter.
+const Map<String, String> appLinkTemplates = <String, String>{
+  'assetlinks.json': 'ANDROID_CERT_SHA256',
+  'apple-app-site-association': 'APPLE_TEAM_ID',
+};
+
+final RegExp _certFingerprint = RegExp(r'^([0-9A-F]{2}:){31}[0-9A-F]{2}$');
+final RegExp _teamId = RegExp(r'^[A-Z0-9]{10}$');
+
+/// Wert fuer [key]: Umgebung vor Konfiguration, leer = nicht gesetzt.
+String? appLinkValue(
+  String key,
+  Map<String, dynamic> config, [
+  Map<String, String>? env,
+]) {
+  final raw =
+      (env ?? Platform.environment)[key] ?? (config[key] as String?) ?? '';
+  final v = raw.trim();
+  return v.isEmpty ? null : v;
+}
+
+/// Setzt [value] in die Vorlage [file] ein. Fingerprints: kommagetrennt, je
+/// 32 Byte als Hex mit Doppelpunkten (Grossbuchstaben); Team-ID: 10 Zeichen.
+String renderAppLinkTemplate(String file, String text, String value) {
+  final key = appLinkTemplates[file]!;
+  if (key == 'ANDROID_CERT_SHA256') {
+    final prints = value
+        .split(',')
+        .map((s) => s.trim().toUpperCase())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    if (prints.isEmpty || !prints.every(_certFingerprint.hasMatch)) {
+      throw PostbuildException(
+        'ANDROID_CERT_SHA256 hat nicht das Format AA:BB:...(32 Byte)',
+      );
+    }
+    return text.replaceAll('"{{$key}}"', prints.map(jsonEncode).join(', '));
+  }
+  if (!_teamId.hasMatch(value)) {
+    throw PostbuildException('APPLE_TEAM_ID muss 10 Zeichen (A-Z, 0-9) haben');
+  }
+  return text.replaceAll('{{$key}}', value);
+}
+
+/// Fuellt oder entfernt die App-Link-Dateien; liefert die Namen der gefuellten.
+List<String> renderAppLinks(
+  Directory web,
+  Map<String, dynamic> config, {
+  required bool strict,
+  Map<String, String>? env,
+}) {
+  final done = <String>[];
+  for (final entry in appLinkTemplates.entries) {
+    final f = File('${web.path}/.well-known/${entry.key}');
+    if (!f.existsSync()) {
+      continue;
+    }
+    final text = f.readAsStringSync();
+    if (!text.contains('{{${entry.value}}}')) {
+      done.add(entry.key); // schon gefuellt (erneuter Lauf)
+      continue;
+    }
+    final value = appLinkValue(entry.value, config, env);
+    if (value == null) {
+      final msg =
+          '.well-known/${entry.key}: ${entry.value} fehlt (Umgebung oder Konfiguration), Datei entfernt';
+      if (strict) {
+        throw PostbuildException(msg);
+      }
+      stderr.writeln('web_postbuild: WARNUNG: $msg');
+      f.deleteSync();
+      continue;
+    }
+    f.writeAsStringSync(renderAppLinkTemplate(entry.key, text, value));
+    done.add(entry.key);
+  }
+  return done;
+}
+
+// ---------------------------------------------------------------------------
 // Ablauf
 // ---------------------------------------------------------------------------
 
@@ -449,6 +539,17 @@ List<String> runPostbuild(PostbuildOptions o) {
     }
     stderr.writeln('web_postbuild: WARNUNG: $msg');
   }
+
+  // 0c. Ersatzschriften nur mit Lizenztext (OFL 1.1 verlangt ihn bei Weitergabe).
+  if (hasFontFallback(web) &&
+      !File('${web.path}/assets/fonts/fallback/OFL.txt').existsSync()) {
+    throw PostbuildException(
+      'assets/fonts/fallback/OFL.txt fehlt (fetch_font_fallback.dart erneut ausfuehren)',
+    );
+  }
+
+  // 0d. App-Links (.well-known) fuellen oder entfernen.
+  renderAppLinks(web, o.config, strict: o.strict);
 
   // 1. main.dart.* umbenennen. Idempotent: Ist das Bootstrap schon bearbeitet
   // (Marke ersetzt) und liegt kein neues main.dart.* vor, bleibt Schritt 1 aus.

@@ -16,6 +16,11 @@ FileETag MTime Size
     AddType font/woff2 .woff2
     AddType text/javascript .js .mjs
     AddType application/manifest+json .webmanifest
+    AddType application/json .json
+    # App-Links (L3-01): Datei ohne Endung, Apple verlangt application/json.
+    <Files "apple-app-site-association">
+        ForceType application/json
+    </Files>
 </IfModule>
 
 <IfModule mod_headers.c>
@@ -66,6 +71,8 @@ FileETag MTime Size
 # alles andere liefert index.html.
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    # Punktdateien und -ordner (.git, .env, .htaccess ...) mit 404 sperren, .well-known bleibt (S3-01).
+    RewriteRule (^|/)\.(?!well-known(/|$)) - [R=404,L]
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]

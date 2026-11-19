@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Erstellt das unsignierte DMG fuer LINEFM Radio.
 #
-# Aufruf (Vertrag mit build.yml, P25):
+# Aufruf (Vertrag mit build.yml):
 #   bash packaging/macos/create_dmg.sh "<Pfad zur .app>" "<Ziel.dmg>"
 #
 # Inhalt: die App, Verknuepfung "Applications", die Oeffnen-Anleitung.

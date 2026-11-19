@@ -5,7 +5,7 @@ Zwei Vorlagen, beide mit Platzhaltern:
 | Datei | Zweck | `method` |
 |---|---|---|
 | `ExportOptions-appstore.plist.template` | App Store Connect / TestFlight | `app-store-connect` |
-| `ExportOptions-adhoc.plist.template` | Testgeraete (Ad Hoc) | `release-testing` |
+| `ExportOptions-adhoc.plist.template` | Testgeräte (Ad Hoc) | `release-testing` |
 
 `app-store-connect` und `release-testing` sind die Namen ab Xcode 15.3. Die alten Werte `app-store` und `ad-hoc` funktionieren noch, sind aber veraltet.
 
@@ -14,7 +14,7 @@ Platzhalter:
 | Platzhalter | Quelle |
 |---|---|
 | `{{APPLE_TEAM_ID}}` | Apple Developer Account, Mitgliedschaft (10 Zeichen), Secret `APPLE_TEAM_ID` |
-| `{{PROVISIONING_PROFILE_APPSTORE_NAME}}` | Name des App-Store-Profils fuer `de.linefm.app` (bei fastlane match: `match AppStore de.linefm.app`) |
+| `{{PROVISIONING_PROFILE_APPSTORE_NAME}}` | Name des App-Store-Profils für `de.linefm.app` (bei fastlane match: `match AppStore de.linefm.app`) |
 | `{{PROVISIONING_PROFILE_ADHOC_NAME}}` | Name des Ad-Hoc-Profils (`match AdHoc de.linefm.app`) |
 
 Einsatz:

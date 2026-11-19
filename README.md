@@ -1,6 +1,6 @@
 # LINEFM Radio
 
-Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI sowie Radio3FM und FobFM. Ein Angebot von RadioGruppe Deutschland. Gebaut mit Flutter für Android, iOS, Windows, macOS, Linux und das Web.
+Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI sowie Radio3FM und FobFM. Ein Angebot von RadioGruppe Deutschland. Gebaut mit Flutter (ein Framework von Google) für Android, iOS, Windows, macOS, Linux und das Web.
 
 <!--
 Badges: Es stehen hier bewusst keine. Sie kommen erst, wenn sie echt sind:
@@ -28,7 +28,7 @@ Alle Sender in einer App, kostenlos und ohne Konto.
 - **Verlauf** der zuletzt gespielten Titel.
 - **Schlafen und Wecken:** Sleeptimer (15, 30, 45 oder 60 Minuten) und Radiowecker mit Sender.
 - **Unterwegs:** Homescreen-Widget (Android), Android Auto, Chromecast. AirPlay und CarPlay sind vorbereitet, aber noch nicht veröffentlicht.
-- **Am Computer:** Tray-Symbol, Mini-Fenster, das im Vordergrund bleibt, Tastenkürzel.
+- **Am Computer:** Tray-Symbol (Symbol im Infobereich der Taskleiste), Mini-Fenster, das im Vordergrund bleibt, Tastenkürzel.
 - **Deutsch und Englisch**, hell und dunkel, für Handy, Tablet und Desktop.
 - **Links:** `https://app.linefm.de/?station=<sender>` und `linefm://play?station=<sender>` öffnen direkt den Sender.
 
@@ -70,6 +70,12 @@ flutter run -d chrome
 | [docs/FREIGABE-CHECKLISTE.md](docs/FREIGABE-CHECKLISTE.md) | Freigaben, Rechtsprüfung, Gerätetests, Store-Texte |
 | [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md) | Bauen, Testen, Architektur |
 | [docs/hosting-uebersicht.md](docs/hosting-uebersicht.md) | Web-Hosting, Cache, Header |
+| [docs/STORE-TEXTE.md](docs/STORE-TEXTE.md) | Texte für Play, Microsoft Store, Snap, Flathub, Tester-Einladung |
+| [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md) | Erklärung zur Barrierefreiheit (Entwurf) |
+| [docs/LIZENZEN-DRITTE.md](docs/LIZENZEN-DRITTE.md) | Lizenzen von libmpv, FFmpeg und weiteren Bausteinen |
+| [SECURITY.md](SECURITY.md) | Sicherheitslücke melden |
+| [CHANGELOG.md](CHANGELOG.md) | Änderungen je Version |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Mitarbeiten |
 | [docs/telemetry.md](docs/telemetry.md) | Statistik, Absturzberichte, Selbsthosting |
 | [packaging/README.md](packaging/README.md) | Installer, Store-Pakete, Signierung |
 

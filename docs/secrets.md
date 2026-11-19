@@ -58,7 +58,7 @@ Alles hinter der Variable `APPLE_PUBLISHING_ENABLED`. Solange sie nicht `true` i
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|
-| `APPLE_PUBLISHING_ENABLED` | Variable | `true`, erst wenn alles andere vorliegt (Entscheidung 21) | jaybelife |
+| `APPLE_PUBLISHING_ENABLED` | Variable | `true`, erst wenn alles andere vorliegt | jaybelife |
 | `APPLE_TEAM_ID` | Secret | 10-stellige Team-ID (Account > Mitgliedschaft) | jaybelife |
 | `APP_STORE_CONNECT_API_KEY_ID` | Secret | Schlüssel-ID des App-Store-Connect-API-Schlüssels | jaybelife |
 | `APP_STORE_CONNECT_API_KEY_ISSUER_ID` | Secret | Issuer-ID (Nutzer und Zugriff > Integrationen) | jaybelife |

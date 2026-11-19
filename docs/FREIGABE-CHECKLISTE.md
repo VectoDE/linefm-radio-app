@@ -10,55 +10,56 @@ Die Kontoeinrichtung steht in [EINRICHTUNG.md](EINRICHTUNG.md).
 
 ## A. Bestätigungen durch jaybelife
 
-### A1. Marke und Logos (Entscheidungen 6 und 32)
+### A1. Marke und Logos
 
 - [ ] Die Marke LINEFM und das Logo dürfen in der App und in den Stores verwendet werden.
 - [ ] Die sechs Sender stehen in der App: LineFM +MAIN, +RAP, +GAMING, +LOFI sowie **Radio3FM** und **FobFM**. Für Radio3FM und FobFM bestätigen: Die Namen und Logos dürfen gezeigt werden, und die Streams dürfen in der App laufen. Laut unserer Recherche sind diese beiden keine LINEFM-Sender bei laut.fm, deshalb ist das eine ausdrückliche Freigabe.
 - [ ] Die Sender-Logos kommen von `https://cdn.linefm.de/images/icons/`. Nutzung in den Stores erlaubt.
-- [ ] Das RadioGruppe-Logo wird von `radiogruppe.de` geladen (wie in der Web-App). Nutzung erlaubt, Datenschutzabschnitt dazu bestätigt (Entscheidung 47).
+- [ ] Das RadioGruppe-Logo wird von `radiogruppe.de` geladen (wie in der Web-App). Nutzung erlaubt, Datenschutzabschnitt dazu bestätigt.
 
-### A2. Name und Kennung (Entscheidung 16)
+### A2. Name und Kennung
 
 - [ ] App-Name **"LINEFM Radio"**.
 - [ ] Fenstertitel **"LINEFM | Radio"**.
 - [ ] Paket-ID **`de.linefm.app`** (Android, Windows, iOS und macOS, Flathub, Snap). Sie lässt sich nach der Veröffentlichung nicht mehr ändern.
-- [ ] Web-Adresse **`https://app.linefm.de`** (Entscheidung 38).
+- [ ] Web-Adresse **`https://app.linefm.de`**.
 
-### A3. App-Icon (Entscheidung 41)
+### A3. App-Icon
 
 - [ ] Das Icon aus `https://cdn.linefm.de/images/icons/main.png` darf unverändert (nur technisch skaliert) als App-Icon in allen Stores verwendet werden. Freigabe ist erteilt, hier nur noch schriftlich festhalten.
 
-### A4. Impressum und Datenschutz (Entscheidungen 45, 47)
+### A4. Impressum und Datenschutz
 
 - [ ] Betreiberdaten stimmen mit `https://linefm.de/impressum` überein (Name, Anschrift, E-Mail). Fehlende Angaben liefern: Telefon oder Kontaktformular, Vertretung, Datenschutzbehörde, Hosting-Anbieter, CDN-Betreiber, Log-Dauer (Liste in `assets/legal/placeholders.json`).
 - [ ] Der Datenschutztext passt zur tatsächlichen Konfiguration (welche Telemetrie ist aktiv, wer hostet).
-- [ ] Rechtsprüfung durch jaybelife oder einen Anwalt ist erfolgt (Entscheidung 48). Offene Rechtsfragen, die jaybelife selbst klärt:
+- [ ] Rechtsprüfung durch jaybelife oder einen Anwalt ist erfolgt. Offene Rechtsfragen, die jaybelife selbst klärt:
   - [ ] **Rundfunkrecht (MStV):** Ist für das Webradio eine Zulassung nötig, oder gilt es als zulassungsfrei? Welche Angaben verlangt § 18 MStV im Impressum (verantwortliche Person)? Die Felder `AUFSICHTSBEHOERDE_MEDIEN` und `VERANTWORTLICHER_MSTV` stehen noch offen.
   - [ ] **GEMA und GVL:** Sind die Musikrechte für die Wiedergabe über eine eigene App abgedeckt? Unsere Quelle (laut.fm) belegt das nur in einem Artikel von 2015. Empfehlung: schriftliche Bestätigung von laut.fm (`team@laut.fm`) einholen.
-  - [ ] **Speicher-Hinweis in den nativen Apps:** Der Hinweis "Wir speichern kleine Daten …" erscheint überall wie in der Web-App (Entscheidung 39). Prüfen lassen, ob er in den nativen Apps rechtlich nötig oder ausreichend ist.
+  - [ ] **Speicher-Hinweis in den nativen Apps:** Der Hinweis "Wir speichern kleine Daten …" erscheint überall wie in der Web-App. Prüfen lassen, ob er in den nativen Apps rechtlich nötig oder ausreichend ist.
   - [ ] **Einwilligung nach DSGVO/TDDDG:** Wortlaut des Einwilligungsdialogs für Statistik und Absturzberichte prüfen, falls Telemetrie aktiv wird.
   - [ ] **Barrierefreiheit (BFSG):** Klären, ob für das Angebot eine Erklärung zur Barrierefreiheit nötig ist.
 
-### A5. laut.fm-Daten (Entscheidung 33)
+### A5. laut.fm-Daten
 
-- [ ] jaybelife bestätigt: Es besteht eine eigene laut.fm-Lizenz. Die App nutzt die öffentliche laut.fm-API (Titel, Cover-Hinweis, Hörerzahl, Streams), um die Daten der eigenen Sender anzuzeigen. Eine Anfrage bei laut.fm ist nicht nötig.
-- [ ] Der Lizenzhinweis in Datenschutz und Impressum ist richtig formuliert.
+- [ ] jaybelife bestätigt schriftlich, ob und in welchem Umfang für die Sender eine Lizenz über laut.fm besteht. Die App nutzt die öffentliche laut.fm-API (Titel, Cover-Hinweis, Hörerzahl, Streams). Im Impressum steht deshalb bewusst keine Aussage wie "eigene Lizenz", sondern nur, dass die Lizenzierung bei den Sendern bzw. bei laut.fm liegt. Wenn sich das belegen lässt, kann der Satz genauer werden.
+- [ ] Radio3FM und FobFM stehen in den Texten als Partnersender (Sender anderer Betreiber). Bestätigen, dass diese Bezeichnung stimmt.
+- [ ] Der Hinweis in Datenschutz und Impressum zu laut.fm ist richtig formuliert, vor allem die Aussage, dass wir selbst keine Verbindungsdaten aus dem Stream sehen. Prüfen, ob laut.fm dem Betreiber Hörerstatistiken bereitstellt.
 - [ ] Cover kommen von der iTunes-Suche (Apple). Bestätigen, dass das in Ordnung ist, und dass es in der Datenschutzerklärung steht.
 
-### A6. Rechte und Übergabe (Entscheidungen 1, 43, 46)
+### A6. Rechte und Übergabe
 
 Festzuhalten, damit später keine Zweifel entstehen:
 
 - [ ] Tim Hauke (VectoDE) hat die App **unentgeltlich für jaybelife** entwickelt.
 - [ ] LINEFM, die Marke, die Logos und das App-Icon gehören jaybelife.
 - [ ] Der Quellcode steht unter "Alle Rechte vorbehalten", ohne Open-Source-Lizenz. Er ist sichtbar, aber nicht frei nutzbar. Schriftlich regeln, wer die Rechte am Code hat und was jaybelife damit tun darf (Weiterentwicklung durch Dritte, Weitergabe, Übergabe des Repos).
-- [ ] Der Hinweis "Entwickelt von Tim Hauke (VectoDE) für jaybelife" mit GitHub-Link bleibt im Über-Bereich der App (Entscheidung 46). jaybelife stimmt dem Wortlaut zu.
+- [ ] Der Hinweis "Entwickelt von Tim Hauke (VectoDE) für jaybelife" mit GitHub-Link bleibt im Über-Bereich der App. jaybelife stimmt dem Wortlaut zu.
 - [ ] Übergabe: Repository, Zugänge und Schlüssel. Upload-Schlüssel (Android) und Konten gehören jaybelife und liegen im Passwortmanager von jaybelife. Wer verwaltet die Stores nach dem Start?
 - [ ] Wartung nach dem Start: Wer reagiert auf Fehler, Store-Rückfragen und Updates?
 
 ### A7. Veröffentlichen
 
-- [ ] Freigabe, das GitHub-Repository öffentlich zu schalten (Entscheidung 42). Danach sieht jeder den Code.
+- [ ] Freigabe, das GitHub-Repository öffentlich zu schalten. Danach sieht jeder den Code.
 - [ ] Freigabe für den Start in jedem Store einzeln (Google Play, Microsoft Store, Flathub, Snap, GitHub Releases, später Apple).
 
 ## B. Gerätetests (Release-Gate)
@@ -80,12 +81,12 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 
 ### B2. Android Auto
 
-- [ ] Prüfung mit dem Desktop Head Unit (DHU) und, wenn möglich, im echten Auto.
+- [ ] Prüfung mit dem Desktop Head Unit (DHU, ein Simulator für das Auto-Display von Google) und, wenn möglich, im echten Auto.
 - [ ] Die App erscheint in der Medienliste.
-- [ ] Menü zeigt Favoriten-Sender, alle Stationen und "Zuletzt gehört" (Entscheidung 49).
+- [ ] Menü zeigt Favoriten-Sender, alle Stationen und "Zuletzt gehört".
 - [ ] Sender starten, Titel und Cover erscheinen.
 
-### B3. Radiowecker (Entscheidungen 36, 40)
+### B3. Radiowecker
 
 - [ ] Alarm stellen, Gerät sperren, Alarm löst zur Zeit aus (Android: exakter Alarm, Vollbild bei gesperrtem Bildschirm).
 - [ ] Wecken mit Sender, mit Fallback: Ist der Stream nicht erreichbar, klingt der Standard-Alarmton des Geräts.
@@ -99,8 +100,8 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 
 ### B4. Windows
 
-- [ ] Installer und MSIX installieren und deinstallieren sauber.
-- [ ] **Tray-Symbol und Menü:** Rechtsklick-Menü zeigt Play/Stopp, Sender, Mini-Fenster, Beenden. Wiedergabe läuft bei geschlossenem Fenster weiter.
+- [ ] Installer und MSIX (Windows-Paketformat für den Store) installieren und deinstallieren sauber.
+- [ ] **Tray-Symbol (Symbol im Infobereich der Taskleiste) und Menü:** Rechtsklick-Menü zeigt Play/Stopp, Sender, Mini-Fenster, Beenden. Wiedergabe läuft bei geschlossenem Fenster weiter.
 - [ ] **Mini-Fenster:** Öffnet, bleibt auf Wunsch im Vordergrund, merkt Größe und Position.
 - [ ] Medientasten der Tastatur und die Mediensteuerung von Windows (Lautstärke-Flyout) zeigen Titel und steuern die Wiedergabe.
 - [ ] Zweiter Start holt das vorhandene Fenster nach vorn (nur eine Instanz).
@@ -111,7 +112,7 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 ### B5. Linux
 
 - [ ] Start aus Flatpak und Snap (wenn veröffentlicht), sonst aus dem Tarball.
-- [ ] Wiedergabe, Medientasten (MPRIS), Tray-Symbol (je nach Desktop), Mini-Fenster.
+- [ ] Wiedergabe, Medientasten (MPRIS, der Linux-Standard dafür), Tray-Symbol (Symbol im Infobereich, je nach Desktop), Mini-Fenster.
 - [ ] Deep Link `linefm://play?station=...` über die Desktop-Datei.
 
 ### B6. macOS
@@ -123,9 +124,9 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 
 - [ ] Chrome, Firefox, Safari und Edge auf Windows, macOS, Android, iOS.
 - [ ] Wiedergabe startet nach Klick. Blockiert der Browser Autoplay, muss ein Knopf zum Starten erscheinen. Die Mediensteuerung des Browsers zeigt den Titel.
-- [ ] Installation als App (PWA) möglich.
-- [ ] Lighthouse und Barrierefreiheit (axe): keine kritischen Befunde.
-- [ ] HTTP-Header nach dem Ausrollen prüfen (siehe [hosting-uebersicht.md](hosting-uebersicht.md)).
+- [ ] Installation als App (PWA, eine Web-App, die sich wie eine App installieren lässt) möglich.
+- [ ] Lighthouse (Geschwindigkeits- und Qualitätsprüfung von Google) und axe (automatische Barrierefreiheitsprüfung): keine kritischen Befunde. Der aktuelle Stand mit bekannten Grenzen steht in [BARRIEREFREIHEIT.md](BARRIEREFREIHEIT.md).
+- [ ] HTTP-Header (Sicherheits- und Cache-Einstellungen, die der Server mitschickt) nach dem Ausrollen prüfen (siehe [hosting-uebersicht.md](hosting-uebersicht.md)).
 - [ ] Teilen und Links `https://app.linefm.de/?station=...` öffnen den richtigen Sender.
 
 ### B8. Chromecast
@@ -154,16 +155,19 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 
 ## C. Store-Texte und Datenschutzangaben
 
-- [ ] Kurz- und Langbeschreibung auf Deutsch und Englisch gelesen und freigegeben. Sie nennen nur, was die App wirklich kann. Plattform-Hinweise stimmen (kein CarPlay, solange Apple fehlt).
+- [ ] Kurz- und Langbeschreibung auf Deutsch und Englisch gelesen und freigegeben (Entwürfe in [STORE-TEXTE.md](STORE-TEXTE.md)). Sie nennen nur, was die App wirklich kann. Plattform-Hinweise stimmen (kein CarPlay, solange Apple fehlt).
 - [ ] Keine Aussagen wie "offizielle App der RadioGruppe", wenn jaybelife das nicht bestätigt hat. Der Hinweis "Ein Angebot von RadioGruppe Deutschland" entspricht der Web-App.
 - [ ] Screenshots zeigen die echte App und keine Fantasiedaten, nichts Fremdes (keine Cover von Dritten in Großansicht ohne Freigabe).
 - [ ] Altersangabe stimmt (+RAP: Kraftausdrücke möglich).
 - [ ] Google Play: "Datensicherheit" und "App-Inhalte" zur Datenschutzerklärung passend ausgefüllt (siehe [EINRICHTUNG.md](EINRICHTUNG.md), Abschnitt 2.5).
-- [ ] Google Play: Erklärung zu `USE_FULL_SCREEN_INTENT` und Foreground-Service gestellt, Entscheidung zum Umgang mit einer Ablehnung festgehalten.
+- [ ] Google Play: Erklärung zu `USE_FULL_SCREEN_INTENT` (Vollbild-Alarm bei gesperrtem Bildschirm) und Foreground-Service (Dienst für die Wiedergabe im Hintergrund) gestellt, Entscheidung zum Umgang mit einer Ablehnung festgehalten.
 - [ ] Microsoft Store: Datenschutz-URL und Altersfreigabe eingetragen.
-- [ ] Flathub: Metainfo valide, Altersangabe (OARS) bestätigt, Domain-Bestätigung vorhanden.
+- [ ] Flathub: Metainfo (Beschreibungsdatei für Linux-Stores) gültig, Altersangabe (OARS, Alterseinstufung dort) bestätigt, Domain-Bestätigung vorhanden.
+- [ ] Erklärung zur Barrierefreiheit ([BARRIEREFREIHEIT.md](BARRIEREFREIHEIT.md)) gelesen, Platzhalter ausgefüllt, mit Anwalt geklärt, ob sie Pflicht ist.
 - [ ] Datenschutz-Angaben: Die Seiten `/datenschutz/` und `/impressum/` (Deutsch und Englisch) sind erreichbar, enthalten keine offenen Platzhalter mehr und sind für Suchmaschinen freigegeben (kein `noindex`).
-- [ ] Datenschutz in den Stores nennt dieselben Anbieter wie die Datenschutzerklärung (laut.fm, Apple iTunes für Cover, `cdn.linefm.de`, `radiogruppe.de`, aktive Telemetrie).
+- [ ] Datenschutz in den Stores nennt dieselben Anbieter wie die Datenschutzerklärung (laut.fm, Apple iTunes für Cover, `cdn.linefm.de`, `radiogruppe.de`, Google Cast SDK, aktive Telemetrie).
+- [ ] Verträge zur Auftragsverarbeitung (AVV, Art. 28 DSGVO) mit Hosting-, CDN- und Telemetrie-Betreibern liegen vor. Bei US-Anbietern DPF-Zertifizierung geprüft (<https://www.dataprivacyframework.gov/list>).
+- [ ] Lizenzhinweise für Linux und Windows: libmpv und FFmpeg (LGPL bzw. GPL) sind in [LIZENZEN-DRITTE.md](LIZENZEN-DRITTE.md) beschrieben und im Paket enthalten.
 
 ## D. Zum Schluss
 

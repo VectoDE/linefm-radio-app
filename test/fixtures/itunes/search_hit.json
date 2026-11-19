@@ -1,0 +1,11 @@
+
+
+
+{
+ "resultCount":1,
+ "results": [
+{"wrapperType":"track", "kind":"song", "artistId":162802, "collectionId":83134491, "trackId":83134409, "artistName":"Missy Elliott", "collectionName":"Miss E...So Addictive", "trackName":"Get Ur Freak On", "collectionCensoredName":"Miss E...So Addictive", "trackCensoredName":"Get Ur Freak On", "artistViewUrl":"https://music.apple.com/de/artist/missy-elliott/162802?uo=4", "collectionViewUrl":"https://music.apple.com/de/album/get-ur-freak-on/83134491?i=83134409&uo=4", "trackViewUrl":"https://music.apple.com/de/album/get-ur-freak-on/83134491?i=83134409&uo=4", 
+"previewUrl":"https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/f8/25/1c/f8251c5f-7e23-ea82-690e-d147f5900a7b/mzaf_3107646523546858476.plus.aac.p.m4a", "artworkUrl30":"https://is1-ssl.mzstatic.com/image/thumb/Music/71/c2/4f/mzi.gsutnxrb.jpg/30x30bb.jpg", "artworkUrl60":"https://is1-ssl.mzstatic.com/image/thumb/Music/71/c2/4f/mzi.gsutnxrb.jpg/60x60bb.jpg", "artworkUrl100":"https://is1-ssl.mzstatic.com/image/thumb/Music/71/c2/4f/mzi.gsutnxrb.jpg/100x100bb.jpg", "collectionPrice":10.99, "trackPrice":1.29, "releaseDate":"2001-03-06T12:00:00Z", "collectionExplicitness":"cleaned", "trackExplicitness":"cleaned", "discCount":1, "discNumber":1, "trackCount":18, "trackNumber":5, "trackTimeMillis":237011, "country":"DEU", "currency":"EUR", "primaryGenreName":"Hip-Hop/Rap", "contentAdvisoryRating":"Clean", "isStreamable":true}]
+}
+
+

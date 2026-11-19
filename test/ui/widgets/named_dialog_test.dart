@@ -31,7 +31,9 @@ SemanticsNode? _find(WidgetTester tester, String label, SemanticsRole role) {
     return hit == null;
   }
 
-  visit(tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!);
+  visit(
+    tester.binding.renderViews.first.owner!.semanticsOwner!.rootSemanticsNode!,
+  );
   return hit;
 }
 

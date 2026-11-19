@@ -16,8 +16,54 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  version:
+    name: Tag und pubspec-Version pruefen
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # REL-05: Tag vX.Y.Z oder vX.Y.Z-rc.N muss zur Version in pubspec.yaml passen
+      # (ohne +Build). Ein rc-Tag passt zur Version X.Y.Z ohne Suffix; steht in
+      # pubspec.yaml selbst ein Suffix, muss der Tag genau gleich sein.
+      - name: Vergleichen
+        run: |
+          set -euo pipefail
+          if ! [[ "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)(-rc\.[0-9]+)?$ ]]; then
+            echo "::error::Tag $TAG hat nicht das Format vX.Y.Z oder vX.Y.Z-rc.N"
+            exit 1
+          fi
+          tag_base="${BASH_REMATCH[1]}"
+          tag_full="${TAG#v}"
+          pub="$(sed -n 's/^version:[[:space:]]*\([^[:space:]#]*\).*/\1/p' pubspec.yaml | head -n1)"
+          pub="${pub%%+*}"
+          if [ -z "$pub" ]; then
+            echo "::error::Keine Version in pubspec.yaml gefunden"
+            exit 1
+          fi
+          if [[ "$pub" == *-* ]]; then ok=$([ "$tag_full" = "$pub" ] && echo yes || echo no)
+          else ok=$([ "$tag_base" = "$pub" ] && echo yes || echo no); fi
+          if [ "$ok" != "yes" ]; then
+            echo "::error::Tag $TAG passt nicht zu pubspec.yaml (version: $pub). Erst pubspec.yaml anheben, dann taggen."
+            exit 1
+          fi
+          echo "Tag $TAG passt zu pubspec.yaml ($pub)." >> "$GITHUB_STEP_SUMMARY"
+
   build:
     name: Build
+    needs: version
     uses: ./.github/workflows/build.yml
     with:
       version: ${{ github.ref_name }}

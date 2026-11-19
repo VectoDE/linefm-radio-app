@@ -9,6 +9,14 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Das Paket alarm bringt USE_EXACT_ALARM mit. Play erlaubt es nur
+         Wecker-/Kalender-Apps als Kernfunktion; LINEFM nutzt stattdessen
+         SCHEDULE_EXACT_ALARM mit Erklaerdialog (Spec 2.2). -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" tools:node="remove" />
+    <!-- Weitere Berechtigungen des Pakets alarm, die LINEFM nicht braucht
+         (kein eigener Weckton aus dem Speicher, kein Nicht-stoeren-Zugriff). -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" tools:node="remove" />
 
     <application
         android:label="LINEFM Radio"
@@ -92,6 +100,24 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/linefm_widget_info" />
+        </receiver>
+
+        <!-- Der AlarmManager-Empfaenger des Pakets alarm wird nur von der App
+             selbst ausgeloest; nicht fuer fremde Apps erreichbar. -->
+        <receiver
+            android:name="com.gdelataillade.alarm.alarm.AlarmReceiver"
+            android:exported="false"
+            tools:replace="android:exported" />
+
+        <!-- Zeitzonen-/Uhrzeitwechsel: setzt nur ein Merkzeichen, startet die
+             App nicht (siehe TimeChangeReceiver). -->
+        <receiver
+            android:name=".TimeChangeReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
+            </intent-filter>
         </receiver>
 
         <meta-data

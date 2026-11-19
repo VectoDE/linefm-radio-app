@@ -26,6 +26,11 @@ class AlarmSchedule {
   /// sonst morgen. Mit Wochentagen: der naechste passende Tag (ISO 1 = Montag).
   static DateTime? nextOccurrence(AlarmRule rule, DateTime now) {
     if (!rule.enabled) return null;
+    if (!rule.repeats && rule.firesAt != null) {
+      // Einmalig mit festem Termin: nie auf einen spaeteren Tag verschieben.
+      final at = rule.firesAt!;
+      return at.isAfter(now) ? at : null;
+    }
     for (var offset = 0; offset < _searchDays; offset++) {
       final candidate = DateTime(
         now.year,
@@ -64,6 +69,38 @@ class AlarmSchedule {
   }) {
     final next = nextOccurrence(rule, previousCheck);
     return next != null && !next.isAfter(now);
+  }
+
+  /// Legt bei einmaligen, eingeschalteten Regeln den festen Termin
+  /// ([AlarmRule.firesAt]) fest, wenn er fehlt oder Uhrzeit/Schalter gegenueber
+  /// [previous] geaendert wurden. Alle anderen Regeln bleiben unveraendert;
+  /// wiederkehrende Regeln verlieren einen alten Termin.
+  static List<AlarmRule> withFiresAt(
+    List<AlarmRule> next,
+    List<AlarmRule> previous,
+    DateTime now,
+  ) {
+    final before = <String, AlarmRule>{for (final r in previous) r.id: r};
+    AlarmRule fix(AlarmRule r) {
+      if (r.repeats || !r.enabled) {
+        return r.firesAt == null ? r : r.copyWith(clearFiresAt: true);
+      }
+      final old = before[r.id];
+      final unchanged =
+          r.firesAt != null &&
+          old != null &&
+          old.enabled &&
+          !old.repeats &&
+          old.hour == r.hour &&
+          old.minute == r.minute;
+      if (unchanged) return r;
+      final at = nextOccurrence(r.copyWith(clearFiresAt: true), now);
+      return at == null
+          ? r.copyWith(clearFiresAt: true)
+          : r.copyWith(firesAt: at);
+    }
+
+    return <AlarmRule>[for (final r in next) fix(r)];
   }
 
   /// Regel nach dem Klingeln: Einmalige Wecker schalten sich aus,

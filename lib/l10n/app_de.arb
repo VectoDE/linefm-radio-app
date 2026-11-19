@@ -262,6 +262,7 @@
     }
   },
   "sleepTimerEndOfSong": "Ende des Songs",
+  "sleepTimerEndOfSongUnavailable": "„Ende des Songs“ ist bei Live-Sendungen nicht möglich.",
   "sleepTimerStatusNone": "Kein Sleeptimer aktiv.",
   "sleepTimerStatusRunning": "{minutes, plural, =1{Wiedergabe stoppt in 1 Minute.} other{Wiedergabe stoppt in {minutes} Minuten.}}",
   "@sleepTimerStatusRunning": {
@@ -357,6 +358,18 @@
   "alarmPermissionTitle": "Wecker braucht eine Freigabe",
   "alarmPermissionBody": "Damit der Wecker pünktlich klingelt, muss Android genaue Alarme erlauben. Das stellst du in den Systemeinstellungen ein.",
   "alarmOpenSettings": "Einstellungen öffnen",
+  "alarmStop": "Aus",
+  "alarmRingingBody": "Wecker: {station} läuft.",
+  "@alarmRingingBody": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmExactMissingNote": "Ohne die Freigabe „Alarme und Erinnerungen“ klingelt der Wecker nicht pünktlich. Erlaube sie in den Systemeinstellungen.",
+  "alarmFullScreenMissingNote": "Ohne die Freigabe „Vollbild-Benachrichtigungen“ erscheint der Wecker nur als Mitteilung, nicht als Vollbild.",
+  "alarmOpenFullScreenSettings": "Vollbild erlauben",
   "alarmRingingTitle": "Guten Morgen",
   "alarmRingingBody": "{station} läuft gleich los.",
   "@alarmRingingBody": {

@@ -843,6 +843,10 @@ class _NavItem extends StatelessWidget {
         focusable: true,
         focused: focused,
         onFocus: onFocus,
+        // excludeSemantics verwirft auch die Tap-Aktion des InkResponse; ohne
+        // eigenes onTap liess sich die Leiste per Screenreader nicht bedienen
+        // (Web: Klick auf den Knopf ohne Wirkung, gefunden mit tool/a11y).
+        onTap: onTap,
         child: child,
       ),
       child: InkResponse(

@@ -145,6 +145,31 @@ void main() {
       handle.dispose();
     });
 
+    testWidgets('Untere Leiste: Semantik-Tap wechselt die Ansicht (A4)', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      useSize(tester, 390, 844);
+      final host = AppHost(settings: _noAutoplay);
+      await pumpApp(tester, host);
+
+      for (final (label, screen) in <(String, AppScreen)>[
+        ('Verlauf', AppScreen.history),
+        ('Player', AppScreen.player),
+        ('Sender', AppScreen.stations),
+      ]) {
+        final finder = find.semantics.byPredicate(
+          (node) => node.label == label && node.flagsCollection.isButton,
+        );
+        expect(finder, findsOneWidget, reason: label);
+        tester.semantics.tap(finder);
+        await settleApp(tester);
+        expect(host.container.read(navigationProvider), screen, reason: label);
+      }
+      await disposeApp(tester, host);
+      handle.dispose();
+    });
+
     testWidgets('Vorhersagbares Zurueck (Android) fuehrt wie Zurueck (L3-03)', (
       tester,
     ) async {

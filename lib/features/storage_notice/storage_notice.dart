@@ -93,13 +93,14 @@ class _NoticeCard extends ConsumerWidget {
                       children: <Widget>[
                         copy,
                         const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: <Widget>[
-                            privacy,
-                            const SizedBox(width: 8),
-                            dismiss,
-                          ],
+                        // Wrap statt Row: lange Beschriftungen (DE, grosse
+                        // Schrift) brechen um statt ueberzulaufen.
+                        Wrap(
+                          alignment: WrapAlignment.end,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: <Widget>[privacy, dismiss],
                         ),
                       ],
                     );

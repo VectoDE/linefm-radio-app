@@ -1,9 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:http/http.dart' as http;
 import 'package:linefm_radio/app/navigation.dart';
 import 'package:linefm_radio/app/player_controller.dart';
+import 'package:linefm_radio/app/system_share_service.dart';
 import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
+import 'package:linefm_radio/data/api/http_cache.dart';
 import 'package:linefm_radio/data/api/laut_api.dart';
+import 'package:linefm_radio/data/api/song_change_socket.dart';
 import 'package:linefm_radio/data/artwork/itunes_artwork.dart';
 import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
@@ -27,8 +34,10 @@ import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/services/widgets/home_widget_sync.dart';
 
 // Zentrale Provider-Definitionen (Spec 3.4). Gemeinsame Datei: Besitz P01,
-// danach P28. Aenderungswuensche anderer Pakete laufen ueber den Bericht.
-// Die Standardwerte sind Stubs; main() und Tests ueberschreiben sie.
+// danach P11/P28. Aenderungswuensche anderer Pakete laufen ueber den Bericht.
+//
+// Die Standardwerte sind Stubs ohne Netzwerk (Tests, Previews). main() setzt
+// die echten Dienste ueber [productionOverrides].
 
 // ---------------------------------------------------------------- Konfig/Kern
 
@@ -57,9 +66,27 @@ final artworkProvider = Provider<ArtworkService>(
 
 final nowPlayingRepositoryProvider = Provider<NowPlayingRepository>((ref) {
   final repo = FakeNowPlayingRepository();
-  ref.onDispose(repo.dispose);
+  bindNowPlayingRepository(ref, repo);
   return repo;
 });
+
+/// Bindet den Live-Daten-Motor an die App: gewaehlte Station und laufende
+/// Wiedergabe steuern Timer und Abrufe; `dispose` beendet Timer und
+/// WebSocket. Den Vordergrund meldet die Shell (`setForeground`).
+void bindNowPlayingRepository(Ref ref, NowPlayingRepository repo) {
+  ref
+    ..listen<Station>(
+      activeStationProvider,
+      (_, next) => repo.setActiveStation(next),
+    )
+    ..listen<AsyncValue<PlayerUiState>>(playerStateProvider, (_, next) {
+      final state = next.value;
+      if (state != null) {
+        repo.setPlaying(value: state.isPlaying || state.isBusy);
+      }
+    })
+    ..onDispose(repo.dispose);
+}
 
 /// Audio-Dienst; main() setzt das Ergebnis von initAudio().
 final playbackServiceProvider = Provider<PlaybackService>((ref) {
@@ -133,23 +160,21 @@ final currentTrackProvider = Provider<AsyncValue<Track?>>((ref) {
       );
 });
 
-class HistoryNotifier extends AsyncNotifier<List<HistoryEntry>> {
-  @override
-  Future<List<HistoryEntry>> build() async {
-    final station = ref.watch(activeStationProvider);
-    return ref.read(nowPlayingRepositoryProvider).watchHistory(station).first;
-  }
-}
-
-final historyProvider =
-    AsyncNotifierProvider<HistoryNotifier, List<HistoryEntry>>(
-      HistoryNotifier.new,
-    );
+/// LIVE-Eintrag plus letzte Songs der gewaehlten Station, live aktualisiert.
+final historyProvider = StreamProvider<List<HistoryEntry>>((ref) {
+  final station = ref.watch(activeStationProvider);
+  return ref.watch(nowPlayingRepositoryProvider).watchHistory(station);
+});
 
 final listenersProvider = StreamProvider<int?>((ref) {
   final station = ref.watch(activeStationProvider);
   return ref.watch(nowPlayingRepositoryProvider).watchListeners(station);
 });
+
+/// `false`, solange laut.fm nicht erreichbar ist (Offline-Leiste).
+final onlineProvider = StreamProvider<bool>(
+  (ref) => ref.watch(nowPlayingRepositoryProvider).watchOnline(),
+);
 
 // ----------------------------------------------------------- Persistiert
 
@@ -222,7 +247,13 @@ final telemetryConsentProvider =
 
 class SleepTimerNotifier extends Notifier<SleepTimerState> {
   @override
-  SleepTimerState build() => ref.read(sleepTimerServiceProvider).state;
+  SleepTimerState build() {
+    final service = ref.watch(sleepTimerServiceProvider);
+    // Ablauf, Ausblenden und Restzeit meldet der Dienst selbst.
+    final sub = service.states.listen((s) => state = s);
+    ref.onDispose(sub.cancel);
+    return service.state;
+  }
 
   Future<void> start(SleepTimerMode mode, {Track? currentTrack}) async {
     final service = ref.read(sleepTimerServiceProvider);
@@ -266,3 +297,55 @@ final castProvider = StreamProvider<CastState>(
 final navigationProvider = NotifierProvider<NavigationNotifier, AppScreen>(
   NavigationNotifier.new,
 );
+
+// ------------------------------------------------------------- Produktion
+
+/// Echte Dienste fuer main(): laut.fm-REST mit Cache, iTunes-Cover mit
+/// persistentem Cache, Live-Daten-Motor (WebSocket nur mit `WS_ENABLED=true`,
+/// Standard aus, Entscheidung 50), System-Teilen. [httpClient] nur fuer
+/// Tests; ohne Angabe erzeugt jeder Dienst seinen eigenen Client.
+List<Override> productionOverrides({
+  required AppConfig config,
+  required PrefsStore prefs,
+  required PlaybackService playback,
+  required TelemetryHub telemetry,
+  http.Client? httpClient,
+}) => <Override>[
+  appConfigProvider.overrideWithValue(config),
+  prefsProvider.overrideWithValue(prefs),
+  playbackServiceProvider.overrideWithValue(playback),
+  telemetryProvider.overrideWithValue(telemetry),
+  lautApiProvider.overrideWith((ref) {
+    final api = HttpLautApi(cache: HttpCache(client: httpClient));
+    if (httpClient == null) ref.onDispose(api.close);
+    return api;
+  }),
+  artworkProvider.overrideWith((ref) {
+    final service = ItunesArtworkService(
+      client: httpClient,
+      clock: ref.watch(clockProvider),
+      store: CoverCacheStore(
+        read: prefs.readCoverCache,
+        write: prefs.writeCoverCache,
+      ),
+    );
+    ref.onDispose(() {
+      unawaited(httpClient == null ? service.dispose() : service.flush());
+    });
+    return service;
+  }),
+  nowPlayingRepositoryProvider.overrideWith((ref) {
+    final repo = LiveNowPlayingRepository(
+      api: ref.watch(lautApiProvider),
+      artwork: ref.watch(artworkProvider),
+      clock: ref.watch(clockProvider),
+      activeStation: ref.read(activeStationProvider),
+      socket: config.wsEnabled ? WebSocketSongChangeSocket() : null,
+    );
+    bindNowPlayingRepository(ref, repo);
+    return repo;
+  }),
+  shareServiceProvider.overrideWith(
+    (ref) => SystemShareService(webBaseUrl: config.webBaseUrl),
+  ),
+];

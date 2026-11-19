@@ -2,10 +2,6 @@ import 'dart:async';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:audio_service/audio_service.dart';
-// audio_session ist transitive Abhaengigkeit von just_audio (gleiche Version
-// im Lockfile). Aenderungswunsch an P28: als direkte Abhaengigkeit eintragen,
-// dann diese Ausnahme entfernen.
-// ignore: depend_on_referenced_packages
 import 'package:audio_session/audio_session.dart';
 import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/station.dart';

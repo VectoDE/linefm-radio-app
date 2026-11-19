@@ -60,7 +60,7 @@ void main() {
     await settle(tester);
     expect(h.playback.state.status, PlayerStatus.idle);
     expect(h.sink.events.first, 'play {station: linefm}');
-    expect(h.sink.events.last, 'stop {station: linefm, seconds_bucket: 0-9}');
+    expect(h.sink.events.last, 'stop {station: linefm, seconds_bucket: <10}');
   });
 
   testWidgets('Antippen oeffnet den Player', (tester) async {

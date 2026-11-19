@@ -10,7 +10,7 @@ class AppConfig {
     this.sentryDsn = '',
     this.sentryEnvironment = '',
     this.firebaseEnabled = false,
-    this.wsEnabled = true,
+    this.wsEnabled = false,
     this.gscVerification = '',
     this.trustGridinsoftUrl = '',
     this.trustTrustpilotUrl = '',
@@ -29,7 +29,7 @@ class AppConfig {
     sentryDsn: String.fromEnvironment('SENTRY_DSN'),
     sentryEnvironment: String.fromEnvironment('SENTRY_ENVIRONMENT'),
     firebaseEnabled: bool.fromEnvironment('FIREBASE_ENABLED'),
-    wsEnabled: bool.fromEnvironment('WS_ENABLED', defaultValue: true),
+    wsEnabled: bool.fromEnvironment('WS_ENABLED'),
     gscVerification: String.fromEnvironment('GSC_VERIFICATION'),
     trustGridinsoftUrl: String.fromEnvironment('TRUST_GRIDINSOFT_URL'),
     trustTrustpilotUrl: String.fromEnvironment('TRUST_TRUSTPILOT_URL'),
@@ -45,6 +45,10 @@ class AppConfig {
   final String sentryDsn;
   final String sentryEnvironment;
   final bool firebaseEnabled;
+
+  /// laut.fm-WebSocket fuer Titelwechsel. Standard aus (Entscheidung 50:
+  /// gemessen rund 130 MB/h, fast nur fremde Sender); dann ends_at-Timer
+  /// plus Polling.
   final bool wsEnabled;
   final String gscVerification;
   final String trustGridinsoftUrl;

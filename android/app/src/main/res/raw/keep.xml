@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- R8/Ressourcen-Schrumpfen: Das Benachrichtigungs-Icon wird nur per Name
+     ("drawable/ic_stat_linefm") aus audio_service geladen und darf nicht
+     entfernt werden. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_linefm" />

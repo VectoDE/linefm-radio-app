@@ -13,6 +13,7 @@ dependencies:
   material_ui: ^1.1.0
   cupertino_icons: ^1.0.8
   just_audio: ^0.10.6
+  audio_session: ^0.2.4
   audio_service: ^0.18.19
   just_audio_media_kit: ^2.1.0
   media_kit_libs_windows_audio: ^1.0.9
@@ -37,6 +38,11 @@ dependencies:
     sdk: flutter
   audio_service_mpris: ^0.2.1
   smtc_windows: ^1.1.0
+# smtc_windows (Windows-Mediensteuerung) ist gegen flutter_rust_bridge 2.11.1
+# generiert; neuere Versionen brechen die Laufzeitpruefung der Bruecke.
+dependency_overrides:
+  flutter_rust_bridge: 2.11.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -53,6 +59,12 @@ flutter:
     - assets/audio/
     - assets/legal/de/
     - assets/legal/en/
+    # Lizenztexte der Schriften fuer die Lizenzseite (registerFontLicenses).
+    # Die Schriftdateien selbst kommen ueber "fonts:".
+    - assets/fonts/OFL.txt
+    - assets/fonts/LICENSE-Syncopate-Apache2.txt
+    # assets/branding/ wird zur Laufzeit nicht gebraucht (Icons entstehen beim
+    # Build, das RadioGruppe-Logo laedt von radiogruppe.de, Entscheidung 47).
   fonts:
     - family: Poppins
       fonts:

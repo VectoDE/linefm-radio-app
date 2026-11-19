@@ -1,16 +1,23 @@
 import 'dart:async';
-import 'dart:ui' show PlatformDispatcher;
+import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
+import 'package:linefm_radio/domain/favorites/favorite_stations_logic.dart';
 import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
+import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/services/audio/browse_tree.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/audio/radio_player.dart';
 import 'package:linefm_radio/services/audio/reconnect_policy.dart';
+// rxdart kommt ueber audio_service; subscribeToChildren verlangt ValueStream.
+// ignore: depend_on_referenced_packages
+import 'package:rxdart/rxdart.dart' show BehaviorSubject, ValueStream;
 
 /// Liefert die Stream-URL einer Station (Spec 3.3: `stream_url` aus der
 /// API, Rueckfall `https://stream.laut.fm/{slug}`).
@@ -62,6 +69,9 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   /// "recent", Play ohne Auswahl).
   Station? _recent;
 
+  /// Favoriten-Sender fuer das Auto-Menue (Issue #42).
+  List<Station> _favoriteStations = const <Station>[];
+
   /// Letzter bekannter Titel je Station (Slug).
   final Map<String, Track?> _tracks = <String, Track?>{};
 
@@ -92,12 +102,24 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   /// die Play-Taste ohne vorherige Auswahl einen Sender kennen.
   set recentStation(Station? station) {
     if (station == null) return;
-    _recent = station;
+    _setRecent(station);
     if (mediaItem.value == null) {
       mediaItem.add(
         BrowseTree.stationItem(station, track: _tracks[station.slug]),
       );
     }
+  }
+
+  /// Favoriten-Sender fuer das Auto-Menue (Reihenfolge der Senderliste).
+  List<Station> get favoriteStations => _favoriteStations;
+
+  /// Die App meldet die gemerkten Sender (Slugs); Android Auto zeigt sie im
+  /// Ordner "Favoriten-Sender". Das Menue wird neu geladen.
+  set favoriteStationSlugs(Set<String> slugs) {
+    final next = FavoriteStationsLogic.stations(slugs);
+    if (_sameStations(next, _favoriteStations)) return;
+    _favoriteStations = List<Station>.unmodifiable(next);
+    _notifyBrowseChanged(BrowseTree.favoriteStationsId);
   }
 
   /// Letzte Fehlermeldung (technisch, nicht fuer die UI gedacht).
@@ -108,7 +130,7 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
     final gen = ++_generation;
     _cancelTimers();
     _desired = station;
-    _recent = station;
+    _setRecent(station);
     _reconnectAttempt = 0;
     _resumeAfterInterruption = false;
     _errorMessage = null;
@@ -159,7 +181,16 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
     }
     await _signalSub.cancel();
     await _controller.close();
+    for (final subject in _childrenSubjects.values) {
+      await subject.close();
+    }
     await _player.dispose();
+  }
+
+  void _setRecent(Station station) {
+    if (_recent == station) return;
+    _recent = station;
+    _notifyBrowseChanged(BrowseTree.recentId);
   }
 
   // --------------------------------------------------------- audio_service
@@ -211,14 +242,68 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
     String parentMediaId, [
     Map<String, dynamic>? options,
   ]) async {
-    final de = _isGerman();
     return BrowseTree.children(
       parentMediaId,
+      favorites: _favoriteStations,
       recent: _recent,
-      stationsTitle: de ? 'Stationen' : 'Stations',
-      recentTitle: de ? 'Zuletzt gehört' : 'Recently played',
+      titles: autoMenuTitles(),
+      art: _browseArt,
     );
   }
+
+  /// Ordnernamen in der Systemsprache (Rueckfall Englisch).
+  static AutoMenuTitles autoMenuTitles([Locale? locale]) {
+    final l10n = lookupAppLocalizations(
+      _supportedLocale(locale ?? PlatformDispatcher.instance.locale),
+    );
+    return AutoMenuTitles(
+      favoriteStations: l10n.browseFavoriteStations,
+      stations: l10n.browseStations,
+      recent: l10n.browseRecent,
+    );
+  }
+
+  static Locale _supportedLocale(Locale locale) =>
+      AppLocalizations.supportedLocales.any(
+        (l) => l.languageCode == locale.languageCode,
+      )
+      ? Locale(locale.languageCode)
+      : const Locale('en');
+
+  /// Android Auto zeigt nur lokale Bilder, dort die gebuendelten Logos.
+  static Uri _browseArt(Station station) => _isAndroid
+      ? BrowseTree.androidResourceArt(station)
+      : BrowseTree.remoteArt(station);
+
+  static bool _sameStations(List<Station> a, List<Station> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  /// Meldet Android Auto ueber [subscribeToChildren], dass sich ein Ordner
+  /// geaendert hat; audio_service ruft dann `notifyChildrenChanged` auf.
+  void _notifyBrowseChanged(String parentMediaId) {
+    final subject = _childrenSubjects[parentMediaId];
+    if (subject != null && !subject.isClosed) {
+      subject.add(const <String, dynamic>{});
+    }
+  }
+
+  final Map<String, BehaviorSubject<Map<String, dynamic>>> _childrenSubjects =
+      <String, BehaviorSubject<Map<String, dynamic>>>{};
+
+  @override
+  ValueStream<Map<String, dynamic>> subscribeToChildren(String parentMediaId) =>
+      _childrenSubjects.putIfAbsent(
+        parentMediaId,
+        BehaviorSubject<Map<String, dynamic>>.new,
+      );
+
+  static bool get _isAndroid =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   @override
   Future<MediaItem?> getMediaItem(String mediaId) async {
@@ -232,7 +317,7 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   Future<List<MediaItem>> search(
     String query, [
     Map<String, dynamic>? extras,
-  ]) async => BrowseTree.search(query);
+  ]) async => BrowseTree.search(query, art: _browseArt);
 
   @override
   Future<void> onTaskRemoved() => stopPlayback();
@@ -427,9 +512,6 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
       playbackStateFor(_state.status, errorMessage: _errorMessage),
     );
   }
-
-  static bool _isGerman() =>
-      PlatformDispatcher.instance.locale.languageCode == 'de';
 
   /// Abbildung auf den audio_service-Zustand (Benachrichtigung,
   /// Sperrbildschirm, Android Auto, Media Session, MPRIS).

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Rueckfalltexte des Homescreen-Widgets (Englisch, Entscheidung 15).
+         Sobald die App gelaufen ist, schreibt sie die Texte in der
+         App-Sprache in den Widget-Speicher. -->
+    <string name="widget_description">Station, current song and play button</string>
+    <string name="widget_idle">Tap to play</string>
+    <string name="widget_play">Start stream</string>
+    <string name="widget_stop">Stop stream</string>
+    <string name="widget_open_app">Open LINEFM Radio</string>
+    <string name="widget_default_station">LINEFM</string>
+</resources>

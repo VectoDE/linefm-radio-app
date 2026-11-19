@@ -9,6 +9,7 @@ import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
 import 'package:linefm_radio/ui/widgets/named_dialog.dart';
+import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -136,9 +137,10 @@ class _CastButtonState extends ConsumerState<CastButton> {
       colors,
       Theme.of(context).brightness,
     );
-    return Tooltip(
+    // QuietTooltip statt Tooltip: keine verwaiste aria-owns-Verknuepfung im
+    // Web (siehe QuietTooltip), Label traegt der Knopf selbst.
+    return QuietTooltip(
       message: label,
-      excludeFromSemantics: true,
       child: SemanticFocus(
         builder: (_, focused, onFocus, child) => Semantics(
           container: true,

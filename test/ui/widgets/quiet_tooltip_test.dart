@@ -169,4 +169,106 @@ void main() {
       handle.dispose();
     });
   });
+
+  group('R4-G', () {
+    testWidgets('Meldungswechsel leer/voll behaelt den Fokus des Kindes', (
+      tester,
+    ) async {
+      final node = FocusNode(debugLabel: 'kind');
+      addTearDown(node.dispose);
+      Widget build(String message) => MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: QuietTooltip(
+              message: message,
+              child: IconButton(
+                focusNode: node,
+                onPressed: () {},
+                icon: const Icon(Icons.cast, semanticLabel: 'Cast'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpWidget(build(''));
+      node.requestFocus();
+      await tester.pump();
+      expect(node.hasFocus, isTrue);
+      final before = tester.element(find.byType(IconButton));
+      await tester.pumpWidget(build('Auf Geraet uebertragen'));
+      expect(node.hasFocus, isTrue);
+      // Gleiches Element: das Kind wurde nicht neu eingehaengt.
+      expect(tester.element(find.byType(IconButton)), same(before));
+      expect(find.byType(Focus), findsWidgets);
+    });
+
+    testWidgets('Escape ohne sichtbare Blase wird nicht abgefangen', (
+      tester,
+    ) async {
+      var seen = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Focus(
+              autofocus: true,
+              onKeyEvent: (_, event) {
+                if (event is KeyDownEvent &&
+                    event.logicalKey == LogicalKeyboardKey.escape) {
+                  seen++;
+                }
+                return KeyEventResult.ignored;
+              },
+              child: Center(
+                child: QuietTooltip(
+                  message: 'Einstellungen',
+                  child: IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.settings),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      expect(seen, 1);
+    });
+
+    testWidgets('Blase blendet ein, bei reduzierter Bewegung sofort', (
+      tester,
+    ) async {
+      Future<double> opacityAfterHover({required bool reduce}) async {
+        await tester.pumpWidget(
+          MediaQuery(
+            data: MediaQueryData(disableAnimations: reduce),
+            child: _app(),
+          ),
+        );
+        final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+        await mouse.addPointer(location: Offset.zero);
+        await mouse.moveTo(tester.getCenter(find.byType(IconButton)));
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump(const Duration(milliseconds: 1));
+        final opacities = tester
+            .widgetList<Opacity>(
+              find.ancestor(
+                of: find.text('Einstellungen'),
+                matching: find.byType(Opacity),
+              ),
+            )
+            .map((o) => o.opacity)
+            .toList();
+        await mouse.moveTo(Offset.zero);
+        await tester.pump(const Duration(seconds: 1));
+        await mouse.removePointer();
+        return opacities.isEmpty ? 1 : opacities.first;
+      }
+
+      expect(fadeDuration.inMilliseconds, lessThanOrEqualTo(150));
+      expect(await opacityAfterHover(reduce: true), 1);
+      expect(await opacityAfterHover(reduce: false), lessThan(1));
+    });
+  });
 }

@@ -26,6 +26,12 @@ import 'package:material_ui/material_ui.dart';
 /// * dauerhaft: Sie bleibt, bis Zeiger oder Fokus gehen oder Escape kommt.
 /// Bei Tastaturfokus (nicht bei Fokus durch Tippen) erscheint sie ebenfalls.
 /// Der Fokus-Rahmen um das Kind hat keine eigene Semantik.
+///
+/// Der Baum um das Kind ist immer gleich (auch bei leerer Meldung), damit
+/// ein Wechsel der Meldung den Zustand des Kindes (Fokus, Ripple) nicht
+/// verwirft. Escape faengt die Blase nur ab, solange sie sichtbar ist; sonst
+/// erreicht die Taste Dialoge und Routen wie gewohnt. Die Blase blendet in
+/// [fadeDuration] ein, bei reduzierter Bewegung sofort.
 class QuietTooltip extends StatefulWidget {
   const QuietTooltip({super.key, required this.message, required this.child});
 
@@ -35,6 +41,9 @@ class QuietTooltip extends StatefulWidget {
   @override
   State<QuietTooltip> createState() => _QuietTooltipState();
 }
+
+/// Einblenddauer der Blase (WCAG 2.3.3: kurz, abschaltbar).
+const Duration fadeDuration = Duration(milliseconds: 120);
 
 class _QuietTooltipState extends State<QuietTooltip> {
   static const Duration _touchShowDuration = Duration(milliseconds: 1500);
@@ -47,7 +56,13 @@ class _QuietTooltipState extends State<QuietTooltip> {
   @override
   void didUpdateWidget(QuietTooltip oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.message != widget.message) _entry?.markNeedsBuild();
+    if (oldWidget.message != widget.message) {
+      if (widget.message.isEmpty) {
+        _hideNow();
+      } else {
+        _entry?.markNeedsBuild();
+      }
+    }
   }
 
   @override
@@ -116,7 +131,7 @@ class _QuietTooltipState extends State<QuietTooltip> {
     final theme = TooltipTheme.of(context);
     final textStyle = theme.textStyle ?? Theme.of(context).textTheme.bodyMedium;
     _entry = OverlayEntry(
-      builder: (_) => Positioned.fill(
+      builder: (overlayContext) => Positioned.fill(
         child: ExcludeSemantics(
           child: CustomSingleChildLayout(
             delegate: _BubbleLayout(
@@ -129,20 +144,26 @@ class _QuietTooltipState extends State<QuietTooltip> {
             child: MouseRegion(
               onEnter: _onBubbleEnter,
               onExit: _onExit,
-              child: DecoratedBox(
-                decoration: theme.decoration ?? const BoxDecoration(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  // Overlay ohne Material: eigener Textstil, sonst zeichnet
-                  // Flutter die gelbe Unterstreichung fuer fehlende Stile.
-                  child: DefaultTextStyle(
-                    style: (textStyle ?? const TextStyle()).copyWith(
-                      decoration: TextDecoration.none,
+              child: _Fade(
+                duration:
+                    MediaQuery.maybeDisableAnimationsOf(overlayContext) ?? false
+                    ? Duration.zero
+                    : fadeDuration,
+                child: DecoratedBox(
+                  decoration: theme.decoration ?? const BoxDecoration(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                    child: Text(widget.message),
+                    // Overlay ohne Material: eigener Textstil, sonst zeichnet
+                    // Flutter die gelbe Unterstreichung fuer fehlende Stile.
+                    child: DefaultTextStyle(
+                      style: (textStyle ?? const TextStyle()).copyWith(
+                        decoration: TextDecoration.none,
+                      ),
+                      child: Text(widget.message),
+                    ),
                   ),
                 ),
               ),
@@ -171,7 +192,7 @@ class _QuietTooltipState extends State<QuietTooltip> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.message.isEmpty) return widget.child;
+    // Immer derselbe Aufbau; bei leerer Meldung zeigt `_show` nichts.
     return Focus(
       canRequestFocus: false,
       skipTraversal: true,
@@ -187,6 +208,26 @@ class _QuietTooltipState extends State<QuietTooltip> {
           child: widget.child,
         ),
       ),
+    );
+  }
+}
+
+/// Einblenden der Blase; [Duration.zero] zeigt sie sofort.
+class _Fade extends StatelessWidget {
+  const _Fade({required this.duration, required this.child});
+
+  final Duration duration;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (duration == Duration.zero) return child;
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: duration,
+      curve: Curves.easeOut,
+      builder: (_, value, child) => Opacity(opacity: value, child: child),
+      child: child,
     );
   }
 }

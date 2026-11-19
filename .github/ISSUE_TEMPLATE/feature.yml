@@ -1,0 +1,37 @@
+name: Idee oder Wunsch
+description: Eine neue Funktion oder eine Verbesserung vorschlagen.
+title: "Idee: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Worum geht es?
+      description: Welches Problem hast du, oder was fehlt dir beim Hören?
+    validations:
+      required: true
+  - type: textarea
+    id: vorschlag
+    attributes:
+      label: Dein Vorschlag
+      description: Wie könnte es aussehen oder funktionieren?
+    validations:
+      required: true
+  - type: textarea
+    id: alternativen
+    attributes:
+      label: Andere Wege, die du schon versucht hast
+  - type: dropdown
+    id: plattform
+    attributes:
+      label: Für welche Plattform?
+      multiple: true
+      options:
+        - alle
+        - Web (Browser)
+        - Android
+        - Android Auto
+        - iOS
+        - macOS
+        - Windows
+        - Linux

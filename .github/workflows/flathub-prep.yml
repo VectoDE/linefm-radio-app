@@ -1,0 +1,100 @@
+name: Flathub-Vorbereitung
+
+# Fuellt das Flatpak-Manifest mit Tarball-URL und sha256 aus dem Release und legt es als
+# Artefakt samt PR-Vorlage ab. Reicht NICHTS bei Flathub ein und legt keinen PR an.
+# Ausloeser: release.yml (nur Endversionen) oder manuell mit Tag.
+# Braucht keine Secrets. Voraussetzung fuer Flathub: oeffentliches Repository (die
+# Download-URL muss ohne Anmeldung erreichbar sein), siehe packaging/flathub/README.md.
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Versions-Tag (vX.Y.Z)
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Versions-Tag eines vorhandenen Releases (z. B. v1.0.0)
+        type: string
+        required: true
+
+permissions: {}
+
+concurrency:
+  group: flathub-prep-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  prep:
+    name: Manifest fuellen
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ inputs.tag }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Linux-Tarball holen
+        id: release
+        uses: ./.github/actions/fetch-release
+        with:
+          tag: ${{ inputs.tag }}
+          pattern: "*-linux-x64.tar.gz"
+          token: ${{ github.token }}
+
+      - name: Manifest fuellen
+        env:
+          LABEL: ${{ steps.release.outputs.label }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          tarball="$(ls dist/*-linux-x64.tar.gz | head -n1)"
+          name="$(basename "$tarball")"
+          sha="$(sha256sum "$tarball" | cut -d' ' -f1)"
+          url="https://github.com/${REPO}/releases/download/${TAG}/${name}"
+          out="flathub/de.linefm.app.yml"
+          mkdir -p flathub
+          cp packaging/flathub/de.linefm.app.yml "$out"
+          # Nur die mit "# release-tarball" markierten Zeilen ersetzen.
+          sed -E -i "s|^([[:space:]]*url: ).*( # release-tarball)\$|\1${url}\2|" "$out"
+          sed -E -i "s|^([[:space:]]*sha256: ).*( # release-tarball)\$|\1'${sha}'\2|" "$out"
+          grep -qF "url: ${url} # release-tarball" "$out" || { echo "::error::URL-Zeile nicht ersetzt"; exit 1; }
+          grep -qF "sha256: '${sha}' # release-tarball" "$out" || { echo "::error::sha256-Zeile nicht ersetzt"; exit 1; }
+          cp linux/de.linefm.app.metainfo.xml flathub/ 2>/dev/null || true
+          {
+            echo "# PR-Vorlage fuer flathub/flathub (Version ${LABEL})"
+            echo ""
+            echo "Titel: Add de.linefm.app"
+            echo ""
+            echo "- Manifest: de.linefm.app.yml (Tarball ${name}, sha256 ${sha})"
+            echo "- Quelle: ${url}"
+            echo "- Pruefen vor dem Einreichen: packaging/flathub/README.md (proprietaere Lizenz, Binaer-Tarball,"
+            echo "  Verified-Domain linefm.de, Screenshots, OARS, Repository oeffentlich)."
+            echo "- Einreichung nur durch den Inhaber, Branch new-pr gegen flathub/flathub."
+          } > flathub/PR-VORLAGE.md
+          {
+            echo "### Flathub-Vorbereitung"
+            echo "- Version: ${LABEL}, sha256: \`${sha}\`"
+            echo "- Artefakt \`flathub-manifest-${LABEL}\` enthaelt Manifest und PR-Vorlage. **Nichts wurde eingereicht.**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Artefakt hochladen
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: flathub-manifest-${{ steps.release.outputs.label }}
+          path: flathub/
+          if-no-files-found: error
+          retention-days: 30

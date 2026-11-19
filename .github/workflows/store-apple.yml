@@ -1,0 +1,365 @@
+name: Store Apple
+
+# TestFlight-Upload (iOS) und Mac-App-Store-Upload (macOS), vorbereitet und STANDARDMAESSIG AUS
+# (Entscheidung 21). Laeuft nur, wenn die Repository-Variable APPLE_PUBLISHING_ENABLED auf
+# "true" steht UND alle Secrets unten gesetzt sind. Sonst werden die macOS-Jobs uebersprungen
+# (macOS-Minuten zaehlen im privaten Repo 10-fach) und die Zusammenfassung nennt, was fehlt.
+# Ausloeser: release.yml (nur Endversionen) oder manuell mit Tag.
+# Komplett ungetestet: Es gab weder Apple-Konto noch Mac. Erster echter Lauf nur manuell
+# beobachten.
+#
+# Secrets:    APPLE_TEAM_ID, APPLE_DISTRIBUTION_CERT_P12_BASE64, APPLE_DISTRIBUTION_CERT_PASSWORD,
+#             APPLE_MAC_INSTALLER_CERT_P12_BASE64, APPLE_MAC_INSTALLER_CERT_PASSWORD,
+#             APPLE_IOS_PROVISIONING_PROFILES_BASE64 (je Zeile ein Profil: App und Widget),
+#             APPLE_MACOS_PROVISIONING_PROFILE_BASE64,
+#             APP_STORE_CONNECT_API_KEY_ID, APP_STORE_CONNECT_API_KEY_ISSUER_ID,
+#             APP_STORE_CONNECT_API_KEY_P8
+# Variable:   APPLE_PUBLISHING_ENABLED=true
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Versions-Tag (vX.Y.Z)
+        type: string
+        required: true
+      ios:
+        description: iOS (TestFlight) einschliessen
+        type: boolean
+        required: false
+        default: true
+      macos:
+        description: macOS (Mac App Store) einschliessen
+        type: boolean
+        required: false
+        default: true
+    secrets:
+      APPLE_TEAM_ID:
+        required: false
+      APPLE_DISTRIBUTION_CERT_P12_BASE64:
+        required: false
+      APPLE_DISTRIBUTION_CERT_PASSWORD:
+        required: false
+      APPLE_MAC_INSTALLER_CERT_P12_BASE64:
+        required: false
+      APPLE_MAC_INSTALLER_CERT_PASSWORD:
+        required: false
+      APPLE_IOS_PROVISIONING_PROFILES_BASE64:
+        required: false
+      APPLE_MACOS_PROVISIONING_PROFILE_BASE64:
+        required: false
+      APP_STORE_CONNECT_API_KEY_ID:
+        required: false
+      APP_STORE_CONNECT_API_KEY_ISSUER_ID:
+        required: false
+      APP_STORE_CONNECT_API_KEY_P8:
+        required: false
+      FIREBASE_CONFIG_JSON:
+        required: false
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Versions-Tag (z. B. v1.0.0)
+        type: string
+        required: true
+      ios:
+        description: iOS (TestFlight) einschliessen
+        type: boolean
+        default: true
+      macos:
+        description: macOS (Mac App Store) einschliessen
+        type: boolean
+        default: true
+
+permissions: {}
+
+concurrency:
+  group: store-apple-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: Secret-Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      ios: ${{ steps.ios.outputs.ready == 'true' && inputs.ios }}
+      macos: ${{ steps.macos.outputs.ready == 'true' && inputs.macos }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Gate iOS (TestFlight)
+        id: ios
+        uses: ./.github/actions/secret-gate
+        with:
+          label: Apple iOS TestFlight (${{ inputs.tag }})
+          checks: |
+            APPLE_PUBLISHING_ENABLED=${{ vars.APPLE_PUBLISHING_ENABLED == 'true' }}
+            APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID != '' }}
+            APPLE_DISTRIBUTION_CERT_P12_BASE64=${{ secrets.APPLE_DISTRIBUTION_CERT_P12_BASE64 != '' }}
+            APPLE_DISTRIBUTION_CERT_PASSWORD=${{ secrets.APPLE_DISTRIBUTION_CERT_PASSWORD != '' }}
+            APPLE_IOS_PROVISIONING_PROFILES_BASE64=${{ secrets.APPLE_IOS_PROVISIONING_PROFILES_BASE64 != '' }}
+            APP_STORE_CONNECT_API_KEY_ID=${{ secrets.APP_STORE_CONNECT_API_KEY_ID != '' }}
+            APP_STORE_CONNECT_API_KEY_ISSUER_ID=${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID != '' }}
+            APP_STORE_CONNECT_API_KEY_P8=${{ secrets.APP_STORE_CONNECT_API_KEY_P8 != '' }}
+
+      - name: Gate macOS (Mac App Store)
+        id: macos
+        uses: ./.github/actions/secret-gate
+        with:
+          label: Apple Mac App Store (${{ inputs.tag }})
+          checks: |
+            APPLE_PUBLISHING_ENABLED=${{ vars.APPLE_PUBLISHING_ENABLED == 'true' }}
+            APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID != '' }}
+            APPLE_DISTRIBUTION_CERT_P12_BASE64=${{ secrets.APPLE_DISTRIBUTION_CERT_P12_BASE64 != '' }}
+            APPLE_DISTRIBUTION_CERT_PASSWORD=${{ secrets.APPLE_DISTRIBUTION_CERT_PASSWORD != '' }}
+            APPLE_MAC_INSTALLER_CERT_P12_BASE64=${{ secrets.APPLE_MAC_INSTALLER_CERT_P12_BASE64 != '' }}
+            APPLE_MAC_INSTALLER_CERT_PASSWORD=${{ secrets.APPLE_MAC_INSTALLER_CERT_PASSWORD != '' }}
+            APPLE_MACOS_PROVISIONING_PROFILE_BASE64=${{ secrets.APPLE_MACOS_PROVISIONING_PROFILE_BASE64 != '' }}
+            APP_STORE_CONNECT_API_KEY_ID=${{ secrets.APP_STORE_CONNECT_API_KEY_ID != '' }}
+            APP_STORE_CONNECT_API_KEY_ISSUER_ID=${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID != '' }}
+            APP_STORE_CONNECT_API_KEY_P8=${{ secrets.APP_STORE_CONNECT_API_KEY_P8 != '' }}
+
+  ios:
+    name: iOS TestFlight
+    needs: gate
+    if: needs.gate.outputs.ios == 'true'
+    runs-on: macos-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ inputs.tag }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Version bestimmen
+        id: version
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          BUILD_NUMBER_OFFSET: ${{ vars.BUILD_NUMBER_OFFSET }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then echo "::error::Ungueltiger Tag: $TAG"; exit 1; fi
+          label="${TAG#v}"
+          {
+            echo "label=$label"
+            echo "build_name=${label%%-*}"
+            echo "build_number=$(( RUN_NUMBER + ${BUILD_NUMBER_OFFSET:-100} ))"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Konfiguration schreiben
+        uses: ./.github/actions/write-config
+        with:
+          app-env: prod
+          app-version: ${{ steps.version.outputs.label }}
+          legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
+          legal-strict: ${{ !contains(inputs.tag, '-') }}
+          web-base-url: ${{ vars.WEB_BASE_URL }}
+          umami-url: ${{ vars.UMAMI_URL }}
+          umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
+          sentry-dsn: ${{ vars.SENTRY_DSN }}
+          sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
+          gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
+          trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
+          firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
+
+      - name: Signierung vorbereiten
+        id: signing
+        uses: ./.github/actions/apple-signing
+        with:
+          p12-base64: ${{ secrets.APPLE_DISTRIBUTION_CERT_P12_BASE64 }}
+          p12-password: ${{ secrets.APPLE_DISTRIBUTION_CERT_PASSWORD }}
+          profiles-base64: ${{ secrets.APPLE_IOS_PROVISIONING_PROFILES_BASE64 }}
+          platform: ios
+          team-id: ${{ secrets.APPLE_TEAM_ID }}
+
+      # Erst ohne Signatur bauen und archivieren, dann beim Export je Bundle-ID (App, Widget)
+      # mit dem passenden Profil signieren. So braucht das Xcode-Projekt (automatische
+      # Signierung) keine Aenderung.
+      - name: iOS bauen und archivieren
+        env:
+          BUILD_NAME: ${{ steps.version.outputs.build_name }}
+          BUILD_NUMBER: ${{ steps.version.outputs.build_number }}
+        run: |
+          set -euo pipefail
+          flutter build ios --release --no-codesign --dart-define-from-file=config/app.json \
+            --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
+          xcodebuild archive -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release \
+            -archivePath "$RUNNER_TEMP/Runner.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+
+      - name: IPA exportieren
+        env:
+          EXPORT_OPTIONS: ${{ steps.signing.outputs.export-options }}
+        run: |
+          set -euo pipefail
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/Runner.xcarchive" \
+            -exportOptionsPlist "$EXPORT_OPTIONS" -exportPath "$RUNNER_TEMP/ipa"
+          ls -la "$RUNNER_TEMP/ipa"
+
+      - name: Zu TestFlight hochladen
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+        run: |
+          set -euo pipefail
+          umask 077
+          keydir="$HOME/.appstoreconnect/private_keys"
+          mkdir -p "$keydir"
+          printf '%s' "$ASC_KEY_P8" > "$keydir/AuthKey_${ASC_KEY_ID}.p8"
+          ipa="$(ls "$RUNNER_TEMP"/ipa/*.ipa | head -n1)"
+          xcrun altool --upload-app --type ios --file "$ipa" --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+          echo "### Apple iOS" >> "$GITHUB_STEP_SUMMARY"
+          echo "- $TAG zu App Store Connect hochgeladen. Verarbeitung und TestFlight-Freigabe dort abwarten." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Aufraeumen
+        if: always()
+        env:
+          KEYCHAIN: ${{ steps.signing.outputs.keychain }}
+        run: |
+          rm -rf "$HOME/.appstoreconnect/private_keys" "$RUNNER_TEMP/ipa"
+          security delete-keychain "$KEYCHAIN" 2>/dev/null || true
+
+  macos:
+    name: Mac App Store
+    needs: gate
+    if: needs.gate.outputs.macos == 'true'
+    runs-on: macos-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ inputs.tag }}
+      APP_PATH: build/macos/Build/Products/Release/LINEFM Radio.app
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Version bestimmen
+        id: version
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          BUILD_NUMBER_OFFSET: ${{ vars.BUILD_NUMBER_OFFSET }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then echo "::error::Ungueltiger Tag: $TAG"; exit 1; fi
+          label="${TAG#v}"
+          {
+            echo "label=$label"
+            echo "build_name=${label%%-*}"
+            echo "build_number=$(( RUN_NUMBER + ${BUILD_NUMBER_OFFSET:-100} ))"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Konfiguration schreiben
+        uses: ./.github/actions/write-config
+        with:
+          app-env: prod
+          app-version: ${{ steps.version.outputs.label }}
+          legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
+          legal-strict: ${{ !contains(inputs.tag, '-') }}
+          web-base-url: ${{ vars.WEB_BASE_URL }}
+          umami-url: ${{ vars.UMAMI_URL }}
+          umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
+          sentry-dsn: ${{ vars.SENTRY_DSN }}
+          sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
+          gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
+          trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
+          firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
+
+      - name: Signierung vorbereiten
+        id: signing
+        uses: ./.github/actions/apple-signing
+        with:
+          p12-base64: ${{ secrets.APPLE_DISTRIBUTION_CERT_P12_BASE64 }}
+          p12-password: ${{ secrets.APPLE_DISTRIBUTION_CERT_PASSWORD }}
+          installer-p12-base64: ${{ secrets.APPLE_MAC_INSTALLER_CERT_P12_BASE64 }}
+          installer-p12-password: ${{ secrets.APPLE_MAC_INSTALLER_CERT_PASSWORD }}
+          profiles-base64: ${{ secrets.APPLE_MACOS_PROVISIONING_PROFILE_BASE64 }}
+          platform: macos
+          team-id: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: macOS bauen
+        env:
+          BUILD_NAME: ${{ steps.version.outputs.build_name }}
+          BUILD_NUMBER: ${{ steps.version.outputs.build_number }}
+        run: |
+          flutter build macos --release --dart-define-from-file=config/app.json \
+            --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
+
+      # Mac App Store: Sandbox-Entitlements plus Team-/App-Kennung aus dem Profil, Profil in
+      # die App einbetten, dann signiertes .pkg mit dem Installer-Zertifikat bauen.
+      - name: App signieren und .pkg bauen
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          PB=/usr/libexec/PlistBuddy
+          ent="$RUNNER_TEMP/mas.entitlements"
+          cp macos/Runner/Release.entitlements "$ent"
+          "$PB" -c "Add :com.apple.application-identifier string ${TEAM_ID}.de.linefm.app" "$ent"
+          "$PB" -c "Add :com.apple.developer.team-identifier string ${TEAM_ID}" "$ent"
+          profile="$(ls "$HOME"/Library/MobileDevice/Provisioning\ Profiles/*.provisionprofile | head -n1)"
+          cp "$profile" "$APP_PATH/Contents/embedded.provisionprofile"
+          codesign --force --deep --timestamp --options runtime --entitlements "$ent" \
+            --sign "Apple Distribution" "$APP_PATH"
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+          installer="$(security find-identity -v | grep -E 'Installer' | head -n1 | awk '{print $2}')"
+          if [ -z "$installer" ]; then echo "::error::Kein Mac-Installer-Zertifikat in der Keychain"; exit 1; fi
+          productbuild --component "$APP_PATH" /Applications --sign "$installer" "$RUNNER_TEMP/linefm-radio.pkg"
+          ls -la "$RUNNER_TEMP/linefm-radio.pkg"
+
+      - name: Zu App Store Connect hochladen
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+        run: |
+          set -euo pipefail
+          umask 077
+          keydir="$HOME/.appstoreconnect/private_keys"
+          mkdir -p "$keydir"
+          printf '%s' "$ASC_KEY_P8" > "$keydir/AuthKey_${ASC_KEY_ID}.p8"
+          xcrun altool --upload-app --type macos --file "$RUNNER_TEMP/linefm-radio.pkg" --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+          echo "### Apple macOS" >> "$GITHUB_STEP_SUMMARY"
+          echo "- $TAG zu App Store Connect hochgeladen (Mac App Store). Weiter in App Store Connect." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Aufraeumen
+        if: always()
+        env:
+          KEYCHAIN: ${{ steps.signing.outputs.keychain }}
+        run: |
+          rm -rf "$HOME/.appstoreconnect/private_keys" "$RUNNER_TEMP/linefm-radio.pkg"
+          security delete-keychain "$KEYCHAIN" 2>/dev/null || true

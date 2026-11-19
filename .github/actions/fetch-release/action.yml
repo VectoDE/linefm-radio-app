@@ -1,0 +1,55 @@
+name: Release-Dateien holen
+description: >
+  Prueft den Versions-Tag (vX.Y.Z oder vX.Y.Z-suffix) und laedt passende Dateien aus
+  dem GitHub-Release herunter. Die Store- und Deploy-Workflows (P27) nutzen damit
+  immer exakt die Artefakte, die release.yml gebaut, geprueft und attestiert hat.
+  Der Aufrufer braucht contents: read.
+
+inputs:
+  tag:
+    description: Versions-Tag, z. B. v1.2.3 oder v1.2.3-rc.1
+    required: true
+  pattern:
+    description: Glob fuer die Asset-Namen (gh release download --pattern)
+    required: true
+  dir:
+    description: Zielordner
+    required: false
+    default: dist
+  token:
+    description: Token mit Leserecht auf das Repository (github.token)
+    required: true
+
+outputs:
+  label:
+    description: Version ohne fuehrendes v
+    value: ${{ steps.dl.outputs.label }}
+  prerelease:
+    description: "'true', wenn der Tag ein Suffix hat (Vorabversion)"
+    value: ${{ steps.dl.outputs.prerelease }}
+
+runs:
+  using: composite
+  steps:
+    - name: Release-Dateien laden
+      id: dl
+      shell: bash
+      env:
+        FETCH_TAG: ${{ inputs.tag }}
+        FETCH_PATTERN: ${{ inputs.pattern }}
+        FETCH_DIR: ${{ inputs.dir }}
+        FETCH_REPO: ${{ github.repository }}
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        set -euo pipefail
+        if ! [[ "$FETCH_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+          echo "::error::Tag '$FETCH_TAG' ist keine Version (erwartet vX.Y.Z oder vX.Y.Z-suffix)"
+          exit 1
+        fi
+        mkdir -p "$FETCH_DIR"
+        gh release download "$FETCH_TAG" --repo "$FETCH_REPO" --pattern "$FETCH_PATTERN" --dir "$FETCH_DIR"
+        ls -la "$FETCH_DIR"
+        {
+          echo "label=${FETCH_TAG#v}"
+          if [[ "$FETCH_TAG" == *-* ]]; then echo "prerelease=true"; else echo "prerelease=false"; fi
+        } >> "$GITHUB_OUTPUT"

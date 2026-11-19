@@ -34,7 +34,7 @@ ssh deploy@server "ln -sfn /var/www/linefm-app/releases/$V /var/www/linefm-app/c
 
 `mv -T` tauscht den Symlink in einem Schritt, die Seite ist nie halb ausgerollt. **Rollback:** Symlink `current` auf den vorherigen Ordner stellen. Alte Releases mit `ls -t releases | tail -n +6 | xargs -I{} rm -rf releases/{}` aufräumen. Bei geänderten Headern die Snippets nach `/etc/nginx/snippets/` kopieren, `nginx -t` und `reload`.
 
-Der GitHub-Workflow `deploy-web.yml` (Paket P27) macht genau diese Schritte per SSH. Dafür trägt der Betreiber `DEPLOY_SSH_KEY`, `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PATH`, `DEPLOY_KNOWN_HOSTS` als Secrets ein.
+Der GitHub-Workflow `deploy-web.yml` macht genau diese Schritte per SSH (Ziel `ssh`, Umgebung `production`). Dafür trägt der Betreiber die Secrets `DEPLOY_SSH_KEY`, `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_KNOWN_HOSTS` und die Variable `DEPLOY_PATH` ein, optional `DEPLOY_PORT` und `DEPLOY_RELOAD_COMMAND` (z. B. `sudo systemctl reload nginx`). Die Header-Snippets legt der Workflow unter `$DEPLOY_PATH/hosting/` ab, sie müssen bei Änderungen von Hand nach `/etc/nginx/snippets/`. Details in [secrets.md](secrets.md).
 
 ## Brotli (optional)
 

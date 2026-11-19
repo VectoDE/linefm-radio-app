@@ -14,7 +14,7 @@ Der Postbuild legt `_headers` und `_redirects` in `build/web` (aus `deploy/cloud
 
 1. Im Cloudflare-Dashboard unter Workers & Pages ein Pages-Projekt `linefm-app` anlegen (Direct Upload).
 2. Eigene Domain `app.linefm.de` unter "Custom domains" hinzufügen. Liegt `linefm.de` bei Cloudflare, legt Cloudflare den CNAME selbst an, sonst wird ein CNAME auf `linefm-app.pages.dev` beim DNS-Anbieter gesetzt.
-3. API-Token mit Berechtigung "Cloudflare Pages: Edit" erstellen. Als GitHub-Secrets `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID` eintragen, damit `deploy-web.yml` (Paket P27) automatisch ausrollt.
+3. API-Token mit Berechtigung "Cloudflare Pages: Edit" erstellen. Als GitHub-Secrets `CLOUDFLARE_API_TOKEN` und `CLOUDFLARE_ACCOUNT_ID` sowie die Variable `CLOUDFLARE_PAGES_PROJECT` (`linefm-app`) eintragen und `cloudflare` in die Variable `WEB_DEPLOY_TARGETS` aufnehmen, damit `deploy-web.yml` bei jedem Release ausrollt (Umgebung `production`, siehe [secrets.md](secrets.md)).
 
 ## Deploy von Hand
 

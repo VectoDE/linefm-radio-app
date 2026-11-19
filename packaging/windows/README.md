@@ -40,7 +40,7 @@ dart run msix:create --store --identity-name "<Package/Identity/Name>" --publish
 
 `msix_version` wird von der CI aus der Release-Version gesetzt (`<x.y.z>.0`). Das vierte Segment bleibt fuer den Store `0`.
 
-Die Pipeline `store-microsoft.yml` (P27) liest diese Werte aus den Secrets `MS_STORE_*`.
+Die Pipeline `store-microsoft.yml` liest diese Werte aus den Repository-Variablen `MS_STORE_IDENTITY_NAME`, `MS_STORE_PUBLISHER` und `MS_STORE_PUBLISHER_DISPLAY_NAME` und baut das Store-MSIX selbst (das MSIX aus `build.yml` trägt die Sideload-Identität). Zugangsdaten: Secrets `MS_STORE_*`, Liste in `docs/secrets.md`.
 
 ## Logos
 

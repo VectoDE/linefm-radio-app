@@ -157,11 +157,14 @@
     #static-shell .dots i:nth-child(3) { animation-delay: .4s; }
     @keyframes dot { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
     @media (prefers-reduced-motion: reduce) { #static-shell .dots i { animation: none; opacity: .6; } }
-    /* Hell-Schema nach den Grundregeln, sonst gewinnen die dunklen Farben (gleiche Spezifitaet). */
+    /* Hell-Schema nach den Grundregeln, sonst gewinnen die dunklen Farben (gleiche Spezifitaet).
+       Farben = LinefmColors in lib/ui/theme/tokens.dart: Text = text, .muted = tickerText
+       (dunkel 7,78:1, hell 7,54:1, AAA), Punkte = muted; geprueft in test/ui/theme/contrast_test.dart. */
     @media (prefers-color-scheme: light) {
-      html, body { background: #f4f5fa; color: #14172a; }
-      #static-shell a { color: #14172a; }
-      #static-shell .muted { color: #50546b; }
+      html, body { background: #f4f5fa; color: #0f1221; }
+      #static-shell a { color: #0f1221; }
+      #static-shell .muted { color: #4a4e62; }
+      #static-shell .dots i { background: #565a6e; }
     }
   </style>
 </head>

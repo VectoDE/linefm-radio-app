@@ -21,7 +21,9 @@ import 'package:material_ui/material_ui.dart';
 /// | `heart` auf `surfaceRaised` (Icon)    |  4,78  |  4,17 |
 /// | altes Footer-Grau `#73778a` (entfaellt)|  4,19  |   -   |
 ///
-/// Alle Textpaare erreichen mindestens 4,5:1 (AA). `heart` ist ein Icon und
+/// Alle Textpaare erreichen mindestens 4,5:1 (AA); `text` und `tickerText`
+/// erreichen 7:1 (AAA), `muted` ist bewusst AA. Die statische Web-Shell
+/// (`web/index.html`) nutzt dieselben Werte (`.muted` = `tickerText`). `heart` ist ein Icon und
 /// braucht nur 3:1. Der ausgeschaltete Schalter (`switchTrackOff`) erreicht
 /// nur 1,9:1 bzw. 1,5:1, deshalb bekommt er in `SettingsSwitch` einen
 /// `muted`-Rahmen (5,66:1 bzw. 6,26:1, WCAG 1.4.11).

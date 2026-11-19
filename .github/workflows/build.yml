@@ -151,10 +151,12 @@ jobs:
           may_sign=false
           if [ "$EVENT_NAME" != "pull_request" ]; then may_sign=true; fi
 
-          # Endgueltige Releases (Tag ohne Suffix) brauchen vollstaendige Rechtstexte;
-          # Vorabversionen und Dev-Builds melden offene Platzhalter nur.
+          # Jeder Tag-Build (prod) braucht vollstaendige Rechtstexte (N7): release.yml
+          # laedt auch Vorabversionen (vX.Y.Z-rc.N) zu Google Play und Snap hoch, also
+          # gilt dieselbe Bedingung wie fuer die Store-Uploads. Dev-Builds melden
+          # offene Platzhalter nur.
           legal_strict=false
-          if [ "$app_env" = "prod" ] && [[ "$label" != *-* ]]; then legal_strict=true; fi
+          if [ "$app_env" = "prod" ]; then legal_strict=true; fi
 
           {
             echo "legal_strict=$legal_strict"

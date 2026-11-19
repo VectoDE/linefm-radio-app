@@ -111,6 +111,12 @@ jobs:
           echo "AAB: $aab (signiert)"
           echo "AAB_PATH=$aab" >> "$GITHUB_ENV"
 
+      # N7: Kein Store-Upload mit offenen Pflicht-Platzhaltern im Impressum oder in der
+      # Datenschutzerklaerung, auch nicht fuer Vorabversionen und alte Tags.
+      - name: Rechtstexte im AAB pruefen
+        if: steps.gate.outputs.ready == 'true'
+        run: python3 -I tool/legal_store_check.py --aab "$AAB_PATH"
+
       - name: Nach Google Play hochladen
         if: steps.gate.outputs.ready == 'true'
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5

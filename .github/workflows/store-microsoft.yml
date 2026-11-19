@@ -148,7 +148,8 @@ jobs:
           app-env: prod
           app-version: ${{ steps.version.outputs.label }}
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
-          legal-strict: ${{ !contains(inputs.tag, '-') }}
+          # Store-Upload: immer strikt, auch bei manuellem Lauf mit Vorabversion (N7).
+          legal-strict: true
           web-base-url: ${{ vars.WEB_BASE_URL }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}

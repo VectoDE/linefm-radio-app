@@ -99,6 +99,13 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
+      # N7: snapcraft baut aus dem Quelltext, ohne write-config. Deshalb hier die Werte
+      # aus LEGAL_VALUES_JSON einsetzen und auf offene Pflicht-Platzhalter pruefen.
+      - name: Rechtstexte fuellen und pruefen
+        env:
+          LEGAL_VALUES_JSON: ${{ vars.LEGAL_VALUES_JSON }}
+        run: python3 -I tool/legal_store_check.py --fill
+
       - name: snapcraft.yaml nach snap/ kopieren
         run: |
           set -euo pipefail

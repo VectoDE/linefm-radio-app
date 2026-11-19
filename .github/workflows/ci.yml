@@ -62,8 +62,12 @@ jobs:
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 
-      - name: Tests mit Coverage
-        run: flutter test --coverage --reporter=expanded
+      # Golden-Tests (*_golden_test.dart) haengen von der Schriftrasterung des Betriebssystems
+      # ab; die Referenzbilder entstehen unter Windows und laufen im Job "goldens".
+      - name: Tests mit Coverage (ohne Goldens)
+        run: |
+          mapfile -t files < <(find test -name '*_test.dart' ! -name '*_golden_test.dart' | sort)
+          flutter test --coverage --reporter=expanded "${files[@]}"
 
       - name: Coverage-Zusammenfassung
         if: always()
@@ -85,6 +89,60 @@ jobs:
         with:
           name: coverage-lcov
           path: coverage/lcov.info
+          if-no-files-found: ignore
+          retention-days: 14
+
+  goldens:
+    name: Golden-Tests (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Golden-Tests vorhanden?
+        id: find
+        shell: bash
+        run: |
+          mapfile -t files < <(find test -name '*_golden_test.dart' | sort)
+          echo "count=${#files[@]}" >> "$GITHUB_OUTPUT"
+          echo "files=${files[*]}" >> "$GITHUB_OUTPUT"
+
+      - name: Rust-Toolchain (Native-Asset-Hooks)
+        if: steps.find.outputs.count != '0'
+        shell: bash
+        run: |
+          rustup toolchain install stable --profile minimal --no-self-update
+          rustup default stable
+
+      - name: Flutter einrichten
+        if: steps.find.outputs.count != '0'
+        uses: ./.github/actions/setup-flutter
+
+      - name: Golden-Tests
+        if: steps.find.outputs.count != '0'
+        shell: bash
+        env:
+          GOLDEN_FILES: ${{ steps.find.outputs.files }}
+        run: |
+          read -r -a files <<< "$GOLDEN_FILES"
+          flutter test --reporter=expanded "${files[@]}"
+
+      - name: Abweichungen hochladen
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: golden-failures
+          path: test/**/failures/
           if-no-files-found: ignore
           retention-days: 14
 

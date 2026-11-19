@@ -23,7 +23,7 @@ void main() {
     await tester.pumpWidget(h.app(const StationsScreen()));
     await settle(tester);
 
-    expect(find.text('ALLE STATIONEN'), findsOneWidget);
+    expect(find.text('ALLE SENDER'), findsOneWidget);
     for (final s in stationsCatalog) {
       expect(find.text(s.displayName.toUpperCase()), findsOneWidget);
     }

@@ -52,7 +52,7 @@ class AutoMenuFolder {
 class AutoMenuTitles {
   const AutoMenuTitles({
     this.favoriteStations = 'Favoriten-Sender',
-    this.stations = 'Stationen',
+    this.stations = 'Sender',
     this.recent = 'Zuletzt gehört',
   });
 
@@ -62,7 +62,7 @@ class AutoMenuTitles {
 }
 
 /// Android-Auto-Browse-Tree (Spec 2.2, Issue #42): Die Wurzel zeigt immer
-/// drei Ordner in fester Reihenfolge: Favoriten-Sender, Stationen, Zuletzt
+/// drei Ordner in fester Reihenfolge: Favoriten-Sender, Sender, Zuletzt
 /// gehoert. Dazu Suche im Sendernamen.
 class BrowseTree {
   const BrowseTree._();

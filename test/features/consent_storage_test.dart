@@ -117,8 +117,9 @@ void main() {
       await tester.pump();
       expect(
         find.text(
-          'Wir speichern kleine Daten auf diesem Gerät, um dein '
-          'Nutzungserlebnis zu verbessern.',
+          'LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt '
+          'gehörten Sender auf diesem Gerät, damit die App sie beim nächsten '
+          'Start kennt.',
         ),
         findsOneWidget,
       );
@@ -137,8 +138,9 @@ void main() {
       await tester.pump();
       expect(
         find.text(
-          'Wir speichern kleine Daten in diesem Browser, um dein '
-          'Nutzungserlebnis zu verbessern.',
+          'LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt '
+          'gehörten Sender in diesem Browser, damit die App sie beim nächsten '
+          'Start kennt.',
         ),
         findsOneWidget,
       );

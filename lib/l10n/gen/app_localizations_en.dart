@@ -62,18 +62,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get creditsDeveloperOpen => 'Open Tim Hauke on GitHub';
 
   @override
-  String get radioGruppeName => 'Radiogruppe';
+  String get radioGruppeName => 'RadioGruppe Deutschland';
 
   @override
-  String get radioGruppeOpen => 'Open Radiogruppe';
+  String get radioGruppeOpen => 'Open RadioGruppe Deutschland';
 
   @override
   String get storageNoticeBodyWeb =>
-      'We store small bits of data in this browser to make the app work better for you.';
+      'LINEFM Radio stores your settings, favorites and last station in this browser so the app remembers them next time.';
 
   @override
   String get storageNoticeBodyDevice =>
-      'We store small bits of data on this device to make the app work better for you.';
+      'LINEFM Radio stores your settings, favorites and last station on this device so the app remembers them next time.';
 
   @override
   String get storageNoticePrivacy => 'Privacy';
@@ -142,9 +142,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerShuffle => 'Play a random station';
 
   @override
-  String get playerShuffleTooltip => 'Random station';
-
-  @override
   String get playerStart => 'Start stream';
 
   @override
@@ -169,15 +166,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerClose => 'Close player';
 
   @override
-  String get playerOpen => 'Open player';
-
-  @override
   String playerListeners(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
       other: '$count listening now',
       one: '1 person listening now',
+      zero: 'No one is listening right now',
     );
     return '$_temp0';
   }
@@ -192,19 +187,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerRetry => 'Try again';
 
   @override
-  String get playerStartRadio => 'Start radio';
-
-  @override
-  String get playerPlayNow => 'Play now';
-
-  @override
   String get playerLive => 'LIVE';
 
   @override
   String get trackUnknownTitle => 'Unknown title';
-
-  @override
-  String get trackUnknownArtist => 'Unknown artist';
 
   @override
   String get trackLoading => 'Loading track …';
@@ -241,9 +227,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyTitle => 'Recently played';
 
   @override
-  String get historyListLabel => 'Recently played tracks';
-
-  @override
   String get historyEmpty => 'No tracks in the history yet.';
 
   @override
@@ -251,9 +234,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get favoritesTitle => 'Favorites';
-
-  @override
-  String get favoritesListLabel => 'Saved songs';
 
   @override
   String get favoritesEmpty => 'No favorites saved yet.';
@@ -281,7 +261,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get favoritesExportFailed => 'The export failed.';
+  String get favoritesExportFailed =>
+      'The export didn’t work. Please try again.';
 
   @override
   String get favoritesImport => 'Import favorites';
@@ -318,7 +299,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String autoplayBlockedHint(String station) {
-    return 'Your browser only plays after a click. Starts $station.';
+    return 'Your browser only allows sound after a click. Click to start $station.';
   }
 
   @override
@@ -326,18 +307,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareFailed => 'Sharing didn’t work.';
-
-  @override
-  String get csvColumnTitle => 'Title';
-
-  @override
-  String get csvColumnArtist => 'Artist';
-
-  @override
-  String get csvColumnStation => 'Station';
-
-  @override
-  String get csvColumnSavedAt => 'Saved on';
 
   @override
   String get miniOpenPlayer => 'Open player';
@@ -354,11 +323,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String volumePercent(int percent) {
     return 'Volume $percent percent';
-  }
-
-  @override
-  String volumeSliderValue(int percent) {
-    return '$percent percent';
   }
 
   @override
@@ -415,12 +379,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingTrayBody => 'The window closes, playback keeps going.';
 
   @override
-  String get settingAlwaysOnTopTitle => 'Always on top';
-
-  @override
-  String get settingMiniWindow => 'Mini player';
-
-  @override
   String get settingAlarmTitle => 'Alarm';
 
   @override
@@ -473,7 +431,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingStorageBody =>
-      'Your last station, favorites, volume and settings are stored locally.';
+      'Stored locally: your last station, volume, favorites, favorite stations, alarms, settings, cached covers and, on a computer, the window position.';
 
   @override
   String get settingStorageClear => 'Clear storage';
@@ -483,7 +441,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearStorageConfirmBody =>
-      'Favorites, volume, last station and settings will be removed. This can’t be undone.';
+      'Your last station, volume, favorites, favorite stations, alarms, settings and cached covers will be removed. This can’t be undone.';
 
   @override
   String get clearStorageDone => 'Storage cleared.';
@@ -493,12 +451,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get actionDelete => 'Delete';
-
-  @override
-  String get actionClose => 'Close';
-
-  @override
-  String get actionOk => 'OK';
 
   @override
   String get footerWebsite => 'Website';
@@ -527,7 +479,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get consentBody =>
-      'To see what works and where the app stumbles, we’d like to collect usage and error data, with no name and no account. This is optional. Nothing is sent unless you agree. You can change your choice any time in the settings.';
+      'To see what works and where the app stumbles, we’d like to collect usage and error data, with no name and no account. The data goes to the operator of our statistics and error-report service (Umami, GlitchTip). Your IP address is transmitted in the process. This is optional. Nothing is sent unless you agree. You can change your choice any time in the settings.';
 
   @override
   String get consentAllow => 'Allow';
@@ -630,7 +582,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alarmNoteDesktop =>
-      'The alarm only rings while LINEFM Radio is running (the tray counts).';
+      'The alarm only rings while LINEFM Radio is running, also when it is minimized to the tray.';
 
   @override
   String get alarmNoteWeb => 'The alarm only rings while this tab is open.';
@@ -650,9 +602,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmOpenSettings => 'Open settings';
 
   @override
-  String get alarmStop => 'Off';
-
-  @override
   String alarmRingingBody(String station) {
     return '$station is about to start.';
   }
@@ -669,13 +618,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmOpenFullScreenSettings => 'Allow full screen';
 
   @override
-  String get alarmRingingTitle => 'Good morning';
-
-  @override
   String get alarmDismiss => 'Turn off';
-
-  @override
-  String get alarmSnoozeAction => 'Snooze';
 
   @override
   String get alarmNotificationTitle => 'LINEFM alarm';
@@ -708,9 +651,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offlineBanner => 'No connection. LINEFM keeps trying.';
-
-  @override
-  String get genericError => 'Something went wrong.';
 
   @override
   String get actionRetry => 'Try again';
@@ -776,4 +716,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trayAlwaysOnTop => 'Always on top';
+
+  @override
+  String get actionUndo => 'Undo';
+
+  @override
+  String favoritesRemoved(String title) {
+    return 'Removed “$title”.';
+  }
+
+  @override
+  String get stationsYours => 'Your stations';
+
+  @override
+  String get stationsYoursListLabel => 'Your favorite stations';
+
+  @override
+  String get settingArtworkTitle => 'Load covers';
+
+  @override
+  String get settingArtworkBody =>
+      'Looks up the album cover for the current track at Apple. Off: no requests to Apple, the app shows the station logo.';
+
+  @override
+  String get settingShortcutsTitle => 'Single-key shortcuts';
+
+  @override
+  String get settingShortcutsBody =>
+      'F saves the song, S plays a random station, 1 to 6 pick a station.';
+
+  @override
+  String get playerSleepTimer => 'Set sleep timer';
+
+  @override
+  String alarmEnabledAt(String time) {
+    return 'Alarm $time on';
+  }
+
+  @override
+  String alarmDeleteAt(String time) {
+    return 'Delete alarm $time';
+  }
 }

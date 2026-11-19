@@ -122,7 +122,7 @@ class _RingingBanner extends StatelessWidget {
                           OutlinedButton(
                             onPressed: () =>
                                 coordinator.dismiss(ringing.ruleId),
-                            child: Text(l10n.alarmStop),
+                            child: Text(l10n.alarmDismiss),
                           ),
                         ],
                       ),

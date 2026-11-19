@@ -189,7 +189,7 @@ void main() {
       await tester.pumpWidget(host.app(const AboutScreen(), scaffold: false));
       await tester.pumpAndSettle();
       // Im Test liefert das Netz einen Fehler, also erscheint der Name.
-      expect(find.text('Radiogruppe'), findsOneWidget);
+      expect(find.text('RadioGruppe Deutschland'), findsOneWidget);
     });
 
     testWidgets('Vertrauens-Badges nur mit konfigurierter URL', (tester) async {

@@ -79,7 +79,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         final isFavorite = FavoritesLogic.contains(favorites, favorite.key);
         final time = entry.isLive || track.startedAt == null
             ? null
-            : formatClock(track.startedAt!);
+            : formatClockFor(context, track.startedAt!);
         final when = entry.isLive ? l10n.playerLive : time;
         return StaggerIn(
           key: ValueKey<String>('${track.artist}|${track.title}|$index'),

@@ -1,8 +1,11 @@
-import 'dart:ui' show PlatformDispatcher;
+import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/l10n/system_l10n.dart';
 
 /// Texte der System-Benachrichtigung des Weckers (Android-Dienst und iOS-
 /// Mitteilung laufen ausserhalb des Widget-Baums, daher ohne BuildContext).
-/// Folgt der Systemsprache: Deutsch, sonst Englisch.
+/// Quelle sind die ARB-Dateien (I05): `alarmNotificationTitle`,
+/// `alarmDismiss`, `alarmSnooze`, `alarmNotificationBody`. Folgt der
+/// Systemsprache: Deutsch, sonst Englisch.
 class AlarmTexts {
   const AlarmTexts({
     required this.title,
@@ -11,25 +14,22 @@ class AlarmTexts {
     required this._body,
   });
 
+  factory AlarmTexts.fromLocalizations(AppLocalizations l10n) => AlarmTexts(
+    title: l10n.alarmNotificationTitle,
+    stopButton: l10n.alarmDismiss,
+    snoozeButton: l10n.alarmSnooze,
+    body: l10n.alarmNotificationBody,
+  );
+
   factory AlarmTexts.forLanguage(String languageCode) =>
-      languageCode == 'de' ? german : english;
+      AlarmTexts.fromLocalizations(systemLocalizations(languageCode));
 
   factory AlarmTexts.system() =>
-      AlarmTexts.forLanguage(PlatformDispatcher.instance.locale.languageCode);
+      AlarmTexts.fromLocalizations(systemLocalizations());
 
-  static final AlarmTexts german = AlarmTexts(
-    title: 'LINEFM Radio',
-    stopButton: 'Stoppen',
-    snoozeButton: 'Schlummern',
-    body: (station) => 'Wecker: $station',
-  );
+  static final AlarmTexts german = AlarmTexts.forLanguage('de');
 
-  static final AlarmTexts english = AlarmTexts(
-    title: 'LINEFM Radio',
-    stopButton: 'Stop',
-    snoozeButton: 'Snooze',
-    body: (station) => 'Alarm: $station',
-  );
+  static final AlarmTexts english = AlarmTexts.forLanguage('en');
 
   final String title;
   final String stopButton;

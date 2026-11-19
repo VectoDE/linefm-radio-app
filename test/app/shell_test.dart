@@ -52,12 +52,12 @@ void main() {
 
       expect(find.text('LINEFM'), findsOneWidget);
       expect(find.byTooltip('Einstellungen'), findsOneWidget);
-      for (final label in <String>['STATIONEN', 'PLAYER', 'VERLAUF']) {
+      for (final label in <String>['SENDER', 'PLAYER', 'VERLAUF']) {
         expect(find.text(label), findsOneWidget);
       }
       expect(find.byType(MiniPlayer), findsOneWidget);
       expect(find.byType(StorageNotice), findsOneWidget);
-      expect(find.text('ALLE STATIONEN'), findsOneWidget);
+      expect(find.text('ALLE SENDER'), findsOneWidget);
       expect(host.sink.events, contains('screen:stations'));
       await disposeApp(tester, host);
     });
@@ -170,7 +170,7 @@ void main() {
 
       expect(find.byType(NavigationRail), findsOneWidget);
       expect(find.byType(PlayerScreen), findsOneWidget);
-      expect(find.text('ALLE STATIONEN'), findsOneWidget);
+      expect(find.text('ALLE SENDER'), findsOneWidget);
       expect(find.byType(MiniPlayer), findsNothing);
       expect(find.text('PLAYER'), findsNothing);
 

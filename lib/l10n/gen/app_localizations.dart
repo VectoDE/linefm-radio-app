@@ -113,7 +113,7 @@ abstract class AppLocalizations {
   /// No description provided for @navStations.
   ///
   /// In de, this message translates to:
-  /// **'Stationen'**
+  /// **'Sender'**
   String get navStations;
 
   /// No description provided for @navPlayer.
@@ -203,25 +203,25 @@ abstract class AppLocalizations {
   /// No description provided for @radioGruppeName.
   ///
   /// In de, this message translates to:
-  /// **'Radiogruppe'**
+  /// **'RadioGruppe Deutschland'**
   String get radioGruppeName;
 
   /// No description provided for @radioGruppeOpen.
   ///
   /// In de, this message translates to:
-  /// **'Radiogruppe öffnen'**
+  /// **'RadioGruppe Deutschland öffnen'**
   String get radioGruppeOpen;
 
   /// No description provided for @storageNoticeBodyWeb.
   ///
   /// In de, this message translates to:
-  /// **'Wir speichern kleine Daten in diesem Browser, um dein Nutzungserlebnis zu verbessern.'**
+  /// **'LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt gehörten Sender in diesem Browser, damit die App sie beim nächsten Start kennt.'**
   String get storageNoticeBodyWeb;
 
   /// No description provided for @storageNoticeBodyDevice.
   ///
   /// In de, this message translates to:
-  /// **'Wir speichern kleine Daten auf diesem Gerät, um dein Nutzungserlebnis zu verbessern.'**
+  /// **'LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt gehörten Sender auf diesem Gerät, damit die App sie beim nächsten Start kennt.'**
   String get storageNoticeBodyDevice;
 
   /// No description provided for @storageNoticePrivacy.
@@ -257,13 +257,13 @@ abstract class AppLocalizations {
   /// No description provided for @stationsTitle.
   ///
   /// In de, this message translates to:
-  /// **'Alle Stationen'**
+  /// **'Alle Sender'**
   String get stationsTitle;
 
   /// No description provided for @stationsListLabel.
   ///
   /// In de, this message translates to:
-  /// **'Alle Stationen'**
+  /// **'Alle Sender'**
   String get stationsListLabel;
 
   /// No description provided for @stationCardLabel.
@@ -317,14 +317,8 @@ abstract class AppLocalizations {
   /// No description provided for @playerShuffle.
   ///
   /// In de, this message translates to:
-  /// **'Zufällige Station abspielen'**
+  /// **'Zufälligen Sender abspielen'**
   String get playerShuffle;
-
-  /// No description provided for @playerShuffleTooltip.
-  ///
-  /// In de, this message translates to:
-  /// **'Zufällige Station'**
-  String get playerShuffleTooltip;
 
   /// No description provided for @playerStart.
   ///
@@ -374,16 +368,10 @@ abstract class AppLocalizations {
   /// **'Player schließen'**
   String get playerClose;
 
-  /// No description provided for @playerOpen.
-  ///
-  /// In de, this message translates to:
-  /// **'Player öffnen'**
-  String get playerOpen;
-
   /// No description provided for @playerListeners.
   ///
   /// In de, this message translates to:
-  /// **'{count, plural, =1{1 Person hört gerade zu} other{{count} hören gerade zu}}'**
+  /// **'{count, plural, =0{Gerade hört niemand zu} =1{1 Person hört gerade zu} other{{count} hören gerade zu}}'**
   String playerListeners(int count);
 
   /// No description provided for @playerReconnecting.
@@ -404,18 +392,6 @@ abstract class AppLocalizations {
   /// **'Erneut versuchen'**
   String get playerRetry;
 
-  /// No description provided for @playerStartRadio.
-  ///
-  /// In de, this message translates to:
-  /// **'Radio starten'**
-  String get playerStartRadio;
-
-  /// No description provided for @playerPlayNow.
-  ///
-  /// In de, this message translates to:
-  /// **'Jetzt abspielen'**
-  String get playerPlayNow;
-
   /// No description provided for @playerLive.
   ///
   /// In de, this message translates to:
@@ -427,12 +403,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Unbekannter Titel'**
   String get trackUnknownTitle;
-
-  /// No description provided for @trackUnknownArtist.
-  ///
-  /// In de, this message translates to:
-  /// **'Unbekannter Künstler'**
-  String get trackUnknownArtist;
 
   /// No description provided for @trackLoading.
   ///
@@ -488,12 +458,6 @@ abstract class AppLocalizations {
   /// **'Zuletzt gespielt'**
   String get historyTitle;
 
-  /// No description provided for @historyListLabel.
-  ///
-  /// In de, this message translates to:
-  /// **'Zuletzt gespielte Titel'**
-  String get historyListLabel;
-
   /// No description provided for @historyEmpty.
   ///
   /// In de, this message translates to:
@@ -511,12 +475,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Favoriten'**
   String get favoritesTitle;
-
-  /// No description provided for @favoritesListLabel.
-  ///
-  /// In de, this message translates to:
-  /// **'Gespeicherte Songs'**
-  String get favoritesListLabel;
 
   /// No description provided for @favoritesEmpty.
   ///
@@ -563,7 +521,7 @@ abstract class AppLocalizations {
   /// No description provided for @favoritesExportFailed.
   ///
   /// In de, this message translates to:
-  /// **'Der Export hat nicht geklappt.'**
+  /// **'Der Export hat nicht geklappt. Versuche es noch einmal.'**
   String get favoritesExportFailed;
 
   /// Knopf/Tooltip: Favoriten aus einer eigenen Export-Datei (CSV oder Text) einlesen, Issue #9
@@ -599,7 +557,7 @@ abstract class AppLocalizations {
   /// No description provided for @autoplayBlockedHint.
   ///
   /// In de, this message translates to:
-  /// **'Dein Browser spielt erst nach einem Klick ab. Startet {station}.'**
+  /// **'Dein Browser erlaubt Ton erst nach einem Klick. Klicke, um {station} zu starten.'**
   String autoplayBlockedHint(String station);
 
   /// No description provided for @shareCopied.
@@ -613,30 +571,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Teilen hat nicht geklappt.'**
   String get shareFailed;
-
-  /// CSV-Spaltenkopf
-  ///
-  /// In de, this message translates to:
-  /// **'Titel'**
-  String get csvColumnTitle;
-
-  /// CSV-Spaltenkopf
-  ///
-  /// In de, this message translates to:
-  /// **'Künstler'**
-  String get csvColumnArtist;
-
-  /// CSV-Spaltenkopf
-  ///
-  /// In de, this message translates to:
-  /// **'Sender'**
-  String get csvColumnStation;
-
-  /// CSV-Spaltenkopf
-  ///
-  /// In de, this message translates to:
-  /// **'Gemerkt am'**
-  String get csvColumnSavedAt;
 
   /// No description provided for @miniOpenPlayer.
   ///
@@ -667,12 +601,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Lautstärke {percent} Prozent'**
   String volumePercent(int percent);
-
-  /// No description provided for @volumeSliderValue.
-  ///
-  /// In de, this message translates to:
-  /// **'{percent} Prozent'**
-  String volumeSliderValue(int percent);
 
   /// No description provided for @sleepRemainingShort.
   ///
@@ -749,13 +677,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingAutoplayBody.
   ///
   /// In de, this message translates to:
-  /// **'Die zuletzt gehörte Station startet automatisch.'**
+  /// **'Der zuletzt gehörte Sender startet automatisch.'**
   String get settingAutoplayBody;
 
   /// No description provided for @settingAutoplayBodyWeb.
   ///
   /// In de, this message translates to:
-  /// **'Die zuletzt gehörte Station startet nach deinem ersten Tippen oder Klick.'**
+  /// **'Der zuletzt gehörte Sender startet nach deinem ersten Tippen oder Klick.'**
   String get settingAutoplayBodyWeb;
 
   /// No description provided for @settingTrayTitle.
@@ -769,18 +697,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Das Fenster verschwindet, die Wiedergabe läuft weiter.'**
   String get settingTrayBody;
-
-  /// No description provided for @settingAlwaysOnTopTitle.
-  ///
-  /// In de, this message translates to:
-  /// **'Immer im Vordergrund'**
-  String get settingAlwaysOnTopTitle;
-
-  /// No description provided for @settingMiniWindow.
-  ///
-  /// In de, this message translates to:
-  /// **'Mini-Player'**
-  String get settingMiniWindow;
 
   /// No description provided for @settingAlarmTitle.
   ///
@@ -863,7 +779,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingStorageBody.
   ///
   /// In de, this message translates to:
-  /// **'Zuletzt gehörte Station, Favoriten, Lautstärke und Einstellungen werden lokal gespeichert.'**
+  /// **'Lokal gespeichert werden: zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen, zwischengespeicherte Cover und am Computer die Fensterposition.'**
   String get settingStorageBody;
 
   /// No description provided for @settingStorageClear.
@@ -881,7 +797,7 @@ abstract class AppLocalizations {
   /// No description provided for @clearStorageConfirmBody.
   ///
   /// In de, this message translates to:
-  /// **'Favoriten, Lautstärke, letzte Station und Einstellungen werden entfernt. Das lässt sich nicht rückgängig machen.'**
+  /// **'Zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen.'**
   String get clearStorageConfirmBody;
 
   /// No description provided for @clearStorageDone.
@@ -901,18 +817,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Löschen'**
   String get actionDelete;
-
-  /// No description provided for @actionClose.
-  ///
-  /// In de, this message translates to:
-  /// **'Schließen'**
-  String get actionClose;
-
-  /// No description provided for @actionOk.
-  ///
-  /// In de, this message translates to:
-  /// **'OK'**
-  String get actionOk;
 
   /// No description provided for @footerWebsite.
   ///
@@ -965,7 +869,7 @@ abstract class AppLocalizations {
   /// No description provided for @consentBody.
   ///
   /// In de, this message translates to:
-  /// **'Damit wir sehen, was gut läuft und wo die App hakt, würden wir gern Angaben zur Nutzung und zu Fehlern auswerten, ohne Namen und ohne Konto. Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.'**
+  /// **'Damit wir sehen, was gut läuft und wo die App hakt, würden wir gern Angaben zur Nutzung und zu Fehlern auswerten, ohne Namen und ohne Konto. Die Daten gehen an den Betreiber unseres Statistik- und Fehlerbericht-Dienstes (Umami, GlitchTip). Dabei wird technisch deine IP-Adresse übertragen. Das ist freiwillig. Ohne deine Zustimmung wird nichts gesendet. Du kannst deine Wahl jederzeit in den Einstellungen ändern.'**
   String get consentBody;
 
   /// No description provided for @consentAllow.
@@ -1139,7 +1043,7 @@ abstract class AppLocalizations {
   /// No description provided for @alarmNoteDesktop.
   ///
   /// In de, this message translates to:
-  /// **'Der Wecker klingelt nur, solange LINEFM Radio läuft (auch im Tray).'**
+  /// **'Der Wecker klingelt nur, solange LINEFM Radio läuft, auch wenn es im Tray liegt.'**
   String get alarmNoteDesktop;
 
   /// No description provided for @alarmNoteWeb.
@@ -1172,12 +1076,6 @@ abstract class AppLocalizations {
   /// **'Einstellungen öffnen'**
   String get alarmOpenSettings;
 
-  /// No description provided for @alarmStop.
-  ///
-  /// In de, this message translates to:
-  /// **'Aus'**
-  String get alarmStop;
-
   /// No description provided for @alarmRingingBody.
   ///
   /// In de, this message translates to:
@@ -1202,23 +1100,11 @@ abstract class AppLocalizations {
   /// **'Vollbild erlauben'**
   String get alarmOpenFullScreenSettings;
 
-  /// No description provided for @alarmRingingTitle.
-  ///
-  /// In de, this message translates to:
-  /// **'Guten Morgen'**
-  String get alarmRingingTitle;
-
   /// No description provided for @alarmDismiss.
   ///
   /// In de, this message translates to:
   /// **'Ausschalten'**
   String get alarmDismiss;
-
-  /// No description provided for @alarmSnoozeAction.
-  ///
-  /// In de, this message translates to:
-  /// **'Schlummern'**
-  String get alarmSnoozeAction;
 
   /// No description provided for @alarmNotificationTitle.
   ///
@@ -1279,12 +1165,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Keine Verbindung. LINEFM versucht es weiter.'**
   String get offlineBanner;
-
-  /// No description provided for @genericError.
-  ///
-  /// In de, this message translates to:
-  /// **'Da ist etwas schiefgelaufen.'**
-  String get genericError;
 
   /// No description provided for @actionRetry.
   ///
@@ -1355,7 +1235,7 @@ abstract class AppLocalizations {
   /// Ordner im Auto-Menü: alle Sender
   ///
   /// In de, this message translates to:
-  /// **'Stationen'**
+  /// **'Sender'**
   String get browseStations;
 
   /// Ordner im Auto-Menü: zuletzt gehörte Station
@@ -1411,6 +1291,72 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Immer im Vordergrund'**
   String get trayAlwaysOnTop;
+
+  /// No description provided for @actionUndo.
+  ///
+  /// In de, this message translates to:
+  /// **'Rückgängig'**
+  String get actionUndo;
+
+  /// No description provided for @favoritesRemoved.
+  ///
+  /// In de, this message translates to:
+  /// **'„{title}“ entfernt.'**
+  String favoritesRemoved(String title);
+
+  /// Gruppe der Favoriten-Sender oben in der Senderliste
+  ///
+  /// In de, this message translates to:
+  /// **'Deine Sender'**
+  String get stationsYours;
+
+  /// No description provided for @stationsYoursListLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Deine Favoriten-Sender'**
+  String get stationsYoursListLabel;
+
+  /// No description provided for @settingArtworkTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Cover laden'**
+  String get settingArtworkTitle;
+
+  /// No description provided for @settingArtworkBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfrage an Apple, die App zeigt das Senderlogo.'**
+  String get settingArtworkBody;
+
+  /// No description provided for @settingShortcutsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Tastenkürzel mit einer Taste'**
+  String get settingShortcutsTitle;
+
+  /// No description provided for @settingShortcutsBody.
+  ///
+  /// In de, this message translates to:
+  /// **'F merkt den Song, S spielt einen zufälligen Sender, 1 bis 6 wählen einen Sender.'**
+  String get settingShortcutsBody;
+
+  /// No description provided for @playerSleepTimer.
+  ///
+  /// In de, this message translates to:
+  /// **'Sleeptimer einstellen'**
+  String get playerSleepTimer;
+
+  /// No description provided for @alarmEnabledAt.
+  ///
+  /// In de, this message translates to:
+  /// **'Wecker {time} aktiv'**
+  String alarmEnabledAt(String time);
+
+  /// No description provided for @alarmDeleteAt.
+  ///
+  /// In de, this message translates to:
+  /// **'Wecker {time} löschen'**
+  String alarmDeleteAt(String time);
 }
 
 class _AppLocalizationsDelegate

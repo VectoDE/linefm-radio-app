@@ -250,11 +250,11 @@ void main() {
     tester,
   ) async {
     final handle = tester.ensureSemantics();
-    await tester.pumpWidget(host(const SectionHeading('Alle Stationen')));
-    expect(find.text('ALLE STATIONEN'), findsOneWidget);
+    await tester.pumpWidget(host(const SectionHeading('Alle Sender')));
+    expect(find.text('ALLE SENDER'), findsOneWidget);
     expect(
       tester
-          .getSemantics(find.text('ALLE STATIONEN'))
+          .getSemantics(find.text('ALLE SENDER'))
           .getSemanticsData()
           .flagsCollection
           .isHeader,

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/features/legal/external_link.dart';
 import 'package:linefm_radio/features/legal/legal_document.dart';
@@ -117,7 +118,9 @@ class LegalBody extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(top: 24),
               child: Text(
-                l10n.legalUpdated(document.updated),
+                l10n.legalUpdated(
+                  formatLegalDate(document.updated, l10n.localeName),
+                ),
                 style: LinefmText.listMeta.copyWith(color: c.muted),
               ),
             ),
@@ -285,4 +288,13 @@ class _LinkBlock extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Stand-Datum der Rechtstexte (`2026-11-18` in der JSON) nach Sprache
+/// (I01): Deutsch "18. November 2026", Englisch "November 18, 2026".
+/// Unlesbare Werte bleiben unveraendert.
+String formatLegalDate(String raw, String localeName) {
+  final date = DateTime.tryParse(raw);
+  if (date == null) return raw;
+  return DateFormat.yMMMMd(localeName).format(date);
 }

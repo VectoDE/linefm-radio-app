@@ -150,7 +150,7 @@ void main() {
       expect(find.text('1234 hören gerade zu'), findsOneWidget);
       expect(find.bySemanticsLabel('Stream starten'), findsOneWidget);
       expect(find.bySemanticsLabel('Song merken'), findsOneWidget);
-      expect(find.bySemanticsLabel('Zufällige Station abspielen'), findsOne);
+      expect(find.bySemanticsLabel('Zufälligen Sender abspielen'), findsOne);
       expect(find.bySemanticsLabel('Song öffnen in …'), findsOneWidget);
       expect(find.bySemanticsLabel('Song teilen'), findsOneWidget);
     });
@@ -203,7 +203,7 @@ void main() {
       await _pump(tester, h);
       final before = h.container.read(activeStationProvider);
 
-      await tester.tap(find.bySemanticsLabel('Zufällige Station abspielen'));
+      await tester.tap(find.bySemanticsLabel('Zufälligen Sender abspielen'));
       await tester.pump(const Duration(milliseconds: 400));
 
       expect(h.container.read(activeStationProvider), isNot(before));

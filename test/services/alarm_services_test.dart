@@ -508,7 +508,7 @@ void main() {
         args['url'],
         'linefm://play?station=${stationsCatalog.first.slug}',
       );
-      expect(args['title'], 'LINEFM Radio');
+      expect(args['title'], 'LINEFM Wecker');
     });
 
     test('deaktivierte Regel und cancel entfernen die Mitteilungen', () async {

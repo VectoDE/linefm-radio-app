@@ -15,8 +15,6 @@ import 'package:linefm_radio/services/audio/browse_tree.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/audio/radio_player.dart';
 import 'package:linefm_radio/services/audio/reconnect_policy.dart';
-// rxdart kommt ueber audio_service; subscribeToChildren verlangt ValueStream.
-// ignore: depend_on_referenced_packages
 import 'package:rxdart/rxdart.dart' show BehaviorSubject, ValueStream;
 
 /// Liefert die Stream-URL einer Station (Spec 3.3: `stream_url` aus der

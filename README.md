@@ -4,7 +4,7 @@ Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI so
 
 <!--
 Badges: Es stehen hier bewusst keine. Sie kommen erst, wenn sie echt und für Leser sichtbar sind:
-- CI, Barrierefreiheit (a11y.yml), Lieferkette: Die Workflows laufen seit dem Merge von PR #34 (19.11.2026).
+- CI, Barrierefreiheit (a11y.yml), Lieferkette: a11y.yml und supply-chain.yml sind erst nach dem Merge von p28-integration auf main wirksam.
   Solange das Repository privat ist, zeigt GitHub die Status-Badges nur angemeldeten Mitgliedern,
   alle anderen sähen ein kaputtes Bild. Einfügen, sobald das Repo öffentlich ist.
 - OpenSSF Scorecard: braucht ein öffentliches Repository, vorher gibt es kein Ergebnis auf scorecard.dev.
@@ -51,7 +51,7 @@ Die App lässt sich mit Tastatur bedienen, alle Bereiche sind für Screenreader 
 
 - **Stand:** Version 1.0.0 fertig gebaut, noch in keinem Store. Was vor dem Start fehlt, sind Konten, Zugangsdaten und schriftliche Freigaben des Betreibers, keine Programmierarbeit: [Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md).
 - **Laufende Kosten:** kein eigenes Backend, keine Nutzerkonten. Es fallen nur Store-Gebühren (Google Play einmalig, Apple jährlich, falls später gewünscht) und das Web-Hosting an. Die Sender kommen über die öffentliche laut.fm-API.
-- **Daten:** Ohne aktivierte Statistik schickt die App von sich aus nur Anfragen an laut.fm und, abschaltbar, an Apple für Cover. Statistik und Absturzberichte nur nach Einwilligung, siehe [Telemetrie](docs/telemetry.md).
+- **Daten:** Ohne aktivierte Statistik schickt die App von sich aus nur Anfragen an laut.fm (API und Streams), an Apple (iTunes-Cover-Suche, abschaltbar), an cdn.linefm.de (Sender-Icons) und an radiogruppe.de (Logo). Statistik und Absturzberichte nur nach Einwilligung, siehe [Telemetrie](docs/telemetry.md).
 - **Prüfbarkeit:** Jedes Release hat Prüfsummen, eine SBOM und, sobald das Repository öffentlich ist, eine Herkunfts-Attestierung: [Release-Dateien prüfen](docs/RELEASE-VERIFIZIEREN.md).
 - **Risiken:** Abhängigkeit von laut.fm als einziger Datenquelle; Marken- und Rechtsfragen (Name, Logo, Rechtstexte) klärt der Betreiber mit einem Anwalt, bevor etwas veröffentlicht wird.
 

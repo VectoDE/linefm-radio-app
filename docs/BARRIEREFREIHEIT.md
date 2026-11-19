@@ -2,7 +2,7 @@
 
 **Status:** Entwurf, freiwillig. Ob für LINEFM Radio eine Erklärung nach dem Barrierefreiheitsstärkungsgesetz (BFSG) Pflicht ist, ist nicht geklärt (siehe [FREIGABE-CHECKLISTE.md](FREIGABE-CHECKLISTE.md), Abschnitt A4). Dieser Text ist eine Vorprüfung und ersetzt keine Rechtsberatung. Vor der Veröffentlichung mit einem Anwalt oder der zuständigen Stelle abstimmen.
 
-Stand der Prüfung: 19. November 2026. Geprüft wurde die Web-Version (Chromium, Wasm-Build) automatisch mit axe-core 4.14.0 (WCAG 2.0 bis 2.2, Stufen A bis AAA, und Best Practices) und von Hand mit Tastatur und Zugriffsbaum. axe lief über Sender, Player, Verlauf, Favoriten, Einstellungen, Wecker, Über und den Dialog „Speicher löschen“ bei 390 und 1280 px, jeweils hell und dunkel, dazu über Impressum und Datenschutz auf Deutsch und Englisch: 46 Läufe, keine Verstöße. Dabei gefunden und behoben: Der Dialog „Speicher löschen“ hatte keinen zugänglichen Namen, und die untere Navigationsleiste im Handy-Layout ließ sich per Screenreader nicht auslösen. Gerätetests mit TalkBack, VoiceOver und NVDA sind **noch nicht** gelaufen. Gerätetests mit TalkBack, VoiceOver und NVDA sind **noch nicht** gelaufen.
+Stand der Prüfung: 19. November 2026. Geprüft wurde die Web-Version (Chromium, Wasm-Build) automatisch mit axe-core 4.14.0 (WCAG 2.0 bis 2.2, Stufen A bis AAA, und Best Practices) und von Hand mit Tastatur und Zugriffsbaum. axe lief über Sender, Player, Verlauf, Favoriten, Einstellungen, Wecker, Über und den Dialog „Speicher löschen“ bei 390 und 1280 px, jeweils hell und dunkel, dazu über Impressum und Datenschutz auf Deutsch und Englisch: 46 Läufe, keine Verstöße. Dabei gefunden und behoben: Der Dialog „Speicher löschen“ hatte keinen zugänglichen Namen, und die untere Navigationsleiste im Handy-Layout ließ sich per Screenreader nicht auslösen. Gerätetests mit TalkBack, VoiceOver und NVDA sind **noch nicht** gelaufen.
 
 ## Unser Ziel
 
@@ -41,7 +41,7 @@ Die drei Platzhalter in diesem Abschnitt trägt der Betreiber ein. Solange einer
 
 ## So prüfen wir weiter
 
-- Automatisch bei jedem Pull Request und jedem Push auf `main`: der Workflow `a11y.yml` baut die Web-Version und lässt axe-core über die oben genannten Ansichten laufen (Skript `tool/a11y/run.mjs`). Er schlägt fehl, sobald ein Verstoß der Stufe „serious“ oder „critical“ auftritt oder eine Ansicht nicht erreichbar ist. Der Bericht mit Commit-Kennung und Screenshots liegt als Artefakt am Lauf. Lighthouse läuft dort nicht mit. axe findet nur einen Teil der Probleme; Screenreader-Ablauf und Verständlichkeit prüft es nicht.
+- Automatisch bei jedem Pull Request und jedem Push auf `main`, wirksam erst nach dem Merge von `p28-integration` (dort liegt `a11y.yml`, auf `main` ist er noch nicht): der Workflow `a11y.yml` baut die Web-Version und lässt axe-core über die oben genannten Ansichten laufen (Skript `tool/a11y/run.mjs`). Er schlägt fehl, sobald ein Verstoß der Stufe „serious“ oder „critical“ auftritt oder eine Ansicht nicht erreichbar ist. Der Bericht mit Commit-Kennung und Screenshots liegt als Artefakt am Lauf. Lighthouse läuft dort nicht mit. axe findet nur einen Teil der Probleme; Screenreader-Ablauf und Verständlichkeit prüft es nicht.
 - Von Hand vor jedem Release: Tastaturdurchlauf, Zoom auf 200 Prozent, Screenreader-Stichprobe (siehe [FREIGABE-CHECKLISTE.md](FREIGABE-CHECKLISTE.md), B7 und B10).
 - Nach jeder Änderung an Farben, Navigation oder Formularen neu messen.
 

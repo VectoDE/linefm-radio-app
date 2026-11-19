@@ -4,11 +4,11 @@ Hier steht, wie du eine Sicherheitslücke in LINEFM Radio meldest und was danach
 
 ## Lücke melden
 
-Bitte **nicht** öffentlich als Issue oder in den Discussions melden. Schreib an:
+Bitte **nicht** öffentlich als Issue oder in den Discussions melden. Nutze das vertrauliche Meldeformular von GitHub:
 
-**{{SECURITY_KONTAKT}}**
+**<https://github.com/VectoDE/linefm-radio-app/security/advisories/new>**
 
-(E-Mail-Adresse oder Formular-Link. Der Betreiber trägt hier den Kontakt ein, bevor das Repository öffentlich wird. Dieselbe Angabe steht in [web/.well-known/security.txt](web/.well-known/security.txt). Ist das Repository öffentlich, kann zusätzlich die GitHub-Funktion "Report a vulnerability" unter dem Reiter Security aktiviert werden.)
+(Reiter Security > "Report a vulnerability". Du brauchst ein GitHub-Konto. Die Meldung sehen nur die Betreuer des Repositorys. Dieselbe Angabe steht in [web/.well-known/security.txt](web/.well-known/security.txt). Eine E-Mail-Adresse veröffentlichen wir bewusst nicht.)
 
 Hilfreich sind:
 
@@ -62,4 +62,10 @@ Nicht dazu gehören Lücken in Diensten Dritter (laut.fm, Apple iTunes Search, G
 | Statische Analyse | CodeQL | `codeql.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
 | Repo-Hygiene | OpenSSF Scorecard | `scorecard.yml` | Push auf `main`, wöchentlich |
 
-Ein Eintrag bei bestpractices.dev besteht noch nicht.
+Ein Eintrag bei bestpractices.dev ist nicht möglich: Das Badge verlangt eine Open-Source-Lizenz, LINEFM Radio ist proprietär.
+
+Signierte Releases: Jede Release-Datei trägt eine GitHub-Attestierung und eine cosign-Signatur (`*.sigstore.json`), optional `SHA256SUMS.txt.asc` (GPG). Prüfen: [docs/RELEASE-VERIFIZIEREN.md](docs/RELEASE-VERIFIZIEREN.md).
+
+## In English
+
+Please report security vulnerabilities privately through GitHub's form: <https://github.com/VectoDE/linefm-radio-app/security/advisories/new>. Do not open a public issue. We aim to acknowledge a report within 7 days and to give a first assessment within 14 days. We follow coordinated disclosure: the fix and the advisory are published together with you, usually within 90 days. The project is maintained by one person, so these are targets, not guarantees.

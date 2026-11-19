@@ -38,7 +38,7 @@ Der Verhaltenskodex gilt in allen Bereichen der Community. Er gilt auch, wenn je
 
 ## Durchsetzung
 
-Fälle von beleidigendem, belästigendem oder anderweitig inakzeptablem Verhalten können an die für die Durchsetzung Verantwortlichen gemeldet werden: {{SECURITY_KONTAKT}}. Jede Beschwerde wird zügig und fair geprüft.
+Fälle von beleidigendem, belästigendem oder anderweitig inakzeptablem Verhalten können an die für die Durchsetzung Verantwortlichen gemeldet werden, vertraulich über das Meldeformular des Repositorys: <https://github.com/VectoDE/linefm-radio-app/security/advisories/new> (gedacht für Sicherheitslücken, wir nehmen dort auch vertrauliche Hinweise zum Verhalten an). Jede Beschwerde wird zügig und fair geprüft.
 
 Alle Verantwortlichen sind verpflichtet, die Privatsphäre und die Sicherheit der meldenden Person zu wahren.
 
@@ -74,4 +74,4 @@ Die Verantwortlichen folgen diesen Leitlinien, wenn sie über die Folgen eines V
 
 Dieser Verhaltenskodex beruht auf dem [Contributor Covenant](https://www.contributor-covenant.org), Version 2.1: <https://www.contributor-covenant.org/version/2/1/code_of_conduct.html>. Die Leitlinien zur Durchsetzung sind an Mozillas [Code of Conduct Enforcement Ladder](https://github.com/mozilla/diversity) angelehnt. Antworten auf häufige Fragen: <https://www.contributor-covenant.org/faq>. Übersetzungen: <https://www.contributor-covenant.org/translations>.
 
-Der Kontakt `{{SECURITY_KONTAKT}}` ist ein Platzhalter. Der Betreiber trägt ihn vor der Veröffentlichung ein; solange er offen ist, bricht der Release-Build ab.
+Als Kontakt dient das vertrauliche GitHub-Meldeformular. Eine E-Mail-Adresse veröffentlichen wir bewusst nicht.

@@ -171,6 +171,97 @@ Die Beschreibung steht bereits in der Metainfo (Englisch und Deutsch). Wenn sich
 
 ---
 
+## Play-Console-Deklarationen
+
+Google verlangt für Apps mit Zielversion Android 14 oder höher zwei Erklärungen: für den Vordergrunddienst (Foreground Service) und für `USE_FULL_SCREEN_INTENT`. Die Texte unten sind für jaybelife zum Einfügen gedacht. Der Entwickler trägt nichts in die Console ein.
+
+### Quellen (abgerufen am 19.11.2026)
+
+- Google Play Hilfe, "Understanding foreground service and full-screen intent requirements": <https://support.google.com/googleplay/android-developer/answer/13392821>
+- Android Developers, Foreground service types (Typ `mediaPlayback`, Berechtigung `FOREGROUND_SERVICE_MEDIA_PLAYBACK`): <https://developer.android.com/develop/background-work/services/fgs/service-types>
+- Android Developers, Verhaltensänderungen Android 14: <https://developer.android.com/about/versions/14/behavior-changes-all>
+
+Was die Hilfeseite sagt (sinngemäß, Stand der Abfrage):
+
+- Je Vordergrunddienst-Typ verlangt Google in der Console (Richtlinie > App-Inhalte): eine **Beschreibung der Funktion**, die **Auswirkung für den Nutzer**, wenn die Aufgabe nicht sofort startet (verzögert) oder unterbrochen wird (pausiert oder neu gestartet), einen **Link zu einem Video**, das die Funktion zeigt, und einen **Anwendungsfall** aus einer Liste oder als eigener Text.
+- Für `mediaPlayback` soll das Video zeigen, wie der Nutzer die Wiedergabe startet. Die Wiedergabe muss vom Nutzer ausgehen.
+- Für `USE_FULL_SCREEN_INTENT` ist eine Erklärung in der Console nötig, ob die Kernfunktion der App die Berechtigung erlaubt. Seit Android 14 wird sie nur Apps mit Anruf- oder Wecker-Kernfunktion automatisch gewährt. Andere Apps dürfen sie nutzen, wenn der Nutzer sie erteilt. Wer die Erklärung nicht abgibt oder nicht genehmigt bekommt, muss auf Neuinstallationen nachfragen und bei Ablehnung ohne Vollbild weiterlaufen.
+- Welche **Linkart** für das Video gilt (nicht gelistet, öffentlich, Drive), nennt die Seite nicht. **Prüfen:** Beim Eintragen in der Console nachlesen, was das Feld akzeptiert. Üblich ist ein nicht gelisteter YouTube-Link, der ohne Anmeldung abspielt.
+- Kernfunktion heißt laut Seite: der Hauptzweck der App, ohne den sie kaputt oder unbrauchbar wäre. Bei LINEFM Radio ist der Hauptzweck Live-Radio, der Radiowecker eine wichtige, aber nicht die einzige Funktion. **Risiko:** Google kann die Erklärung deshalb ablehnen (siehe [EINRICHTUNG.md](EINRICHTUNG.md), Schritt 6.6). Der Text unten beschreibt die Funktion ehrlich und behauptet keine andere Kernfunktion.
+
+Vorher vom Entwickler prüfen lassen: Im fertigen Manifest steht `mediaPlayback` nur dort, wo die App es braucht, und der Wecker-Dienst des Pakets `alarm` hat einen passenden Typ. Das ist noch nicht belegt.
+
+### 1. Deklaration USE_FULL_SCREEN_INTENT
+
+#### Deutsch
+
+**Beschreibung der Funktion**
+
+> LINEFM Radio enthält einen Radiowecker. Der Nutzer stellt den Wecker selbst in der App: Uhrzeit, Wochentage und Sender. Zur eingestellten Zeit startet die App den gewählten Sender und zeigt bei gesperrtem Bildschirm einen Vollbild-Weckbildschirm mit den Knöpfen "Schlummern" und "Ausschalten". Dafür braucht die App die Berechtigung USE_FULL_SCREEN_INTENT. Ohne sie erscheint der Wecker nur als kleine Benachrichtigung, und ein Nutzer, der schläft, sieht und hört ihn womöglich nicht. Die Vollbild-Anzeige dient nur dem vom Nutzer gestellten Wecker, nie Werbung oder anderen Inhalten.
+
+**Auswirkung, wenn die Berechtigung fehlt**
+
+> Der Wecker klingelt weiter (Ton und Benachrichtigung), zeigt aber keinen Vollbildschirm. Abschalten geht dann nur über die Benachrichtigung. Die App fragt bei Bedarf nach der Erlaubnis und läuft ohne sie weiter.
+
+#### English
+
+**Description of the functionality**
+
+> LINEFM Radio includes a radio alarm clock. The user sets the alarm in the app: time, weekdays and station. At the set time the app starts the chosen station and, while the screen is locked, shows a full-screen alarm screen with "Snooze" and "Turn off" buttons. The app needs the USE_FULL_SCREEN_INTENT permission for this. Without it the alarm only appears as a small notification, and a sleeping user may not see or hear it. The full-screen display serves only the alarm the user has set, never advertising or other content.
+
+**Impact if the permission is missing**
+
+> The alarm still sounds (audio and notification) but shows no full-screen screen. Turning it off is then only possible from the notification. The app asks the user for the permission when needed and keeps working without it.
+
+### 2. Vordergrunddienst-Typ mediaPlayback
+
+Permission: `FOREGROUND_SERVICE_MEDIA_PLAYBACK`. Manifest: `android:foregroundServiceType="mediaPlayback"`. Anwendungsfall: Medienwiedergabe (Media playback) aus der Liste. Bietet die Liste das nicht an, eigener Text: "Live radio playback in the background".
+
+#### Deutsch
+
+**Beschreibung der Funktion**
+
+> LINEFM Radio spielt Live-Radio-Streams ab. Der Vordergrunddienst hält die Wiedergabe am Laufen, wenn der Nutzer die App verlässt oder den Bildschirm sperrt. Er zeigt eine laufende Benachrichtigung mit Sendername, aktuellem Titel und Medientasten. Der Dienst startet nur, wenn der Nutzer in der App auf Wiedergabe tippt oder ein vom Nutzer gestellter Radiowecker auslöst. Er endet, wenn der Nutzer stoppt, der Sleeptimer abläuft oder die Benachrichtigung beendet wird. Ohne Nutzeraktion läuft keine Wiedergabe, die App spielt keine Hintergrundmusik von sich aus.
+
+**Auswirkung, wenn das System die Aufgabe verzögert oder unterbricht**
+
+> Bei einer Verzögerung startet die Wiedergabe später oder gar nicht, der Nutzer hört kein Radio, obwohl er Wiedergabe gewählt hat. Bei einer Unterbrechung bricht der Ton ab, sobald die App im Hintergrund ist oder der Bildschirm sperrt. Beim Wecker heißt das: Der Nutzer wird nicht geweckt. Er muss die App dann von Hand öffnen und die Wiedergabe neu starten.
+
+#### English
+
+**Description of the functionality**
+
+> LINEFM Radio plays live radio streams. The foreground service keeps playback running when the user leaves the app or locks the screen. It shows an ongoing notification with the station name, current track and media controls. The service only starts when the user taps play in the app or when a radio alarm set by the user fires. It ends when the user stops playback, the sleep timer expires or the notification is dismissed. Nothing plays without a user action, and the app does not play background music on its own.
+
+**Impact if the system defers or interrupts the task**
+
+> If the service is deferred, playback starts late or not at all, and the user hears no radio although they chose to play. If it is interrupted, the audio stops as soon as the app is in the background or the screen locks. For the alarm this means the user is not woken. The user then has to reopen the app and restart playback by hand.
+
+### 3. Video-Skript (höchstens 30 Sekunden)
+
+Ein Video für beide Erklärungen. Hochformat, 1080 x 1920. Kurze Texteinblendung je Szene, am besten Englisch für die Prüfer von Google.
+
+| Szene | Sekunden | Zu sehen | Einblendung |
+|---|---|---|---|
+| 1 | 0 bis 3 | App startet, Senderliste | "Open LINEFM Radio" |
+| 2 | 3 bis 7 | Nutzer tippt auf einen Sender, Wiedergabe beginnt, Player zeigt den Titel | "User taps play" |
+| 3 | 7 bis 11 | Nutzer wechselt zum Startbildschirm, App im Hintergrund, Ton läuft weiter | "Playback continues in background" |
+| 4 | 11 bis 15 | Benachrichtigung aufziehen: Sendername, Titel, Medientasten. Nutzer stoppt, die Benachrichtigung verschwindet | "Ongoing notification with media controls, ends on stop" |
+| 5 | 15 bis 19 | App öffnen, Wecker-Seite, Wecker auf die nächste Minute stellen, Sender wählen | "User sets a radio alarm" |
+| 6 | 19 bis 22 | Gerät sperren (Seitentaste), Bildschirm dunkel | "Screen locked" |
+| 7 | 22 bis 27 | Wecker klingelt: Vollbild auf dem Sperrbildschirm mit "Schlummern" und "Ausschalten", Ton läuft | "Alarm shows full screen on lock screen" |
+| 8 | 27 bis 30 | Nutzer tippt auf "Ausschalten", Ton endet | "User turns alarm off" |
+
+Aufnahmehinweise:
+
+- Bildschirmaufnahme am echten Android-Gerät mit Android 14 oder neuer: Schnelleinstellung "Bildschirmaufnahme" oder `adb shell screenrecord`. Wartezeiten (zum Beispiel bis der Wecker auslöst) schneidest du heraus, etwa mit DaVinci Resolve oder ffmpeg.
+- Keine privaten Daten im Bild: Nicht stören einschalten, damit keine Benachrichtigungen anderer Apps erscheinen, keine Namen, keine Kontakte, kein echter Kalender.
+- Nur Sender mit freigegebenem Logo zeigen, keine fremden Cover in Großansicht.
+- Hochladen als **nicht gelisteter** YouTube-Link (ohne Anmeldung abspielbar, aber nicht öffentlich gelistet). Alternativ ein Link, der ohne Anmeldung öffnet. Welche Linkart die Console annimmt, vor dem Eintragen prüfen.
+- Den Link in beide Deklarationen eintragen (Vollbild und Vordergrunddienst). Das Video nicht ins Repository legen.
+
+---
+
 ## Einladung zum geschlossenen Test (Google Play)
 
 Ein privates Entwicklerkonto braucht für die Erstveröffentlichung mindestens 12 Tester, die den Test 14 Tage lang mitmachen. Die Einladung geht per E-Mail oder Messenger. Der Link zum Test kommt aus der Play Console (Test und Veröffentlichung > Geschlossener Test > Tester > Link kopieren).

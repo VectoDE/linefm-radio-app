@@ -172,7 +172,9 @@ jobs:
       - name: Postbuild (falls vorhanden)
         run: |
           if [ -f tool/web_postbuild.dart ]; then
-            dart run tool/web_postbuild.dart build/web
+            # Ausserhalb des Pakets starten (nur dart:-Importe), sonst baut "dart run" die Native-Asset-Hooks (GTK).
+            cp tool/web_postbuild.dart "$RUNNER_TEMP/web_postbuild.dart"
+            dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
           else
             echo "tool/web_postbuild.dart fehlt noch (Paket P22), Schritt uebersprungen." >> "$GITHUB_STEP_SUMMARY"
           fi

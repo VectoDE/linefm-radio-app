@@ -374,7 +374,9 @@ jobs:
       - name: Postbuild (Hashes, Header-Dateien)
         run: |
           if [ -f tool/web_postbuild.dart ]; then
-            dart run tool/web_postbuild.dart build/web
+            # Ausserhalb des Pakets starten (nur dart:-Importe), sonst baut "dart run" die Native-Asset-Hooks (GTK).
+            cp tool/web_postbuild.dart "$RUNNER_TEMP/web_postbuild.dart"
+            dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
           else
             echo "- Web: tool/web_postbuild.dart fehlt (P22), Postbuild uebersprungen" >> "$GITHUB_STEP_SUMMARY"
           fi
@@ -384,6 +386,10 @@ jobs:
           set -euo pipefail
           mkdir -p dist
           (cd build/web && zip -q -r -9 "../../dist/linefm-radio-${LABEL}-web.zip" .)
+          # Gerenderte Hosting-Dateien (Header, Redirects, .htaccess) aus dem Postbuild.
+          if [ -d build/hosting ]; then
+            (cd build/hosting && zip -q -r -9 "../../dist/linefm-radio-${LABEL}-web-hosting.zip" .)
+          fi
           ls -la dist
 
       - name: Hochladen

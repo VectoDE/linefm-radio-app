@@ -92,23 +92,36 @@ Map<String, String> collectPlaceholders() {
   return found;
 }
 
+/// Ausdruecke `${{ ... }}`, auch ueber mehrere Zeilen.
+final RegExp _expression = RegExp(r'\$\{\{([\s\S]*?)\}\}');
+
+/// `secrets.*`/`vars.*` aus allen `${{ ... }}`-Ausdruecken in [text], je Name
+/// die Zeile (1-basiert) des ersten Vorkommens.
+Map<String, int> secretsAndVarsIn(String text) {
+  final found = <String, int>{};
+  for (final e in _expression.allMatches(text)) {
+    final body = e.group(1)!;
+    for (final m in _secretOrVar.allMatches(body)) {
+      final name = m.group(1)!;
+      if (builtInSecrets.contains(name)) continue;
+      final offset = e.start + 3 + m.start;
+      found.putIfAbsent(
+        name,
+        () => '\n'.allMatches(text.substring(0, offset)).length + 1,
+      );
+    }
+  }
+  return found;
+}
+
 /// Alle `secrets.*`/`vars.*` aus `${{ ... }}`-Ausdruecken der Workflows und
 /// lokalen Actions, mit der ersten Fundstelle.
 Map<String, String> collectSecretsAndVars() {
   final found = <String, String>{};
   for (final f in _files('.github')) {
-    final lines = f.readAsLinesSync();
-    for (var i = 0; i < lines.length; i++) {
-      final line = lines[i];
-      if (!line.contains(r'${{')) continue;
-      for (final m in _secretOrVar.allMatches(line)) {
-        final name = m.group(1)!;
-        if (builtInSecrets.contains(name)) continue;
-        found.putIfAbsent(
-          name,
-          () => '${f.path.replaceAll('\\', '/')}:${i + 1}',
-        );
-      }
+    final path = f.path.replaceAll(r'\', '/');
+    for (final e in secretsAndVarsIn(f.readAsStringSync()).entries) {
+      found.putIfAbsent(e.key, () => '$path:${e.value}');
     }
   }
   return found;
@@ -172,5 +185,20 @@ void main() {
     expect(mentioned('Trag `FOO` ein', 'FOO'), isTrue);
     expect(mentioned('{{BAR}} fuellen', 'BAR'), isTrue);
     expect(mentioned('FOOBAR', 'FOO'), isFalse);
+    // Auch mehrzeilige Ausdruecke (Review PR #77, L8).
+    expect(
+      secretsAndVarsIn(
+        'a: 1\n'
+        r'b: ${{'
+        '\n'
+        '  secrets.MULTI_A ||\n'
+        r'  vars.MULTI_B }}'
+        '\n'
+        r'c: ${{ secrets.GITHUB_TOKEN }} ${{ vars.ONE }}'
+        '\n'
+        'd: secrets.NOT_IN_EXPR\n',
+      ),
+      <String, int>{'MULTI_A': 3, 'MULTI_B': 4, 'ONE': 5},
+    );
   });
 }

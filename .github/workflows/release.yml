@@ -106,14 +106,10 @@ jobs:
             exit 1
           fi
           echo "LABEL=${TAG#v}" >> "$GITHUB_ENV"
+          mkdir -p dist
 
-      - name: Artefakte holen
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          pattern: dist-*
-          path: dist
-          merge-multiple: true
-
+      # Vor "Artefakte holen": die SBOM beschreibt die Quellen, nicht die
+      # fertigen Release-Dateien in dist/.
       - name: SBOM erzeugen (SPDX)
         uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
@@ -122,6 +118,13 @@ jobs:
           output-file: dist/linefm-radio-${{ env.LABEL }}-sbom.spdx.json
           upload-artifact: false
           upload-release-assets: false
+
+      - name: Artefakte holen
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
 
       - name: Pruefsummen
         run: |
@@ -297,7 +300,7 @@ jobs:
             echo "sha256sum -c SHA256SUMS.txt --ignore-missing"
             echo "gh attestation verify <datei> -R ${GITHUB_REPOSITORY}"
             echo "cosign verify-blob --bundle <datei>.sigstore.json \\"
-            echo "  --certificate-identity-regexp '^https://github.com/${GITHUB_REPOSITORY}/\\.github/workflows/release\\.yml@refs/tags/v' \\"
+            echo "  --certificate-identity-regexp '^https://github\\.com/${GITHUB_REPOSITORY}/\\.github/workflows/release\\.yml@refs/tags/v' \\"
             echo "  --certificate-oidc-issuer https://token.actions.githubusercontent.com <datei>"
             echo '```'
             echo ""

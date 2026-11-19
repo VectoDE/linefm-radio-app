@@ -39,7 +39,7 @@ gh attestation verify linefm-radio-1.2.3-android.apk -R VectoDE/linefm-radio-app
 
 Zu jeder Release-Datei und zu `SHA256SUMS.txt` liegt ein Bundle `<datei>.sigstore.json`. Signiert hat der Release-Workflow selbst, ohne festen Schlüssel: Sigstore stellt ein kurzlebiges Zertifikat auf die Identität des Workflows aus und trägt die Signatur in das öffentliche Transparenzlog Rekor ein. Der Workflow prüft jede Signatur direkt nach dem Signieren.
 
-Prüfen mit [cosign](https://docs.sigstore.dev/cosign/system_config/installation/) ab Version 2.4:
+Prüfen mit [cosign](https://docs.sigstore.dev/cosign/system_config/installation/) ab Version 3. Der Workflow signiert mit cosign 3 im neuen Bundle-Format (Standard seit [cosign v3.0.0](https://github.com/sigstore/cosign/releases/tag/v3.0.0)). Ob ältere 2.x-Versionen diese Bundles prüfen können, ist nicht belegt.
 
 ```sh
 cosign verify-blob \

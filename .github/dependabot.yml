@@ -19,8 +19,12 @@ updates:
       actions:
         patterns: ["*"]
 
+  # Hauptpaket und optionales Firebase-Paket (packages/linefm_firebase hat keine eigene
+  # pubspec.lock, Dependabot liest dort die pubspec.yaml).
   - package-ecosystem: pub
-    directory: /
+    directories:
+      - /
+      - /packages/linefm_firebase
     schedule:
       interval: weekly
       day: monday

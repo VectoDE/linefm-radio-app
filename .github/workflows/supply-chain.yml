@@ -2,8 +2,11 @@ name: Supply Chain
 
 # Zwei Pruefungen, die SECURITY.md verspricht. Beide Berichte (JSON) liegen als
 # Artefakt am Lauf (14 Tage), die Zusammenfassung nennt die Zahl der Funde.
-# - OSV: bekannte Schwachstellen in den Dart-Abhaengigkeiten (pubspec.lock) ueber die
-#   offizielle Action google/osv-scanner-action.
+# - OSV: bekannte Schwachstellen in den Dart-Abhaengigkeiten (pubspec.lock) und im
+#   Pruefwerkzeug der Barrierefreiheit (tool/a11y/package-lock.json) ueber die
+#   offizielle Action google/osv-scanner-action. packages/linefm_firebase hat keine
+#   eigene Lock-Datei (Bibliothekspaket); seine Abhaengigkeiten stehen erst nach
+#   tool/enable_firebase.dart in pubspec.lock und sind dann abgedeckt.
 # - Secret-Scan: gitleaks ueber die gesamte Git-Historie. Als CLI aus dem Release,
 #   weil die gitleaks-Action fuer Organisationen eine Lizenz verlangt. Version und
 #   SHA-256 sind hier fest eingetragen; ein Update aendert beide Werte zusammen.
@@ -24,7 +27,7 @@ concurrency:
 
 jobs:
   osv:
-    name: OSV (pubspec.lock)
+    name: OSV (pubspec.lock, a11y-Werkzeug)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -47,13 +50,14 @@ jobs:
             --format=json
             --output=osv-results.json
             --lockfile=pubspec.lock
+            --lockfile=tool/a11y/package-lock.json
 
       - name: OSV-Zusammenfassung
         if: always()
         run: |
           set -euo pipefail
           {
-            echo "### OSV (pubspec.lock)"
+            echo "### OSV (pubspec.lock, tool/a11y/package-lock.json)"
             if [ -s osv-results.json ]; then
               pkgs="$(jq '[.results[]?.packages[]? | select((.vulnerabilities // []) | length > 0)] | length' osv-results.json)"
               vulns="$(jq '[.results[]?.packages[]?.vulnerabilities[]?] | length' osv-results.json)"

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
@@ -70,6 +71,7 @@ class AlarmScreen extends ConsumerWidget {
     final picked = await showTimePicker(
       context: context,
       initialTime: const TimeOfDay(hour: 7, minute: 0),
+      initialEntryMode: timeEntryMode,
       builder: _namedTimePicker,
     );
     if (picked == null || !context.mounted) return;
@@ -184,10 +186,23 @@ class AlarmScreen extends ConsumerWidget {
   }
 }
 
+/// Eingabeart des Uhrzeit-Dialogs. Im Web nur Texteingabe: Die Ziffernblatt-
+/// Ansicht von Flutter legt Stunde und Minute als Schieberegler ohne Namen an
+/// (`<input type="range">` nur mit `aria-valuetext`, axe `label`, kritisch);
+/// das laesst sich von aussen nicht beschriften. Die Felder der Texteingabe
+/// tragen Namen und sind per Tastatur ohnehin schneller. Auf Geraeten bleibt
+/// das Ziffernblatt (Bedienung per Touch).
+const TimePickerEntryMode timeEntryMode = kIsWeb
+    ? TimePickerEntryMode.inputOnly
+    : TimePickerEntryMode.dial;
+
 /// Uhrzeit-Dialog mit zugaenglichem Namen (sonst meldet axe
 /// `aria-dialog-name`): derselbe Text wie die Ueberschrift im Dialog.
 Widget _namedTimePicker(BuildContext context, Widget? child) => NamedDialog(
-  label: MaterialLocalizations.of(context).timePickerDialHelpText,
+  // Gleicher Text wie die sichtbare Ueberschrift der jeweiligen Eingabeart.
+  label: timeEntryMode == TimePickerEntryMode.dial
+      ? MaterialLocalizations.of(context).timePickerDialHelpText
+      : MaterialLocalizations.of(context).timePickerInputHelpText,
   child: child!,
 );
 
@@ -310,6 +325,7 @@ class _AlarmCard extends StatelessWidget {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: rule.hour, minute: rule.minute),
+      initialEntryMode: timeEntryMode,
       builder: _namedTimePicker,
     );
     if (picked != null) {

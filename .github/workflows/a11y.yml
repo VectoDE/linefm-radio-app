@@ -3,9 +3,14 @@ name: Barrierefreiheit
 # axe-core-Pruefung der Web-Version (A4). Baut wie ci.yml (web-smoke), startet
 # tool/a11y/run.mjs (Playwright + @axe-core/playwright, Versionen in
 # tool/a11y/package-lock.json) und prueft Sender, Player, Verlauf, Favoriten,
-# Einstellungen, Wecker, Ueber, den Dialog "Speicher loeschen" sowie Impressum
-# und Datenschutz (de/en) bei 390 und 1280 px, hell und dunkel.
-# Gate: kein Verstoss mit impact serious oder critical, jede Ansicht erreichbar.
+# Einstellungen, Wecker, Ueber, die Dialoge "Speicher loeschen" und Uhrzeit,
+# die Sheets "Sleeptimer" und "Favoriten exportieren" sowie Impressum und
+# Datenschutz (de/en) bei 390 und 1280 px, hell und dunkel (58 Laeufe).
+# Gate: kein Verstoss gleich welcher Stufe (Baseline 0), jede Ansicht
+# erreichbar. Von axe nicht entscheidbare Pruefungen ("incomplete") stehen in
+# Bericht und Zusammenfassung, brechen aber nicht ab.
+# Laufzeit lokal (19.11.2026, Windows, 8 Kerne): Web-Build 95 s, axe 142 s;
+# auf dem 4-Kern-Runner grob das Doppelte plus Installation, daher 25 Minuten.
 # Was axe nicht findet (Screenreader-Ablauf, Tastaturfallen, Verstaendlichkeit),
 # bleibt Handarbeit, siehe docs/BARRIEREFREIHEIT.md.
 
@@ -25,7 +30,7 @@ jobs:
   axe:
     name: axe (WCAG 2.2, Web)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 25
     permissions:
       contents: read
     steps:
@@ -74,6 +79,7 @@ jobs:
 
       - name: axe-Pruefung
         working-directory: tool/a11y
+        timeout-minutes: 12
         run: node run.mjs --web ../../build/web --out out
 
       - name: Zusammenfassung
@@ -81,8 +87,10 @@ jobs:
         working-directory: tool/a11y
         run: |
           if [ -f out/axe-report.json ]; then
-            jq -r '"**axe:** \(.summary.runs) Laeufe, \(.summary.violations) Verstoesse, \(.summary.seriousOrCritical) serious/critical, Commit `\(.commit)`"' out/axe-report.json >> "$GITHUB_STEP_SUMMARY"
+            jq -r '"**axe:** \(.summary.runs) Laeufe, \(.summary.violations) Verstoesse, \(.summary.unreachable) nicht erreichbar, \(.summary.incomplete) unentschieden (\(.summary.incompleteRules | join(", "))), \(.durationMs / 1000 | floor) s, Commit `\(.commit)`"' out/axe-report.json >> "$GITHUB_STEP_SUMMARY"
             jq -r '.results[] | select(.error or ((.violations // []) | length > 0)) | "- \(.theme) \(.layout) \(.view): \(.error // ([.violations[] | "\(.id) (\(.impact))"] | join(", ")))"' out/axe-report.json >> "$GITHUB_STEP_SUMMARY"
+            printf '\nUnentschieden je Regel (von Hand pruefen):\n' >> "$GITHUB_STEP_SUMMARY"
+            jq -r '[.results[] | (.incomplete // [])[] | .id] | group_by(.) | map("- \(.[0]): \(length) Ansichten") | .[]' out/axe-report.json >> "$GITHUB_STEP_SUMMARY"
           else
             echo "**axe:** kein Bericht erzeugt" >> "$GITHUB_STEP_SUMMARY"
           fi

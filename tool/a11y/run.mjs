@@ -7,14 +7,22 @@
 // Ablauf: kleiner statischer Server auf 127.0.0.1 fuer build/web, Chromium per
 // Playwright, Flutter-Semantik einschalten (der Zugriffsbaum entsteht erst
 // dann), Ansicht ansteuern, axe-core mit WCAG 2.0 bis 2.2 (A, AA, AAA) und Best
-// Practices laufen lassen. Ansichten: Sender, Player (nur schmal, breit ist er
-// in die Senderliste eingebettet), Verlauf, Favoriten, Einstellungen, Wecker,
-// Ueber, Dialog "Speicher loeschen"; je 390 und 1280 px, hell und dunkel. Dazu
-// Impressum und Datenschutz (de/en) als statische Seiten.
+// Practices laufen lassen. Ansichten: Sender, Verlauf, Favoriten,
+// Einstellungen, Dialog "Speicher loeschen", Wecker, Uhrzeit-Dialog des
+// Weckers, Ueber, Player (nur schmal, breit ist er in die Senderliste
+// eingebettet), Sheet "Sleeptimer" und Sheet "Favoriten exportieren"; je 390
+// und 1280 px, hell und dunkel. Dazu Impressum und Datenschutz (de/en) als
+// statische Seiten.
 //
-// Ergebnis: out/axe-report.json (mit Commit-SHA), Screenshots je Ansicht.
-// Exit 1, sobald ein Verstoss mit impact "serious" oder "critical" auftritt
-// oder eine Ansicht nicht erreichbar ist.
+// Je Farbschema und Breite laedt die App einmal; zwischen den Ansichten geht es
+// per Escape, "Zurueck" und Navigation zur Startseite zurueck (nur wenn das
+// scheitert, wird neu geladen; der Bericht zaehlt das unter "reloads").
+//
+// Ergebnis: out/axe-report.json (mit Commit-SHA, Laufzeit, "incomplete" =
+// von axe nicht entscheidbare Pruefungen), Screenshots je Ansicht.
+// Exit 1, sobald irgendein Verstoss auftritt (jede Stufe, Baseline 0) oder
+// eine Ansicht nicht erreichbar ist. "incomplete" bricht nicht ab, steht aber
+// in Bericht und Zusammenfassung.
 
 import { execFileSync } from 'node:child_process';
 import { createReadStream, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
@@ -36,7 +44,6 @@ const { values: args } = parseArgs({
 const WEB = resolve(args.web);
 const OUT = resolve(args.out);
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag2aaa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'];
-const GATE = new Set(['serious', 'critical']);
 const THEMES = ['light', 'dark'];
 const WIDTHS = [
   { name: 'm390', width: 390, height: 844 },
@@ -74,7 +81,15 @@ function commitSha() {
 function serve(root) {
   const server = createServer((req, res) => {
     const url = new URL(req.url, 'http://x');
-    let path = normalize(join(root, decodeURIComponent(url.pathname)));
+    let decoded;
+    try {
+      decoded = decodeURIComponent(url.pathname);
+    } catch {
+      // Kaputte Prozent-Kodierung (z. B. "%E0%A4%A"): Anfrage ablehnen statt abstuerzen.
+      res.writeHead(400).end();
+      return;
+    }
+    let path = normalize(join(root, decoded));
     if (!path.startsWith(root + sep) && path !== root) {
       res.writeHead(403).end();
       return;
@@ -109,17 +124,22 @@ async function enableSemantics(page) {
   await page.waitForTimeout(800);
 }
 
+/** Erster Knoten mit einer der Rollen und passendem Namen. */
+function byRole(page, role, name) {
+  const roles = Array.isArray(role) ? role : [role];
+  return roles
+    .map((r) => page.getByRole(r, { name }))
+    .reduce((a, b) => a.or(b))
+    .first();
+}
+
 /**
  * Tippen auf einen Semantik-Knoten (Rolle + Name), wie ein Screenreader.
  * Flutter legt nur Knoten im sichtbaren Bereich an; fehlt das Ziel, wird der
  * Inhalt mit dem Mausrad weiterbewegt.
  */
 async function activate(page, role, name) {
-  const roles = Array.isArray(role) ? role : [role];
-  const target = roles
-    .map((r) => page.getByRole(r, { name }))
-    .reduce((a, b) => a.or(b))
-    .first();
+  const target = byRole(page, role, name);
   const size = page.viewportSize();
   for (let i = 0; i < 12 && (await target.count()) === 0; i++) {
     await page.mouse.move(size.width / 2, size.height / 2);
@@ -151,45 +171,83 @@ function structure(page) {
 }
 
 /**
- * Erwartete h1 je Ansicht: belegt, dass die Navigation wirklich dort angekommen
- * ist (sonst wuerde axe die Startseite doppelt pruefen). null = keine h1
- * erwartet (Player schmal: der Sendername ist die Hauptinformation).
+ * Erwartung je Ansicht: entweder eine h1 (belegt, dass die Navigation dort
+ * angekommen ist, sonst wuerde axe die Startseite doppelt pruefen; null = keine
+ * h1, Player schmal) oder ein Dialog mit Rolle und zugaenglichem Namen.
  */
-const EXPECT_H1 = {
-  sender: /^ALLE SENDER$/i,
-  verlauf: /^ZULETZT GESPIELT$/i,
-  favoriten: /^FAVORITEN$/i,
-  einstellungen: /^EINSTELLUNGEN$/i,
-  wecker: /^WECKER$/i,
-  ueber: /^ÜBER LINEFM RADIO$/i,
-  player: null,
+const EXPECT = {
+  sender: { h1: /^ALLE SENDER$/i },
+  verlauf: { h1: /^ZULETZT GESPIELT$/i },
+  favoriten: { h1: /^FAVORITEN$/i },
+  einstellungen: { h1: /^EINSTELLUNGEN$/i },
+  wecker: { h1: /^WECKER$/i },
+  ueber: { h1: /^ÜBER LINEFM RADIO$/i },
+  player: { h1: null },
+  'dialog-speicher-loeschen': { dialog: ['alertdialog', /^Speicher löschen\?$/] },
+  // Im Web nur Texteingabe (siehe timeEntryMode in alarm_screen.dart).
+  'dialog-wecker-uhrzeit': { dialog: ['dialog', /^Uhrzeit eingeben$/] },
+  'sheet-sleeptimer': { dialog: ['dialog', /^Sleeptimer$/] },
+  'sheet-favoriten-export': { dialog: ['dialog', /^Favoriten exportieren$/] },
 };
 
-/** Ansichten der App: Name -> Schritte ab Startseite (Sender). */
+/** Erwartete h1 der statischen Rechtsseiten. */
+const LEGAL = {
+  '/impressum/': /^Impressum$/,
+  '/datenschutz/': /^Datenschutzerklärung$/,
+  '/impressum/en/': /^Imprint$/,
+  '/datenschutz/en/': /^Privacy policy$/,
+};
+
+/**
+ * Ansichten der App: Name -> Schritte ab Startseite (Sender). Reihenfolge so,
+ * dass moeglichst wenig zurueckgesetzt werden muss. `seed` = vorher Favoriten
+ * in den Speicher legen (der Export erscheint nur mit Favoriten).
+ */
 function appViews(wide) {
   // Schmal: untere Leiste (Sender, Player, Verlauf) plus Kopf (Favoriten,
   // Einstellungen). Breit: Navigationsleiste links mit Tabs.
   const nav = ['button', 'tab'];
-  const views = {
-    sender: [],
-    verlauf: [[nav, /^Verlauf$/i]],
-    favoriten: [[nav, /^Favoriten$/i]],
-    einstellungen: [[nav, /^Einstellungen$/i]],
-    wecker: [
-      [nav, /^Einstellungen$/i],
-      ['button', /^Wecker/],
-    ],
-    ueber: [
-      [nav, /^Einstellungen$/i],
-      ['button', /^Über LINEFM Radio/],
-    ],
-    'dialog-speicher-loeschen': [
-      [nav, /^Einstellungen$/i],
-      ['button', /^Speicher löschen$/],
-    ],
-  };
-  if (!wide) views.player = [['button', /^Player$/]];
+  const settings = [nav, /^Einstellungen$/i];
+  const views = [
+    ['sender', []],
+    ['verlauf', [[nav, /^Verlauf$/i]]],
+    ['favoriten', [[nav, /^Favoriten$/i]]],
+    ['einstellungen', [settings]],
+    ['dialog-speicher-loeschen', [settings, ['button', /^Speicher löschen$/]]],
+    ['wecker', [settings, ['button', /^Wecker/]]],
+    ['dialog-wecker-uhrzeit', [settings, ['button', /^Wecker/], ['button', /^Wecker hinzufügen$/]]],
+    ['ueber', [settings, ['button', /^Über LINEFM Radio/]]],
+  ];
+  if (!wide) views.push(['player', [['button', /^Player$/]]]);
+  // Breit steckt der Player in der Senderliste, schmal ist er ein eigener Bereich.
+  views.push([
+    'sheet-sleeptimer',
+    wide ? [['button', /^Sleeptimer einstellen$/]] : [['button', /^Player$/], ['button', /^Sleeptimer einstellen$/]],
+  ]);
+  views.push([
+    'sheet-favoriten-export',
+    // Mit Favoriten heisst der Knopf im Kopf "Favoriten, 1 Song".
+    [[nav, /^Favoriten(,|$)/i], ['button', /^Favoriten exportieren$/]],
+    { seed: true },
+  ]);
   return views;
+}
+
+/** Ein Favorit plus Speicher-Einwilligung im Format von shared_preferences (Web). */
+async function seedFavorites(page) {
+  await page.evaluate(() => {
+    const favorites = [
+      {
+        key: 'linefm:pruefung:a11y',
+        station: 'linefm',
+        stationSlug: 'linefm',
+        title: 'a11y',
+        artist: 'Pruefung',
+      },
+    ];
+    localStorage.setItem('flutter.linefm-storage-notice-dismissed', 'true');
+    localStorage.setItem('flutter.linefm-favorites', JSON.stringify(JSON.stringify(favorites)));
+  });
 }
 
 async function main() {
@@ -197,31 +255,92 @@ async function main() {
     console.error(`a11y: ${WEB}/index.html fehlt (zuerst flutter build web)`);
     process.exit(2);
   }
+  const started = Date.now();
   mkdirSync(OUT, { recursive: true });
   const server = await serve(WEB);
   const base = `http://127.0.0.1:${server.address().port}`;
   const browser = await chromium.launch();
   const results = [];
   const only = args.only ? new Set(args.only.split(',')) : null;
+  let reloads = 0;
 
-  async function check(page, entry) {
+  async function check(page, entry, t0) {
     const axe = await new AxeBuilder({ page }).withTags(TAGS).analyze();
-    const violations = axe.violations.map((v) => ({
-      id: v.id,
-      impact: v.impact,
-      help: v.help,
-      nodes: v.nodes.length,
-      targets: v.nodes.slice(0, 5).map((n) => n.target.join(' ')),
-    }));
+    const pick = (list) =>
+      list.map((v) => ({
+        id: v.id,
+        impact: v.impact,
+        help: v.help,
+        nodes: v.nodes.length,
+        targets: v.nodes.slice(0, 5).map((n) => n.target.join(' ')),
+      }));
+    const violations = pick(axe.violations);
+    const incomplete = pick(axe.incomplete);
     const shot = `${entry.kind}-${entry.theme}-${entry.layout}-${entry.view}.png`;
     await page.screenshot({ path: join(OUT, shot) });
     const s = await structure(page);
-    results.push({ ...entry, screenshot: shot, axeVersion: axe.testEngine.version, ...s, violations });
-    const gate = violations.filter((v) => GATE.has(v.impact)).length;
+    results.push({
+      ...entry,
+      screenshot: shot,
+      axeVersion: axe.testEngine.version,
+      ms: Date.now() - t0,
+      ...s,
+      violations,
+      incomplete,
+    });
     console.log(
-      `${gate ? 'FEHLER' : 'ok    '} ${entry.theme} ${entry.layout} ${entry.view}: ` +
-        `${violations.length} Verstoesse (${gate} serious/critical), h1=${JSON.stringify(s.h1)}`,
+      `${violations.length ? 'FEHLER' : 'ok    '} ${entry.theme} ${entry.layout} ${entry.view}: ` +
+        `${violations.length} Verstoesse, ${incomplete.length} unentschieden, h1=${JSON.stringify(s.h1)}`,
     );
+  }
+
+  async function semanticsDump(page) {
+    return page
+      .evaluate(() =>
+        [...document.querySelectorAll('flt-semantics[role], flt-semantics [role]')]
+          .map((e) => `${e.getAttribute('role')}:${(e.getAttribute('aria-label') || e.textContent || '').trim().slice(0, 40)}`)
+          .slice(0, 80),
+      )
+      .catch(() => []);
+  }
+
+  /** App frisch laden (erster Aufruf oder wenn das Zuruecksetzen scheitert). */
+  async function boot(page) {
+    await page.goto(`${base}/`, { waitUntil: 'load' });
+    await enableSemantics(page);
+  }
+
+  /** Zurueck zur Startseite: Dialoge schliessen, Unterseiten verlassen, Sender waehlen. */
+  async function home(page) {
+    const open = page.locator('[role="dialog"], [role="alertdialog"]');
+    for (let i = 0; i < 3 && (await open.count()) > 0; i++) {
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+    }
+    const back = page.getByRole('button', { name: /^Zurück$/ }).first();
+    for (let i = 0; i < 3 && (await back.count()) > 0; i++) {
+      await back.evaluate((el) => el.click());
+      await page.waitForTimeout(700);
+    }
+    const sender = byRole(page, ['button', 'tab'], /^Sender$/i);
+    if ((await sender.count()) > 0) {
+      await sender.evaluate((el) => el.click());
+      await page.waitForTimeout(700);
+    }
+    const { h1 } = await structure(page);
+    return (await open.count()) === 0 && h1.length === 1 && EXPECT.sender.h1.test(h1[0]);
+  }
+
+  async function verify(page, view) {
+    const want = EXPECT[view];
+    if (want.dialog) {
+      const [role, name] = want.dialog;
+      await page.getByRole(role, { name }).waitFor({ state: 'attached', timeout: 10_000 });
+      return;
+    }
+    const { h1 } = await structure(page);
+    const ok = want.h1 === null ? h1.length === 0 : h1.length === 1 && want.h1.test(h1[0]);
+    if (!ok) throw new Error(`Ansicht nicht erreicht: h1=${JSON.stringify(h1)}, erwartet ${want.h1 ?? 'keine'}`);
   }
 
   try {
@@ -234,47 +353,53 @@ async function main() {
           reducedMotion: 'reduce',
         });
         const wide = size.width >= 840;
-        for (const [view, steps] of Object.entries(appViews(wide))) {
+        const page = await context.newPage();
+        let fresh = false;
+        for (const [view, steps, opts = {}] of appViews(wide)) {
           if (only && !only.has(view)) continue;
-          const page = await context.newPage();
           const entry = { kind: 'app', theme, layout: size.name, width: size.width, view, url: '/' };
+          const t0 = Date.now();
           try {
-            await page.goto(`${base}/`, { waitUntil: 'load' });
-            await enableSemantics(page);
+            if (opts.seed) {
+              if (!fresh) await boot(page);
+              await seedFavorites(page);
+              await boot(page);
+              reloads++;
+            } else if (!fresh) {
+              await boot(page);
+            } else if (!(await home(page))) {
+              await boot(page);
+              reloads++;
+            }
+            fresh = true;
             for (const [role, name] of steps) await activate(page, role, name);
-            if (view.startsWith('dialog')) {
-              await page
-                .locator('[role="dialog"], [role="alertdialog"]')
-                .first()
-                .waitFor({ state: 'attached', timeout: 10_000 });
-            }
-            if (view in EXPECT_H1) {
-              const { h1 } = await structure(page);
-              const want = EXPECT_H1[view];
-              const ok = want === null ? h1.length === 0 : h1.length === 1 && want.test(h1[0]);
-              if (!ok) throw new Error(`Ansicht nicht erreicht: h1=${JSON.stringify(h1)}, erwartet ${want ?? 'keine'}`);
-            }
-            await check(page, entry);
+            await verify(page, view);
+            await check(page, entry, t0);
           } catch (error) {
-            const nodes = await page
-              .evaluate(() =>
-                [...document.querySelectorAll('flt-semantics[role], flt-semantics [role]')]
-                  .map((e) => `${e.getAttribute('role')}:${(e.getAttribute('aria-label') || e.textContent || '').trim().slice(0, 40)}`)
-                  .slice(0, 80),
-              )
-              .catch(() => []);
-            results.push({ ...entry, error: String(error).split('\n')[0], semanticsNodes: nodes });
+            results.push({ ...entry, error: String(error).split('\n')[0], semanticsNodes: await semanticsDump(page) });
             console.log(`FEHLER ${theme} ${size.name} ${view}: nicht erreichbar (${String(error).split('\n')[0]})`);
+            fresh = false;
           }
-          await page.close();
         }
-        for (const url of ['/impressum/', '/datenschutz/', '/impressum/en/', '/datenschutz/en/']) {
+        for (const [url, h1Want] of Object.entries(LEGAL)) {
           const view = url.replaceAll('/', '-').replace(/^-|-$/g, '');
           if (only && !only.has(view)) continue;
-          const page = await context.newPage();
-          await page.goto(`${base}${url}`, { waitUntil: 'load' });
-          await check(page, { kind: 'legal', theme, layout: size.name, width: size.width, view, url });
-          await page.close();
+          const entry = { kind: 'legal', theme, layout: size.name, width: size.width, view, url };
+          const t0 = Date.now();
+          try {
+            const response = await page.goto(`${base}${url}`, { waitUntil: 'load' });
+            if (!response || response.status() !== 200) {
+              throw new Error(`HTTP ${response?.status() ?? 'ohne Antwort'}`);
+            }
+            const h1 = await page.locator('h1').allInnerTexts();
+            if (h1.length !== 1 || !h1Want.test(h1[0].trim())) {
+              throw new Error(`h1=${JSON.stringify(h1)}, erwartet ${h1Want}`);
+            }
+            await check(page, entry, t0);
+          } catch (error) {
+            results.push({ ...entry, error: String(error).split('\n')[0] });
+            console.log(`FEHLER ${theme} ${size.name} ${view}: ${String(error).split('\n')[0]}`);
+          }
         }
         await context.close();
       }
@@ -284,28 +409,36 @@ async function main() {
     server.close();
   }
 
-  const failed = results.filter((r) => r.error || r.violations.some((v) => GATE.has(v.impact)));
+  const failed = results.filter((r) => r.error || r.violations.length > 0);
+  const count = (key) => results.reduce((n, r) => n + (r[key]?.length ?? 0), 0);
   const report = {
     commit: commitSha(),
     generated: new Date().toISOString(),
+    durationMs: Date.now() - started,
     tool: { playwright: (await import('playwright/package.json', { with: { type: 'json' } })).default.version },
     tags: TAGS,
-    gate: 'keine Verstoesse mit impact serious oder critical, jede Ansicht erreichbar',
+    gate: 'kein Verstoss (jede Stufe, Baseline 0), jede Ansicht erreichbar; incomplete wird berichtet',
     summary: {
       runs: results.length,
       failed: failed.length,
-      violations: results.reduce((n, r) => n + (r.violations?.length ?? 0), 0),
+      unreachable: results.filter((r) => r.error).length,
+      violations: count('violations'),
       seriousOrCritical: results.reduce(
-        (n, r) => n + (r.violations?.filter((v) => GATE.has(v.impact)).length ?? 0),
+        (n, r) => n + (r.violations?.filter((v) => v.impact === 'serious' || v.impact === 'critical').length ?? 0),
         0,
       ),
+      incomplete: count('incomplete'),
+      incompleteRules: [...new Set(results.flatMap((r) => (r.incomplete ?? []).map((v) => v.id)))].sort(),
+      reloads,
     },
     results,
   };
   writeFileSync(join(OUT, 'axe-report.json'), `${JSON.stringify(report, null, 2)}\n`);
   console.log(
     `a11y: ${report.summary.runs} Laeufe, ${report.summary.violations} Verstoesse, ` +
-      `${report.summary.seriousOrCritical} serious/critical, Commit ${report.commit}`,
+      `${report.summary.unreachable} nicht erreichbar, ${report.summary.incomplete} unentschieden ` +
+      `(${report.summary.incompleteRules.join(', ') || '-'}), ${reloads} Neuladungen, ` +
+      `${Math.round(report.durationMs / 1000)} s, Commit ${report.commit}`,
   );
   process.exit(failed.length ? 1 : 0);
 }

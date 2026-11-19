@@ -217,7 +217,7 @@ void main() {
       expect(got.single.ruleId, '1700000000000000');
       expect(got.single.handle, api.alarms.keys.single);
       await sub.cancel();
-      api.ringingIds.add(got.single.handle);
+      api.ringingIds.add(got.single.handle!);
       await platform.silence(got.single);
       expect(api.alarms, isEmpty);
     });

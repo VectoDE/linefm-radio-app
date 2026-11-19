@@ -18,6 +18,14 @@
 // per Escape, "Zurueck" und Navigation zur Startseite zurueck (nur wenn das
 // scheitert, wird neu geladen; der Bericht zaehlt das unter "reloads").
 //
+// Einwilligungsdialog (Statistik) nur mit --consent und einem eigenen Build mit
+// Test-Umami-Werten, die nirgends hinfuehren (keine echten Daten):
+//   flutter build web ... --dart-define=UMAMI_URL=http://127.0.0.1:9
+//     --dart-define=UMAMI_WEBSITE_ID=00000000-0000-0000-0000-000000000000
+//   node run.mjs --web ../../build/web --out out-consent --consent
+// Anfragen an 127.0.0.1:9 werden zusaetzlich im Browser verworfen. Die CI
+// baut nur ohne Telemetrie, dort erscheint der Dialog nicht.
+//
 // Ergebnis: out/axe-report.json (mit Commit-SHA, Laufzeit, "incomplete" =
 // von axe nicht entscheidbare Pruefungen), Screenshots je Ansicht.
 // Exit 1, sobald irgendein Verstoss auftritt (jede Stufe, Baseline 0) oder
@@ -38,6 +46,7 @@ const { values: args } = parseArgs({
     web: { type: 'string', default: '../../build/web' },
     out: { type: 'string', default: 'out' },
     only: { type: 'string', default: '' },
+    consent: { type: 'boolean', default: false },
   },
 });
 
@@ -188,6 +197,7 @@ const EXPECT = {
   'dialog-wecker-uhrzeit': { dialog: ['dialog', /^Uhrzeit eingeben$/] },
   'sheet-sleeptimer': { dialog: ['dialog', /^Sleeptimer$/] },
   'sheet-favoriten-export': { dialog: ['dialog', /^Favoriten exportieren$/] },
+  'dialog-einwilligung': { dialog: ['alertdialog', /^Statistik und Fehlerberichte$/] },
 };
 
 /** Erwartete h1 der statischen Rechtsseiten. */
@@ -204,6 +214,8 @@ const LEGAL = {
  * in den Speicher legen (der Export erscheint nur mit Favoriten).
  */
 function appViews(wide) {
+  // Nur Einwilligung: erscheint beim Start eines Builds mit Telemetrie.
+  if (args.consent) return [['dialog-einwilligung', []]];
   // Schmal: untere Leiste (Sender, Player, Verlauf) plus Kopf (Favoriten,
   // Einstellungen). Breit: Navigationsleiste links mit Tabs.
   const nav = ['button', 'tab'];
@@ -353,6 +365,8 @@ async function main() {
           reducedMotion: 'reduce',
         });
         const wide = size.width >= 840;
+        // Test-Umami (--consent) zeigt ins Leere; trotzdem nichts durchlassen.
+        await context.route(/^https?:\/\/127\.0\.0\.1:9\//, (route) => route.abort());
         const page = await context.newPage();
         let fresh = false;
         for (const [view, steps, opts = {}] of appViews(wide)) {
@@ -381,7 +395,7 @@ async function main() {
             fresh = false;
           }
         }
-        for (const [url, h1Want] of Object.entries(LEGAL)) {
+        for (const [url, h1Want] of Object.entries(args.consent ? {} : LEGAL)) {
           const view = url.replaceAll('/', '-').replace(/^-|-$/g, '');
           if (only && !only.has(view)) continue;
           const entry = { kind: 'legal', theme, layout: size.name, width: size.width, view, url };

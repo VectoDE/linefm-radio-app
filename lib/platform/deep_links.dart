@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:ui' show PlatformDispatcher;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb, visibleForTesting;
+import 'package:flutter/services.dart' show MethodCall, MethodChannel;
 import 'package:flutter/widgets.dart';
+import 'package:linefm_radio/core/logging.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 
@@ -12,10 +15,14 @@ import 'package:linefm_radio/domain/stations_catalog.dart';
 /// Wege in die App:
 /// - Web: Start-Adresse (`Uri.base`) wertet der PlayerController beim Start
 ///   aus.
-/// - Android/iOS: das Framework meldet Link-Intents bzw. URL-Schemata als
-///   Routeninformation. Beim Kaltstart steht der Link in
-///   `PlatformDispatcher.defaultRouteName`, laufend kommt er ueber
-///   `didPushRouteInformation` ([initDeepLinks]).
+/// - Android: eigener Kanal `de.linefm.app/deep_links` der MainActivity
+///   (`getInitialLink` beim Start, `onLink` bei laufender App). Flutters
+///   Routen-Deep-Linking ist dort aus (`shouldHandleDeeplinking`), damit ein
+///   Link nicht doppelt bzw. als unbekannte Route ankommt. Quelle u. a. das
+///   Homescreen-Widget (P16).
+/// - iOS: das Framework meldet URL-Schemata als Routeninformation. Beim
+///   Kaltstart steht der Link in `PlatformDispatcher.defaultRouteName`,
+///   laufend kommt er ueber `didPushRouteInformation` ([initDeepLinks]).
 /// - Windows/Linux: Link als Startargument bzw. von der zweiten Instanz
 ///   ([DeepLinks.dispatchFromArguments]; P18 ruft es auf).
 ///
@@ -121,6 +128,46 @@ class DeepLinkObserver with WidgetsBindingObserver {
 
 DeepLinkObserver? _observer;
 
+/// Kanal der Android-MainActivity (siehe MainActivity.kt).
+const MethodChannel androidDeepLinkChannel = MethodChannel(
+  'de.linefm.app/deep_links',
+);
+
+MethodChannel? _boundChannel;
+
+/// Bindet den Android-Kanal: Start-Link holen und laufende Links annehmen.
+/// Beide gehen ueber [DeepLinks.dispatch] (Kaltstart-Puffer,
+/// Duplikatfilter).
+@visibleForTesting
+Future<void> bindAndroidDeepLinks([
+  MethodChannel channel = androidDeepLinkChannel,
+]) async {
+  if (identical(_boundChannel, channel)) return;
+  _boundChannel = channel;
+  channel.setMethodCallHandler((MethodCall call) async {
+    if (call.method == 'onLink') _dispatchString(call.arguments);
+    return null;
+  });
+  try {
+    _dispatchString(await channel.invokeMethod<String>('getInitialLink'));
+  } on Object catch (e) {
+    logError('Start-Link nicht gelesen', e);
+  }
+}
+
+/// Nur fuer Tests: Kanalbindung loesen.
+@visibleForTesting
+void unbindAndroidDeepLinksForTest() {
+  _boundChannel?.setMethodCallHandler(null);
+  _boundChannel = null;
+}
+
+void _dispatchString(Object? value) {
+  if (value is! String || value.isEmpty) return;
+  final uri = Uri.tryParse(value);
+  if (uri != null) DeepLinks.dispatch(uri);
+}
+
 /// Initialisiert die Deep-Link-Auswertung. Web: nichts zu tun (die
 /// Start-Adresse liest der PlayerController).
 Future<void> initDeepLinks() async {
@@ -130,4 +177,7 @@ Future<void> initDeepLinks() async {
   binding.addObserver(_observer!);
   final initial = Uri.tryParse(PlatformDispatcher.instance.defaultRouteName);
   if (initial != null) DeepLinks.dispatch(initial);
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    await bindAndroidDeepLinks();
+  }
 }

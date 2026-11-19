@@ -26,6 +26,11 @@
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
+            <!-- Links laufen ueber den Kanal de.linefm.app/deep_links
+                 (MainActivity), nicht als Flutter-Route. -->
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="false" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -36,6 +41,15 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="linefm" android:host="play" />
+            </intent-filter>
+            <!-- Geteilte Web-Links https://app.linefm.de/?station=SLUG.
+                 autoVerify erst, wenn /.well-known/assetlinks.json auf
+                 app.linefm.de liegt (SHA-256 des Play-Signaturschluessels). -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="app.linefm.de" />
             </intent-filter>
         </activity>
 

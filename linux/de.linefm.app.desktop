@@ -1,0 +1,19 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=LINEFM Radio
+GenericName=Web Radio
+GenericName[de]=Webradio
+Comment=Live radio of the LINEFM stations
+Comment[de]=Live-Radio der LINEFM-Sender
+Exec=linefm_radio %U
+Icon=de.linefm.app
+Terminal=false
+Categories=AudioVideo;Audio;Player;Music;
+Keywords=radio;webradio;music;stream;linefm;
+Keywords[de]=Radio;Webradio;Musik;Stream;LINEFM;
+MimeType=x-scheme-handler/linefm;
+StartupNotify=true
+# Muss der GTK-Anwendungs-ID entsprechen (APPLICATION_ID in CMakeLists.txt),
+# damit Shell, Hotkeys und Wayland das Fenster dieser Datei zuordnen.
+StartupWMClass=de.linefm.app

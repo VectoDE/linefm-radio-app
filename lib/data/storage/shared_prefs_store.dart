@@ -30,6 +30,10 @@ abstract final class PrefsKeys {
   /// Favoriten-Sender (Issue #42). Gibt es in der Web-App nicht.
   static const String favoriteStations = 'linefm-favorite-stations';
 
+  /// Fenstergroesse/-position und Mini-Fenster (Desktop, P18).
+  static const String desktopWindow = 'linefm-desktop-window';
+  static const String desktopMini = 'linefm-desktop-mini';
+
   /// Alle Daten-Schluessel, also alles ausser der Speicher-Bestaetigung.
   static const List<String> data = <String>[
     favorites,
@@ -44,6 +48,8 @@ abstract final class PrefsKeys {
     alarms,
     telemetryConsent,
     coverCache,
+    desktopWindow,
+    desktopMini,
   ];
 }
 

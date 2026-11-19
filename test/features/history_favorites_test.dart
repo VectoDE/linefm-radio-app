@@ -264,6 +264,25 @@ void main() {
       handle.dispose();
     });
 
+    testWidgets('Screenreader-Tap auf "Song merken" schaltet um', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      final ctx = await _pump(tester, const HistoryScreen());
+      final heart = find.semantics.byLabel('Song merken').first;
+      tester.semantics.tap(heart);
+      await _settle(tester);
+      expect(ctx.container.read(favoritesProvider), hasLength(1));
+      expect(ctx.telemetry.events, <String>['favorite_add']);
+
+      tester.semantics.tap(
+        find.semantics.byLabel('Aus Favoriten entfernen').first,
+      );
+      await _settle(tester);
+      expect(ctx.container.read(favoritesProvider), isEmpty);
+      handle.dispose();
+    });
+
     testWidgets('Pull-to-refresh laedt nach', (tester) async {
       final ctx = await _pump(tester, const HistoryScreen());
       await tester.fling(

@@ -3,22 +3,20 @@ import 'package:linefm_radio/app/navigation.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/station.dart';
+import 'package:linefm_radio/services/share/share_links.dart';
 import 'package:linefm_radio/ui/theme/breakpoints.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:share_plus/share_plus.dart';
 
-/// Teilt Text ueber das System-Teilen-Menue. Ueberschreibbar fuer Tests.
+/// Teilt Text ueber den `ShareService` (Teilen-Menue, sonst Zwischenablage).
+/// Ueberschreibbar fuer Tests.
 final stationShareFnProvider = Provider<Future<void> Function(String text)>(
   (ref) =>
-      (text) => SharePlus.instance.share(ShareParams(text: text)),
+      (text) => ref.read(shareServiceProvider).shareText(text),
 );
 
 /// Link auf einen Sender (Web-App oder Deep Link, Spec 2.2).
 String stationShareUrl(String webBaseUrl, Station station) {
-  final base = webBaseUrl.endsWith('/')
-      ? webBaseUrl.substring(0, webBaseUrl.length - 1)
-      : webBaseUrl;
-  return '$base/?station=${station.slug}';
+  return ShareLinks.stationUrl(webBaseUrl, station);
 }
 
 /// Aktionen der Stationsliste und des Mini-Players.

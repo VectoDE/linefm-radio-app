@@ -247,6 +247,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get historyEmpty => 'Noch keine Titel im Verlauf.';
 
   @override
+  String get historyLoadFailed => 'Verlauf konnte nicht geladen werden.';
+
+  @override
   String get favoritesTitle => 'Favoriten';
 
   @override
@@ -279,6 +282,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get favoritesExportFailed => 'Der Export hat nicht geklappt.';
+
+  @override
+  String get shareCopied => 'In die Zwischenablage kopiert.';
+
+  @override
+  String get shareFailed => 'Teilen hat nicht geklappt.';
 
   @override
   String get csvColumnTitle => 'Titel';
@@ -712,4 +721,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trayQuit => 'Beenden';
+
+  @override
+  String get trayAlwaysOnTop => 'Immer im Vordergrund';
 }

@@ -16,3 +16,7 @@
 *.wasm binary
 *.jar binary
 *.keystore binary
+
+# Generierte Lokalisierung: immer LF (flutter gen-l10n/build schreibt sonst je
+# nach Plattform andere Zeilenenden und erzeugt Diffs).
+lib/l10n/gen/* text eol=lf

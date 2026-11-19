@@ -348,6 +348,48 @@ bool _isText(String path) {
   return dot >= 0 && _textExt.contains(name.substring(dot + 1));
 }
 
+/// Liegen Noto-Ersatzschriften (.woff2) unter assets/fonts/fallback/?
+bool hasFontFallback(Directory web) {
+  final dir = Directory('${web.path}/assets/fonts/fallback');
+  return dir.existsSync() &&
+      dir
+          .listSync(recursive: true)
+          .any((e) => e is File && e.path.endsWith('.woff2'));
+}
+
+final RegExp _revisionDirName = RegExp(r'^[0-9a-f]{40}$');
+
+/// Verschiebt den Inhalt von `canvaskit/` nach `canvaskit/<revision>/`.
+///
+/// Idempotent: Ordner mit 40-stelligem Hex-Namen gelten als schon verschoben.
+/// Der zur aktuellen Revision bleibt, aeltere Revisionen werden entfernt. Liegen
+/// nach einem erneuten flutter build web frische Dateien direkt in canvaskit/,
+/// ersetzen sie die gleichnamigen unter `canvaskit/<revision>/` (keine Verschachtelung).
+void relocateCanvasKit(Directory web, String revision) {
+  final canvasKit = Directory('${web.path}/canvaskit');
+  if (!canvasKit.existsSync()) {
+    return;
+  }
+  final target = Directory('${canvasKit.path}/$revision')
+    ..createSync(recursive: true);
+  for (final e in canvasKit.listSync()) {
+    final name = _rel(canvasKit, e);
+    if (_revisionDirName.hasMatch(name) && e is Directory) {
+      if (name != revision) {
+        e.deleteSync(recursive: true);
+      }
+      continue;
+    }
+    final dst = '${target.path}/$name';
+    if (FileSystemEntity.typeSync(dst) != FileSystemEntityType.notFound) {
+      Directory(dst).existsSync()
+          ? Directory(dst).deleteSync(recursive: true)
+          : File(dst).deleteSync();
+    }
+    e.renameSync(dst);
+  }
+}
+
 /// Fuehrt alle Schritte aus; liefert die geschriebenen Hosting-Dateien (relativ).
 List<String> runPostbuild(PostbuildOptions o) {
   final web = o.webDir;
@@ -373,24 +415,20 @@ List<String> runPostbuild(PostbuildOptions o) {
     stderr.writeln('web_postbuild: WARNUNG: $msg');
   }
 
-  // 1. main.dart.* umbenennen
-  final renamed = <String, String>{};
-  for (final ext in <String>['js', 'wasm', 'mjs']) {
-    final f = File('${web.path}/main.dart.$ext');
-    if (!f.existsSync()) {
-      continue;
+  // 0b. Ersatzschriften (L14): ohne Noto-Dateien unter assets/fonts/fallback/
+  // zeigt die App Emoji, Kyrillisch und CJK als Kaestchen. Flutter legt dort
+  // selbst nur Roboto-Regular.ttf ab, daher zaehlen nur .woff2-Dateien.
+  if (!hasFontFallback(web)) {
+    const msg =
+        'keine Ersatzschriften unter assets/fonts/fallback/ (zuerst dart run tool/fetch_font_fallback.dart build/web)';
+    if (o.strict) {
+      throw PostbuildException(msg);
     }
-    final hash = sha256Hex(f.readAsBytesSync()).substring(0, 8);
-    final name = 'main.$hash.dart.$ext';
-    f.renameSync('${web.path}/$name');
-    renamed['main.dart.$ext'] = name;
-  }
-  if (renamed.isEmpty) {
-    throw PostbuildException(
-      'keine main.dart.* gefunden (Postbuild schon gelaufen?)',
-    );
+    stderr.writeln('web_postbuild: WARNUNG: $msg');
   }
 
+  // 1. main.dart.* umbenennen. Idempotent: Ist das Bootstrap schon bearbeitet
+  // (Marke ersetzt) und liegt kein neues main.dart.* vor, bleibt Schritt 1 aus.
   final bootstrap = bootstrapFile.readAsStringSync();
   final revMatch = RegExp(r'"engineRevision":"([0-9a-f]{40})"')
       .firstMatch(bootstrap);
@@ -398,21 +436,60 @@ List<String> runPostbuild(PostbuildOptions o) {
     throw PostbuildException('engineRevision nicht gefunden');
   }
   final revision = revMatch.group(1)!;
-  bootstrapFile.writeAsStringSync(
-    rewriteBootstrap(bootstrap, renamedMain: renamed, engineRevision: revision),
-  );
+  final mains = <String>[
+    for (final ext in <String>['js', 'wasm', 'mjs'])
+      if (File('${web.path}/main.dart.$ext').existsSync()) ext,
+  ];
+  if (!bootstrap.contains(canvasKitMarker)) {
+    if (mains.isNotEmpty) {
+      throw PostbuildException(
+        'main.dart.* liegt neu vor, flutter_bootstrap.js ist aber schon bearbeitet '
+        '(build/web loeschen und neu bauen)',
+      );
+    }
+    if (!bootstrap.contains("canvasKitBaseUrl = 'canvaskit/$revision/'")) {
+      throw PostbuildException(
+        'Marke $canvasKitMarker fehlt: web/flutter_bootstrap.js muss das eigene Template sein',
+      );
+    }
+    stdout.writeln(
+      'web_postbuild: Umbenennung schon erledigt, nur Folgeschritte',
+    );
+  } else {
+    if (mains.isEmpty) {
+      throw PostbuildException('keine main.dart.* gefunden');
+    }
+    final renamed = <String, String>{};
+    for (final ext in mains) {
+      final f = File('${web.path}/main.dart.$ext');
+      final hash = sha256Hex(f.readAsBytesSync()).substring(0, 8);
+      final name = 'main.$hash.dart.$ext';
+      final dst = File('${web.path}/$name');
+      if (dst.existsSync()) {
+        dst.deleteSync();
+      }
+      f.renameSync(dst.path);
+      renamed['main.dart.$ext'] = name;
+    }
+    // Reste frueherer Builds in derselben Ausgabe (ohne rm -rf build/web).
+    for (final f in web.listSync().whereType<File>()) {
+      final name = _rel(web, f);
+      if (RegExp(r'^main\.[0-9a-f]{8}\.dart\.(js|wasm|mjs)$').hasMatch(name) &&
+          !renamed.containsValue(name)) {
+        f.deleteSync();
+      }
+    }
+    bootstrapFile.writeAsStringSync(
+      rewriteBootstrap(
+        bootstrap,
+        renamedMain: renamed,
+        engineRevision: revision,
+      ),
+    );
+  }
 
   // 2. canvaskit/ -> canvaskit/<revision>/
-  final canvasKit = Directory('${web.path}/canvaskit');
-  if (canvasKit.existsSync()) {
-    final tmp = Directory('${web.path}/.canvaskit_tmp');
-    if (tmp.existsSync()) {
-      tmp.deleteSync(recursive: true);
-    }
-    canvasKit.renameSync(tmp.path);
-    Directory('${web.path}/canvaskit').createSync();
-    tmp.renameSync('${web.path}/canvaskit/$revision');
-  }
+  relocateCanvasKit(web, revision);
 
   // 3. Platzhalter
   final baseUrl =
@@ -516,7 +593,14 @@ List<String> runPostbuild(PostbuildOptions o) {
   ).substring(0, 12);
   final sw = File('${web.path}/sw.js');
   if (sw.existsSync()) {
-    final text = sw.readAsStringSync().replaceAll(buildIdPlaceholder, buildId);
+    // Auch bei erneutem Lauf: eine schon gesetzte Build-ID wird ersetzt.
+    final text = sw
+        .readAsStringSync()
+        .replaceAll(buildIdPlaceholder, buildId)
+        .replaceAll(
+          RegExp(r"const BUILD_ID = '[0-9a-f]{12}';"),
+          "const BUILD_ID = '$buildId';",
+        );
     sw.writeAsStringSync(text);
     entries['sw.js'] = (sha256Hex(utf8.encode(text)), utf8.encode(text).length);
   }

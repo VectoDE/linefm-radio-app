@@ -211,13 +211,110 @@ void main() {
       expect(manifest, contains('  canvaskit/$_rev/canvaskit.wasm'));
       expect(written, isNotEmpty);
 
-      // Zweiter Lauf ist ein klarer Fehler statt stiller Doppelbearbeitung.
-      expect(
-        () => runPostbuild(
-          PostbuildOptions(webDir: Directory('${tmp.path}/web')),
+      // Zweiter Lauf auf dieselbe Ausgabe aendert nichts mehr (idempotent).
+      Map<String, String> snapshot() => <String, String>{
+        for (final f in Directory(
+          '${tmp.path}/web',
+        ).listSync(recursive: true).whereType<File>())
+          f.path.replaceAll('\\', '/').split('/web/').last: f
+              .readAsStringSync(),
+      };
+      final before = snapshot();
+      runPostbuild(
+        PostbuildOptions(
+          webDir: Directory('${tmp.path}/web'),
+          deployDir: '${tmp.path}/deploy',
+          hostingOut: '${tmp.path}/hosting',
+          cspConnectExtra: 'https://t.example',
         ),
-        throwsA(isA<PostbuildException>()),
       );
+      expect(snapshot(), before);
+      expect(
+        Directory('${tmp.path}/web/canvaskit/$_rev/$_rev').existsSync(),
+        isFalse,
+      );
+    });
+
+    test(
+      'erneuter Build in dieselbe Ausgabe verschachtelt canvaskit nicht',
+      () {
+        void freshBuild(String js) {
+          write('web/flutter_bootstrap.js', _bootstrap());
+          write('web/main.dart.js', js);
+          write('web/canvaskit/canvaskit.wasm', 'ck-$js');
+          write('web/canvaskit/chromium/canvaskit.wasm', 'ck2-$js');
+        }
+
+        PostbuildOptions opts() => PostbuildOptions(
+          webDir: Directory('${tmp.path}/web'),
+          deployDir: '${tmp.path}/none',
+          targets: const <String>{},
+        );
+
+        freshBuild('v1');
+        write('web/canvaskit/${'0' * 40}/alt.wasm', 'alte Revision');
+        runPostbuild(opts());
+        freshBuild('v2');
+        runPostbuild(opts());
+        runPostbuild(opts());
+
+        final ck = Directory('${tmp.path}/web/canvaskit');
+        expect(
+          ck.listSync().map((e) => e.path.split(RegExp(r'[\\/]')).last),
+          <String>[_rev],
+        );
+        expect(
+          File('${ck.path}/$_rev/canvaskit.wasm').readAsStringSync(),
+          'ck-v2',
+        );
+        expect(
+          File('${ck.path}/$_rev/chromium/canvaskit.wasm').readAsStringSync(),
+          'ck2-v2',
+        );
+        expect(Directory('${ck.path}/$_rev/$_rev').existsSync(), isFalse);
+        final mains = Directory('${tmp.path}/web')
+            .listSync()
+            .map((e) => e.path.split(RegExp(r'[\\/]')).last)
+            .where((n) => n.startsWith('main.'))
+            .toList();
+        expect(mains, hasLength(1));
+        expect(
+          File('${tmp.path}/web/flutter_bootstrap.js').readAsStringSync(),
+          contains(mains.single),
+        );
+      },
+    );
+
+    test('erneuter Lauf nach neuen Dateien setzt eine neue Build-ID', () {
+      write('web/flutter_bootstrap.js', _bootstrap());
+      write('web/main.dart.js', 'js');
+      write('web/sw.js', "const BUILD_ID = '__BUILD_ID__';");
+      final opts = PostbuildOptions(
+        webDir: Directory('${tmp.path}/web'),
+        deployDir: '${tmp.path}/none',
+        targets: const <String>{},
+      );
+      runPostbuild(opts);
+      final first = File('${tmp.path}/web/sw.js').readAsStringSync();
+      write('web/assets/fonts/fallback/notosans/v1/a.woff2', 'font');
+      expect(hasFontFallback(Directory('${tmp.path}/web')), isTrue);
+      runPostbuild(opts);
+      final second = File('${tmp.path}/web/sw.js').readAsStringSync();
+      expect(second, matches(RegExp(r"^const BUILD_ID = '[0-9a-f]{12}';$")));
+      expect(second, isNot(first));
+    });
+
+    test('neues main.dart.* bei bearbeitetem Bootstrap ist ein Fehler', () {
+      write('web/flutter_bootstrap.js', _bootstrap());
+      write('web/main.dart.js', 'js');
+      final opts = PostbuildOptions(
+        webDir: Directory('${tmp.path}/web'),
+        deployDir: '${tmp.path}/none',
+        targets: const <String>{},
+      );
+      runPostbuild(opts);
+      write('web/main.dart.js', 'js2');
+      expect(() => runPostbuild(opts), throwsA(isA<PostbuildException>()));
     });
   });
 

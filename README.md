@@ -2,15 +2,13 @@
 
 Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI sowie Radio3FM und FobFM. Ein Angebot von RadioGruppe Deutschland. Gebaut mit Flutter (ein Framework von Google) für Android, iOS, Windows, macOS, Linux und das Web.
 
-<!--
-Badges: Es stehen hier bewusst keine. Sie kommen erst, wenn sie echt und für Leser sichtbar sind:
-- CI, Barrierefreiheit (a11y.yml), Lieferkette: a11y.yml und supply-chain.yml sind erst nach dem Merge von p28-integration auf main wirksam.
-  Solange das Repository privat ist, zeigt GitHub die Status-Badges nur angemeldeten Mitgliedern,
-  alle anderen sähen ein kaputtes Bild. Einfügen, sobald das Repo öffentlich ist.
-- OpenSSF Scorecard: braucht ein öffentliches Repository, vorher gibt es kein Ergebnis auf scorecard.dev.
-- OpenSSF Best Practices: erst nach Eintrag auf bestpractices.dev. Die FLOSS-Lizenz-Anforderung ist bei
-  "Alle Rechte vorbehalten" nicht erfüllbar, "passing" ist damit ausgeschlossen.
--->
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/VectoDE/linefm-radio-app/badge)](https://scorecard.dev/viewer/?uri=github.com/VectoDE/linefm-radio-app)
+[![CI](https://github.com/VectoDE/linefm-radio-app/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/VectoDE/linefm-radio-app/actions/workflows/ci.yml)
+[![Barrierefreiheit](https://github.com/VectoDE/linefm-radio-app/actions/workflows/a11y.yml/badge.svg?branch=main)](https://github.com/VectoDE/linefm-radio-app/actions/workflows/a11y.yml)
+[![Lieferkette](https://github.com/VectoDE/linefm-radio-app/actions/workflows/supply-chain.yml/badge.svg?branch=main)](https://github.com/VectoDE/linefm-radio-app/actions/workflows/supply-chain.yml)
+[![CodeQL](https://github.com/VectoDE/linefm-radio-app/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/VectoDE/linefm-radio-app/actions/workflows/codeql.yml)
+[![Lizenz: proprietär](https://img.shields.io/badge/Lizenz-propriet%C3%A4r-lightgrey)](LICENSE)
+
 
 **Stand:** in Entwicklung, Version 1.0.0. Noch in keinem Store veröffentlicht. Die Web-Version ist für `https://app.linefm.de` vorgesehen.
 
@@ -36,10 +34,10 @@ Alle Sender in einer App, kostenlos und ohne Konto.
 - **Schlafen und Wecken:** Sleeptimer (15, 30, 45 oder 60 Minuten) und Radiowecker mit Sender.
 - **Unterwegs:** Homescreen-Widget (Android), Android Auto, Chromecast. AirPlay und CarPlay sind vorbereitet, aber noch nicht veröffentlicht.
 - **Am Computer:** Tray-Symbol (Symbol im Infobereich der Taskleiste), Mini-Fenster, das im Vordergrund bleibt, Tastenkürzel.
-- **Deutsch und Englisch**, hell und dunkel, für Handy, Tablet und Desktop.
+- **Deutsch und Englisch**, hell und dunkel, für Handy, Tablet und Desktop. Warum nur zwei Sprachen: [Sprachen](#sprachen).
 - **Links:** `https://app.linefm.de/?station=<sender>` und `linefm://play?station=<sender>` öffnen direkt den Sender.
 
-Datenschutz: Favoriten, Verlauf und Einstellungen bleiben auf deinem Gerät. Statistik und Absturzberichte sind nur aktiv, wenn der Betreiber sie einschaltet, und dann nur nach deiner Einwilligung. Impressum und Datenschutzerklärung stehen in der App und unter `/impressum/` und `/datenschutz/` auf der Web-Seite.
+Datenschutz: Favoriten, Verlauf und Einstellungen bleiben auf deinem Gerät. Statistik und Absturzberichte sind nur aktiv, wenn der Betreiber sie einschaltet, und dann nur nach deiner Einwilligung. In der Web-Version kann der Betreiber zusätzlich eine Reichweitenmessung mit Google Analytics einrichten; auch die läuft nur, wenn du gesondert zustimmst. Impressum und Datenschutzerklärung stehen in der App und unter `/impressum/` und `/datenschutz/` auf der Web-Seite.
 
 Fehler melden und Ideen: im Bereich Issues oder Discussions dieses Repositories.
 
@@ -51,8 +49,8 @@ Die App lässt sich mit Tastatur bedienen, alle Bereiche sind für Screenreader 
 
 - **Stand:** Version 1.0.0 fertig gebaut, noch in keinem Store. Was vor dem Start fehlt, sind Konten, Zugangsdaten und schriftliche Freigaben des Betreibers, keine Programmierarbeit: [Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md).
 - **Laufende Kosten:** kein eigenes Backend, keine Nutzerkonten. Es fallen nur Store-Gebühren (Google Play einmalig, Apple jährlich, falls später gewünscht) und das Web-Hosting an. Die Sender kommen über die öffentliche laut.fm-API.
-- **Daten:** Ohne aktivierte Statistik schickt die App von sich aus nur Anfragen an laut.fm (API und Streams), an Apple (iTunes-Cover-Suche, abschaltbar), an cdn.linefm.de (Sender-Icons) und an radiogruppe.de (Logo). Statistik und Absturzberichte nur nach Einwilligung, siehe [Telemetrie](docs/telemetry.md).
-- **Prüfbarkeit:** Jedes Release hat Prüfsummen, eine SBOM und, sobald das Repository öffentlich ist, eine Herkunfts-Attestierung: [Release-Dateien prüfen](docs/RELEASE-VERIFIZIEREN.md).
+- **Daten:** Ohne aktivierte Statistik schickt die App von sich aus nur Anfragen an laut.fm (API und Streams), an Apple (iTunes-Cover-Suche, abschaltbar), an cdn.linefm.de (Sender-Icons) und an radiogruppe.de (Logo). Statistik und Absturzberichte nur nach Einwilligung, siehe [Telemetrie](docs/telemetry.md). Im Web optional Google Analytics, nur nach eigener Einwilligung (siehe [Einrichtung](docs/EINRICHTUNG.md)).
+- **Prüfbarkeit:** Jedes Release hat Prüfsummen, eine SBOM, eine Herkunfts-Attestierung von GitHub und eine cosign-Signatur je Datei, auf Wunsch zusätzlich eine GPG-Signatur: [Release-Dateien prüfen](docs/RELEASE-VERIFIZIEREN.md).
 - **Risiken:** Abhängigkeit von laut.fm als einziger Datenquelle; Marken- und Rechtsfragen (Name, Logo, Rechtstexte) klärt der Betreiber mit einem Anwalt, bevor etwas veröffentlicht wird.
 
 ## Für Betreiber
@@ -94,6 +92,30 @@ flutter run -d chrome
 - Datenquelle: öffentliche [laut.fm-API](https://docs.api.laut.fm/api-spec.yaml). Es gibt kein eigenes Backend und keine Konten.
 - Ordner: `lib/` (App), `test/`, `android/ ios/ macos/ windows/ linux/ web/` (Plattformen), `deploy/` (Web-Server-Konfiguration), `packaging/` (Installer und Store-Pakete), `tool/` (Generatoren).
 
+## Sprachen
+
+Die App gibt es auf Deutsch und Englisch. Das weicht bewusst vom Hausstandard mit 31 Sprachen ab, der Inhaber hat das am 19.11.2026 so entschieden. Die Gründe:
+
+- Wer LINEFM hört, spricht fast immer Deutsch. Die Sender moderieren auf Deutsch, Titel und Sendungsnamen kommen aus laut.fm und bleiben unübersetzt. Englisch deckt alle anderen Geräte-Sprachen ab: Ist das Gerät auf eine andere Sprache gestellt, zeigt die App Englisch.
+- Jede weitere Sprache brauchte geprüfte Übersetzungen der Rechtstexte (Impressum, Datenschutz) und der Store-Texte. Maschinell übersetzte Rechtstexte wollen wir nicht veröffentlichen.
+- Die Struktur ist erweiterbar. Texte stehen in ARB-Dateien unter `lib/l10n/` (Vorlage `app_de.arb`), Rechtstexte unter `assets/legal/<sprache>/`. Für eine neue Sprache kommen `app_<code>.arb` und die übersetzten Rechtstexte dazu, Flutter erzeugt die Zugriffsklassen beim Bauen. Dazu wird `resolveAppLocale` in `lib/app/app.dart` um die Sprache ergänzt, das ist eine Zeile.
+
+## OpenSSF und Prüfsiegel
+
+| Siegel | Stand |
+|---|---|
+| OpenSSF Scorecard | läuft wöchentlich und bei jedem Push auf `main` (`scorecard.yml`), Ergebnis im Badge oben |
+| OpenSSF Best Practices (bestpractices.dev) | **strukturell nicht erreichbar.** Schon die Stufe „passing“ verlangt eine FLOSS-Lizenz (Kriterium `floss_license`). LINEFM Radio ist proprietär, das bleibt so |
+| Signierte Releases mit Herkunftsnachweis | GitHub-Attestierung (SLSA Build Provenance) und cosign keyless je Release-Datei, siehe [Release-Dateien prüfen](docs/RELEASE-VERIFIZIEREN.md) |
+
+Einige Scorecard-Prüfungen können hier nicht voll punkten, und das schreiben wir offen hin:
+
+- **Code-Review:** Das Projekt hat einen einzigen Entwickler. Pull Requests laufen durch die Pflicht-Checks, eine zweite Person, die freigibt, gibt es nicht.
+- **Maintained:** Scorecard wertet Repositories unter 90 Tagen Alter ab. Das Repository ist im November 2026 entstanden.
+- **CII-Best-Practices:** hängt am Badge von bestpractices.dev, siehe oben.
+- **Fuzzing:** Scorecard erkennt OSS-Fuzz, ClusterFuzzLite und Fuzz- bzw. Property-Tests in Go, Haskell, JavaScript/TypeScript, Erlang und C#/F#. Für Dart gibt es weder eine passende Fuzzing-Engine noch eine Erkennung. ClusterFuzzLite unterstützt Dart nicht, ein Ersatz-Fuzzer nur für die Hilfsskripte in Python würde die Wertung heben, ohne die App sicherer zu machen. Begründung in Issue #59.
+- **Branch-Protection** und **CI-Tests** steigen mit der Zeit: Seit dem 19.11.2026 schützt das Ruleset `main-schutz` den Branch `main`, jede Änderung läuft als Pull Request durch die Pflicht-Checks. Scorecard bewertet aber auch die älteren Commits.
+
 ## Dokumentation
 
 | Dokument | Inhalt |
@@ -124,7 +146,7 @@ Made by .jaybelife with ♥. Ein Angebot von RadioGruppe Deutschland. Die Sender
 
 ## Rechte
 
-**Alle Rechte vorbehalten.** Der Quellcode ist einsehbar (sobald das Repository öffentlich ist), aber nicht unter einer Open-Source-Lizenz veröffentlicht. Nutzung, Kopie, Änderung und Weitergabe brauchen die schriftliche Erlaubnis des Rechteinhabers.
+**Alle Rechte vorbehalten, keine Open-Source-Lizenz.** Das Repository ist seit dem 19.11.2026 öffentlich. Du darfst den Quellcode lesen und auf GitHub ansehen. Nutzungsrechte gibt dir das nicht: Nutzung, Kopie, Änderung und Weitergabe brauchen die schriftliche Erlaubnis des Rechteinhabers. Der verbindliche Text steht in [LICENSE](LICENSE).
 
 LINEFM, die Logos, das App-Icon und die Sendernamen sind Marken und Eigentum des Betreibers beziehungsweise der jeweiligen Inhaber (u. a. LINEFM, Radio3FM, FobFM, RadioGruppe Deutschland, laut.fm) und von dieser Rechtevergabe ausgenommen. Android, Google Play, Android Auto und Chromecast sind Marken von Google, Apple, iOS, CarPlay und AirPlay von Apple, Windows und Microsoft Store von Microsoft. Diese Namen werden nur zur Beschreibung der Kompatibilität genannt.
 

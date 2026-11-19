@@ -124,6 +124,45 @@ void main() {
       expect(render(<String>{'firebase'}), contains('Crashlytics'));
     });
 
+    test('Datenschutz mit ga4: eigene Varianten, auch ohne Telemetrie', () {
+      for (final String lang in <String>['de', 'en']) {
+        final Map<String, Object?> doc = _doc(lang, 'datenschutz');
+        String render(Set<String> p) => renderPage(
+          doc,
+          kind: 'datenschutz',
+          lang: lang,
+          baseUrl: 'https://app.linefm.de',
+          providers: p,
+          values: const <String, String>{},
+        );
+        final String none = render(<String>{});
+        final String ga = render(<String>{'ga4'});
+        final String noStats = lang == 'de'
+            ? 'sendet keine Statistik- und keine Fehlerdaten'
+            : 'sends no usage statistics and no error data';
+        expect(none, contains(noStats));
+        expect(ga, isNot(contains(noStats)));
+        for (final String s in <String>[
+          'linefm.googleAnalytics',
+          'GA4_AUFBEWAHRUNG',
+          'Google Ireland Limited (Google Analytics)',
+          'support.google.com/analytics/answer/11397207',
+        ]) {
+          expect(ga, contains(s), reason: '$lang: $s');
+          expect(none, isNot(contains(s)), reason: '$lang: $s');
+        }
+      }
+      // Blocklisten werden als UND ausgewertet.
+      expect(
+        requirementMet(<String>['!telemetry', 'ga4'], <String>{'ga4'}),
+        isTrue,
+      );
+      expect(
+        requirementMet(<String>['!telemetry', '!ga4'], <String>{'ga4'}),
+        isFalse,
+      );
+    });
+
     test('Seite: Grundgeruest, hreflang, noindex bei offenen Platzhaltern', () {
       final String html = renderPage(
         _doc('en', 'impressum'),
@@ -470,6 +509,13 @@ void main() {
     test('--providers lehnt Unbekanntes ab', () {
       expect(parseProviders(' umami, sentry ,'), <String>{'umami', 'sentry'});
       expect(() => parseProviders('umami,matomo'), throwsFormatException);
+    });
+
+    test('ga4 ist bekannt, zaehlt aber nicht als telemetry (P31)', () {
+      expect(parseProviders('ga4,umami'), <String>{'ga4', 'umami'});
+      expect(requirementMet('telemetry', <String>{'ga4'}), isFalse);
+      expect(requirementMet('!telemetry', <String>{'ga4'}), isTrue);
+      expect(requirementMet('ga4', <String>{'ga4'}), isTrue);
     });
   });
 }

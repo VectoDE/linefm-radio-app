@@ -566,4 +566,82 @@ void main() {
       );
     });
   });
+
+  group('Google Tag Manager / GA4 (P31)', () {
+    const ids = <String, dynamic>{
+      'GTM_ID': 'GTM-TEST000',
+      'GA4_MEASUREMENT_ID': 'G-TEST000000',
+    };
+
+    test('ohne IDs keine Google-Quellen, CSP bleibt streng', () {
+      const cfg = <String, dynamic>{'GTM_ID': '', 'GA4_MEASUREMENT_ID': ' '};
+      expect(googleTagConfigured(cfg), isFalse);
+      expect(deriveCspScriptExtra(cfg), isEmpty);
+      expect(deriveCspImgExtra(cfg), isEmpty);
+      expect(deriveCspConnectExtra(cfg), isNot(contains('google')));
+    });
+
+    test('mit IDs: script-, img- und connect-src erweitert', () {
+      expect(googleTagConfigured(ids), isTrue);
+      expect(deriveCspScriptExtra(ids), 'https://www.googletagmanager.com');
+      expect(
+        deriveCspImgExtra(ids),
+        contains('https://*.google-analytics.com'),
+      );
+      expect(
+        deriveCspConnectExtra(ids),
+        allOf(
+          contains('https://*.google-analytics.com'),
+          contains('https://*.analytics.google.com'),
+          contains('https://www.googletagmanager.com'),
+        ),
+      );
+      expect(
+        googleTagConfigured(<String, dynamic>{
+          'GA4_MEASUREMENT_ID': 'G-AB12CD34',
+        }),
+        isTrue,
+      );
+    });
+
+    test('ungueltige ID bricht ab', () {
+      expect(
+        () => googleTagConfigured(<String, dynamic>{'GTM_ID': 'GTM-x"; evil'}),
+        throwsA(isA<PostbuildException>()),
+      );
+    });
+
+    test('alle Hosting-Dateien tragen alle drei CSP-Platzhalter', () {
+      for (final path in <String>[
+        'deploy/cloudflare/_headers',
+        'deploy/nginx/snippets/linefm-headers.conf',
+        'deploy/plesk/.htaccess',
+        'deploy/plesk/nginx-additional.conf',
+      ]) {
+        final text = File(path).readAsStringSync();
+        expect(
+          text,
+          contains("'wasm-unsafe-eval' $cspScriptPlaceholder;"),
+          reason: path,
+        );
+        expect(
+          text,
+          contains('https://radiogruppe.de $cspImgPlaceholder;'),
+          reason: path,
+        );
+        expect(text, contains(cspPlaceholder), reason: path);
+      }
+    });
+
+    test('Platzhalter verschwinden ohne IDs spurlos', () {
+      const csp =
+          "script-src 'self' 'wasm-unsafe-eval' __CSP_SCRIPT_EXTRA__; img-src 'self' __CSP_IMG_EXTRA__;";
+      final out = renderCspPlaceholder(
+        renderCspPlaceholder(csp, '', placeholder: cspScriptPlaceholder),
+        '',
+        placeholder: cspImgPlaceholder,
+      );
+      expect(out, "script-src 'self' 'wasm-unsafe-eval'; img-src 'self';");
+    });
+  });
 }

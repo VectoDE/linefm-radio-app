@@ -2,7 +2,7 @@
 // fuer die Web-Version (Stores, Suchmaschinen).
 //
 // Aufruf (im Repo-Wurzelverzeichnis):
-//   dart run tool/gen_legal_html.dart [--providers=umami,sentry,firebase]
+//   dart run tool/gen_legal_html.dart [--providers=umami,sentry,firebase,ga4]
 //       [--values=legal_values.json] [--base-url=https://app.linefm.de]
 //       [--out=web] [--strict] [--fill-assets]
 //
@@ -23,6 +23,10 @@ import 'dart:io';
 
 /// Bekannte Anbieter-Schluessel fuer `requires`.
 const Set<String> telemetryProviders = <String>{'umami', 'sentry', 'firebase'};
+
+/// Weitere Anbieter mit eigener Einwilligung, die nicht unter `telemetry`
+/// fallen: `ga4` = Reichweitenmessung mit Google (GTM/GA4, nur Web, P31).
+const Set<String> knownProviders = <String>{...telemetryProviders, 'ga4'};
 
 /// Lockeres Platzhalter-Muster, Zeichen fuer Zeichen gleich mit
 /// `PLACEHOLDER_PATTERN` in tool/legal_store_check.py (ein Test vergleicht
@@ -311,7 +315,7 @@ Set<String> parseProviders(String raw) {
       .map((String s) => s.trim())
       .where((String s) => s.isNotEmpty)
       .toSet();
-  final Set<String> unknown = providers.difference(telemetryProviders);
+  final Set<String> unknown = providers.difference(knownProviders);
   if (unknown.isNotEmpty) {
     throw FormatException(
       'unbekannte Anbieter: ${(unknown.toList()..sort()).join(", ")}',

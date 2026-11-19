@@ -520,6 +520,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get consentPrivacyLink => 'More in the privacy policy';
 
   @override
+  String get settingGoogleTitle => 'Audience measurement with Google';
+
+  @override
+  String get settingGoogleBodyOn =>
+      'Allowed. Google Analytics runs in the web version. You can withdraw this at any time; the page then reloads once.';
+
+  @override
+  String get settingGoogleBodyOff =>
+      'Not allowed. The page loads nothing from Google.';
+
+  @override
+  String get googleConsentTitle => 'Audience measurement with Google';
+
+  @override
+  String get googleConsentIntro =>
+      'We would like to count how many people use the web version and which parts they open. For this we use Google Analytics, embedded through the Google tag.';
+
+  @override
+  String get googleConsentRecipient =>
+      'The provider is Google Ireland Limited (Dublin, Ireland). Google receives your IP address, details about your browser and device, the parts you open and a random identifier stored in cookies. Advertising features stay switched off.';
+
+  @override
+  String get googleConsentTransfer =>
+      'Google may transfer the data to Google LLC in the USA. This is based on the EU-US Data Privacy Framework, for which the EU Commission has found an adequate level of data protection.';
+
+  @override
+  String get googleConsentOutro =>
+      'This question is separate from statistics and error reports and voluntary. Without your consent the page loads nothing from Google. You can withdraw your consent at any time in the settings, with effect for the future.';
+
+  @override
   String get legalImprintTitle => 'Imprint';
 
   @override

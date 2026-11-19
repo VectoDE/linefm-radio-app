@@ -277,6 +277,8 @@ jobs:
           sentry-dsn: ${{ vars.SENTRY_DSN }}
           sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
           gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          gtm-id: ${{ vars.GTM_ID }}
+          ga4-measurement-id: ${{ vars.GA4_MEASUREMENT_ID }}
           trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
@@ -380,6 +382,8 @@ jobs:
           sentry-dsn: ${{ vars.SENTRY_DSN }}
           sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
           gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          gtm-id: ${{ vars.GTM_ID }}
+          ga4-measurement-id: ${{ vars.GA4_MEASUREMENT_ID }}
           trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
@@ -482,6 +486,8 @@ jobs:
           sentry-dsn: ${{ vars.SENTRY_DSN }}
           sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
           gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          gtm-id: ${{ vars.GTM_ID }}
+          ga4-measurement-id: ${{ vars.GA4_MEASUREMENT_ID }}
           trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
@@ -561,6 +567,8 @@ jobs:
           sentry-dsn: ${{ vars.SENTRY_DSN }}
           sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
           gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          gtm-id: ${{ vars.GTM_ID }}
+          ga4-measurement-id: ${{ vars.GA4_MEASUREMENT_ID }}
           trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
@@ -735,6 +743,8 @@ jobs:
           sentry-dsn: ${{ vars.SENTRY_DSN }}
           sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
           gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          gtm-id: ${{ vars.GTM_ID }}
+          ga4-measurement-id: ${{ vars.GA4_MEASUREMENT_ID }}
           trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}

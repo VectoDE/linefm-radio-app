@@ -119,16 +119,26 @@ Set<String> activeLegalProviders(AppConfig config) => <String>{
   if (config.umamiConfigured) 'umami',
   if (config.sentryConfigured) 'sentry',
   if (config.firebaseConfigured) 'firebase',
+  if (config.googleAnalyticsConfigured) 'ga4',
+};
+
+/// Anbieter, die unter `telemetry` fallen (Dialog "Statistik und
+/// Fehlerberichte"). `ga4` hat eine eigene Einwilligung und zaehlt nicht dazu.
+const Set<String> legalTelemetryProviders = <String>{
+  'umami',
+  'sentry',
+  'firebase',
 };
 
 /// Ist die `requires`-Liste fuer [providers] erfuellt? `telemetry` gilt, wenn
-/// mindestens ein Anbieter aktiv ist. Leere Liste = immer sichtbar.
+/// mindestens ein Telemetrie-Anbieter aktiv ist (nicht `ga4`). Leere Liste =
+/// immer sichtbar.
 bool legalRequirementMet(List<String> requires, Set<String> providers) {
   for (final raw in requires) {
     final negate = raw.startsWith('!');
     final token = negate ? raw.substring(1) : raw;
     final active = token == 'telemetry'
-        ? providers.isNotEmpty
+        ? providers.any(legalTelemetryProviders.contains)
         : providers.contains(token);
     if (active == negate) return false;
   }

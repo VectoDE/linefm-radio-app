@@ -15,6 +15,8 @@ class AppConfig {
     this.firebaseEnabled = false,
     this.wsEnabled = false,
     this.gscVerification = '',
+    this.gtmId = '',
+    this.ga4MeasurementId = '',
     this.trustGridinsoftUrl = '',
     this.trustTrustpilotUrl = '',
   });
@@ -34,6 +36,8 @@ class AppConfig {
     firebaseEnabled: bool.fromEnvironment('FIREBASE_ENABLED'),
     wsEnabled: bool.fromEnvironment('WS_ENABLED'),
     gscVerification: String.fromEnvironment('GSC_VERIFICATION'),
+    gtmId: String.fromEnvironment('GTM_ID'),
+    ga4MeasurementId: String.fromEnvironment('GA4_MEASUREMENT_ID'),
     trustGridinsoftUrl: String.fromEnvironment('TRUST_GRIDINSOFT_URL'),
     trustTrustpilotUrl: String.fromEnvironment('TRUST_TRUSTPILOT_URL'),
   );
@@ -54,11 +58,34 @@ class AppConfig {
   /// plus Polling.
   final bool wsEnabled;
   final String gscVerification;
+
+  /// Google Tag Manager (`GTM-...`) bzw. GA4 (`G-...`), nur Web (P31). Geladen
+  /// wird erst nach eigener Einwilligung "Reichweitenmessung mit Google"
+  /// (web/analytics.js, Consent Mode v2). Ohne gueltige ID ist alles aus.
+  final String gtmId;
+  final String ga4MeasurementId;
   final String trustGridinsoftUrl;
   final String trustTrustpilotUrl;
 
   bool get umamiConfigured => umamiUrl.isNotEmpty && umamiWebsiteId.isNotEmpty;
   bool get sentryConfigured => sentryDsn.isNotEmpty;
+
+  static final RegExp _gtmPattern = RegExp(r'^GTM-[A-Z0-9]{4,12}$');
+  static final RegExp _ga4Pattern = RegExp(r'^G-[A-Z0-9]{4,16}$');
+
+  /// Gueltige GTM-ID oder leer (gleiches Muster wie web/analytics.js und
+  /// tool/web_postbuild.dart).
+  String get validGtmId => _gtmPattern.hasMatch(gtmId) ? gtmId : '';
+  String get validGa4Id =>
+      _ga4Pattern.hasMatch(ga4MeasurementId) ? ga4MeasurementId : '';
+
+  /// Reichweitenmessung mit Google: nur im Web und nur mit gueltiger ID.
+  /// Unabhaengig von [telemetryConfigured] (eigene Einwilligung).
+  bool get googleAnalyticsConfigured => kIsWeb && googleAnalyticsIdsSet;
+
+  /// Mindestens eine gueltige ID gesetzt (ohne Plattformpruefung).
+  bool get googleAnalyticsIdsSet =>
+      validGtmId.isNotEmpty || validGa4Id.isNotEmpty;
 
   /// Firebase nur dort, wo `LinefmFirebase.supported` es zulaesst (Web,
   /// Android, iOS, macOS). Auf Windows und Linux startet kein Firebase, also
@@ -88,6 +115,8 @@ class AppConfig {
     bool? firebaseEnabled,
     bool? wsEnabled,
     String? gscVerification,
+    String? gtmId,
+    String? ga4MeasurementId,
     String? trustGridinsoftUrl,
     String? trustTrustpilotUrl,
   }) => AppConfig(
@@ -101,6 +130,8 @@ class AppConfig {
     firebaseEnabled: firebaseEnabled ?? this.firebaseEnabled,
     wsEnabled: wsEnabled ?? this.wsEnabled,
     gscVerification: gscVerification ?? this.gscVerification,
+    gtmId: gtmId ?? this.gtmId,
+    ga4MeasurementId: ga4MeasurementId ?? this.ga4MeasurementId,
     trustGridinsoftUrl: trustGridinsoftUrl ?? this.trustGridinsoftUrl,
     trustTrustpilotUrl: trustTrustpilotUrl ?? this.trustTrustpilotUrl,
   );

@@ -35,6 +35,14 @@ inputs:
   gsc-verification:
     required: false
     default: ""
+  gtm-id:
+    description: Google-Tag-Manager-Container (GTM-...), nur Web, Laden erst nach Einwilligung
+    required: false
+    default: ""
+  ga4-measurement-id:
+    description: GA4-Mess-ID (G-...), nur Web, Laden erst nach Einwilligung
+    required: false
+    default: ""
   trust-gridinsoft-url:
     required: false
     default: ""
@@ -79,6 +87,8 @@ runs:
         CFG_SENTRY_DSN: ${{ inputs.sentry-dsn }}
         CFG_SENTRY_ENVIRONMENT: ${{ inputs.sentry-environment }}
         CFG_GSC_VERIFICATION: ${{ inputs.gsc-verification }}
+        CFG_GTM_ID: ${{ inputs.gtm-id }}
+        CFG_GA4_MEASUREMENT_ID: ${{ inputs.ga4-measurement-id }}
         CFG_TRUST_GRIDINSOFT_URL: ${{ inputs.trust-gridinsoft-url }}
         CFG_TRUST_TRUSTPILOT_URL: ${{ inputs.trust-trustpilot-url }}
         CFG_FIREBASE_CONFIG_JSON: ${{ inputs.firebase-config-json }}
@@ -94,6 +104,8 @@ runs:
           'SENTRY_DSN'           = $env:CFG_SENTRY_DSN
           'SENTRY_ENVIRONMENT'   = $env:CFG_SENTRY_ENVIRONMENT
           'GSC_VERIFICATION'     = $env:CFG_GSC_VERIFICATION
+          'GTM_ID'               = $env:CFG_GTM_ID
+          'GA4_MEASUREMENT_ID'   = $env:CFG_GA4_MEASUREMENT_ID
           'TRUST_GRIDINSOFT_URL' = $env:CFG_TRUST_GRIDINSOFT_URL
           'TRUST_TRUSTPILOT_URL' = $env:CFG_TRUST_TRUSTPILOT_URL
         }
@@ -120,6 +132,11 @@ runs:
         if ($cfg['UMAMI_URL'] -and $cfg['UMAMI_WEBSITE_ID']) { $providers += 'umami' }
         if ($cfg['SENTRY_DSN']) { $providers += 'sentry' }
         if ($cfg['FIREBASE_ENABLED'] -eq $true) { $providers += 'firebase' }
+        # Rechtstexte: zusaetzlich "ga4" (Abschnitt Google Analytics, nur Web-Seiten
+        # und Web-App; die Store-Pruefung kennt nur die Telemetrie-Anbieter).
+        $legal = @($providers)
+        if ($cfg['GTM_ID'] -or $cfg['GA4_MEASUREMENT_ID']) { $legal += 'ga4' }
+        "legal_providers=$($legal -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
         "providers=$($providers -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
         "firebase=$(if ($cfg['FIREBASE_ENABLED'] -eq $true) { 'true' } else { 'false' })" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
@@ -142,7 +159,7 @@ runs:
       if: hashFiles('tool/gen_legal_html.dart') != ''
       shell: bash
       env:
-        PROVIDERS: ${{ steps.cfg.outputs.providers }}
+        PROVIDERS: ${{ steps.cfg.outputs.legal_providers }}
         LEGAL_VALUES_JSON: ${{ inputs.legal-values-json }}
         LEGAL_STRICT: ${{ inputs.legal-strict }}
         BASE_URL: ${{ inputs.web-base-url }}

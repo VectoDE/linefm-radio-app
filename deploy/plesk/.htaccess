@@ -24,7 +24,7 @@ FileETag MTime Size
 </IfModule>
 
 <IfModule mod_headers.c>
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cdn.linefm.de https://*.mzstatic.com https://assets.laut.fm https://radiogruppe.de; connect-src 'self' https://api.laut.fm wss://api.laut.fm https://itunes.apple.com https://*.mzstatic.com https://cdn.linefm.de https://assets.laut.fm https://radiogruppe.de __CSP_CONNECT_EXTRA__; media-src https://*.laut.fm blob:; font-src 'self'; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' __CSP_SCRIPT_EXTRA__; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cdn.linefm.de https://*.mzstatic.com https://assets.laut.fm https://radiogruppe.de __CSP_IMG_EXTRA__; connect-src 'self' https://api.laut.fm wss://api.laut.fm https://itunes.apple.com https://*.mzstatic.com https://cdn.linefm.de https://assets.laut.fm https://radiogruppe.de __CSP_CONNECT_EXTRA__; media-src https://*.laut.fm blob:; font-src 'self'; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests"
     Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
     Header always set X-Content-Type-Options "nosniff"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"

@@ -21,19 +21,56 @@ Windows (PowerShell), je Datei:
 # mit der Zeile in SHA256SUMS.txt vergleichen (Gross-/Kleinschreibung egal)
 ```
 
-Die Prüfsummen zeigen, dass die Datei beim Download nicht beschädigt wurde. Sie beweisen allein nicht die Herkunft, denn wer das Release ändern kann, kann auch `SHA256SUMS.txt` ändern. Dafür gibt es Schritt 2.
+Die Prüfsummen zeigen, dass die Datei beim Download nicht beschädigt wurde. Sie beweisen allein nicht die Herkunft, denn wer das Release ändern kann, kann auch `SHA256SUMS.txt` ändern. Dafür gibt es die Schritte 2 bis 4.
 
-## 2. Herkunft (Attestierung, wenn vorhanden)
+## 2. Herkunft (GitHub-Attestierung)
 
-Der Release-Workflow lässt über Sigstore eine Build-Provenance und eine SBOM-Attestierung erzeugen. Subjekte der Provenance sind alle Dateien, die in `SHA256SUMS.txt` stehen (`subject-checksums`), nicht nur die Prüfsummendatei selbst. GitHub erlaubt das nur in öffentlichen Repositories (oder mit Enterprise Cloud). Steht in der Zusammenfassung „Build-Provenance: success“, prüfst du so:
+Der Release-Workflow legt für jede Datei aus `SHA256SUMS.txt` eine Build-Provenance an (`actions/attest-build-provenance`, über Sigstore). Sie belegt, welcher Workflow aus welchem Commit die Datei gebaut hat. Dazu kommt eine SBOM-Attestierung. Das Repository ist öffentlich, die Attestierung ist deshalb Pflicht: Scheitert sie, bricht das Release ab.
 
 ```sh
 gh attestation verify linefm-radio-1.2.3-android.apk -R VectoDE/linefm-radio-app
+# strenger: nur Builds aus dem Release-Workflow und von einem Tag
+gh attestation verify linefm-radio-1.2.3-android.apk -R VectoDE/linefm-radio-app \
+  --signer-workflow VectoDE/linefm-radio-app/.github/workflows/release.yml \
+  --source-ref refs/tags/v1.2.3
 ```
 
-Ohne Attestierung (privates Repository) bleibt nur Schritt 1 plus die Plattform-Signaturen aus Schritt 4.
+## 3. Signatur mit cosign (keyless, Sigstore)
 
-## 3. Stückliste (SBOM)
+Zu jeder Release-Datei und zu `SHA256SUMS.txt` liegt ein Bundle `<datei>.sigstore.json`. Signiert hat der Release-Workflow selbst, ohne festen Schlüssel: Sigstore stellt ein kurzlebiges Zertifikat auf die Identität des Workflows aus und trägt die Signatur in das öffentliche Transparenzlog Rekor ein. Der Workflow prüft jede Signatur direkt nach dem Signieren.
+
+Prüfen mit [cosign](https://docs.sigstore.dev/cosign/system_config/installation/) ab Version 3. Der Workflow signiert mit cosign 3 im neuen Bundle-Format (Standard seit [cosign v3.0.0](https://github.com/sigstore/cosign/releases/tag/v3.0.0)). Ob ältere 2.x-Versionen diese Bundles prüfen können, ist nicht belegt.
+
+```sh
+cosign verify-blob \
+  --bundle linefm-radio-1.2.3-android.apk.sigstore.json \
+  --certificate-identity-regexp '^https://github\.com/VectoDE/linefm-radio-app/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  linefm-radio-1.2.3-android.apk
+```
+
+Erwartete Ausgabe: `Verified OK`. Am sichersten prüfst du zuerst `SHA256SUMS.txt` mit seinem Bundle und danach die Downloads mit `sha256sum -c` (Schritt 1).
+
+Für genau eine Version statt des regulären Ausdrucks:
+
+```sh
+--certificate-identity https://github.com/VectoDE/linefm-radio-app/.github/workflows/release.yml@refs/tags/v1.2.3
+```
+
+## 4. GPG-Signatur (optional)
+
+Hat der Betreiber einen GPG-Schlüssel hinterlegt (Secrets `GPG_PRIVATE_KEY` und `GPG_PASSPHRASE`), liegt am Release zusätzlich `SHA256SUMS.txt.asc`. Fehlt die Datei, war kein Schlüssel eingerichtet. Den Fingerabdruck nennt die Zusammenfassung des Release-Laufs.
+
+```sh
+# öffentlichen Schlüssel des Betreibers einmalig importieren (Quelle: vom Betreiber veröffentlicht)
+gpg --import linefm-release-key.asc
+gpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt
+sha256sum -c SHA256SUMS.txt --ignore-missing
+```
+
+`Good signature` allein reicht nicht: Vergleiche den angezeigten Fingerabdruck mit dem, den der Betreiber veröffentlicht hat.
+
+## 5. Stückliste (SBOM)
 
 `linefm-radio-<version>-sbom.spdx.json` listet die Abhängigkeiten im SPDX-Format (erzeugt mit Anchore Syft aus dem Quelltext). Sie lässt sich mit üblichen Werkzeugen auf bekannte Schwachstellen prüfen, zum Beispiel:
 
@@ -41,7 +78,7 @@ Ohne Attestierung (privates Repository) bleibt nur Schritt 1 plus die Plattform-
 osv-scanner scan source -L linefm-radio-1.2.3-sbom.spdx.json
 ```
 
-## 4. Signaturen der Plattformen
+## 6. Signaturen der Plattformen
 
 Diese Signaturen gibt es nur, wenn beim Build die passenden Secrets gesetzt waren (siehe [secrets.md](secrets.md)).
 
@@ -54,7 +91,7 @@ Diese Signaturen gibt es nur, wenn beim Build die passenden Secrets gesetzt ware
 
 ## Was wir nicht versprechen
 
-- **Bit-gleiche Builds:** Die Build-Workflows setzen `SOURCE_DATE_EPOCH` auf die Zeit des Commits. Das macht Zeitstempel dort gleich, wo die Werkzeuge den Wert auswerten. Ob zwei Builds desselben Commits bit-gleich sind, haben wir nicht geprüft. Flutter, Gradle, Xcode und die Packer schreiben teils eigene Zeitstempel und Pfade. Verlass dich deshalb auf Schritt 1 und 2, nicht auf einen eigenen Nachbau.
-- **Signierte Release-Dateien als Ganzes:** Es gibt keine eigene GPG- oder Sigstore-Signatur je Datei. Die Herkunft belegt die Attestierung aus Schritt 2, sofern vorhanden.
+- **Bit-gleiche Builds:** Die Build-Workflows setzen `SOURCE_DATE_EPOCH` auf die Zeit des Commits. Das macht Zeitstempel dort gleich, wo die Werkzeuge den Wert auswerten. Ob zwei Builds desselben Commits bit-gleich sind, haben wir nicht geprüft. Flutter, Gradle, Xcode und die Packer schreiben teils eigene Zeitstempel und Pfade. Verlass dich deshalb auf die Schritte 1 bis 3, nicht auf einen eigenen Nachbau.
+- **Langzeit-Schlüssel:** cosign arbeitet ohne festen Schlüssel. Die Signatur hängt an der Identität des Workflows im Repository. Wer Schreibrechte auf `release.yml` und Tags hat, kann gültig signieren. Deshalb schützen die Rulesets `main-schutz` (Branch) und `release-tags` (Tags) diese Stellen.
 
 Fehler oder Zweifel an einer Datei bitte vertraulich melden, wie in [SECURITY.md](../SECURITY.md) beschrieben.

@@ -7,7 +7,9 @@
 //  2. canvaskit/ -> canvaskit/<engineRevision>/, canvasKitBaseUrl im Bootstrap setzen
 //  3. Platzhalter ersetzen (Basis-URL, Search-Console-Verifikation, Build-ID im sw.js,
 //     lastmod der Sitemap = Build-Datum, SOURCE_DATE_EPOCH falls gesetzt)
-//  4. Hosting-Dateien aus deploy/ rendern (Header-Dateien, __CSP_CONNECT_EXTRA__)
+//  4. Hosting-Dateien aus deploy/ rendern (Header-Dateien, __CSP_CONNECT_EXTRA__,
+//     __CSP_SCRIPT_EXTRA__, __CSP_IMG_EXTRA__; Google-Quellen nur mit GTM_ID bzw.
+//     GA4_MEASUREMENT_ID in der Konfiguration)
 //  5. Ballast entfernen (Sourcemaps, *.symbols, ungenutzte Engine-Varianten, Flutter-Standard-SW)
 //  6. asset-manifest.txt mit SHA-256 aller Dateien schreiben
 //
@@ -34,6 +36,47 @@ import 'dart:typed_data';
 
 const String defaultBaseUrl = 'https://app.linefm.de';
 const String cspPlaceholder = '__CSP_CONNECT_EXTRA__';
+const String cspScriptPlaceholder = '__CSP_SCRIPT_EXTRA__';
+const String cspImgPlaceholder = '__CSP_IMG_EXTRA__';
+
+/// Quellen fuer Google Tag Manager / GA4 laut Google-Leitfaden "Use a Content
+/// Security Policy with Google Tag Manager / Google Analytics 4"
+/// (developers.google.com/tag-platform/security/guides/csp). Nur, wenn
+/// GTM_ID oder GA4_MEASUREMENT_ID gesetzt ist; sonst bleibt die CSP streng.
+/// Abweichung: Inline-Skripte sind nicht noetig (der Lader liegt in
+/// web/analytics.js), und statt `https://*.google.com` steht nur
+/// `https://*.analytics.google.com` (Werbefunktionen sind aus). GTM-Tags vom
+/// Typ "Benutzerdefiniertes HTML" und benutzerdefinierte JS-Variablen
+/// funktionieren unter dieser CSP bewusst nicht.
+const String googleTagScriptSources = 'https://www.googletagmanager.com';
+const String googleTagImgSources =
+    'https://www.googletagmanager.com https://*.google-analytics.com';
+const String googleTagConnectSources =
+    'https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com';
+
+final RegExp _gtmId = RegExp(r'^GTM-[A-Z0-9]{4,12}$');
+final RegExp _ga4Id = RegExp(r'^G-[A-Z0-9]{4,16}$');
+
+/// Ist Google-Messung konfiguriert (gueltige GTM_ID oder GA4_MEASUREMENT_ID)?
+/// Ungueltige Werte brechen ab, damit kein Tippfehler still alles abschaltet.
+bool googleTagConfigured(Map<String, dynamic> config) {
+  var any = false;
+  for (final (key, re) in <(String, RegExp)>[
+    ('GTM_ID', _gtmId),
+    ('GA4_MEASUREMENT_ID', _ga4Id),
+  ]) {
+    final v = config[key];
+    if (v is! String || v.trim().isEmpty) {
+      continue;
+    }
+    if (!re.hasMatch(v.trim())) {
+      throw PostbuildException('$key hat ein ungueltiges Format: $v');
+    }
+    any = true;
+  }
+  return any;
+}
+
 const String canvasKitMarker = '/*__CANVASKIT_BASE_URL__*/';
 const String buildIdPlaceholder = '__BUILD_ID__';
 const String firebaseConnectSources =
@@ -155,15 +198,29 @@ String deriveCspConnectExtra(Map<String, dynamic> config) {
   if (config['FIREBASE_ENABLED'] == true) {
     firebaseConnectSources.split(' ').forEach(add);
   }
+  if (googleTagConfigured(config)) {
+    googleTagConnectSources.split(' ').forEach(add);
+  }
   return sources.join(' ');
 }
 
-/// Ersetzt `__CSP_CONNECT_EXTRA__` (inklusive des vorangehenden Leerzeichens).
-String renderCspPlaceholder(String text, String extra) {
+/// Zusaetzliche script-src- bzw. img-src-Quellen (nur mit Google-IDs).
+String deriveCspScriptExtra(Map<String, dynamic> config) =>
+    googleTagConfigured(config) ? googleTagScriptSources : '';
+String deriveCspImgExtra(Map<String, dynamic> config) =>
+    googleTagConfigured(config) ? googleTagImgSources : '';
+
+/// Ersetzt [placeholder] (Standard `__CSP_CONNECT_EXTRA__`, inklusive des
+/// vorangehenden Leerzeichens) durch [extra].
+String renderCspPlaceholder(
+  String text,
+  String extra, {
+  String placeholder = cspPlaceholder,
+}) {
   final replacement = extra.trim().isEmpty ? '' : ' ${extra.trim()}';
   return text
-      .replaceAll(' $cspPlaceholder', replacement)
-      .replaceAll(cspPlaceholder, extra.trim());
+      .replaceAll(' $placeholder', replacement)
+      .replaceAll(placeholder, extra.trim());
 }
 
 /// Setzt das Search-Console-Token ein oder entfernt das Meta-Tag, wenn leer.
@@ -645,8 +702,18 @@ List<String> runPostbuild(PostbuildOptions o) {
 
   // 4. Hosting-Dateien
   final extra = o.cspConnectExtra ?? deriveCspConnectExtra(o.config);
+  final scriptExtra = deriveCspScriptExtra(o.config);
+  final imgExtra = deriveCspImgExtra(o.config);
   final written = <String>[];
-  String renderHosting(String text) => renderCspPlaceholder(text, extra);
+  String renderHosting(String text) => renderCspPlaceholder(
+    renderCspPlaceholder(
+      renderCspPlaceholder(text, extra),
+      scriptExtra,
+      placeholder: cspScriptPlaceholder,
+    ),
+    imgExtra,
+    placeholder: cspImgPlaceholder,
+  );
   final deploy = Directory(o.deployDir);
   if (deploy.existsSync()) {
     if (o.targets.contains('cloudflare')) {

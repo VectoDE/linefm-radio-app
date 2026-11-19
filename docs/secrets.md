@@ -122,7 +122,9 @@ Diese Variablen schreibt die CI in `config/app.json`. Sie landen im fertigen Pro
 | `WEB_BASE_URL` | Variable | `https://app.linefm.de` |
 | `UMAMI_URL`, `UMAMI_WEBSITE_ID` | Variable | Umami (optional), siehe [telemetry.md](telemetry.md) |
 | `SENTRY_DSN`, `SENTRY_ENVIRONMENT` | Variable | Sentry/GlitchTip (optional) |
-| `GSC_VERIFICATION` | Variable | Search-Console-Bestätigungscode (optional) |
+| `GSC_VERIFICATION` | Variable | Search-Console-Bestätigungscode (optional), Inhalt des Meta-Tags aus „HTML-Tag“; der Web-Postbuild setzt ihn als `google-site-verification` ein, ohne Wert entfällt das Tag |
+| `GTM_ID` | Variable, optional | Google-Tag-Manager-Container, Form `GTM-XXXXXXX` (tagmanager.google.com). Nur Web, wird erst nach Einwilligung geladen. Ohne Wert ist Google komplett aus und die CSP bleibt streng |
+| `GA4_MEASUREMENT_ID` | Variable, optional | GA4-Mess-ID, Form `G-XXXXXXXXXX` (analytics.google.com > Verwaltung > Datenstreams). Ohne `GTM_ID` lädt die Web-Version damit direkt `gtag.js`, mit `GTM_ID` steht sie GTM als Datenschicht-Variable `ga4_measurement_id` zur Verfügung |
 | `TRUST_GRIDINSOFT_URL`, `TRUST_TRUSTPILOT_URL` | Variable | Profil-Links für die Vertrauens-Badges (optional) |
 | `LEGAL_VALUES_JSON` | Variable | JSON mit den Impressums-/Datenschutz-Platzhaltern, siehe EINRICHTUNG Abschnitt 9 |
 | `FIREBASE_CONFIG_JSON` | Secret, optional | JSON mit `FIREBASE_*`-Schlüsseln (aktiviert Firebase) |
@@ -133,6 +135,17 @@ Diese Variablen schreibt die CI in `config/app.json`. Sie landen im fertigen Pro
 `APPLE_TEAM_ID` (Secret, siehe Apple) füllt zusätzlich `/.well-known/apple-app-site-association` für die Universal Links.
 
 Für die Store-Prüfung der Rechtstexte gilt: Ist Telemetrie aktiv (`UMAMI_*`, `SENTRY_DSN` oder `FIREBASE_CONFIG_JSON` gesetzt), sind in `LEGAL_VALUES_JSON` auch `TELEMETRIE_AUFBEWAHRUNG` und der Betreiber des jeweiligen Dienstes (`UMAMI_BETREIBER`, `SENTRY_BETREIBER`) Pflicht. Leere Werte zählen als offen.
+
+## Signierte Releases
+
+Attestierung und cosign-Signatur (`release.yml`, Job `sign`) brauchen kein Secret: Sie laufen über das OIDC-Token des Workflows (Sigstore, keyless). Nur die zusätzliche GPG-Signatur ist optional.
+
+| Name | Art | Wert / Herkunft | Wer |
+|---|---|---|---|
+| `GPG_PRIVATE_KEY` | Secret, optional | Privater Schlüssel, ASCII-armored: `gpg --armor --export-secret-keys <FINGERABDRUCK>` (vorher `gpg --full-generate-key`, ed25519 oder RSA 4096, mit Ablaufdatum). Am besten ein eigener Signier-Unterschlüssel nur für Releases | jaybelife bzw. Inhaber |
+| `GPG_PASSPHRASE` | Secret, optional | Passphrase des Schlüssels | wie oben |
+
+Mit beiden Secrets erzeugt der Release-Lauf `SHA256SUMS.txt.asc` (detached, ASCII) und prüft sie sofort. Fehlt eines, überspringt das Secret-Gate den Schritt und nennt den fehlenden Namen in der Zusammenfassung. Den öffentlichen Schlüssel und seinen Fingerabdruck veröffentlicht der Schlüsselinhaber selbst (z. B. auf keys.openpgp.org und in SECURITY.md), sonst kann niemand die Signatur sinnvoll prüfen. Prüfbefehle: [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).
 
 ## Sicherheitsregeln der Abläufe
 

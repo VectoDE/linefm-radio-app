@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Sicherheitslücke melden
-    url: https://github.com/VectoDE/linefm-radio-app/blob/main/SECURITY.md
-    about: Bitte nicht öffentlich als Issue. So meldest du sie vertraulich.
+    url: https://github.com/VectoDE/linefm-radio-app/security/advisories/new
+    about: Bitte nicht öffentlich als Issue. Das Formular ist vertraulich, Regeln in SECURITY.md.
   - name: Fragen und Austausch
     url: https://github.com/VectoDE/linefm-radio-app/discussions
     about: Fragen zur App, zum Bauen oder zur Einrichtung stellst du in den Discussions.

@@ -1,0 +1,175 @@
+name: Release
+
+# Ausloeser: Tag vX.Y.Z (oder vX.Y.Z-suffix, wird als Vorabversion veroeffentlicht).
+# Baut alle Plattformen ueber build.yml, erzeugt SHA256SUMS.txt, SBOM (SPDX),
+# Build-Provenance- und SBOM-Attestierungen und legt das GitHub-Release an.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ github.ref_name }}
+      apple: true
+    secrets:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      WINDOWS_CERT_PFX_BASE64: ${{ secrets.WINDOWS_CERT_PFX_BASE64 }}
+      WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_DEVELOPER_ID_CERT_P12_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_CERT_P12_BASE64 }}
+      APPLE_DEVELOPER_ID_CERT_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_CERT_PASSWORD }}
+      APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+      APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+      FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
+    permissions:
+      contents: read
+
+  publish:
+    name: Release veroeffentlichen
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Version pruefen
+        run: |
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag $TAG ist keine SemVer-Version"
+            exit 1
+          fi
+          echo "LABEL=${TAG#v}" >> "$GITHUB_ENV"
+
+      - name: Artefakte holen
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
+
+      - name: SBOM erzeugen (SPDX)
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          path: .
+          format: spdx-json
+          output-file: dist/linefm-radio-${{ env.LABEL }}-sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Pruefsummen
+        run: |
+          set -euo pipefail
+          cd dist
+          rm -f SHA256SUMS.txt
+          sha256sum -- * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          {
+            echo "### Release-Dateien"
+            echo '```'
+            cat SHA256SUMS.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Artefakt-Attestierungen sind fuer private Repos nur mit GitHub Enterprise Cloud
+      # verfuegbar. Im privaten Repo darf der Schritt daher scheitern, ohne das Release zu
+      # blockieren; die Zusammenfassung meldet das Ergebnis offen.
+      - name: Build-Provenance attestieren
+        id: provenance
+        continue-on-error: ${{ github.event.repository.private }}
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-checksums: dist/SHA256SUMS.txt
+
+      - name: SBOM attestieren
+        id: sbom
+        continue-on-error: ${{ github.event.repository.private }}
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        with:
+          subject-checksums: dist/SHA256SUMS.txt
+          sbom-path: dist/linefm-radio-${{ env.LABEL }}-sbom.spdx.json
+
+      - name: Attestierungs-Status
+        env:
+          PROVENANCE: ${{ steps.provenance.outcome }}
+          SBOM: ${{ steps.sbom.outcome }}
+        run: |
+          {
+            echo "### Attestierungen"
+            echo "- Build-Provenance: $PROVENANCE"
+            echo "- SBOM: $SBOM"
+            if [ "$PROVENANCE" != "success" ] || [ "$SBOM" != "success" ]; then
+              echo ""
+              echo "Hinweis: Artefakt-Attestierungen sind in privaten Repos nur mit GitHub Enterprise Cloud moeglich. SHA256SUMS.txt und SBOM liegen trotzdem bei."
+            else
+              echo ""
+              echo "Pruefen: \`gh attestation verify <datei> -R ${GITHUB_REPOSITORY}\`"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Release-Notizen aus CHANGELOG.md
+        run: |
+          set -euo pipefail
+          notes="$RUNNER_TEMP/notes.md"
+          if [ -f CHANGELOG.md ]; then
+            awk -v ver="$LABEL" '
+              /^## / { if (found) exit; if (index($0, "[" ver "]") || index($0, " " ver)) { found = 1; next } }
+              found { print }
+            ' CHANGELOG.md > "$notes"
+          fi
+          if [ ! -s "$notes" ]; then
+            echo "LINEFM Radio $LABEL" > "$notes"
+            echo "" >> "$notes"
+            echo "Kein Abschnitt fuer $LABEL in CHANGELOG.md gefunden." >> "$notes"
+          fi
+          {
+            echo ""
+            echo "### Pruefen der Downloads"
+            echo ""
+            echo '```'
+            echo "sha256sum -c SHA256SUMS.txt --ignore-missing"
+            echo '```'
+          } >> "$notes"
+          echo "NOTES_FILE=$notes" >> "$GITHUB_ENV"
+
+      - name: GitHub-Release anlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          flags=()
+          if [[ "$TAG" == *-* ]]; then flags+=(--prerelease); fi
+          gh release create "$TAG" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "LINEFM Radio $LABEL" \
+            --notes-file "$NOTES_FILE" \
+            --verify-tag \
+            "${flags[@]}"

@@ -27,6 +27,7 @@
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         tools:replace="android:allowBackup">
         <!-- Keine Android-Sicherung (S10): Einwilligung und Speicher-Hinweis
              gelten je Geraet, ein wiederhergestelltes "Ja" zur Statistik auf

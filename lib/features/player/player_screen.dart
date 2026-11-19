@@ -51,25 +51,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.macOS);
 
-  @override
-  void initState() {
-    super.initState();
-    // Fehlerereignis, solange der Player offen ist (Spec 2.3 `error_stream`).
-    // Weitere Quellen meldet der PlayerController.
-    ref.listenManual<AsyncValue<PlayerUiState>>(playerStateProvider, (
-      previous,
-      next,
-    ) {
-      final was = previous?.value?.status;
-      final now = next.value?.status;
-      if (now == PlayerStatus.error && was != PlayerStatus.error) {
-        ref.read(telemetryProvider).event('error_stream', <String, Object>{
-          'station': ref.read(activeStationProvider).slug,
-        }).ignore();
-      }
-    });
-  }
-
   Future<void> _openMusicLinks(PlayerStrings strings, Track track) {
     final actions = ref.read(playerActionsProvider);
     final messenger = ScaffoldMessenger.maybeOf(context);

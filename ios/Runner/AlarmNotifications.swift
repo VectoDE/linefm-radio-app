@@ -13,6 +13,8 @@ import UserNotifications
 ///   `id#<ISO-Wochentag>`; leere Wochentage = einmalig (`id#once`).
 ///   Ton: Systemton (`UNNotificationSound.default`, Entscheidung 40).
 /// * `cancel` `{id}`: entfernt geplante und zugestellte Mitteilungen.
+/// * `retain` `{ids}`: entfernt alle Wecker-Mitteilungen, deren `id` nicht
+///   in der Liste steht (verwaiste Regeln).
 ///
 /// Antippen der Mitteilung oeffnet `url` (`linefm://play?station=slug`).
 /// Der Link laeuft ueber das URL-Schema in die Szene und von dort ueber
@@ -57,6 +59,9 @@ final class AlarmNotifications: NSObject, UNUserNotificationCenterDelegate {
       }
       cancel(id: id)
       result(nil)
+    case "retain":
+      let ids = (call.arguments as? [String: Any])?["ids"] as? [String] ?? []
+      retain(ids: Set(ids), result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -139,6 +144,33 @@ final class AlarmNotifications: NSObject, UNUserNotificationCenterDelegate {
     let ids = Self.identifiers(for: id)
     center.removePendingNotificationRequests(withIdentifiers: ids)
     center.removeDeliveredNotifications(withIdentifiers: ids)
+  }
+
+  /// Wecker-ID aus einer Kennung `id#once` bzw. `id#<ISO>`.
+  static func alarmId(fromIdentifier identifier: String) -> String {
+    guard let hash = identifier.lastIndex(of: "#") else { return identifier }
+    return String(identifier[..<hash])
+  }
+
+  /// Entfernt alle Wecker-Mitteilungen, deren Regel nicht mehr existiert.
+  private func retain(ids: Set<String>, result: @escaping FlutterResult) {
+    let category = Self.categoryIdentifier
+    center.getPendingNotificationRequests { [center] requests in
+      let orphans = requests
+        .filter { $0.content.categoryIdentifier == category }
+        .map(\.identifier)
+        .filter { !ids.contains(Self.alarmId(fromIdentifier: $0)) }
+      center.removePendingNotificationRequests(withIdentifiers: orphans)
+      center.getDeliveredNotifications { delivered in
+        let stale = delivered
+          .map(\.request)
+          .filter { $0.content.categoryIdentifier == category }
+          .map(\.identifier)
+          .filter { !ids.contains(Self.alarmId(fromIdentifier: $0)) }
+        center.removeDeliveredNotifications(withIdentifiers: stale)
+        DispatchQueue.main.async { result(nil) }
+      }
+    }
   }
 
   // MARK: - UNUserNotificationCenterDelegate

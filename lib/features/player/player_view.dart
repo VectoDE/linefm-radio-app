@@ -14,6 +14,7 @@ import 'package:linefm_radio/ui/widgets/cover_image.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
 import 'package:linefm_radio/ui/widgets/marquee_text.dart';
 import 'package:linefm_radio/ui/widgets/play_button.dart';
+import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -669,9 +670,8 @@ class _IconAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
+    return QuietTooltip(
       message: label,
-      excludeFromSemantics: true,
       child: SemanticFocus(
         builder: (_, focused, onFocus, child) => Semantics(
           container: true,
@@ -728,11 +728,23 @@ class _PillAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      onTap: onPressed,
+    // NEU-4: Eigener, fokussierbarer Semantik-Knoten wie bei _IconAction.
+    // Ohne container/focusable gab es kein DOM-Element fuer den Knopf: Der
+    // Tastaturfokus landete in Flutter auf dem InkWell, der Browser blieb aber
+    // auf "Song merken" stehen (doppelter Tab-Stopp, Knopf fuer Screenreader
+    // nicht erreichbar).
+    return SemanticFocus(
+      builder: (_, focused, onFocus, child) => Semantics(
+        container: true,
+        button: true,
+        label: label,
+        excludeSemantics: true,
+        onTap: onPressed,
+        focusable: true,
+        focused: focused,
+        onFocus: onFocus,
+        child: child,
+      ),
       child: FocusRing(
         borderRadius: LinefmMetrics.minTarget / 2,
         child: InkWell(

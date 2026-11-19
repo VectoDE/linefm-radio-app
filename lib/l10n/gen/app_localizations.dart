@@ -1309,6 +1309,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Beenden'**
   String get trayQuit;
+
+  /// No description provided for @trayAlwaysOnTop.
+  ///
+  /// In de, this message translates to:
+  /// **'Immer im Vordergrund'**
+  String get trayAlwaysOnTop;
 }
 
 class _AppLocalizationsDelegate

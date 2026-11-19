@@ -702,4 +702,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trayQuit => 'Beenden';
+
+  @override
+  String get trayAlwaysOnTop => 'Immer im Vordergrund';
 }

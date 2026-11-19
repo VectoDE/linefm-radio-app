@@ -413,5 +413,6 @@
   "trayStop": "Stoppen",
   "trayStations": "Sender",
   "trayMiniPlayer": "Mini-Player",
-  "trayQuit": "Beenden"
+  "trayQuit": "Beenden",
+  "trayAlwaysOnTop": "Immer im Vordergrund"
 }

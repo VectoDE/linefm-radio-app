@@ -7,6 +7,7 @@ import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/features/consent/consent_dialog.dart';
 import 'package:linefm_radio/features/loader/app_loader.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/platform/desktop/desktop_host.dart';
 import 'package:linefm_radio/platform/web_routes.dart';
 import 'package:linefm_radio/services/share/share_feedback.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
@@ -59,8 +60,10 @@ class LinefmApp extends ConsumerWidget {
         setDocumentLang(resolved.languageCode);
         return resolved;
       },
-      builder: (context, child) => ShareFeedbackListener(
-        child: LoaderGate(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => DesktopHost(
+        child: ShareFeedbackListener(
+          child: LoaderGate(child: child ?? const SizedBox.shrink()),
+        ),
       ),
       home: const WebRouteSync(child: TelemetryConsentGate(child: AppShell())),
     );

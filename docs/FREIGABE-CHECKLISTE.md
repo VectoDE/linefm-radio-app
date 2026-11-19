@@ -155,7 +155,10 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 - [ ] Sleeptimer (Aus, 15, 30, 45, 60 Minuten) stoppt die Wiedergabe zum Zeitpunkt, auch bei gesperrtem Bildschirm.
 - [ ] Favoriten (Songs und Sender) speichern, exportieren, nach Neustart noch da.
 - [ ] Speicher löschen entfernt alle lokalen Daten.
-- [ ] Deutsch und Englisch, Wechsel der Systemsprache.
+- [ ] Deutsch und Englisch, Wechsel der Systemsprache. Platzhalter, Plural und lange Texte (Sendernamen, Fehlermeldungen) brechen das Layout nicht.
+- [ ] Design und Bedienung: Leer-, Lade- und Fehlerzustände sind gestaltet und verständlich, hell und dunkel, Handy und Tablet bzw. schmales und breites Fenster.
+- [ ] Medien: Sender-Icons, Logos und Screenshots sind scharf, mit Alt-Text bzw. Semantik-Label, Lizenz und Herkunft geklärt, ohne unnötig große Dateien.
+- [ ] Tests: `flutter test` und der a11y-Workflow sind grün, Fehlerfälle (kein Netz, Stream bricht ab) von Hand geprüft.
 - [ ] Bildschirmleser (TalkBack, VoiceOver, NVDA): Player, Liste und Einstellungen sind bedienbar.
 - [ ] Einwilligungsdialog erscheint nur, wenn Telemetrie konfiguriert ist; ohne Einwilligung gehen keine Daten raus.
 - [ ] Akku und Datenverbrauch bei einer Stunde Wiedergabe sind unauffällig. Die App nutzt bewusst keinen WebSocket von laut.fm (Messwerte in [ENTWICKLUNG.md](ENTWICKLUNG.md)).

@@ -37,6 +37,11 @@ Nur ankreuzen, was dieser PR betrifft und was geprüft ist.
 - [ ] Datenschutz und Recht: neue Datenflüsse in der Datenschutzerklärung, Platzhalter-Regeln
 - [ ] Performance: Bundle-Größe, Caching-Header, keine neuen Fremd-Requests
 - [ ] SEO/GEO: Title, Description, strukturierte Daten, Sitemap
+- [ ] Design und UX: Abstände, Typografie, Zustände (leer, Laden, Fehler) passen zum Rest der App; hell und dunkel, schmal und breit angesehen
+- [ ] Usability: Ablauf ohne Erklärung verständlich, Fehlermeldungen sagen, was zu tun ist
+- [ ] i18n: Deutsch und Englisch vollständig, Platzhalter und Plural stimmen, lange Texte brechen das Layout nicht
+- [ ] Medien (Bilder, Icons, Audio): Alt-Text bzw. Semantik-Label, Lizenz geklärt und vermerkt, Dateigröße angemessen
+- [ ] Tests: neue oder angepasste Tests für die Änderung, `flutter test` grün
 - [ ] Texte: klingt nach Mensch, keine Floskeln
 - [ ] Doku und README aktualisiert
 - [ ] Release: CHANGELOG-Eintrag, Version in pubspec.yaml

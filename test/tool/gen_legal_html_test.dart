@@ -254,4 +254,96 @@ void main() {
       );
     });
   });
+
+  group('Pflicht-Regeln (R3-P01/P02)', () {
+    final Map<String, Object?> registry =
+        (jsonDecode(File('assets/legal/placeholders.json').readAsStringSync())
+                as Map<String, Object?>)['placeholders']!
+            as Map<String, Object?>;
+
+    test('leere und Leerzeichen-Werte zaehlen als offen', () {
+      expect(
+        nonBlankValues(<String, String>{'A': '', 'B': '  ', 'C': 'x'}),
+        <String, String>{'C': 'x'},
+      );
+      final Map<String, Object?> doc = <String, Object?>{
+        'blocks': <Object?>[
+          <String, Object?>{'type': 'p', 'text': '{{A}} {{B}} {{C}}'},
+        ],
+      };
+      expect(
+        openPlaceholders(doc, <String>{}, <String, String>{
+          'A': '',
+          'B': ' 	',
+          'C': 'x',
+        }),
+        <String>{'A', 'B'},
+      );
+    });
+
+    test('leerer Pflichtwert ergibt offene Pflichtangabe (Exit 1)', () {
+      final Map<String, String> values = nonBlankValues(<String, String>{
+        for (final String k in registry.keys)
+          k: k == 'BETREIBER_NAME' ? ' ' : 'X',
+      });
+      final Set<String> open = <String>{};
+      for (final String kind in <String>['impressum', 'datenschutz']) {
+        open.addAll(openPlaceholders(_doc('de', kind), <String>{}, values));
+      }
+      expect(requiredOpen(open, registry, <String>{}), <String>[
+        'BETREIBER_NAME',
+      ]);
+    });
+
+    test('nicht registrierte Platzhalter sind Pflicht', () {
+      expect(
+        isRequiredPlaceholder('GIBT_ES_NICHT', registry, <String>{}),
+        isTrue,
+      );
+      expect(isRequiredPlaceholder('USTID', registry, <String>{}), isFalse);
+    });
+
+    test('required_if: Anbieterangaben bei aktiver Telemetrie Pflicht', () {
+      expect(
+        isRequiredPlaceholder('UMAMI_BETREIBER', registry, <String>{}),
+        isFalse,
+      );
+      expect(
+        isRequiredPlaceholder('UMAMI_BETREIBER', registry, <String>{'umami'}),
+        isTrue,
+      );
+      expect(
+        isRequiredPlaceholder('UMAMI_BETREIBER', registry, <String>{'sentry'}),
+        isFalse,
+      );
+      expect(
+        isRequiredPlaceholder('SENTRY_BETREIBER', registry, <String>{'sentry'}),
+        isTrue,
+      );
+      expect(
+        isRequiredPlaceholder('TELEMETRIE_AUFBEWAHRUNG', registry, <String>{
+          'firebase',
+        }),
+        isTrue,
+      );
+    });
+
+    test('Datenschutz mit Umami ohne Betreiber: Pflicht offen', () {
+      final Map<String, String> values = <String, String>{
+        for (final String k in registry.keys)
+          if (k != 'UMAMI_BETREIBER' && k != 'TELEMETRIE_AUFBEWAHRUNG') k: 'X',
+      };
+      final Set<String> p = <String>{'umami'};
+      final Set<String> open = openPlaceholders(
+        _doc('de', 'datenschutz'),
+        p,
+        values,
+      );
+      expect(requiredOpen(open, registry, p), <String>[
+        'TELEMETRIE_AUFBEWAHRUNG',
+        'UMAMI_BETREIBER',
+      ]);
+      expect(requiredOpen(open, registry, <String>{}), isEmpty);
+    });
+  });
 }

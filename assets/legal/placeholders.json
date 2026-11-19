@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "note": "Platzhalter in den Rechtstexten. Werte per tool/gen_legal_html.dart --values <datei> einsetzen. Optionale Angaben ohne Inhalt als 'Nicht zutreffend.' setzen, nicht leer lassen.",
+  "note": "Platzhalter in den Rechtstexten. Werte per tool/gen_legal_html.dart --values <datei> einsetzen. Optionale Angaben ohne Inhalt als 'Nicht zutreffend.' setzen, nicht leer lassen (leere Werte gelten als offen). required_if: Pflicht, sobald der genannte Telemetrie-Anbieter aktiv ist.",
   "placeholders": {
     "BETREIBER_NAME": {"required": true, "desc": "Vollständiger Name des Betreibers (Person oder Firma), § 5 Abs. 1 Nr. 1 DDG"},
     "BETREIBER_RECHTSFORM": {"required": true, "desc": "Rechtsform (z. B. Einzelunternehmen, GbR, UG, GmbH)"},
@@ -20,8 +20,8 @@
     "HOSTING_ANBIETER": {"required": true, "desc": "Hosting-Anbieter der Web-Version (Name, Sitz), z. B. Cloudflare, eigener Server, Plesk-Hoster"},
     "CDN_ANBIETER": {"required": true, "desc": "Betreiber von cdn.linefm.de (Name, Sitz)"},
     "LOG_AUFBEWAHRUNG": {"required": true, "desc": "Speicherdauer der Server-Protokolle, z. B. 7 Tage"},
-    "TELEMETRIE_AUFBEWAHRUNG": {"required": false, "desc": "Speicherdauer der Statistik-/Fehlerdaten, nur bei konfigurierter Telemetrie, z. B. 90 Tage"},
-    "UMAMI_BETREIBER": {"required": false, "desc": "Betreiber der Umami-Instanz (Name, Sitz), nur wenn Umami konfiguriert"},
-    "SENTRY_BETREIBER": {"required": false, "desc": "Betreiber von GlitchTip/Sentry (Name, Sitz), nur wenn konfiguriert"}
+    "TELEMETRIE_AUFBEWAHRUNG": {"required": false, "required_if": "telemetry", "desc": "Speicherdauer der Statistik-/Fehlerdaten, nur bei konfigurierter Telemetrie, z. B. 90 Tage"},
+    "UMAMI_BETREIBER": {"required": false, "required_if": "umami", "desc": "Betreiber der Umami-Instanz (Name, Sitz), nur wenn Umami konfiguriert"},
+    "SENTRY_BETREIBER": {"required": false, "required_if": "sentry", "desc": "Betreiber von GlitchTip/Sentry (Name, Sitz), nur wenn konfiguriert"}
   }
 }

@@ -8,7 +8,10 @@
 //
 // --providers  aktive Telemetrie-Anbieter (Bloecke mit "requires").
 // --values     JSON-Objekt Platzhalter -> Wert (z. B. BETREIBER_NAME).
-// --strict     Exit-Code 1, solange Pflicht-Platzhalter offen sind. Prueft
+// --strict     Exit-Code 1, solange Pflicht-Platzhalter offen sind (leere oder
+//              nur aus Leerzeichen bestehende Werte gelten als offen, nicht in
+//              placeholders.json registrierte Platzhalter als Pflicht, "required_if"
+//              macht optionale Angaben bei aktivem Anbieter zur Pflicht). Prueft
 //              zusaetzlich [strictFiles] (Sicherheitskontakt, Barrierefreiheit,
 //              Verhaltenskodex) auf offene {{...}}; die traegt der Betreiber
 //              selbst im Repo ein, sie kommen nicht aus --values.
@@ -60,6 +63,43 @@ bool requirementMet(Object? requires, Set<String> providers) {
   }
   return true;
 }
+
+/// Nur Werte mit Inhalt: leere oder nur aus Leerzeichen bestehende Werte
+/// zaehlen als nicht gesetzt (der Platzhalter bleibt offen und markiert).
+Map<String, String> nonBlankValues(Map<String, String> values) =>
+    <String, String>{
+      for (final MapEntry<String, String> e in values.entries)
+        if (e.value.trim().isNotEmpty) e.key: e.value,
+    };
+
+/// Ist der Platzhalter [name] bei den aktiven [providers] Pflicht?
+///
+/// [registry] ist der Inhalt von placeholders.json unter "placeholders".
+/// Nicht registrierte Namen sind Pflicht (Tippfehler fallen so auf).
+/// `"required": false` macht eine Angabe optional, ausser `"required_if"`
+/// (gleiche Syntax wie `requires`) ist mit den aktiven Anbietern erfuellt.
+bool isRequiredPlaceholder(
+  String name,
+  Map<String, Object?> registry,
+  Set<String> providers,
+) {
+  final Object? info = registry[name];
+  if (info is! Map<String, Object?>) return true;
+  if (info['required'] != false) return true;
+  final Object? cond = info['required_if'];
+  return cond != null && requirementMet(cond, providers);
+}
+
+/// Offene Pflicht-Platzhalter (sortiert) aus [open].
+List<String> requiredOpen(
+  Set<String> open,
+  Map<String, Object?> registry,
+  Set<String> providers,
+) =>
+    open
+        .where((String k) => isRequiredPlaceholder(k, registry, providers))
+        .toList()
+      ..sort();
 
 /// Alle Platzhalter-Namen in [text].
 Set<String> findPlaceholders(String text) =>
@@ -138,7 +178,8 @@ Set<String> openPlaceholders(
     ];
     for (final String t in texts) {
       open.addAll(
-        findPlaceholders(t).where((String k) => !values.containsKey(k)),
+        findPlaceholders(t)
+            .where((String k) => (values[k] ?? '').trim().isEmpty),
       );
     }
   }
@@ -358,7 +399,9 @@ Future<void> main(List<String> args) async {
       .toSet();
   final String baseUrl = _arg(args, 'base-url') ?? 'https://app.linefm.de';
   final String out = _arg(args, 'out') ?? 'web';
-  final Map<String, String> values = _loadValues(_arg(args, 'values'));
+  final Map<String, String> values = nonBlankValues(
+    _loadValues(_arg(args, 'values')),
+  );
   final bool strict = args.contains('--strict');
 
   final Object? meta = jsonDecode(
@@ -400,14 +443,7 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  final List<String> openRequired =
-      allOpen
-          .where(
-            (String k) =>
-                (required[k] as Map<String, Object?>?)?['required'] != false,
-          )
-          .toList()
-        ..sort();
+  final List<String> openRequired = requiredOpen(allOpen, required, providers);
   stdout.writeln(
     'Seiten geschrieben nach $out/ (Anbieter: ${providers.isEmpty ? "keine" : providers.join(", ")}).',
   );

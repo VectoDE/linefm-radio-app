@@ -29,10 +29,10 @@ Einwilligung (DSGVO/TDDDG):
 Erfasste Ereignisse (personenbezogen im Sinne der DSGVO, weil technisch die
 IP-Adresse mitläuft und Firebase eine App-Instanz-ID nutzt, aber
 pseudonymisiert: keine Namen, keine Konten, keine Cookies, keine Werbe-ID):
-`app_start`, Bildschirmaufrufe als `/screen/<name>`, `play`,
-`stop`, `shuffle`, `favorite_add`, `favorite_remove`, `share_song`,
-`export_favorites`, `sleep_timer_set`, `alarm_set`, `cast_start`,
-`airplay_open`, `error_stream`. Umami sammelt zusätzlich Sprache und
+`app_start`, Bildschirmaufrufe als `/screen/<name>`, `play` (Sender),
+`stop` (Sender, grobe Hörzeit in Klassen), `shuffle`, `favorite_add`,
+`favorite_remove`, `share_song`, `export_favorites` (Format) und
+`error_stream` (Sender). Mehr sendet die App nicht. Umami sammelt zusätzlich Sprache und
 Bildschirmgröße. Sentry/GlitchTip entfernt Gerätename, Server-Name, Nutzer
 und IP aus dem Ereignis (`sendDefaultPii: false`, kein Tracing, keine
 Screenshots).
@@ -45,8 +45,8 @@ aber daraus mit einem wechselnden Salz eine Besucher-Kennung. Bei GlitchTip
 und Sentry kann die IP im Server-Log und in den Logs eines Reverse Proxys
 stehen. Wer sie nicht verarbeiten will, schaltet das Zugriffslog für den
 Ingest-Pfad im Proxy ab und deaktiviert in GlitchTip die IP-Speicherung. Die
-Datenschutzerklärung nennt die Übertragung der IP-Adresse (Abschnitt 11). Der
-Einwilligungstext in der App sollte sie ebenfalls erwähnen.
+Datenschutzerklärung (Abschnitt 11) und der Einwilligungstext in der App
+(`lib/l10n/app_de.arb`) nennen die Übertragung der IP-Adresse.
 
 Datenschutzerklärung und Einwilligungstext müssen zu den aktivierten
 Anbietern passen. Das ist eine technische Vorprüfung, keine Rechtsberatung;

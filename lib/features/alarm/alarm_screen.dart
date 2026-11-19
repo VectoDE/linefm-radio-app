@@ -11,6 +11,7 @@ import 'package:linefm_radio/features/settings/platform_info.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:linefm_radio/ui/widgets/section_heading.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
@@ -190,19 +191,23 @@ Future<void> _ensurePermission(BuildContext context, WidgetRef ref) async {
   final l10n = AppLocalizations.of(context);
   final open = await showDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
-      title: Text(l10n.alarmPermissionTitle),
-      content: Text(l10n.alarmPermissionBody),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(l10n.actionCancel),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: Text(l10n.alarmOpenSettings),
-        ),
-      ],
+    builder: (context) => NamedDialog(
+      label: l10n.alarmPermissionTitle,
+      child: AlertDialog(
+        semanticLabel: l10n.alarmPermissionTitle,
+        title: Text(l10n.alarmPermissionTitle),
+        content: Text(l10n.alarmPermissionBody),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.alarmOpenSettings),
+          ),
+        ],
+      ),
     ),
   );
   if (open ?? false) await ref.read(alarmOpenSystemSettingsProvider)();

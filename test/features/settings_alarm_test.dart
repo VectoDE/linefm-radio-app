@@ -215,6 +215,21 @@ void main() {
       await tester.tap(find.text('Speicher löschen'));
       await tester.pumpAndSettle();
       expect(find.text('Speicher löschen?'), findsOneWidget);
+      // Dialog hat einen Namen am Knoten mit role alertDialog (Web:
+      // aria-label am role="alertdialog", axe aria-dialog-name).
+      final semantics = tester.ensureSemantics();
+      final dialogNode = tester.getSemantics(find.byType(AlertDialog));
+      SemanticsData? roleData;
+      for (SemanticsNode? n = dialogNode; n != null; n = n.parent) {
+        if (n.getSemanticsData().role == SemanticsRole.alertDialog) {
+          roleData = n.getSemanticsData();
+          break;
+        }
+      }
+      expect(roleData, isNotNull);
+      expect(roleData!.label, 'Speicher löschen?');
+      expect(roleData.flagsCollection.namesRoute, isTrue);
+      semantics.dispose();
 
       // Abbrechen laesst alles stehen.
       await tester.tap(find.text('Abbrechen'));

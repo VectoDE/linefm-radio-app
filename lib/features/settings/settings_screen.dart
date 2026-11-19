@@ -14,6 +14,7 @@ import 'package:linefm_radio/features/settings/sleep_timer_row.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:linefm_radio/ui/widgets/section_heading.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:linefm_radio/ui/widgets/settings_switch.dart';
@@ -318,19 +319,23 @@ class _StorageSection extends ConsumerWidget {
     final messenger = ScaffoldMessenger.maybeOf(context);
     final ok = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.clearStorageConfirmTitle),
-        content: Text(l10n.clearStorageConfirmBody),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.actionDelete),
-          ),
-        ],
+      builder: (context) => NamedDialog(
+        label: l10n.clearStorageConfirmTitle,
+        child: AlertDialog(
+          semanticLabel: l10n.clearStorageConfirmTitle,
+          title: Text(l10n.clearStorageConfirmTitle),
+          content: Text(l10n.clearStorageConfirmBody),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.actionCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.actionDelete),
+            ),
+          ],
+        ),
       ),
     );
     if (ok != true) return;

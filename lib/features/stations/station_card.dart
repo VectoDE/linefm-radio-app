@@ -1,4 +1,5 @@
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
@@ -17,6 +18,9 @@ import 'package:material_ui/material_ui.dart';
 ///   `background`, aktiv oder beim Ueberfahren in Senderfarbe (bei
 ///   Kontrastmangel aufgehellt, siehe `StationStyle.border`).
 /// - Auf der aktiven Karte zeigen drei Balken, dass gespielt wird.
+/// - Mit [onToggleFavorite] steht oben rechts ein Stern: Antippen merkt den
+///   Sender als Favoriten-Sender oder entfernt ihn (Issue #42). Fuer
+///   Screenreader ist das eine eigene Aktion der Karte ([favoriteLabel]).
 class StationCard extends StatefulWidget {
   const StationCard({
     super.key,
@@ -30,6 +34,9 @@ class StationCard extends StatefulWidget {
     this.marquee = true,
     this.onLongPress,
     this.longPressLabel,
+    this.favorite = false,
+    this.onToggleFavorite,
+    this.favoriteLabel,
   });
 
   final Station station;
@@ -53,6 +60,15 @@ class StationCard extends StatefulWidget {
   /// Beschriftung der Long-Press-Aktion fuer Screenreader.
   final String? longPressLabel;
 
+  /// Sender ist als Favoriten-Sender gemerkt (Stern gefuellt).
+  final bool favorite;
+
+  /// Stern angetippt. Ohne Rueckruf zeigt die Karte keinen Stern.
+  final VoidCallback? onToggleFavorite;
+
+  /// Tooltip und Screenreader-Aktion des Sterns ("… merken"/"… entfernen").
+  final String? favoriteLabel;
+
   @override
   State<StationCard> createState() => _StationCardState();
 }
@@ -69,6 +85,9 @@ class _StationCardState extends State<StationCard> {
     final radius = BorderRadius.circular(LinefmMetrics.radiusCard);
     final grid = widget.grid;
     final artSize = grid ? 76.0 : 72.0;
+    final onToggleFavorite = widget.onToggleFavorite;
+    final favoriteLabel = widget.favoriteLabel ?? '';
+    final hasStar = onToggleFavorite != null;
 
     final name = Text(
       station.displayName.toUpperCase(),
@@ -111,6 +130,14 @@ class _StationCardState extends State<StationCard> {
             ],
           );
 
+    final actions = <CustomSemanticsAction, VoidCallback>{
+      if (onToggleFavorite != null && favoriteLabel.isNotEmpty)
+        CustomSemanticsAction(label: favoriteLabel): onToggleFavorite,
+      if (widget.onLongPress != null && widget.longPressLabel != null)
+        CustomSemanticsAction(label: widget.longPressLabel!):
+            widget.onLongPress!,
+    };
+
     return Semantics(
       container: true,
       button: true,
@@ -118,13 +145,7 @@ class _StationCardState extends State<StationCard> {
       label: widget.semanticLabel,
       excludeSemantics: true,
       onTap: widget.onTap,
-      customSemanticsActions:
-          widget.onLongPress != null && widget.longPressLabel != null
-          ? <CustomSemanticsAction, VoidCallback>{
-              CustomSemanticsAction(label: widget.longPressLabel!):
-                  widget.onLongPress!,
-            }
-          : null,
+      customSemanticsActions: actions.isEmpty ? null : actions,
       child: FocusRing(
         borderRadius: LinefmMetrics.radiusCard,
         child: AnimatedContainer(
@@ -152,7 +173,13 @@ class _StationCardState extends State<StationCard> {
                   ConstrainedBox(
                     constraints: BoxConstraints(minHeight: grid ? 192 : 86),
                     child: Padding(
-                      padding: EdgeInsets.all(grid ? 16 : 10),
+                      padding: EdgeInsets.fromLTRB(
+                        grid ? 16 : 10,
+                        grid ? 16 : 10,
+                        // Platz fuer den Stern neben dem Lauftext.
+                        hasStar && !grid ? 46 : (grid ? 16 : 10),
+                        grid ? 16 : 10,
+                      ),
                       child: Align(
                         alignment: grid
                             ? Alignment.center
@@ -163,13 +190,73 @@ class _StationCardState extends State<StationCard> {
                   ),
                   if (widget.active && widget.playing)
                     Positioned(
-                      top: grid ? 12 : 10,
-                      right: grid ? 12 : 10,
+                      top: hasStar ? 21 : (grid ? 12 : 10),
+                      right: hasStar ? 50 : (grid ? 12 : 10),
                       child: _PlayingBars(color: accent),
+                    ),
+                  if (onToggleFavorite != null)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: _FavoriteStar(
+                        favorite: widget.favorite,
+                        tooltip: favoriteLabel,
+                        activeColor: accent,
+                        idleColor: colors.muted,
+                        onPressed: onToggleFavorite,
+                      ),
                     ),
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Stern der Favoriten-Sender. Fuer Screenreader ausgeblendet, dort ist das
+/// eine Aktion der Karte.
+class _FavoriteStar extends StatelessWidget {
+  const _FavoriteStar({
+    required this.favorite,
+    required this.tooltip,
+    required this.activeColor,
+    required this.idleColor,
+    required this.onPressed,
+  });
+
+  final bool favorite;
+  final String tooltip;
+  final Color activeColor;
+  final Color idleColor;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeSemantics(
+      child: IconButton(
+        key: const ValueKey<String>('station-favorite-star'),
+        tooltip: tooltip.isEmpty ? null : tooltip,
+        onPressed: onPressed,
+        iconSize: 18,
+        style: IconButton.styleFrom(
+          minimumSize: const Size(44, 44),
+          fixedSize: const Size(44, 44),
+          padding: EdgeInsets.zero,
+        ),
+        icon: AnimatedSwitcher(
+          duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero
+              : const Duration(milliseconds: 180),
+          transitionBuilder: (child, animation) =>
+              ScaleTransition(scale: animation, child: child),
+          child: FaIcon(
+            favorite ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
+            key: ValueKey<bool>(favorite),
+            size: 18,
+            color: favorite ? activeColor : idleColor,
           ),
         ),
       ),

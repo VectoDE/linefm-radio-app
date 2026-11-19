@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_description">Sender, aktueller Song und Play-Knopf</string>
+    <string name="widget_idle">Zum Abspielen tippen</string>
+    <string name="widget_play">Stream starten</string>
+    <string name="widget_stop">Stream stoppen</string>
+    <string name="widget_open_app">LINEFM Radio öffnen</string>
+    <string name="widget_default_station">LINEFM</string>
+</resources>

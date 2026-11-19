@@ -13,6 +13,10 @@ abstract interface class PrefsStore {
   List<Favorite> readFavorites();
   Future<void> writeFavorites(List<Favorite> favorites);
 
+  /// Favoriten-Sender (Slugs, Issue #42), getrennt von den Song-Favoriten.
+  Set<String> readFavoriteStations();
+  Future<void> writeFavoriteStations(Set<String> slugs);
+
   double? readVolume();
   Future<void> writeVolume(double volume);
 
@@ -46,6 +50,7 @@ class InMemoryPrefsStore implements PrefsStore {
 
   bool _consent = false;
   List<Favorite> _favorites = <Favorite>[];
+  Set<String> _favoriteStations = const <String>{};
   double? _volume;
   AppSettings _settings = const AppSettings();
   String? _lastStation;
@@ -66,6 +71,13 @@ class InMemoryPrefsStore implements PrefsStore {
   @override
   Future<void> writeFavorites(List<Favorite> favorites) async =>
       _favorites = favorites;
+
+  @override
+  Set<String> readFavoriteStations() => _favoriteStations;
+
+  @override
+  Future<void> writeFavoriteStations(Set<String> slugs) async =>
+      _favoriteStations = Set<String>.unmodifiable(slugs);
 
   @override
   double? readVolume() => _volume;
@@ -109,6 +121,7 @@ class InMemoryPrefsStore implements PrefsStore {
   Future<void> clearAll() async {
     _consent = false;
     _favorites = <Favorite>[];
+    _favoriteStations = const <String>{};
     _volume = null;
     _settings = const AppSettings();
     _lastStation = null;

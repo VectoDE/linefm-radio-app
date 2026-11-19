@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Markenfarben (lib/ui/theme/tokens.dart) -->
+    <color name="linefm_background">#0F1221</color>
+
+    <!-- Homescreen-Widget, heller Modus (Tokens "light") -->
+    <color name="widget_background">#FFFFFF</color>
+    <color name="widget_text">#0F1221</color>
+    <color name="widget_muted">#565A6E</color>
+    <color name="widget_button_background">#0F1221</color>
+    <color name="widget_button_foreground">#FFFFFF</color>
+</resources>

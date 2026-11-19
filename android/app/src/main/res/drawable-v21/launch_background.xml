@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
+<!-- Start-Hintergrund bis Android 11 (Spec 4.1: nativer Splash in #0F1221).
+     Ab Android 12 gilt die SplashScreen-API (values-v31/styles.xml). -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="?android:colorBackground" />
-
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+    <item android:drawable="@color/linefm_background" />
+    <item
+        android:width="112dp"
+        android:height="112dp"
+        android:drawable="@mipmap/ic_launcher_round"
+        android:gravity="center" />
 </layer-list>

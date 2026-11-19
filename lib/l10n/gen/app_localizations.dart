@@ -290,6 +290,24 @@ abstract class AppLocalizations {
   /// **'Hör mal rein: {station} bei LINEFM. {url}'**
   String stationShareText(String station, String url);
 
+  /// Stern auf der Stationskarte (Screenreader/Tooltip), Issue #42
+  ///
+  /// In de, this message translates to:
+  /// **'{station} als Favoriten-Sender merken'**
+  String stationFavoriteAdd(String station);
+
+  /// No description provided for @stationFavoriteRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'{station} aus den Favoriten-Sendern entfernen'**
+  String stationFavoriteRemove(String station);
+
+  /// Zusatz im Screenreader-Text einer gemerkten Stationskarte
+  ///
+  /// In de, this message translates to:
+  /// **'Favoriten-Sender'**
+  String get stationFavoriteBadge;
+
   /// No description provided for @playerCoverAlt.
   ///
   /// In de, this message translates to:
@@ -1292,11 +1310,23 @@ abstract class AppLocalizations {
   /// **'Wiedergabe'**
   String get notificationChannelName;
 
-  /// Android-Auto-/CarPlay-Ordner
+  /// Ordner im Auto-Menü (Android Auto/CarPlay): gemerkte Sender, Issue #42
   ///
   /// In de, this message translates to:
-  /// **'Favoriten'**
-  String get browseFavorites;
+  /// **'Favoriten-Sender'**
+  String get browseFavoriteStations;
+
+  /// Ordner im Auto-Menü: alle Sender
+  ///
+  /// In de, this message translates to:
+  /// **'Stationen'**
+  String get browseStations;
+
+  /// Ordner im Auto-Menü: zuletzt gehörte Station
+  ///
+  /// In de, this message translates to:
+  /// **'Zuletzt gehört'**
+  String get browseRecent;
 
   /// No description provided for @widgetIdle.
   ///

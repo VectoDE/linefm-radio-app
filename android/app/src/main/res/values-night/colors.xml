@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Homescreen-Widget, dunkler Modus (Tokens "dark") -->
+    <color name="widget_background">#181B2B</color>
+    <color name="widget_text">#FFFFFF</color>
+    <color name="widget_muted">#A4A7B6</color>
+    <color name="widget_button_background">#FFFFFF</color>
+    <color name="widget_button_foreground">#0F1221</color>
+</resources>

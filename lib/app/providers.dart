@@ -361,6 +361,7 @@ List<Override> productionOverrides({
     bindNowPlayingRepository(ref, repo);
     return repo;
   }),
+  homeWidgetSyncProvider.overrideWithValue(createHomeWidgetSync()),
   shareServiceProvider.overrideWith(
     (ref) => SystemShareService(webBaseUrl: config.webBaseUrl),
   ),

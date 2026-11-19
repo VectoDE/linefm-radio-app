@@ -8,6 +8,7 @@ import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
+import 'package:linefm_radio/features/stations/favorite_stations.dart';
 import 'package:linefm_radio/platform/deep_links.dart';
 import 'package:linefm_radio/services/audio/audio_handler.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
@@ -49,6 +50,9 @@ class PlayerController {
         ..streamUrlResolver = _resolveStreamUrl
         ..recentStation = _ref.read(activeStationProvider);
     }
+    // Favoriten-Sender laden; der Notifier meldet sie beim Aufbau an den
+    // Audio-Dienst (Android-Auto-Ordner), auch ohne Stations-Screen.
+    _ref.read(favoriteStationsProvider);
     _ref
       ..listen<Station>(activeStationProvider, (_, next) {
         final s = _ref.read(playbackServiceProvider);

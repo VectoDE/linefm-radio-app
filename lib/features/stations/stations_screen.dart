@@ -6,6 +6,7 @@ import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/domain/now_playing.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
+import 'package:linefm_radio/features/stations/favorite_stations.dart';
 import 'package:linefm_radio/features/stations/station_actions.dart';
 import 'package:linefm_radio/features/stations/station_card.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
@@ -30,6 +31,8 @@ String tickerFor(StationLive live) {
 ///   steht ein Hinweis unter der Ueberschrift.
 /// - Ziehen zum Aktualisieren, Long-Press auf eine Karte oeffnet das Menue
 ///   "Sender teilen".
+/// - Der Stern auf jeder Karte merkt den Sender als Favoriten-Sender
+///   (Issue #42, getrennt von den Song-Favoriten).
 class StationsScreen extends ConsumerWidget {
   const StationsScreen({
     super.key,
@@ -50,6 +53,7 @@ class StationsScreen extends ConsumerWidget {
       playerStateProvider.select((s) => s.value?.isPlaying ?? false),
     );
     final marquee = ref.watch(settingsProvider.select((s) => s.marquee));
+    final favoriteSlugs = ref.watch(favoriteStationsProvider);
 
     final tracks = <String, StationLive>{
       for (final item in live.value ?? const <StationLive>[])
@@ -64,6 +68,10 @@ class StationsScreen extends ConsumerWidget {
     Widget card(Station station) {
       final item = tracks[station.slug];
       final ticker = item == null ? '' : tickerFor(item);
+      final favorite = favoriteSlugs.contains(station.slug);
+      final label = ticker.isEmpty
+          ? l10n.stationCardLabelIdle(station.displayName)
+          : l10n.stationCardLabel(station.displayName, ticker);
       return StationCard(
         station: station,
         ticker: ticker,
@@ -71,10 +79,16 @@ class StationsScreen extends ConsumerWidget {
         playing: playing,
         grid: grid,
         marquee: marquee,
-        semanticLabel: ticker.isEmpty
-            ? l10n.stationCardLabelIdle(station.displayName)
-            : l10n.stationCardLabel(station.displayName, ticker),
+        semanticLabel: favorite
+            ? '$label, ${l10n.stationFavoriteBadge}'
+            : label,
         longPressLabel: l10n.stationLongPressShare,
+        favorite: favorite,
+        favoriteLabel: favorite
+            ? l10n.stationFavoriteRemove(station.displayName)
+            : l10n.stationFavoriteAdd(station.displayName),
+        onToggleFavorite: () =>
+            ref.read(favoriteStationsProvider.notifier).toggle(station),
         onTap: () => ref.openStation(context, station),
         onLongPress: () => _showMenu(context, ref, station),
       );

@@ -1,11 +1,20 @@
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/track.dart';
+import 'package:linefm_radio/services/cast/cast_backend.dart';
+import 'package:linefm_radio/services/cast/cast_backend_stub.dart'
+    if (dart.library.io) 'package:linefm_radio/services/cast/cast_backend_plugin.dart';
 
 class CastDevice {
   const CastDevice({required this.id, required this.name});
 
   final String id;
   final String name;
+
+  @override
+  bool operator ==(Object other) => other is CastDevice && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 class CastState {
@@ -13,6 +22,7 @@ class CastState {
     this.available = false,
     this.devices = const <CastDevice>[],
     this.connectedDevice,
+    this.connecting = false,
   });
 
   /// false auf Plattformen ohne Cast und ohne Google Play Services.
@@ -20,25 +30,59 @@ class CastState {
   final List<CastDevice> devices;
   final CastDevice? connectedDevice;
 
+  /// Sitzung wird gerade aufgebaut.
+  final bool connecting;
+
   bool get isCasting => connectedDevice != null;
+
+  @override
+  bool operator ==(Object other) =>
+      other is CastState &&
+      other.available == available &&
+      other.connectedDevice == connectedDevice &&
+      other.connecting == connecting &&
+      _sameDevices(other.devices, devices);
+
+  @override
+  int get hashCode =>
+      Object.hash(available, connectedDevice, connecting, devices.length);
+
+  static bool _sameDevices(List<CastDevice> a, List<CastDevice> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i] || a[i].name != b[i].name) return false;
+    }
+    return true;
+  }
 }
 
-/// Chromecast (Spec 2.2). Implementierung: P19.
+/// Chromecast (Spec 2.2). Implementierung: `ChromeCastService`.
 abstract interface class CastService {
   CastState get state;
 
+  /// Liefert beim Abonnieren zuerst den aktuellen Zustand.
   Stream<CastState> get states;
 
-  Future<void> startDiscovery();
+  /// [activeScan]: aktive Suche, solange der Geräte-Dialog offen ist.
+  Future<void> startDiscovery({bool activeScan = false});
 
   Future<void> stopDiscovery();
 
+  /// Baut die Sitzung zum Gerät auf. Die Übergabe der Wiedergabe löst der
+  /// Zustandswechsel aus (siehe `CastHandoff`).
   Future<void> connect(CastDevice device);
 
   Future<void> disconnect();
 
-  /// Uebergibt den Stream an die Cast-Sitzung.
+  /// Übergibt den Stream an die Cast-Sitzung.
   Future<void> cast(Station station, Track? track);
+
+  /// Zieht Titel/Künstler/Cover nach (Titelwechsel), ohne den Sender zu
+  /// wechseln.
+  Future<void> updateTrack(Station station, Track? track);
+
+  /// Lautstärke des Cast-Geräts, 0.0 bis 1.0.
+  Future<void> setVolume(double volume);
 
   Future<void> dispose();
 }
@@ -53,7 +97,7 @@ class NoopCastService implements CastService {
   Stream<CastState> get states => Stream<CastState>.value(const CastState());
 
   @override
-  Future<void> startDiscovery() async {}
+  Future<void> startDiscovery({bool activeScan = false}) async {}
 
   @override
   Future<void> stopDiscovery() async {}
@@ -68,8 +112,18 @@ class NoopCastService implements CastService {
   Future<void> cast(Station station, Track? track) async {}
 
   @override
+  Future<void> updateTrack(Station station, Track? track) async {}
+
+  @override
+  Future<void> setVolume(double volume) async {}
+
+  @override
   Future<void> dispose() async {}
 }
 
-/// Initialisiert Cast (No-Op bis P19).
-Future<void> initCast() async {}
+/// Initialisiert Cast beim Start. Ohne Cast-Unterstützung (Web, Desktop,
+/// fehlende Google Play Services) bleibt [castBackend] `null`, der
+/// Cast-Knopf erscheint dann nie.
+Future<void> initCast() async {
+  castBackend = await createPluginBackend();
+}

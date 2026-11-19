@@ -27,7 +27,10 @@ import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
+import 'package:linefm_radio/services/cast/cast_backend.dart';
+import 'package:linefm_radio/services/cast/cast_handoff.dart';
 import 'package:linefm_radio/services/cast/cast_service.dart';
+import 'package:linefm_radio/services/cast/chrome_cast_service.dart';
 import 'package:linefm_radio/services/share/share_service.dart';
 import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
@@ -86,6 +89,45 @@ void bindNowPlayingRepository(Ref ref, NowPlayingRepository repo) {
       }
     })
     ..onDispose(repo.dispose);
+}
+
+/// Chromecast: echter Dienst, wenn [castBackend] (initCast) existiert, sonst
+/// [NoopCastService]. Bindet Übergabe lokal zu Cast, Titel-Metadaten und
+/// Lautstärke an die Wiedergabe. Wird beim ersten Lesen erzeugt (Cast-Knopf
+/// im Player); die Shell kann ihn für Sitzungen aus früheren Läufen früher
+/// lesen.
+CastService createCastService(Ref ref) {
+  final backend = castBackend;
+  if (backend == null) return const NoopCastService();
+  final lautApi = ref.read(lautApiProvider);
+  final service = ChromeCastService(
+    backend: backend,
+    resolveStreamUrl: (station) => resolveCastStreamUrl(lautApi, station),
+  );
+  final playback = ref.read(playbackServiceProvider);
+  final handoff = CastHandoff(
+    service: service,
+    stopLocal: playback.stopPlayback,
+    activeStation: () => ref.read(activeStationProvider),
+    currentTrack: () => ref.read(currentTrackProvider).value,
+    initialVolume: playback.state.volume,
+  );
+  final subs = <StreamSubscription<Object?>>[
+    service.states.listen(handoff.onCastState),
+    playback.stateStream.listen(handoff.onLocalState),
+  ];
+  ref
+    ..listen<AsyncValue<Track?>>(
+      currentTrackProvider,
+      (_, next) => handoff.onTrack(next.value),
+    )
+    ..onDispose(() {
+      for (final sub in subs) {
+        unawaited(sub.cancel());
+      }
+      unawaited(service.dispose());
+    });
+  return service;
 }
 
 /// Audio-Dienst; main() setzt das Ergebnis von initAudio().
@@ -349,4 +391,5 @@ List<Override> productionOverrides({
   shareServiceProvider.overrideWith(
     (ref) => SystemShareService(webBaseUrl: config.webBaseUrl),
   ),
+  castServiceProvider.overrideWith(createCastService),
 ];

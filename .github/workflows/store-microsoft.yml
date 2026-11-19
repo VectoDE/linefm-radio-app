@@ -66,6 +66,13 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
+      # S3-04: auch bei manuellem Start (workflow_dispatch) muss der Tag zu pubspec.yaml
+      # passen, wie im Job "version" von release.yml.
+      - name: Tag und pubspec-Version vergleichen
+        uses: ./.github/actions/tag-version
+        with:
+          tag: ${{ inputs.tag }}
+
       - name: Gate Microsoft Store
         id: gate
         uses: ./.github/actions/secret-gate

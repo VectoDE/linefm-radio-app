@@ -1,8 +1,16 @@
 name: Release
 
-# Ausloeser: Tag vX.Y.Z (oder vX.Y.Z-suffix, wird als Vorabversion veroeffentlicht).
-# Baut alle Plattformen ueber build.yml, erzeugt SHA256SUMS.txt, SBOM (SPDX),
-# Build-Provenance- und SBOM-Attestierungen und legt das GitHub-Release an.
+# Ausloeser: Tag vX.Y.Z oder vX.Y.Z-rc.N (der Trigger nimmt jedes v*.*.*, der Job
+# "version" laesst aber nur diese beiden Formen zu; rc-Tags werden Vorabversionen).
+# Baut alle Plattformen ueber build.yml, erzeugt SHA256SUMS.txt und eine SBOM (SPDX)
+# und legt das GitHub-Release an. Build-Provenance- und SBOM-Attestierungen (Sigstore)
+# entstehen nur, wo GitHub sie erlaubt (oeffentliches Repo oder Enterprise Cloud); im
+# privaten Repo darf der Schritt scheitern und die Zusammenfassung sagt das offen.
+# Die Release-Dateien selbst sind nicht zusaetzlich signiert; Android (APK/AAB) und
+# Windows (MSIX) tragen ihre Plattform-Signatur nur, wenn die Signier-Secrets gesetzt
+# sind. Pruefen der Downloads: docs/RELEASE-VERIFIZIEREN.md.
+# Danach starten die Store-Workflows; Google Play und Snap auch fuer rc-Tags, alle
+# anderen nur fuer Endversionen.
 
 on:
   push:
@@ -35,31 +43,10 @@ jobs:
         with:
           persist-credentials: false
 
-      # REL-05: Tag vX.Y.Z oder vX.Y.Z-rc.N muss zur Version in pubspec.yaml passen
-      # (ohne +Build). Ein rc-Tag passt zur Version X.Y.Z ohne Suffix; steht in
-      # pubspec.yaml selbst ein Suffix, muss der Tag genau gleich sein.
-      - name: Vergleichen
-        run: |
-          set -euo pipefail
-          if ! [[ "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)(-rc\.[0-9]+)?$ ]]; then
-            echo "::error::Tag $TAG hat nicht das Format vX.Y.Z oder vX.Y.Z-rc.N"
-            exit 1
-          fi
-          tag_base="${BASH_REMATCH[1]}"
-          tag_full="${TAG#v}"
-          pub="$(sed -n 's/^version:[[:space:]]*\([^[:space:]#]*\).*/\1/p' pubspec.yaml | head -n1)"
-          pub="${pub%%+*}"
-          if [ -z "$pub" ]; then
-            echo "::error::Keine Version in pubspec.yaml gefunden"
-            exit 1
-          fi
-          if [[ "$pub" == *-* ]]; then ok=$([ "$tag_full" = "$pub" ] && echo yes || echo no)
-          else ok=$([ "$tag_base" = "$pub" ] && echo yes || echo no); fi
-          if [ "$ok" != "yes" ]; then
-            echo "::error::Tag $TAG passt nicht zu pubspec.yaml (version: $pub). Erst pubspec.yaml anheben, dann taggen."
-            exit 1
-          fi
-          echo "Tag $TAG passt zu pubspec.yaml ($pub)." >> "$GITHUB_STEP_SUMMARY"
+      - name: Tag und pubspec-Version vergleichen
+        uses: ./.github/actions/tag-version
+        with:
+          tag: ${{ github.ref_name }}
 
   build:
     name: Build
@@ -231,6 +218,7 @@ jobs:
       tag: ${{ github.ref_name }}
     secrets:
       PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
     permissions:
       contents: read
 

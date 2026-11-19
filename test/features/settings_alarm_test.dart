@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show ValueListenable;
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' show AsyncData;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -17,7 +18,6 @@ import 'package:linefm_radio/features/settings/sleep_timer_row.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations_de.dart';
 import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
 import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
-import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'feature_host.dart';
@@ -64,11 +64,6 @@ class _RecordingAlarms implements AlarmCoordinator {
   @override
   Future<void> dismiss(String ruleId) async {}
 }
-
-/// Knopf mit [QuietTooltip] (der Material-Finder `byTooltip` kennt nur
-/// Tooltips mit Semantik).
-Finder _byQuietTooltip(String message) =>
-    find.byWidgetPredicate((w) => w is QuietTooltip && w.message == message);
 
 void main() {
   final l10n = AppLocalizationsDe();
@@ -235,6 +230,31 @@ void main() {
       expect(host.prefs.readTelemetryConsent(), isNull);
       expect(alarms.calls.last, isEmpty);
       expect(find.text('Speicher gelöscht.'), findsOneWidget);
+    });
+
+    testWidgets('Speicher loeschen behaelt "Cover laden: aus" (R3-P03)', (
+      tester,
+    ) async {
+      useSize(tester, 420, 2600);
+      final host = FeatureHost(
+        extra: <Override>[
+          alarmCoordinatorProvider.overrideWithValue(_RecordingAlarms()),
+        ],
+      );
+      await host.prefs.setStorageConsent(value: true);
+      await host.prefs.writeSettings(
+        const AppSettings(loadArtwork: false, marquee: false),
+      );
+      await tester.pumpWidget(host.app(const SettingsScreen()));
+      await tester.pump();
+
+      await tester.tap(find.text('Speicher löschen'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('„Cover laden: aus“ bleibt'), findsOneWidget);
+      await tester.tap(find.text('Löschen'));
+      await tester.pumpAndSettle();
+      expect(host.prefs.storageConsent, isFalse);
+      expect(host.prefs.readSettings(), const AppSettings(loadArtwork: false));
     });
 
     testWidgets('Footer-Links: Rechtstexte in der App, Website extern', (
@@ -452,8 +472,18 @@ void main() {
       expect(host.prefs.readAlarms().single.weekdays, <int>{1, 3});
       expect(find.text('Mo, Mi'), findsOneWidget);
 
-      await tester.tap(_byQuietTooltip('Wecker 07:00 löschen'));
+      // A5: Loeschknopf mit Knopf-Rolle, Label genau einmal, Semantik-Tap.
+      final handle = tester.ensureSemantics();
+      await tester.pump();
+      expect(find.semantics.byLabel('Wecker 07:00 löschen'), findsOneWidget);
+      final del = tester
+          .getSemantics(find.bySemanticsLabel('Wecker 07:00 löschen'))
+          .getSemanticsData();
+      expect(del.flagsCollection.isButton, isTrue);
+      expect(del.hasAction(SemanticsAction.tap), isTrue);
+      tester.semantics.tap(find.semantics.byLabel('Wecker 07:00 löschen'));
       await tester.pumpAndSettle();
+      handle.dispose();
       expect(host.prefs.readAlarms(), isEmpty);
       expect(alarms.calls.last, isEmpty);
     });

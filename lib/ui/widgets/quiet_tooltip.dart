@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/gestures.dart' show PointerEnterEvent, PointerExitEvent;
+import 'package:flutter/services.dart'
+    show HardwareKeyboard, KeyDownEvent, KeyEvent, LogicalKeyboardKey;
 import 'package:material_ui/material_ui.dart';
 
 /// Hinweisblase fuer Maus (Hover) und Touch (Langdruck), ganz ohne
@@ -14,9 +16,16 @@ import 'package:material_ui/material_ui.dart';
 /// (kritisch), solange sie sichtbar ist ausserdem `region`.
 ///
 /// Hier liegt die Blase in einem eigenen [OverlayEntry] ohne Bezug zum Knopf,
-/// eingehuellt in [ExcludeSemantics] und [IgnorePointer]. Der Knopf traegt
-/// sein Label selbst (eigene `Semantics` oder `semanticLabel`). Aussehen und
-/// Wartezeit kommen aus dem [TooltipTheme].
+/// eingehuellt in [ExcludeSemantics]. Der Knopf traegt sein Label selbst
+/// (eigene `Semantics` oder `semanticLabel`). Aussehen und Wartezeit kommen
+/// aus dem [TooltipTheme].
+///
+/// WCAG 1.4.13 (Inhalt bei Hover oder Fokus):
+/// * schliessbar: Escape blendet die Blase aus, ohne den Fokus zu bewegen;
+/// * hoverbar: Die Blase bleibt stehen, solange der Mauszeiger auf ihr liegt;
+/// * dauerhaft: Sie bleibt, bis Zeiger oder Fokus gehen oder Escape kommt.
+/// Bei Tastaturfokus (nicht bei Fokus durch Tippen) erscheint sie ebenfalls.
+/// Der Fokus-Rahmen um das Kind hat keine eigene Semantik.
 class QuietTooltip extends StatefulWidget {
   const QuietTooltip({super.key, required this.message, required this.child});
 
@@ -33,6 +42,7 @@ class _QuietTooltipState extends State<QuietTooltip> {
 
   OverlayEntry? _entry;
   Timer? _timer;
+  bool _keyHandlerAdded = false;
 
   @override
   void didUpdateWidget(QuietTooltip oldWidget) {
@@ -67,6 +77,29 @@ class _QuietTooltipState extends State<QuietTooltip> {
 
   void _onExit(PointerExitEvent _) => _schedule(_exitDelay, _hideNow);
 
+  /// Zeiger auf der Blase: nicht ausblenden (hoverbar).
+  void _onBubbleEnter(PointerEnterEvent _) => _timer?.cancel();
+
+  void _onFocusChange(bool focused) {
+    if (focused &&
+        FocusManager.instance.highlightMode == FocusHighlightMode.traditional) {
+      _timer?.cancel();
+      _show();
+    } else if (!focused) {
+      _hideNow();
+    }
+  }
+
+  bool _onKey(KeyEvent event) {
+    if (_entry != null &&
+        event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.escape) {
+      _hideNow();
+      return true;
+    }
+    return false;
+  }
+
   void _onLongPress() {
     _show();
     _schedule(_touchShowDuration, _hideNow);
@@ -84,14 +117,18 @@ class _QuietTooltipState extends State<QuietTooltip> {
     final textStyle = theme.textStyle ?? Theme.of(context).textTheme.bodyMedium;
     _entry = OverlayEntry(
       builder: (_) => Positioned.fill(
-        child: IgnorePointer(
-          child: ExcludeSemantics(
-            child: CustomSingleChildLayout(
-              delegate: _BubbleLayout(
-                target: targetRect,
-                verticalOffset: theme.verticalOffset ?? 24,
-                preferBelow: theme.preferBelow ?? true,
-              ),
+        child: ExcludeSemantics(
+          child: CustomSingleChildLayout(
+            delegate: _BubbleLayout(
+              target: targetRect,
+              verticalOffset: theme.verticalOffset ?? 24,
+              preferBelow: theme.preferBelow ?? true,
+            ),
+            // Nur die Blase selbst nimmt den Zeiger an (der Rest des
+            // Overlays laesst ihn durch), damit sie beim Hover stehen bleibt.
+            child: MouseRegion(
+              onEnter: _onBubbleEnter,
+              onExit: _onExit,
               child: DecoratedBox(
                 decoration: theme.decoration ?? const BoxDecoration(),
                 child: Padding(
@@ -115,10 +152,18 @@ class _QuietTooltipState extends State<QuietTooltip> {
       ),
     );
     overlay.insert(_entry!);
+    if (!_keyHandlerAdded) {
+      HardwareKeyboard.instance.addHandler(_onKey);
+      _keyHandlerAdded = true;
+    }
   }
 
   void _hideNow() {
     _timer?.cancel();
+    if (_keyHandlerAdded) {
+      HardwareKeyboard.instance.removeHandler(_onKey);
+      _keyHandlerAdded = false;
+    }
     _entry?.remove();
     _entry?.dispose();
     _entry = null;
@@ -127,14 +172,20 @@ class _QuietTooltipState extends State<QuietTooltip> {
   @override
   Widget build(BuildContext context) {
     if (widget.message.isEmpty) return widget.child;
-    return MouseRegion(
-      onEnter: _onEnter,
-      onExit: _onExit,
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onLongPress: _onLongPress,
-        excludeFromSemantics: true,
-        child: widget.child,
+    return Focus(
+      canRequestFocus: false,
+      skipTraversal: true,
+      includeSemantics: false,
+      onFocusChange: _onFocusChange,
+      child: MouseRegion(
+        onEnter: _onEnter,
+        onExit: _onExit,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onLongPress: _onLongPress,
+          excludeFromSemantics: true,
+          child: widget.child,
+        ),
       ),
     );
   }

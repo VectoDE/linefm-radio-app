@@ -1,3 +1,4 @@
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/app.dart';
@@ -119,6 +120,29 @@ void main() {
       expect(handled, isTrue);
       expect(host.container.read(navigationProvider), AppScreen.stations);
       await disposeApp(tester, host);
+    });
+
+    testWidgets('Einstellungen-Knopf: Rolle, Label einmal, Semantik-Tap (A5)', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      useSize(tester, 390, 844);
+      final host = AppHost(settings: _noAutoplay);
+      await pumpApp(tester, host);
+
+      // Genau ein Knoten mit dem Label (Blase ohne eigenen Knoten).
+      expect(find.semantics.byLabel('Einstellungen'), findsOneWidget);
+      final data = tester
+          .getSemantics(find.bySemanticsLabel('Einstellungen'))
+          .getSemanticsData();
+      expect(data.flagsCollection.isButton, isTrue);
+      expect(data.hasAction(SemanticsAction.tap), isTrue);
+
+      tester.semantics.tap(find.semantics.byLabel('Einstellungen'));
+      await settleApp(tester);
+      expect(host.container.read(navigationProvider), AppScreen.settings);
+      await disposeApp(tester, host);
+      handle.dispose();
     });
 
     testWidgets('Offline-Leiste, wenn laut.fm nicht erreichbar ist', (

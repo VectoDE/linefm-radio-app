@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:material_ui/material_ui.dart';
@@ -105,5 +106,67 @@ void main() {
     await mouse.moveTo(tester.getCenter(find.byType(IconButton)));
     await tester.pump(const Duration(seconds: 1));
     expect(find.byType(Text), findsNothing);
+  });
+
+  group('WCAG 1.4.13', () {
+    Future<TestGesture> hover(WidgetTester tester) async {
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+      await mouse.moveTo(tester.getCenter(find.byType(IconButton)));
+      await tester.pump(const Duration(seconds: 1));
+      return mouse;
+    }
+
+    testWidgets('Escape schliesst die Blase', (tester) async {
+      await tester.pumpWidget(_app());
+      await hover(tester);
+      expect(find.text('Einstellungen'), findsOneWidget);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+      expect(find.text('Einstellungen'), findsNothing);
+    });
+
+    testWidgets('Blase bleibt, solange der Zeiger auf ihr liegt', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app());
+      final mouse = await hover(tester);
+      final bubble = tester.getCenter(find.text('Einstellungen'));
+      await mouse.moveTo(bubble);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Einstellungen'), findsOneWidget);
+      await mouse.moveTo(Offset.zero);
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('Einstellungen'), findsNothing);
+    });
+
+    testWidgets('Tastaturfokus zeigt die Blase, ohne Semantik-Knoten', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(_app());
+      final before = _nodeCount(tester);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(
+        FocusManager.instance.highlightMode,
+        FocusHighlightMode.traditional,
+      );
+      expect(find.text('Einstellungen'), findsOneWidget);
+      expect(_nodeCount(tester), before);
+      expect(find.bySemanticsLabel('Einstellungen'), findsOneWidget);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+      expect(find.text('Einstellungen'), findsNothing);
+      // Escape bewegt den Fokus nicht.
+      expect(
+        FocusManager.instance.primaryFocus?.context
+            ?.findAncestorWidgetOfExactType<IconButton>(),
+        isNotNull,
+      );
+      handle.dispose();
+    });
   });
 }

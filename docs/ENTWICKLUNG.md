@@ -175,6 +175,12 @@ Das ist für Mobilfunk und Akku nicht vertretbar. Deshalb ist `WS_ENABLED` stand
 
 Ein Titel erscheint dadurch bis zu einige Sekunden später als mit WebSocket. Die ICY-Metadaten des Streams sind nur auf Android, iOS und macOS lesbar, deshalb kommen Titel überall aus der API.
 
+## Google Cast: offener Punkt beim Plugin
+
+Die App startet das Cast-SDK erst beim ersten Tippen auf den Cast-Knopf (`initCast`, L4). Das Plugin `flutter_chrome_cast` 2.0.0 ruft auf Android aber in `onDetachedFromEngine` `CastContext.getSharedInstance(appContext)` auf (`android/src/main/kotlin/com/felnanuke/google_cast/CastContextMethodChannel.kt`, Zeile 139), um einen Listener abzumelden. Läuft das, ohne dass Cast vorher genutzt wurde, initialisiert genau dieser Aufruf das SDK, also beim Beenden der App.
+
+Entscheidung: kein eigener Fork des Plugins. Die Datenschutzerklärung (Abschnitt 7) nennt die Ausnahme. Upstream-Wunsch an das Plugin: im Abbau `CastContext.getSharedInstance()` nur aufrufen, wenn der Kontext schon initialisiert ist (eigenes Flag oder `CastContext.getSharedInstance()` ohne Kontext-Argument mit try/catch). Bei jedem Update von `flutter_chrome_cast` die Stelle neu prüfen und die Datenschutzerklärung anpassen, sobald sie behoben ist.
+
 ## Weiterführende Dokumente
 
 - Web-Hosting: [hosting-uebersicht.md](hosting-uebersicht.md) mit [nginx](hosting-nginx.md), [Traefik](hosting-traefik.md), [Cloudflare](hosting-cloudflare.md), [Plesk](hosting-plesk.md)

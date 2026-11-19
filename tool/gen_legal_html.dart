@@ -8,7 +8,10 @@
 //
 // --providers  aktive Telemetrie-Anbieter (Bloecke mit "requires").
 // --values     JSON-Objekt Platzhalter -> Wert (z. B. BETREIBER_NAME).
-// --strict     Exit-Code 1, solange Pflicht-Platzhalter offen sind.
+// --strict     Exit-Code 1, solange Pflicht-Platzhalter offen sind. Prueft
+//              zusaetzlich [strictFiles] (Sicherheitskontakt, Barrierefreiheit,
+//              Verhaltenskodex) auf offene {{...}}; die traegt der Betreiber
+//              selbst im Repo ein, sie kommen nicht aus --values.
 // --fill-assets setzt die Werte zusaetzlich direkt in assets/legal/**.json ein.
 //
 // Solange Platzhalter offen sind, setzt die Seite "noindex".
@@ -19,6 +22,26 @@ import 'dart:io';
 const Set<String> telemetryProviders = <String>{'umami', 'sentry', 'firebase'};
 
 final RegExp _placeholder = RegExp(r'\{\{(\w+)\}\}');
+
+/// Weitere Dateien, die mit --strict keine Platzhalter mehr haben duerfen.
+const List<String> strictFiles = <String>[
+  'SECURITY.md',
+  'CODE_OF_CONDUCT.md',
+  'docs/BARRIEREFREIHEIT.md',
+  'web/.well-known/security.txt',
+];
+
+/// Offene Platzhalter je Datei aus [paths] (fehlende Dateien zaehlen nicht).
+Map<String, Set<String>> openPlaceholdersInFiles(Iterable<String> paths) {
+  final Map<String, Set<String>> open = <String, Set<String>>{};
+  for (final String path in paths) {
+    final File file = File(path);
+    if (!file.existsSync()) continue;
+    final Set<String> found = findPlaceholders(file.readAsStringSync());
+    if (found.isNotEmpty) open[path] = found;
+  }
+  return open;
+}
 
 /// Ist ein `requires`-Ausdruck (String oder Liste, "!x" = Negation) erfuellt?
 /// Mehrere Eintraege einer Liste muessen alle gelten.
@@ -401,5 +424,15 @@ Future<void> main(List<String> args) async {
       'FEHLER (--strict): Pflichtangaben fehlen: ${openRequired.join(", ")}',
     );
     exitCode = 1;
+  }
+  if (strict) {
+    final Map<String, Set<String>> files = openPlaceholdersInFiles(strictFiles);
+    for (final MapEntry<String, Set<String>> e in files.entries) {
+      stderr.writeln(
+        'FEHLER (--strict): ${e.key} enthaelt noch Platzhalter: '
+        '${(e.value.toList()..sort()).join(", ")}',
+      );
+      exitCode = 1;
+    }
   }
 }

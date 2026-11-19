@@ -2,7 +2,7 @@
   "version": 1,
   "lang": "de",
   "title": "Impressum",
-  "updated": "2026-11-18",
+  "updated": "2026-11-19",
   "reviewNote": "ENTWURF. Muss vor Veröffentlichung von einem Anwalt geprüft und mit den Betreiberdaten befüllt werden. Quellen: § 5 DDG, § 18 Abs. 2 MStV, § 27a UStG.",
   "blocks": [
     {"type": "h1", "text": "Impressum"},
@@ -25,7 +25,7 @@
     {"type": "h2", "text": "Über diese App"},
     {"type": "p", "text": "LINEFM Radio spielt die Programme des Webradios LINEFM und der Partnersender Radio3FM und FobFM. Radio3FM und FobFM sind Sender anderer Betreiber, keine LINEFM-Sender. LINEFM ist Teil der RadioGruppe Deutschland."},
     {"type": "link", "text": "radiogruppe.de", "url": "https://radiogruppe.de"},
-    {"type": "p", "text": "Die App wurde entwickelt von Tim Hauke (VectoDE)."},
+    {"type": "p", "text": "Die App wurde von Tim Hauke (VectoDE) für {{APP_AUFTRAGGEBER}} entwickelt."},
     {"type": "h2", "text": "Musik und Lizenz"},
     {"type": "p", "text": "Die Programme laufen über die Plattform laut.fm. Die Lizenzierung der gesendeten Musik liegt bei den jeweiligen Sendern beziehungsweise bei laut.fm. Die App gibt den Stream von laut.fm wieder und zeigt die dort bereitgestellten Titelinformationen an. Sie speichert und vervielfältigt keine Musik."},
     {"type": "h2", "text": "Rechte an Namen, Logos und Covern"},

@@ -2,7 +2,7 @@
 
 **Status:** Entwurf, freiwillig. Ob für LINEFM Radio eine Erklärung nach dem Barrierefreiheitsstärkungsgesetz (BFSG) Pflicht ist, ist nicht geklärt (siehe [FREIGABE-CHECKLISTE.md](FREIGABE-CHECKLISTE.md), Abschnitt A4). Dieser Text ist eine Vorprüfung und ersetzt keine Rechtsberatung. Vor der Veröffentlichung mit einem Anwalt oder der zuständigen Stelle abstimmen.
 
-Stand der Prüfung: 19. November 2026, Commit-Stand der Qualitätsrunde P30. Geprüft wurde die Web-Version (Chromium, Wasm-Build) automatisch mit axe-core 4.10 und von Hand mit Tastatur und Zugriffsbaum. Gerätetests mit TalkBack, VoiceOver und NVDA sind **noch nicht** gelaufen.
+Stand der Prüfung: 19. November 2026. Geprüft wurde die Web-Version (Chromium, Wasm-Build) automatisch mit axe-core 4.10 und von Hand mit Tastatur und Zugriffsbaum. Gerätetests mit TalkBack, VoiceOver und NVDA sind **noch nicht** gelaufen.
 
 ## Unser Ziel
 
@@ -20,7 +20,7 @@ LINEFM Radio soll sich ohne Maus, mit Screenreader, mit starker Vergrößerung u
 
 ## Bekannte Einschränkungen
 
-Diese Punkte sind uns bekannt und noch nicht behoben. Die Nummern verweisen auf die Befunde der Qualitätsrunde.
+Diese Punkte sind uns bekannt und noch nicht behoben.
 
 | Bereich | Einschränkung | Was wir tun |
 |---|---|---|
@@ -38,6 +38,8 @@ Diese Punkte sind uns bekannt und noch nicht behoben. Die Nummern verweisen auf 
 Wenn dir eine Stelle nicht zugänglich ist, schreib uns: {{BARRIEREFREIHEIT_KONTAKT}}. Beschreibe bitte kurz, welches Gerät und welche Hilfstechnik du nutzt. Wir antworten innerhalb von {{BARRIEREFREIHEIT_ANTWORTFRIST}}.
 
 Bei Beschwerden zuständig: {{SCHLICHTUNGS_BZW_MARKTUEBERWACHUNGSSTELLE}}. Der Text muss vor Veröffentlichung gegen die tatsächlich zuständige Stelle geprüft werden.
+
+Die drei Platzhalter in diesem Abschnitt trägt der Betreiber ein. Solange einer offen ist, bricht der Release-Build ab (`tool/gen_legal_html.dart --strict`).
 
 ## So prüfen wir weiter
 

@@ -196,4 +196,62 @@ void main() {
       }
     });
   });
+
+  group('Eingecheckte Seiten (N01)', () {
+    // web/impressum und web/datenschutz liegen im Repo, damit lokale Builds
+    // und Plesk-Uploads Rechtstexte haben. Sie muessen dem Generator ohne
+    // Werte und ohne Telemetrie entsprechen; sonst liefern sie alten Text.
+    // Neu erzeugen: dart run tool/gen_legal_html.dart
+    for (final String kind in <String>['impressum', 'datenschutz']) {
+      for (final String lang in <String>['de', 'en']) {
+        test('$kind/$lang entspricht der Generator-Ausgabe', () {
+          final String dir = lang == 'de' ? 'web/$kind' : 'web/$kind/en';
+          final String expected = renderPage(
+            _doc(lang, kind),
+            kind: kind,
+            lang: lang,
+            baseUrl: 'https://app.linefm.de',
+            providers: <String>{},
+            values: <String, String>{},
+          );
+          expect(
+            File('$dir/index.html').readAsStringSync(),
+            expected,
+            reason: 'dart run tool/gen_legal_html.dart ausfuehren',
+          );
+        });
+      }
+      test('$kind/legal.css ist aktuell', () {
+        expect(File('web/$kind/legal.css').readAsStringSync(), legalCss);
+      });
+    }
+  });
+
+  group('Strict-Dateien', () {
+    test('findet Platzhalter in Dateien, fehlende Dateien zaehlen nicht', () {
+      final Directory tmp = Directory.systemTemp.createTempSync('legal');
+      addTearDown(() => tmp.deleteSync(recursive: true));
+      final File a = File('${tmp.path}/a.md')
+        ..writeAsStringSync('Kontakt: {{SECURITY_KONTAKT}}');
+      final File b = File('${tmp.path}/b.md')..writeAsStringSync('fertig');
+      final Map<String, Set<String>> open = openPlaceholdersInFiles(<String>[
+        a.path,
+        b.path,
+        '${tmp.path}/fehlt.md',
+      ]);
+      expect(open.keys, <String>[a.path]);
+      expect(open[a.path], <String>{'SECURITY_KONTAKT'});
+    });
+
+    test('Barrierefreiheit und Sicherheitskontakt sind erfasst', () {
+      expect(
+        strictFiles,
+        containsAll(<String>[
+          'docs/BARRIEREFREIHEIT.md',
+          'SECURITY.md',
+          'web/.well-known/security.txt',
+        ]),
+      );
+    });
+  });
 }

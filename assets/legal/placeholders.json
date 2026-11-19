@@ -13,6 +13,7 @@
     "REGISTERNUMMER": {"required": false, "desc": "Registernummer (sonst: Nicht zutreffend.)"},
     "USTID": {"required": false, "desc": "USt-IdNr. nach § 27a UStG oder Wirtschafts-IdNr., falls vorhanden (sonst: Nicht zutreffend.)"},
     "AUFSICHTSBEHOERDE_MEDIEN": {"required": true, "desc": "Zuständige Medienanstalt, falls zulassungspflichtig, sonst 'Nicht zutreffend.' (Bagatellrundfunk prüfen lassen)"},
+    "APP_AUFTRAGGEBER": {"required": true, "desc": "Für wen die App entwickelt wurde (Auftraggeber, z. B. jaybelife / LINEFM). Genaue Schreibweise gibt der Inhaber vor."},
     "VERANTWORTLICHER_MSTV": {"required": true, "desc": "Name und Anschrift der verantwortlichen Person für journalistisch-redaktionelle Inhalte, § 18 Abs. 2 MStV"},
     "DATENSCHUTZBEAUFTRAGTER": {"required": true, "desc": "Name und Kontakt oder: Wir haben keine(n) Datenschutzbeauftragte(n) benannt, da dies gesetzlich nicht erforderlich ist."},
     "AUFSICHTSBEHOERDE_DATENSCHUTZ": {"required": true, "desc": "Zuständige Landesdatenschutzbehörde nach Sitz des Betreibers"},

@@ -2,7 +2,7 @@
   "version": 1,
   "lang": "en",
   "title": "Imprint",
-  "updated": "2026-11-18",
+  "updated": "2026-11-19",
   "reviewNote": "DRAFT. A lawyer must review this and the operator data must be filled in before publication. Sources: Section 5 DDG, Section 18(2) MStV, Section 27a UStG. The German version is the legally binding one.",
   "blocks": [
     {"type": "h1", "text": "Imprint"},
@@ -25,7 +25,7 @@
     {"type": "h2", "text": "About this app"},
     {"type": "p", "text": "LINEFM Radio plays the programmes of the web radio LINEFM and of the partner stations Radio3FM and FobFM. Radio3FM and FobFM are stations of other operators, not LINEFM stations. LINEFM is part of RadioGruppe Deutschland."},
     {"type": "link", "text": "radiogruppe.de", "url": "https://radiogruppe.de"},
-    {"type": "p", "text": "The app was developed by Tim Hauke (VectoDE)."},
+    {"type": "p", "text": "Tim Hauke (VectoDE) developed the app for {{APP_AUFTRAGGEBER}}."},
     {"type": "h2", "text": "Music and licence"},
     {"type": "p", "text": "The programmes run through the platform laut.fm. Licensing of the music played lies with the respective stations or with laut.fm. The app plays the laut.fm stream and shows the track information provided there. It does not store or copy any music."},
     {"type": "h2", "text": "Rights to names, logos and covers"},

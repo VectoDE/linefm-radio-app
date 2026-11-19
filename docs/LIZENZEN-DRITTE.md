@@ -32,7 +32,7 @@ Ob eine dynamisch geladene GPL-Bibliothek die App zu einem "Werk unter der GPL" 
 
 ## Weitere Bausteine
 
-- **Google Cast SDK** (Android, über `flutter_chrome_cast`): Das SDK gehört zu den Google Play-Diensten und hat eigene Nutzungsbedingungen. Es sendet nach Angabe von Google Nutzungsdaten, siehe Datenschutzerklärung, Abschnitt 7.
+- **Google Cast SDK** (Android, über `flutter_chrome_cast`): Das SDK gehört zu den Google Play-Diensten und hat eigene Nutzungsbedingungen. Es sendet nach Angabe von Google Nutzungsdaten, siehe Datenschutzerklärung, Abschnitt 7. Upstream-Punkt: Auf Android kann das Plugin das SDK beim Beenden der App initialisieren, auch ohne Cast-Nutzung (Details in [ENTWICKLUNG.md](ENTWICKLUNG.md), Abschnitt Google Cast).
 - **Schriften:** Poppins steht unter der Open Font License, Syncopate unter Apache 2.0. Beide Lizenztexte liegen in der App (`assets/fonts/`).
 - **Ersatzschriften der Web-Version** (Noto-Familien wie Noto Color Emoji, Noto Sans, Noto Sans Symbols, Noto Sans SC/TC/HK/JP/KR sowie Roboto): SIL Open Font License 1.1. Quelle ist Google Fonts (`fonts.gstatic.com`), die Dateien liegen aber auf unserem eigenen Server unter `assets/fonts/fallback/`. Der Browser lädt sie nur, wenn ein Text Zeichen enthält, die Poppins und Syncopate nicht haben. Welche Dateien es sind und welche SHA-256-Prüfsummen sie haben, steht in `tool/font_fallback.lock.json`. Die OFL erlaubt Weitergabe und Selbsthosting, solange die Schriften nicht einzeln verkauft werden und der Lizenztext beiliegt. Das Werkzeug legt den OFL-Text mit Urheberangaben als `assets/fonts/fallback/OFL.txt` daneben.
 - **Flutter und Dart-Pakete:** überwiegend BSD, MIT und Apache 2.0. Die vollständige Liste erzeugt Flutter beim Build (Datei `assets/NOTICES` im Web).

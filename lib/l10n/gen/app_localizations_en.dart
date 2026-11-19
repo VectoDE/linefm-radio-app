@@ -689,4 +689,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trayQuit => 'Quit';
+
+  @override
+  String get trayAlwaysOnTop => 'Always on top';
 }

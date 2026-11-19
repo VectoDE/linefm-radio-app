@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:linefm_radio/data/storage/shared_prefs_store.dart';
 import 'package:linefm_radio/platform/desktop/saved_bounds.dart';
 import 'package:linefm_radio/platform/desktop/window.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,10 +26,10 @@ const Size _defaultWindowSize = Size(1280, 720);
 
 // Schluessel ausserhalb von `PrefsKeys`, damit die Einwilligungslogik der
 // App unberuehrt bleibt; geschrieben wird nur mit Speicher-Bestaetigung.
-const String _consentKey = 'linefm-storage-notice-dismissed';
-const String _closeToTrayKey = 'linefm-setting-close-to-tray';
-const String _windowKey = 'linefm-desktop-window';
-const String _miniKey = 'linefm-desktop-mini';
+const String _consentKey = PrefsKeys.storageConsent;
+const String _closeToTrayKey = PrefsKeys.closeToTray;
+const String _windowKey = PrefsKeys.desktopWindow;
+const String _miniKey = PrefsKeys.desktopMini;
 
 /// Fenster-Umsetzung mit window_manager.
 class WindowManagerDesktopWindow with WindowListener implements DesktopWindow {

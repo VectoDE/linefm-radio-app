@@ -1,0 +1,33 @@
+title: "Frage: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Fragen zur App, zum Bauen oder zur Einrichtung. Fehler bitte als Issue melden, Sicherheitslücken vertraulich wie in SECURITY.md beschrieben.
+  - type: textarea
+    id: frage
+    attributes:
+      label: Deine Frage
+      description: Was möchtest du wissen, und was hast du schon versucht?
+    validations:
+      required: true
+  - type: dropdown
+    id: thema
+    attributes:
+      label: Worum geht es?
+      options:
+        - App benutzen
+        - Bauen und Entwickeln
+        - Hosting der Web-Version
+        - Stores und Releases
+        - Datenschutz und Barrierefreiheit
+        - Etwas anderes
+    validations:
+      required: true
+  - type: input
+    id: umgebung
+    attributes:
+      label: Version und Umgebung
+      description: Optional. App-Version, Gerät oder Betriebssystem, bei Web der Browser.
+      placeholder: "1.0.0 (12), Windows 11, Firefox"

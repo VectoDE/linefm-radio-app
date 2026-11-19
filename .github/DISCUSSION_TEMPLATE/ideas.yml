@@ -1,0 +1,33 @@
+title: "Idee: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideen erst hier besprechen. Steht fest, dass wir sie umsetzen, wird daraus ein Issue.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Was fehlt dir beim Hören?
+      description: Beschreib die Situation, nicht gleich die Lösung.
+    validations:
+      required: true
+  - type: textarea
+    id: vorschlag
+    attributes:
+      label: Dein Vorschlag
+      description: Wie könnte es aussehen oder funktionieren?
+  - type: dropdown
+    id: plattform
+    attributes:
+      label: Für welche Plattform?
+      multiple: true
+      options:
+        - alle
+        - Web (Browser)
+        - Android
+        - Android Auto
+        - iOS
+        - macOS
+        - Windows
+        - Linux

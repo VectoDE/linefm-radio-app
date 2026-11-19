@@ -161,8 +161,15 @@ jobs:
           mkdir -p build/web
           unzip -q dist/*-web.zip -d build/web
           test -f build/web/index.html
-          # Pages wertet .htaccess nicht aus; Header kommen aus _headers.
-          rm -f build/web/.htaccess
+          # Pages wertet .htaccess nicht aus; Header kommen aus _headers. Jede .htaccess
+          # (auch in Unterordnern) und jede Punktdatei ausser .well-known wird vor dem
+          # Upload entfernt, damit nichts Verstecktes oeffentlich wird.
+          find build/web -name '.htaccess' -type f -delete
+          find build/web -mindepth 1 -name '.*' -not -path '*/.well-known' -not -path '*/.well-known/*' -prune -exec rm -rf {} +
+          if [ -n "$(find build/web -mindepth 1 -name '.*' -not -path '*/.well-known' -not -path '*/.well-known/*')" ]; then
+            echo "Punktdateien im Upload-Ordner" >&2
+            exit 1
+          fi
 
       - name: Nach Cloudflare Pages ausrollen
         if: steps.gate.outputs.ready == 'true'

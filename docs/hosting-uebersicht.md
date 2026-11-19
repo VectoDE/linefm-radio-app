@@ -99,7 +99,7 @@ curl -sI -H 'If-None-Match: <etag>' https://app.linefm.de/   # erwartet 304
 
 ## Größe des Ausrollordners und Startsatz (gemessen)
 
-Messung am 19.11.2026 mit `flutter build web --release --wasm --no-web-resources-cdn`, Postbuild vorher und nachher, lokal ohne Kompression, **ohne** Ersatzschriften (die kommen mit 730 Dateien und 34,6 MiB dazu, siehe oben):
+Messung am 19.11.2026 mit `flutter build web --release --wasm --no-web-resources-cdn`, Postbuild vorher und nachher, lokal ohne Kompression, **ohne** Ersatzschriften (die kommen mit 729 Dateien und rund 34,6 MiB dazu: 728 Schriften plus `OFL.txt`; `Roboto-Regular.ttf` liegt schon in den 70 Basisdateien, siehe oben):
 
 | | vorher | nachher |
 |---|---|---|

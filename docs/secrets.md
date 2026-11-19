@@ -126,7 +126,9 @@ Diese Variablen schreibt die CI in `config/app.json`. Sie landen im fertigen Pro
 | `TRUST_GRIDINSOFT_URL`, `TRUST_TRUSTPILOT_URL` | Variable | Profil-Links für die Vertrauens-Badges (optional) |
 | `LEGAL_VALUES_JSON` | Variable | JSON mit den Impressums-/Datenschutz-Platzhaltern, siehe EINRICHTUNG Abschnitt 9 |
 | `FIREBASE_CONFIG_JSON` | Secret, optional | JSON mit `FIREBASE_*`-Schlüsseln (aktiviert Firebase) |
-| `ANDROID_CERT_SHA256` | Variable, optional | SHA-256 des App-Signaturzertifikats aus der Play Console (Einstellungen > App-Integrität), Form `AA:BB:…` (32 Byte), mehrere kommagetrennt. Der Web-Postbuild setzt ihn in `/.well-known/assetlinks.json` ein; ohne Wert fehlt die Datei. Erst danach `autoVerify` im Manifest einschalten. Nicht in `config/app.json`. |
+| `ANDROID_CERT_SHA256` | Variable, optional | SHA-256-Fingerabdrücke, Form `AA:BB:…` (32 Byte), kommagetrennt, **beide** eintragen: der App-Signaturschlüssel (Play Console > App-Integrität, für Play-Installationen) und der Upload-Schlüssel (Play Console oder `keytool -list -v -keystore upload.jks`, für die APK aus den GitHub-Releases, die damit signiert ist). Der Web-Postbuild prüft das Format je Eintrag, entfernt doppelte und setzt sie in `/.well-known/assetlinks.json` ein; ohne Wert fehlt die Datei. Erst danach `autoVerify` im Manifest einschalten. Nicht in `config/app.json`. |
+| `SCORECARD_TOKEN` | Secret, optional | Fine-grained-PAT (nur lesend) für `scorecard.yml`, damit Checks wie Branch-Protection auswertbar sind. Ohne Wert nimmt der Workflow `github.token`; einzelne Checks fallen dann niedriger aus. |
+| `CODE_SCANNING_ENABLED` | Variable, optional | `true` lädt die CodeQL-Ergebnisse (`codeql.yml`) auch in einem privaten Repository in Code Scanning hoch. Voraussetzung ist GitHub Code Security. In öffentlichen Repositories geschieht das ohnehin. Ohne Wert läuft die Analyse, der Upload entfällt. |
 
 `APPLE_TEAM_ID` (Secret, siehe Apple) füllt zusätzlich `/.well-known/apple-app-site-association` für die Universal Links.
 

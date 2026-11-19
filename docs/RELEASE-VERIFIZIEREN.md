@@ -25,7 +25,7 @@ Die Prüfsummen zeigen, dass die Datei beim Download nicht beschädigt wurde. Si
 
 ## 2. Herkunft (Attestierung, wenn vorhanden)
 
-Der Release-Workflow lässt für `SHA256SUMS.txt` eine Build-Provenance und eine SBOM-Attestierung über Sigstore erzeugen. GitHub erlaubt das nur in öffentlichen Repositories (oder mit Enterprise Cloud). Steht in der Zusammenfassung „Build-Provenance: success“, prüfst du so:
+Der Release-Workflow lässt über Sigstore eine Build-Provenance und eine SBOM-Attestierung erzeugen. Subjekte der Provenance sind alle Dateien, die in `SHA256SUMS.txt` stehen (`subject-checksums`), nicht nur die Prüfsummendatei selbst. GitHub erlaubt das nur in öffentlichen Repositories (oder mit Enterprise Cloud). Steht in der Zusammenfassung „Build-Provenance: success“, prüfst du so:
 
 ```sh
 gh attestation verify linefm-radio-1.2.3-android.apk -R VectoDE/linefm-radio-app
@@ -38,7 +38,7 @@ Ohne Attestierung (privates Repository) bleibt nur Schritt 1 plus die Plattform-
 `linefm-radio-<version>-sbom.spdx.json` listet die Abhängigkeiten im SPDX-Format (erzeugt mit Anchore Syft aus dem Quelltext). Sie lässt sich mit üblichen Werkzeugen auf bekannte Schwachstellen prüfen, zum Beispiel:
 
 ```sh
-osv-scanner --sbom linefm-radio-1.2.3-sbom.spdx.json
+osv-scanner scan source -L linefm-radio-1.2.3-sbom.spdx.json
 ```
 
 ## 4. Signaturen der Plattformen
@@ -47,10 +47,10 @@ Diese Signaturen gibt es nur, wenn beim Build die passenden Secrets gesetzt ware
 
 | Datei | Prüfung |
 |---|---|
-| Android `*.apk` | `apksigner verify --print-certs linefm-radio-1.2.3-android.apk` (Android SDK Build-Tools). Der SHA-256-Fingerprint muss zu dem in `/.well-known/assetlinks.json` der Web-Version passen, sobald diese live ist. |
+| Android `*.apk` | `apksigner verify --print-certs linefm-radio-1.2.3-android.apk` (Android SDK Build-Tools). Die GitHub-Release-APK ist mit dem Upload-Schlüssel signiert, Play-Installationen mit dem App-Signaturschlüssel. Beide SHA-256-Fingerprints stehen in `/.well-known/assetlinks.json` der Web-Version (Variable `ANDROID_CERT_SHA256`), sobald diese live ist. |
 | Android `*.aab` | `jarsigner -verify linefm-radio-1.2.3-android.aab` (der Upload-Schlüssel; Google signiert für die Auslieferung neu). |
-| Windows (`*.exe` im ZIP) | `signtool verify /pa /v linefm_radio.exe` oder Eigenschaften > Digitale Signaturen. |
-| macOS `*.dmg` | `spctl -a -vv -t install linefm-radio-1.2.3-macos.dmg` und `xcrun stapler validate linefm-radio-1.2.3-macos.dmg` (signiert und notarisiert). |
+| Windows (`*.exe` im ZIP und der Installer `*-windows-x64-setup.exe`) | `signtool verify /pa /v <datei>` oder Eigenschaften > Digitale Signaturen. |
+| macOS `*.dmg` | `spctl -a -t open --context context:primary-signature -v linefm-radio-1.2.3-macos.dmg` und `xcrun stapler validate linefm-radio-1.2.3-macos.dmg` (signiert und notarisiert). |
 
 ## Was wir nicht versprechen
 

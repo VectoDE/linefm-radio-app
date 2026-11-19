@@ -101,21 +101,9 @@ Play Console > Richtlinie > App-Inhalte. Alles muss ausgefüllt sein, sonst bloc
 
 Damit Links `https://app.linefm.de/?station=...` direkt in der App statt im Browser öffnen, muss die Web-Seite die App bestätigen.
 
-- [ ] SHA-256-Fingerabdruck des **App-Signaturschlüssels** kopieren: Play Console > Test und Veröffentlichung > Einrichtung > App-Integrität > App-Signatur. (Nicht den Upload-Schlüssel.)
-- [ ] Datei `assetlinks.json` (die Bestätigung, dass die Web-Seite und die App zusammengehören) unter `https://app.linefm.de/.well-known/assetlinks.json` bereitstellen. Inhalt:
-
-```json
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "de.linefm.app",
-    "sha256_cert_fingerprints": ["HIER:DER:SHA-256:FINGERABDRUCK"]
-  }
-}]
-```
-
-- [ ] Prüfen: Die Datei muss ohne Weiterleitung mit Status 200 und `application/json` erreichbar sein. Die mitgelieferten Server-Konfigurationen lassen den Ordner `/.well-known/` zu.
+- [ ] Zwei SHA-256-Fingerabdrücke besorgen: den des **App-Signaturschlüssels** (Play Console > Test und Veröffentlichung > Einrichtung > App-Integrität > App-Signatur; gilt für Installationen aus Google Play) und den des **Upload-Schlüssels** (ebenfalls dort, oder lokal mit `keytool -list -v -keystore upload.jks`; gilt für die APK aus den GitHub-Releases, weil sie mit dem Upload-Schlüssel signiert wird).
+- [ ] Beide kommagetrennt als Repository-Variable `ANDROID_CERT_SHA256` eintragen (`AA:BB:…,CC:DD:…`, je 32 Byte, siehe [secrets.md](secrets.md)). Die Datei `assetlinks.json` schreibst du nicht von Hand: Der Web-Postbuild erzeugt sie beim Web-Build aus dieser Variable und legt sie unter `https://app.linefm.de/.well-known/assetlinks.json` ab. Ohne Wert fehlt die Datei.
+- [ ] Prüfen: Nach dem nächsten Web-Deploy muss die Datei ohne Weiterleitung mit Status 200 und `application/json` erreichbar sein und beide Fingerabdrücke enthalten. Die mitgelieferten Server-Konfigurationen lassen den Ordner `/.well-known/` zu.
 - [ ] Entwickler bitten, im Android-Manifest `autoVerify` auf `true` zu setzen und neu zu veröffentlichen. Bis dahin öffnen Links im Browser, die App funktioniert trotzdem.
 
 ## 3. Apple (vorbereitet, vorerst nicht veröffentlicht)
@@ -130,17 +118,7 @@ Apple ist für die Veröffentlichung herausgenommen. iOS, macOS, CarPlay und Air
 - [ ] Zertifikate und Profile: "Apple Distribution" (iOS und Mac) und "Mac Installer Distribution" (nur Mac App Store) als `.p12` exportieren, dazu je ein App-Store-Profil für `de.linefm.app` und `de.linefm.app.widget` (iOS) sowie `de.linefm.app` (macOS). Secrets `APPLE_DISTRIBUTION_CERT_P12_BASE64`, `APPLE_DISTRIBUTION_CERT_PASSWORD`, `APPLE_MAC_INSTALLER_CERT_P12_BASE64`, `APPLE_MAC_INSTALLER_CERT_PASSWORD`, `APPLE_IOS_PROVISIONING_PROFILES_BASE64`, `APPLE_MACOS_PROVISIONING_PROFILE_BASE64`. Für das signierte DMG außerhalb des Stores zusätzlich `APPLE_DEVELOPER_ID_CERT_P12_BASE64` und `APPLE_DEVELOPER_ID_CERT_PASSWORD`. Die Pipeline (`store-apple.yml`) nutzt kein fastlane, Details in [secrets.md](secrets.md). Vorlagen für die Exportoptionen: [packaging/ios/README.md](../packaging/ios/README.md).
 - [ ] Schalter `APPLE_PUBLISHING_ENABLED` (Repository-Variable, nicht Secret) erst dann auf `true` setzen, wenn alles vorliegt.
 - [ ] **CarPlay-Audio-Berechtigung** beantragen (Formular im Apple-Entwicklerportal, "CarPlay App Entitlement Request", Kategorie Audio). Apple prüft von Hand, das kann Wochen dauern. Ohne Freigabe zeigt die App kein CarPlay.
-- [ ] **AASA-Datei** (Bestätigungsdatei für Links, die direkt in der iOS-App öffnen, Universal Links): `https://app.linefm.de/.well-known/apple-app-site-association` (ohne Dateiendung, Antwort `application/json`, keine Weiterleitung). Inhalt, mit deiner Team-ID:
-
-```json
-{
-  "applinks": {
-    "details": [{ "appIDs": ["TEAMID.de.linefm.app"], "components": [{ "/": "/", "?": { "station": "*" } }] }]
-  }
-}
-```
-
-- [ ] Entwickler muss dafür im iOS-Projekt die Fähigkeit "Associated Domains" (`applinks:app.linefm.de`) ergänzen. Das ist noch nicht belegt und wird bei Aktivierung geprüft.
+- [ ] **AASA-Datei** (Bestätigungsdatei für Links, die direkt in der iOS-App öffnen, Universal Links): Die Vorlage liegt in `web/.well-known/apple-app-site-association`, die Fähigkeit "Associated Domains" (`applinks:app.linefm.de`) steht in `Runner.entitlements`. Der Web-Postbuild setzt die Team-ID (Secret `APPLE_TEAM_ID`) ein und legt die Datei unter `https://app.linefm.de/.well-known/apple-app-site-association` ab (ohne Dateiendung, `application/json`, keine Weiterleitung). Ohne Team-ID entfernt er die Vorlage. Nach dem ersten Deploy prüfen, ob die Datei so erreichbar ist.
 - [ ] macOS ohne Apple-Konto: Es gibt ein unsigniertes DMG auf GitHub Releases mit Öffnen-Anleitung ([packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt)). Mit Apple-Daten wird automatisch signiert und notarisiert.
 - [ ] Review-Risiko beachten: Apple lehnt reine Webseiten-Hüllen ab (Richtlinien 4.2 und 4.3). Die App bringt Favoriten, Verlauf, Sleeptimer, Wecker, Sperrbildschirm-Steuerung und CarPlay als Mehrwert mit.
 

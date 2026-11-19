@@ -8,7 +8,7 @@ Für Entwickler, die LINEFM Radio bauen, testen oder erweitern. Betreiber lesen 
 |---|---|---|
 | Flutter | 3.50.0 (Dart 3.14) | `pubspec.yaml` verlangt `sdk: ^3.14.0` und `flutter: >=3.50.0` |
 | Git | aktuell | |
-| Android | JDK 17, Android SDK (Plattform 35 und höher, Build-Tools) | Lizenzen mit `flutter doctor --android-licenses` bestätigen |
+| Android | JDK 17, Android SDK (Plattform 37 (`compileSdk`) und höher, Build-Tools) | Lizenzen mit `flutter doctor --android-licenses` bestätigen |
 | Windows | Visual Studio 2022 mit Workload "Desktop development with C++", **Rust** (rustup) | siehe unten |
 | Linux | Flutter-Linux-Pakete (clang, cmake, ninja, pkg-config, GTK 3), libmpv | ungetestet, kein Linux-Rechner in der bisherigen Entwicklung |
 | macOS und iOS | Xcode, CocoaPods | ungetestet, kein Mac in der bisherigen Entwicklung |
@@ -152,7 +152,7 @@ Format: `linefm://play?station=<slug>` und `https://app.linefm.de/?station=<slug
 |---|---|
 | Web | Start-Adresse (`Uri.base`), vom `PlayerController` beim Start ausgewertet. Die Seite nutzt Pfad-URLs (`web_routes.dart`, `pushState`). |
 | Android | Eigener Kanal `de.linefm.app/deep_links` in `MainActivity` (Start-Link und laufende Links). Flutters eigenes Deep-Linking ist abgeschaltet (`flutter_deeplinking_enabled=false`), damit nichts doppelt ankommt. Intent-Filter für `linefm://play` und `https://app.linefm.de`. `autoVerify` ist aus, bis `assetlinks.json` auf dem Server liegt (siehe [EINRICHTUNG.md](EINRICHTUNG.md), Abschnitt 2.8). Quelle ist auch das Homescreen-Widget. |
-| iOS | Schema `linefm` in `Info.plist`. Das Framework meldet den Link beim Kaltstart über `PlatformDispatcher.defaultRouteName`, laufend über `didPushRouteInformation` (`DeepLinkObserver`). Universal Links brauchen Associated Domains und die AASA-Datei, noch offen. |
+| iOS | Schema `linefm` in `Info.plist`. Das Framework meldet den Link beim Kaltstart über `PlatformDispatcher.defaultRouteName`, laufend über `didPushRouteInformation` (`DeepLinkObserver`). Universal Links: `Runner.entitlements` enthält Associated Domains (`applinks:app.linefm.de`), die AASA-Vorlage liegt in `web/.well-known/apple-app-site-association` und der Web-Postbuild füllt `APPLE_TEAM_ID` ein. Auf einem Gerät noch nicht getestet. |
 | macOS | Schema `linefm` in `Info.plist`. Auslieferung wie bei iOS, auf dem Mac ungetestet. |
 | Windows | Link als Startargument. Eine zweite Instanz (Mutex pro Benutzersitzung) reicht ihre Argumente an die erste weiter und holt deren Fenster nach vorn. `DeepLinks.dispatchFromArguments(args)`. Der Installer registriert das Schema `linefm://`. |
 | Linux | Startargument über die `.desktop`-Datei. Die Einzel-Instanz ist nur unter Windows umgesetzt. |

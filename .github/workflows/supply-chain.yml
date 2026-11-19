@@ -1,6 +1,7 @@
 name: Supply Chain
 
-# Zwei Pruefungen, die SECURITY.md verspricht:
+# Zwei Pruefungen, die SECURITY.md verspricht. Beide Berichte (JSON) liegen als
+# Artefakt am Lauf (14 Tage), die Zusammenfassung nennt die Zahl der Funde.
 # - OSV: bekannte Schwachstellen in den Dart-Abhaengigkeiten (pubspec.lock) ueber die
 #   offizielle Action google/osv-scanner-action.
 # - Secret-Scan: gitleaks ueber die gesamte Git-Historie. Als CLI aus dem Release,
@@ -43,7 +44,40 @@ jobs:
         uses: google/osv-scanner-action/osv-scanner-action@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
         with:
           scan-args: |-
+            --format=json
+            --output=osv-results.json
             --lockfile=pubspec.lock
+
+      - name: OSV-Zusammenfassung
+        if: always()
+        run: |
+          set -euo pipefail
+          {
+            echo "### OSV (pubspec.lock)"
+            if [ -s osv-results.json ]; then
+              pkgs="$(jq '[.results[]?.packages[]? | select((.vulnerabilities // []) | length > 0)] | length' osv-results.json)"
+              vulns="$(jq '[.results[]?.packages[]?.vulnerabilities[]?] | length' osv-results.json)"
+              echo "- Betroffene Pakete: ${pkgs}, Schwachstellen: ${vulns}"
+              if [ "$vulns" != "0" ]; then
+                echo ""
+                echo "| Paket | Version | IDs |"
+                echo "|---|---|---|"
+                jq -r '.results[]?.packages[]? | select((.vulnerabilities // []) | length > 0)
+                  | "| \(.package.name) | \(.package.version) | \([.vulnerabilities[].id] | join(", ")) |"' osv-results.json
+              fi
+            else
+              echo "- Kein Bericht erzeugt (Scanner nicht gelaufen?)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: OSV-Bericht hochladen
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: osv-report
+          path: osv-results.json
+          if-no-files-found: ignore
+          retention-days: 14
 
   gitleaks:
     name: Secret-Scan (gitleaks)
@@ -94,3 +128,14 @@ jobs:
             echo "### Secret-Scan"
             echo "- gitleaks ${GITLEAKS_VERSION}, Funde (geschwaerzt): ${count}"
           } >> "$GITHUB_STEP_SUMMARY"
+          cp "$RUNNER_TEMP/gitleaks.json" gitleaks-report.json 2>/dev/null || true
+
+      # Der Bericht ist mit --redact erzeugt: Fundstellen ohne Geheimniswerte.
+      - name: gitleaks-Bericht hochladen
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+          if-no-files-found: ignore
+          retention-days: 14

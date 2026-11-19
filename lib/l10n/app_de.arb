@@ -458,7 +458,7 @@
   },
   "stationsYoursListLabel": "Deine Favoriten-Sender",
   "settingArtworkTitle": "Cover laden",
-  "settingArtworkBody": "Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfrage an Apple, die App zeigt das Senderlogo.",
+  "settingArtworkBody": "Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfragen an Apple, die App zeigt das Cover von laut.fm oder das Senderlogo. Diese Einstellung bleibt auch ohne bestätigten Speicher-Hinweis gespeichert.",
   "settingShortcutsTitle": "Tastenkürzel mit einer Taste",
   "settingShortcutsBody": "F merkt den Song, S spielt einen zufälligen Sender, 1 bis 6 wählen einen Sender.",
   "playerSleepTimer": "Sleeptimer einstellen",

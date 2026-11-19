@@ -239,7 +239,7 @@
   "stationsYours": "Your stations",
   "stationsYoursListLabel": "Your favorite stations",
   "settingArtworkTitle": "Load covers",
-  "settingArtworkBody": "Looks up the album cover for the current track at Apple. Off: no requests to Apple, the app shows the station logo.",
+  "settingArtworkBody": "Looks up the album cover for the current track at Apple. Off: no requests to Apple, the app shows the laut.fm cover or the station logo. This setting is kept even without a confirmed storage notice.",
   "settingShortcutsTitle": "Single-key shortcuts",
   "settingShortcutsBody": "F saves the song, S plays a random station, 1 to 6 pick a station.",
   "playerSleepTimer": "Set sleep timer",

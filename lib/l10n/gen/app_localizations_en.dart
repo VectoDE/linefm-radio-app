@@ -736,7 +736,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingArtworkBody =>
-      'Looks up the album cover for the current track at Apple. Off: no requests to Apple, the app shows the station logo.';
+      'Looks up the album cover for the current track at Apple. Off: no requests to Apple, the app shows the laut.fm cover or the station logo. This setting is kept even without a confirmed storage notice.';
 
   @override
   String get settingShortcutsTitle => 'Single-key shortcuts';

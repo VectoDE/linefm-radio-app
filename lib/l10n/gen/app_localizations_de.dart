@@ -740,7 +740,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingArtworkBody =>
-      'Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfrage an Apple, die App zeigt das Senderlogo.';
+      'Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfragen an Apple, die App zeigt das Cover von laut.fm oder das Senderlogo. Diese Einstellung bleibt auch ohne bestätigten Speicher-Hinweis gespeichert.';
 
   @override
   String get settingShortcutsTitle => 'Tastenkürzel mit einer Taste';

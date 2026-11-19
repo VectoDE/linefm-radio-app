@@ -1325,7 +1325,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingArtworkBody.
   ///
   /// In de, this message translates to:
-  /// **'Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfrage an Apple, die App zeigt das Senderlogo.'**
+  /// **'Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfragen an Apple, die App zeigt das Cover von laut.fm oder das Senderlogo. Diese Einstellung bleibt auch ohne bestätigten Speicher-Hinweis gespeichert.'**
   String get settingArtworkBody;
 
   /// No description provided for @settingShortcutsTitle.

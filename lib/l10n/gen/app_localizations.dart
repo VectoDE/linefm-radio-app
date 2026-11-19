@@ -566,6 +566,42 @@ abstract class AppLocalizations {
   /// **'Der Export hat nicht geklappt.'**
   String get favoritesExportFailed;
 
+  /// Knopf/Tooltip: Favoriten aus einer eigenen Export-Datei (CSV oder Text) einlesen, Issue #9
+  ///
+  /// In de, this message translates to:
+  /// **'Favoriten importieren'**
+  String get favoritesImport;
+
+  /// No description provided for @favoritesImportDone.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =0{Keine neuen Favoriten in der Datei.} =1{1 Favorit importiert.} other{{count} Favoriten importiert.}}'**
+  String favoritesImportDone(int count);
+
+  /// No description provided for @favoritesImportSkipped.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Eintrag übersprungen (unbekannter Sender oder unlesbar).} other{{count} Einträge übersprungen (unbekannter Sender oder unlesbar).}}'**
+  String favoritesImportSkipped(int count);
+
+  /// No description provided for @favoritesImportFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Datei ließ sich nicht lesen. Wähle einen Export aus LINEFM Radio (CSV oder Text).'**
+  String get favoritesImportFailed;
+
+  /// Großer Knopf, wenn der Browser den automatischen Start blockiert (Web-Autoplay-Sperre, Spec 2.2)
+  ///
+  /// In de, this message translates to:
+  /// **'Radio starten'**
+  String get autoplayBlockedStart;
+
+  /// No description provided for @autoplayBlockedHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Browser spielt erst nach einem Klick ab. Startet {station}.'**
+  String autoplayBlockedHint(String station);
+
   /// No description provided for @shareCopied.
   ///
   /// In de, this message translates to:

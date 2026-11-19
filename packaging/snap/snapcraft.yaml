@@ -37,8 +37,10 @@ apps:
       - mpris
 
 slots:
-  # MPRIS: Medientasten und Sperrbildschirm-Steuerung.
-  # TODO(P28): Name gegen die Einstellung in audio_service_mpris pruefen.
+  # MPRIS: Medientasten und Sperrbildschirm-Steuerung. audio_service_mpris
+  # meldet org.mpris.MediaPlayer2.linefm_radio.instance<PID> (Kanal-ID unter
+  # Linux, lib/services/audio/audio_backend.dart); der mpris-Slot erlaubt den
+  # Namen samt ".*"-Endung.
   mpris:
     interface: mpris
     name: linefm_radio

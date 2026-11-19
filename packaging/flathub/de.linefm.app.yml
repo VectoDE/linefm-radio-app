@@ -31,9 +31,10 @@ finish-args:
   # Tray-Symbol (StatusNotifierItem) und Benachrichtigungen.
   - --talk-name=org.kde.StatusNotifierWatcher
   - --talk-name=org.freedesktop.Notifications
-  # MPRIS: Medientasten und Sperrbildschirm-Steuerung.
-  # TODO(P28): Namen gegen die Einstellung in audio_service_mpris pruefen.
-  - --own-name=org.mpris.MediaPlayer2.linefm_radio
+  # MPRIS: Medientasten und Sperrbildschirm-Steuerung. audio_service_mpris
+  # meldet org.mpris.MediaPlayer2.<Kanal-ID>.instance<PID>; die Kanal-ID ist
+  # unter Linux "linefm_radio" (lib/services/audio/audio_backend.dart).
+  - --own-name=org.mpris.MediaPlayer2.linefm_radio.*
 
 modules:
   # libmpv fuer just_audio_media_kit (media_kit_libs_linux nutzt die System-libmpv).
@@ -117,12 +118,16 @@ modules:
       - install -Dm644 share/applications/de.linefm.app.desktop -t /app/share/applications/
       - install -Dm644 share/metainfo/de.linefm.app.metainfo.xml -t /app/share/metainfo/
       - cp -a share/icons /app/share/
+      - install -Dm644 LICENSE -t /app/share/licenses/de.linefm.app/
     sources:
       # Platzhalter bis zum ersten Release, setzt flathub-prep.yml.
       - type: archive # release-tarball
         url: https://github.com/VectoDE/linefm-radio-app/releases/download/v1.0.0/linefm-radio-1.0.0-linux-x64.tar.gz # release-tarball
         sha256: '0000000000000000000000000000000000000000000000000000000000000000' # release-tarball
         strip-components: 0
-      # TODO(Betreiber): Lizenztext als Datei ablegen und per
-      # "install -Dm644 LICENSE -t /app/share/licenses/de.linefm.app/" installieren
-      # (Flathub verlangt ihn dort). Entscheidung 43: proprietaer, noch keine LICENSE im Repo.
+      # Lizenztext (Entscheidung 43, "Alle Rechte vorbehalten"); Flathub verlangt
+      # ihn unter /app/share/licenses/<App-ID>/. Tag mit dem Release-Tarball
+      # gleich halten; aendert sich LICENSE, sha256 neu berechnen.
+      - type: file
+        url: https://raw.githubusercontent.com/VectoDE/linefm-radio-app/v1.0.0/LICENSE
+        sha256: 54837bc1544bcfb1ba07fd40ca0550b8528fb1080fabb9759a09b73e4b422d8b

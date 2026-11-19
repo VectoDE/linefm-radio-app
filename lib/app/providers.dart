@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:http/http.dart' as http;
 import 'package:linefm_radio/app/navigation.dart';
 import 'package:linefm_radio/app/player_controller.dart';
-import 'package:linefm_radio/app/system_share_service.dart';
+import 'package:linefm_radio/app/user_activation.dart';
 import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
 import 'package:linefm_radio/data/api/http_cache.dart';
@@ -18,6 +18,7 @@ import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/alarm/alarm_schedule.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/favorite.dart';
+import 'package:linefm_radio/domain/favorites/favorites_import.dart';
 import 'package:linefm_radio/domain/favorites/favorites_logic.dart';
 import 'package:linefm_radio/domain/history_entry.dart';
 import 'package:linefm_radio/domain/now_playing.dart';
@@ -34,6 +35,7 @@ import 'package:linefm_radio/services/cast/cast_handoff.dart';
 import 'package:linefm_radio/services/cast/cast_service.dart';
 import 'package:linefm_radio/services/cast/chrome_cast_service.dart';
 import 'package:linefm_radio/services/share/share_service.dart';
+import 'package:linefm_radio/services/share/system_share_service.dart';
 import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/services/widgets/home_widget_sync.dart';
@@ -115,7 +117,11 @@ CastService createCastService(Ref ref) {
     initialVolume: playback.state.volume,
   );
   final subs = <StreamSubscription<Object?>>[
-    service.states.listen(handoff.onCastState),
+    service.states.listen((state) {
+      handoff.onCastState(state);
+      // Player-Anzeige: laeuft ein Sender am Geraet, zeigt der Player "Stop".
+      ref.read(castPlaybackProvider.notifier).set(state);
+    }),
     playback.stateStream.listen(handoff.onLocalState),
   ];
   ref
@@ -131,6 +137,50 @@ CastService createCastService(Ref ref) {
     });
   return service;
 }
+
+/// Letzter Zustand der Cast-Sitzung fuer die Player-Anzeige. Schreibt nur
+/// [createCastService]; ohne eigene Abhaengigkeiten, damit
+/// [playerStateProvider] ihn lesen kann, ohne einen Zyklus ueber den
+/// Live-Daten-Motor zu bilden.
+class CastPlaybackNotifier extends Notifier<CastState> {
+  @override
+  CastState build() => const CastState();
+
+  // ignore: use_setters_to_change_properties
+  void set(CastState next) => state = next;
+}
+
+final castPlaybackProvider = NotifierProvider<CastPlaybackNotifier, CastState>(
+  CastPlaybackNotifier.new,
+);
+
+/// Zustand fuer die Anzeige: lokale Wiedergabe, bei laufender Cast-
+/// Wiedergabe (lokal still) "spielt" der Cast-Sender.
+PlayerUiState mergeCastPlayback(PlayerUiState local, CastState cast) {
+  if (!cast.isPlayingMedia || local.isPlaying || local.isBusy) return local;
+  return local.copyWith(status: PlayerStatus.playing, station: cast.station);
+}
+
+/// Web: Hat der Nutzer schon mit der Seite interagiert? Ohne Interaktion
+/// blockieren Browser den Ton (Autoplay-Sperre). Ausserhalb des Webs immer
+/// `true`. Tests ueberschreiben die Pruefung.
+final userActivationProvider = Provider<bool Function()>(
+  (ref) => hasUserActivation,
+);
+
+/// Web: Ein Start wurde von der Autoplay-Sperre aufgehalten (Autoplay beim
+/// Start, Wecker, Link). Die Shell zeigt dann den Knopf "Radio starten".
+class AutoplayBlockedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  // ignore: use_setters_to_change_properties
+  void set({required bool value}) => state = value;
+}
+
+final autoplayBlockedProvider = NotifierProvider<AutoplayBlockedNotifier, bool>(
+  AutoplayBlockedNotifier.new,
+);
 
 /// Audio-Dienst; main() setzt das Ergebnis von initAudio().
 final playbackServiceProvider = Provider<PlaybackService>((ref) {
@@ -186,10 +236,13 @@ final activeStationProvider = NotifierProvider<ActiveStationNotifier, Station>(
   ActiveStationNotifier.new,
 );
 
+/// Zustand des Players fuer die Anzeige (lokal plus Cast, siehe
+/// [mergeCastPlayback]).
 final playerStateProvider = StreamProvider<PlayerUiState>((ref) async* {
   final service = ref.watch(playbackServiceProvider);
-  yield service.state;
-  yield* service.stateStream;
+  final cast = ref.watch(castPlaybackProvider);
+  yield mergeCastPlayback(service.state, cast);
+  yield* service.stateStream.map((s) => mergeCastPlayback(s, cast));
 });
 
 final currentTrackProvider = Provider<AsyncValue<Track?>>((ref) {
@@ -234,6 +287,15 @@ class FavoritesNotifier extends Notifier<List<Favorite>> {
   void remove(String key) {
     state = FavoritesLogic.remove(state, key);
     ref.read(prefsProvider).writeFavorites(state).ignore();
+  }
+
+  /// Fuehrt importierte Favoriten mit den vorhandenen zusammen (Doppelte
+  /// zaehlen einmal) und liefert die Zahl der neuen.
+  int importFavorites(List<Favorite> imported) {
+    final merged = FavoritesImport.merge(state, imported);
+    state = merged.favorites;
+    ref.read(prefsProvider).writeFavorites(state).ignore();
+    return merged.added;
   }
 }
 

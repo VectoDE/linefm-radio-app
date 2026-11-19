@@ -78,6 +78,33 @@
   "favoritesExportEmpty": "There is nothing to export yet.",
   "favoritesExportSavedTo": "Saved to {path}",
   "favoritesExportFailed": "The export failed.",
+  "favoritesImport": "Import favorites",
+  "favoritesImportDone": "{count, plural, =0{No new favorites in this file.} =1{1 favorite imported.} other{{count} favorites imported.}}",
+  "@favoritesImportDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "favoritesImportSkipped": "{count, plural, =1{Skipped 1 entry (unknown station or unreadable).} other{Skipped {count} entries (unknown station or unreadable).}}",
+  "@favoritesImportSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "favoritesImportFailed": "This file could not be read. Pick an export from LINEFM Radio (CSV or text).",
+  "autoplayBlockedStart": "Start radio",
+  "autoplayBlockedHint": "Your browser only plays after a click. Starts {station}.",
+  "@autoplayBlockedHint": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
   "shareCopied": "Copied to the clipboard.",
   "shareFailed": "Sharing didn’t work.",
   "csvColumnTitle": "Title",
@@ -181,7 +208,7 @@
   "alarmPermissionBody": "For the alarm to ring on time, Android has to allow exact alarms. You can switch that on in the system settings.",
   "alarmOpenSettings": "Open settings",
   "alarmStop": "Off",
-  "alarmRingingBody": "Alarm: {station} is playing.",
+  "alarmRingingBody": "{station} is about to start.",
   "@alarmRingingBody": {
     "placeholders": {
       "station": {
@@ -193,7 +220,6 @@
   "alarmFullScreenMissingNote": "Without the “Full-screen notifications” permission the alarm only shows as a notification, not full screen.",
   "alarmOpenFullScreenSettings": "Allow full screen",
   "alarmRingingTitle": "Good morning",
-  "alarmRingingBody": "{station} is about to start.",
   "alarmDismiss": "Turn off",
   "alarmSnoozeAction": "Snooze",
   "alarmNotificationTitle": "LINEFM alarm",

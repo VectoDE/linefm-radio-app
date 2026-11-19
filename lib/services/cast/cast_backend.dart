@@ -80,6 +80,9 @@ abstract interface class CastBackend {
   /// Lädt [media] als Live-Stream auf den Default Media Receiver und startet.
   Future<void> load(CastMedia media);
 
+  /// Stoppt das geladene Medium (Sitzung bleibt).
+  Future<void> stopMedia();
+
   /// Lautstärke des Cast-Geräts, 0.0 bis 1.0.
   void setVolume(double volume);
 

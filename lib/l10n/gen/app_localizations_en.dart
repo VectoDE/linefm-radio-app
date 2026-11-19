@@ -284,6 +284,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get favoritesExportFailed => 'The export failed.';
 
   @override
+  String get favoritesImport => 'Import favorites';
+
+  @override
+  String favoritesImportDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count favorites imported.',
+      one: '1 favorite imported.',
+      zero: 'No new favorites in this file.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String favoritesImportSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Skipped $count entries (unknown station or unreadable).',
+      one: 'Skipped 1 entry (unknown station or unreadable).',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get favoritesImportFailed =>
+      'This file could not be read. Pick an export from LINEFM Radio (CSV or text).';
+
+  @override
+  String get autoplayBlockedStart => 'Start radio';
+
+  @override
+  String autoplayBlockedHint(String station) {
+    return 'Your browser only plays after a click. Starts $station.';
+  }
+
+  @override
   String get shareCopied => 'Copied to the clipboard.';
 
   @override

@@ -20,6 +20,7 @@ import 'package:linefm_radio/features/mini_player/mini_player.dart';
 import 'package:linefm_radio/features/player/player_actions.dart';
 import 'package:linefm_radio/features/player/player_screen.dart';
 import 'package:linefm_radio/features/settings/settings_screen.dart';
+import 'package:linefm_radio/features/stations/favorite_stations.dart';
 import 'package:linefm_radio/features/stations/stations_screen.dart';
 import 'package:linefm_radio/features/storage_notice/storage_notice.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
@@ -66,7 +67,13 @@ class _AppShellState extends ConsumerState<AppShell> {
     final controller = ref
         .listenManual(playerControllerProvider, (_, _) {})
         .read();
-    ref.listenManual(nowPlayingRepositoryProvider, (_, _) {});
+    ref
+      ..listenManual(nowPlayingRepositoryProvider, (_, _) {})
+      // Cast beim Start: verbindet Sitzungen aus frueheren Laeufen und haelt
+      // die Uebergabe lokal/Cast aktiv, auch ohne geoeffneten Player.
+      ..listenManual(castServiceProvider, (_, _) {})
+      // Favoriten-Sender fuer das Auto-Menue, auch nach "Speicher loeschen".
+      ..listenManual(favoriteStationsProvider, (_, _) {});
     _lifecycle = AppLifecycleListener(
       onStateChange: (state) => ref
           .read(nowPlayingRepositoryProvider)
@@ -257,7 +264,17 @@ class _AppShellState extends ConsumerState<AppShell> {
     final expanded = windowClass == WindowClass.expanded;
 
     final body = expanded
-        ? _ExpandedLayout(screen: screen)
+        ? Stack(
+            children: <Widget>[
+              Positioned.fill(child: _ExpandedLayout(screen: screen)),
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 32,
+                child: AutoplayStartButton(),
+              ),
+            ],
+          )
         : _CompactLayout(screen: screen);
 
     return PopScope(
@@ -352,6 +369,7 @@ class _CompactLayout extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
+              const AutoplayStartButton(padding: EdgeInsets.only(bottom: 16)),
               const _OfflineBanner(),
               const _StorageNoticeSlot(),
               const MiniPlayerSlot(),
@@ -646,6 +664,55 @@ class _StorageNoticeSlot extends ConsumerWidget {
 }
 
 /// "Keine Verbindung. LINEFM versucht es weiter." (Spec 4.2 Nr. 14).
+/// Web-Autoplay-Sperre (Spec 2.2): Ein Start ohne vorherige Nutzeraktion
+/// (Autoplay, Wecker, Link) waere stumm geblieben. Der grosse Knopf startet
+/// den gewaehlten Sender mit dem Klick als Nutzeraktion.
+class AutoplayStartButton extends ConsumerWidget {
+  const AutoplayStartButton({super.key, this.padding = EdgeInsets.zero});
+
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(autoplayBlockedProvider)) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context);
+    final c = context.linefm;
+    final station = ref.watch(activeStationProvider);
+    return Padding(
+      padding: padding,
+      child: Center(
+        child: Semantics(
+          liveRegion: true,
+          child: Tooltip(
+            message: l10n.autoplayBlockedHint(station.displayName),
+            child: FilledButton.icon(
+              key: const ValueKey<String>('autoplay-start'),
+              style: FilledButton.styleFrom(
+                backgroundColor: c.accent,
+                foregroundColor: c.onAccent,
+                minimumSize: const Size(220, 56),
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                shape: const StadiumBorder(),
+                textStyle: LinefmText.listTitle.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onPressed: () => unawaited(
+                ref
+                    .read(playerControllerProvider)
+                    .startStation(ref.read(activeStationProvider)),
+              ),
+              icon: const FaIcon(FontAwesomeIcons.play, size: 18),
+              label: Text(l10n.autoplayBlockedStart),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _OfflineBanner extends ConsumerWidget {
   const _OfflineBanner();
 

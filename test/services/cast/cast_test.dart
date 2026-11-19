@@ -91,6 +91,11 @@ class FakeCastBackend implements CastBackend {
     loads.add(media);
   }
 
+  int stopMediaCalls = 0;
+
+  @override
+  Future<void> stopMedia() async => stopMediaCalls++;
+
   @override
   void setVolume(double volume) => volumes.add(volume);
 
@@ -265,6 +270,47 @@ void main() {
       await service.connect(_tv);
       await failing.cast(station, _a);
       expect(backend.loads, isEmpty);
+    });
+
+    test('cast meldet den Sender im Zustand, stopMedia stoppt ihn', () async {
+      await service.connect(_tv);
+      expect(service.state.isPlayingMedia, isFalse);
+      await service.cast(station, _a);
+      expect(service.state.station, station);
+      expect(service.state.isPlayingMedia, isTrue);
+
+      await service.stopMedia();
+      expect(backend.stopMediaCalls, 1);
+      expect(service.state.isPlayingMedia, isFalse);
+      expect(service.state.isCasting, isTrue, reason: 'Sitzung bleibt');
+
+      // Titelwechsel nach dem Stopp lädt nichts neu.
+      await service.updateTrack(station, _b);
+      expect(backend.loads, hasLength(1));
+    });
+
+    test('stopMedia während des Ladens verwirft den Auftrag', () async {
+      await service.connect(_tv);
+      final gate = Completer<Uri>();
+      final slow = ChromeCastService(
+        backend: backend,
+        resolveStreamUrl: (_) => gate.future,
+      );
+      addTearDown(slow.dispose);
+      final pending = slow.cast(station, _a);
+      await slow.stopMedia();
+      gate.complete(Uri.parse('https://stream.laut.fm/linefm'));
+      await pending;
+      expect(backend.loads, isEmpty);
+      expect(slow.state.isPlayingMedia, isFalse);
+    });
+
+    test('Sitzungsende vergisst den Sender', () async {
+      await service.connect(_tv);
+      await service.cast(station, _a);
+      await service.disconnect();
+      expect(service.state.station, isNull);
+      expect(service.state.isPlayingMedia, isFalse);
     });
   });
 

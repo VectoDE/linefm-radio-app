@@ -64,3 +64,6 @@ GoogleService-Info.plist
 .env.*
 !.env.example
 /graphify-out/
+
+# Golden-Abweichungen von flutter test
+**/failures/

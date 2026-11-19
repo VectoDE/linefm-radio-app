@@ -185,6 +185,39 @@
     }
   },
   "favoritesExportFailed": "Der Export hat nicht geklappt.",
+  "favoritesImport": "Favoriten importieren",
+  "@favoritesImport": {
+    "description": "Knopf/Tooltip: Favoriten aus einer eigenen Export-Datei (CSV oder Text) einlesen, Issue #9"
+  },
+  "favoritesImportDone": "{count, plural, =0{Keine neuen Favoriten in der Datei.} =1{1 Favorit importiert.} other{{count} Favoriten importiert.}}",
+  "@favoritesImportDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "favoritesImportSkipped": "{count, plural, =1{1 Eintrag übersprungen (unbekannter Sender oder unlesbar).} other{{count} Einträge übersprungen (unbekannter Sender oder unlesbar).}}",
+  "@favoritesImportSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "favoritesImportFailed": "Die Datei ließ sich nicht lesen. Wähle einen Export aus LINEFM Radio (CSV oder Text).",
+  "autoplayBlockedStart": "Radio starten",
+  "@autoplayBlockedStart": {
+    "description": "Großer Knopf, wenn der Browser den automatischen Start blockiert (Web-Autoplay-Sperre, Spec 2.2)"
+  },
+  "autoplayBlockedHint": "Dein Browser spielt erst nach einem Klick ab. Startet {station}.",
+  "@autoplayBlockedHint": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      }
+    }
+  },
   "shareCopied": "In die Zwischenablage kopiert.",
   "shareFailed": "Teilen hat nicht geklappt.",
   "csvColumnTitle": "Titel",
@@ -359,7 +392,7 @@
   "alarmPermissionBody": "Damit der Wecker pünktlich klingelt, muss Android genaue Alarme erlauben. Das stellst du in den Systemeinstellungen ein.",
   "alarmOpenSettings": "Einstellungen öffnen",
   "alarmStop": "Aus",
-  "alarmRingingBody": "Wecker: {station} läuft.",
+  "alarmRingingBody": "{station} läuft gleich los.",
   "@alarmRingingBody": {
     "placeholders": {
       "station": {
@@ -371,14 +404,6 @@
   "alarmFullScreenMissingNote": "Ohne die Freigabe „Vollbild-Benachrichtigungen“ erscheint der Wecker nur als Mitteilung, nicht als Vollbild.",
   "alarmOpenFullScreenSettings": "Vollbild erlauben",
   "alarmRingingTitle": "Guten Morgen",
-  "alarmRingingBody": "{station} läuft gleich los.",
-  "@alarmRingingBody": {
-    "placeholders": {
-      "station": {
-        "type": "String"
-      }
-    }
-  },
   "alarmDismiss": "Ausschalten",
   "alarmSnoozeAction": "Schlummern",
   "alarmNotificationTitle": "LINEFM Wecker",

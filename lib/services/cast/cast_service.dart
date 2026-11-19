@@ -23,6 +23,7 @@ class CastState {
     this.devices = const <CastDevice>[],
     this.connectedDevice,
     this.connecting = false,
+    this.station,
   });
 
   /// false auf Plattformen ohne Cast und ohne Google Play Services.
@@ -33,7 +34,13 @@ class CastState {
   /// Sitzung wird gerade aufgebaut.
   final bool connecting;
 
+  /// Sender, der gerade auf dem Gerät läuft (übergeben und nicht gestoppt).
+  final Station? station;
+
   bool get isCasting => connectedDevice != null;
+
+  /// Auf dem Gerät läuft ein Sender (Player zeigt „Stop“).
+  bool get isPlayingMedia => isCasting && station != null;
 
   @override
   bool operator ==(Object other) =>
@@ -41,11 +48,17 @@ class CastState {
       other.available == available &&
       other.connectedDevice == connectedDevice &&
       other.connecting == connecting &&
+      other.station == station &&
       _sameDevices(other.devices, devices);
 
   @override
-  int get hashCode =>
-      Object.hash(available, connectedDevice, connecting, devices.length);
+  int get hashCode => Object.hash(
+    available,
+    connectedDevice,
+    connecting,
+    station,
+    devices.length,
+  );
 
   static bool _sameDevices(List<CastDevice> a, List<CastDevice> b) {
     if (a.length != b.length) return false;
@@ -81,6 +94,9 @@ abstract interface class CastService {
   /// wechseln.
   Future<void> updateTrack(Station station, Track? track);
 
+  /// Stoppt die Wiedergabe auf dem Gerät; die Sitzung bleibt bestehen.
+  Future<void> stopMedia();
+
   /// Lautstärke des Cast-Geräts, 0.0 bis 1.0.
   Future<void> setVolume(double volume);
 
@@ -113,6 +129,9 @@ class NoopCastService implements CastService {
 
   @override
   Future<void> updateTrack(Station station, Track? track) async {}
+
+  @override
+  Future<void> stopMedia() async {}
 
   @override
   Future<void> setVolume(double volume) async {}

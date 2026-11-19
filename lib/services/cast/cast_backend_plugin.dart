@@ -162,6 +162,9 @@ class _PluginCastBackend implements CastBackend {
   }
 
   @override
+  Future<void> stopMedia() => GoogleCastRemoteMediaClient.instance.stop();
+
+  @override
   void setVolume(double volume) =>
       GoogleCastSessionManager.instance.setDeviceVolume(volume.clamp(0, 1));
 

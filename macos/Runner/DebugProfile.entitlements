@@ -6,6 +6,9 @@
 	<true/>
 	<key>com.apple.security.cs.allow-jit</key>
 	<true/>
+	<!-- Export-Rueckfall in ~/Downloads (P21), falls Teilen nicht geht. -->
+	<key>com.apple.security.files.downloads.read-write</key>
+	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<key>com.apple.security.network.server</key>

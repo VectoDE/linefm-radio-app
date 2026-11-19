@@ -1,0 +1,7 @@
+// Build-Einstellungen der Widget-Erweiterung.
+// Generated.xcconfig (von flutter build erzeugt) liefert FLUTTER_BUILD_NAME
+// und FLUTTER_BUILD_NUMBER, damit Widget und App dieselbe Version tragen.
+// Bewusst NICHT Debug.xcconfig/Release.xcconfig der App einbinden: dort
+// haengt Flutter ggf. die CocoaPods-Einstellungen der App an, die in der
+// Erweiterung zu Linkfehlern fuehren.
+#include? "../Flutter/Generated.xcconfig"

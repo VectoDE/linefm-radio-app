@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Kein Tracking im Sinne von App Tracking Transparency. -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<!--
+		Nur mit Einwilligung (Telemetrie, P07): Absturzberichte (Sentry).
+		anonyme Nutzungsereignisse (Umami/Firebase Analytics). Nicht mit der
+		Person verknuepft, kein Tracking. Bei Aenderungen an der Telemetrie
+		(docs/telemetry.md) hier und in den App-Store-Datenschutzangaben
+		nachziehen.
+	-->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeCrashData</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeProductInteraction</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+			</array>
+		</dict>
+	</array>
+	<!--
+		Required Reason APIs des App-Codes. Plugins (shared_preferences,
+		sentry_flutter, ...) bringen eigene Manifeste mit, soweit
+		vorhanden; ihre Angaben fuehrt Xcode beim Archivieren zusammen.
+	-->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<!-- Einstellungen, Favoriten, Verlauf (shared_preferences). -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+		<dict>
+			<!-- Dateizeitstempel im eigenen Container (Cover-Cache und
+			     Export-Datei vor dem Teilen). -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

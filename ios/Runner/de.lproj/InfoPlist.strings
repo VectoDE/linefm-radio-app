@@ -1,0 +1,3 @@
+/* Systemtexte der App (Deutsch). Gleiche Schluessel wie Info.plist. */
+"CFBundleDisplayName" = "LINEFM Radio";
+"NSLocalNetworkUsageDescription" = "LINEFM Radio sucht Chromecast-Geräte in deinem Netzwerk, damit du den Sender dort abspielen kannst.";

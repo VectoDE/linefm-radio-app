@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
@@ -106,69 +107,75 @@ class AlarmScreen extends ConsumerWidget {
         ? l10n.alarmNoteDesktop
         : l10n.alarmNoteAndroid;
 
-    return Scaffold(
-      appBar: AppBar(),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(side, 8, side, 48),
-        children: <Widget>[
-          SectionHeading(
-            l10n.alarmTitle,
-            style: TextStyle(fontSize: width < 600 ? 18 : 25),
-          ),
-          Text(
-            next == null
-                ? l10n.alarmNone
-                : l10n.alarmNext(formatAlarmTime(context, l10n, next, now)),
-            style: LinefmText.listTitle.copyWith(color: c.muted),
-          ),
-          const SizedBox(height: 16),
-          _Note(text: note),
-          if (!permission.exactOk) ...<Widget>[
-            const SizedBox(height: 12),
-            _PermissionNote(
-              text: l10n.alarmExactMissingNote,
-              action: l10n.alarmOpenSettings,
-              onAction: () => ref.read(alarmOpenSystemSettingsProvider)(),
+    // Eigene Seite: als Hauptinhalt kennzeichnen (NEU-2, Landmarke).
+    return Semantics(
+      container: true,
+      explicitChildNodes: true,
+      role: SemanticsRole.main,
+      child: Scaffold(
+        appBar: AppBar(),
+        body: ListView(
+          padding: EdgeInsets.fromLTRB(side, 8, side, 48),
+          children: <Widget>[
+            SectionHeading(
+              l10n.alarmTitle,
+              style: TextStyle(fontSize: width < 600 ? 18 : 25),
             ),
-          ],
-          if (!permission.fullScreenOk) ...<Widget>[
-            const SizedBox(height: 12),
-            _PermissionNote(
-              text: l10n.alarmFullScreenMissingNote,
-              action: l10n.alarmOpenFullScreenSettings,
-              onAction: () => ref.read(alarmOpenFullScreenSettingsProvider)(),
+            Text(
+              next == null
+                  ? l10n.alarmNone
+                  : l10n.alarmNext(formatAlarmTime(context, l10n, next, now)),
+              style: LinefmText.listTitle.copyWith(color: c.muted),
             ),
-          ],
-          const SizedBox(height: 20),
-          for (final rule in rules)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _AlarmCard(
-                key: ValueKey<String>(rule.id),
-                rule: rule,
-                onChanged: (changed) async {
-                  final list = <AlarmRule>[
-                    for (final r in ref.read(alarmProvider))
-                      r.id == rule.id ? changed : r,
-                  ];
-                  await ref.read(alarmProvider.notifier).setRules(list);
-                  if (changed.enabled && !rule.enabled && context.mounted) {
-                    await _ensurePermission(context, ref);
-                  }
-                },
-                onDelete: () =>
-                    ref.read(alarmProvider.notifier).setRules(<AlarmRule>[
-                      for (final r in ref.read(alarmProvider))
-                        if (r.id != rule.id) r,
-                    ]),
+            const SizedBox(height: 16),
+            _Note(text: note),
+            if (!permission.exactOk) ...<Widget>[
+              const SizedBox(height: 12),
+              _PermissionNote(
+                text: l10n.alarmExactMissingNote,
+                action: l10n.alarmOpenSettings,
+                onAction: () => ref.read(alarmOpenSystemSettingsProvider)(),
               ),
+            ],
+            if (!permission.fullScreenOk) ...<Widget>[
+              const SizedBox(height: 12),
+              _PermissionNote(
+                text: l10n.alarmFullScreenMissingNote,
+                action: l10n.alarmOpenFullScreenSettings,
+                onAction: () => ref.read(alarmOpenFullScreenSettingsProvider)(),
+              ),
+            ],
+            const SizedBox(height: 20),
+            for (final rule in rules)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _AlarmCard(
+                  key: ValueKey<String>(rule.id),
+                  rule: rule,
+                  onChanged: (changed) async {
+                    final list = <AlarmRule>[
+                      for (final r in ref.read(alarmProvider))
+                        r.id == rule.id ? changed : r,
+                    ];
+                    await ref.read(alarmProvider.notifier).setRules(list);
+                    if (changed.enabled && !rule.enabled && context.mounted) {
+                      await _ensurePermission(context, ref);
+                    }
+                  },
+                  onDelete: () =>
+                      ref.read(alarmProvider.notifier).setRules(<AlarmRule>[
+                        for (final r in ref.read(alarmProvider))
+                          if (r.id != rule.id) r,
+                      ]),
+                ),
+              ),
+            FilledButton.icon(
+              onPressed: () => _add(context, ref),
+              icon: const Icon(Icons.add, size: 20),
+              label: Text(l10n.alarmAdd),
             ),
-          FilledButton.icon(
-            onPressed: () => _add(context, ref),
-            icon: const Icon(Icons.add, size: 20),
-            label: Text(l10n.alarmAdd),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

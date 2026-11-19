@@ -1,3 +1,4 @@
+import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:linefm_radio/app/providers.dart';
@@ -38,45 +39,51 @@ class LegalScreen extends ConsumerWidget {
         ? l10n.legalImprintTitle
         : l10n.legalPrivacyTitle;
 
-    return Scaffold(
-      appBar: AppBar(
-        actions: <Widget>[
-          if (!platform.isWeb)
-            IconButton(
-              tooltip: l10n.legalOpenInBrowser,
-              icon: const Icon(Icons.open_in_new),
-              onPressed: () => openExternalUrl(
-                context,
-                ref,
-                _webUrl(config.webBaseUrl, kind, lang),
+    // Eigene Seite: als Hauptinhalt kennzeichnen (NEU-2, Landmarke).
+    return Semantics(
+      container: true,
+      explicitChildNodes: true,
+      role: SemanticsRole.main,
+      child: Scaffold(
+        appBar: AppBar(
+          actions: <Widget>[
+            if (!platform.isWeb)
+              IconButton(
+                tooltip: l10n.legalOpenInBrowser,
+                icon: const Icon(Icons.open_in_new),
+                onPressed: () => openExternalUrl(
+                  context,
+                  ref,
+                  _webUrl(config.webBaseUrl, kind, lang),
+                ),
               ),
-            ),
-        ],
-      ),
-      body: Semantics(
-        scopesRoute: true,
-        explicitChildNodes: true,
-        namesRoute: true,
-        label: title,
-        child: doc.when(
-          data: (d) =>
-              LegalBody(document: d, providers: activeLegalProviders(config)),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(l10n.legalLoadError, textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
-                  OutlinedButton(
-                    onPressed: () => ref.invalidate(
-                      legalDocumentProvider((kind: kind, lang: lang)),
+          ],
+        ),
+        body: Semantics(
+          scopesRoute: true,
+          explicitChildNodes: true,
+          namesRoute: true,
+          label: title,
+          child: doc.when(
+            data: (d) =>
+                LegalBody(document: d, providers: activeLegalProviders(config)),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(l10n.legalLoadError, textAlign: TextAlign.center),
+                    const SizedBox(height: 16),
+                    OutlinedButton(
+                      onPressed: () => ref.invalidate(
+                        legalDocumentProvider((kind: kind, lang: lang)),
+                      ),
+                      child: Text(l10n.actionRetry),
                     ),
-                    child: Text(l10n.actionRetry),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

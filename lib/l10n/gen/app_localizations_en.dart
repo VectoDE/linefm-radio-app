@@ -34,6 +34,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navMain => 'Main navigation';
 
   @override
+  String get regionHeader => 'Header';
+
+  @override
+  String get regionNotices => 'Notices';
+
+  @override
   String get loaderSemantics => 'LINEFM is loading';
 
   @override
@@ -528,9 +534,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmTitle => 'Alarm';
 
   @override
-  String get alarmEnabled => 'Alarm on';
-
-  @override
   String get alarmTime => 'Time';
 
   @override
@@ -572,9 +575,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alarmAdd => 'Add alarm';
-
-  @override
-  String get alarmDelete => 'Delete alarm';
 
   @override
   String get alarmNoteIos =>

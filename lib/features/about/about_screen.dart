@@ -1,3 +1,4 @@
+import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/features/about/radiogruppe_logo.dart';
@@ -50,70 +51,76 @@ class AboutScreen extends ConsumerWidget {
         (label: l10n.trustTrustpilot, url: config.trustTrustpilotUrl),
     ];
 
-    return Scaffold(
-      appBar: AppBar(),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(side, 20, side, 48),
-        children: <Widget>[
-          SectionHeading(
-            l10n.aboutTitle,
-            style: TextStyle(fontSize: width < 600 ? 18 : 25),
-          ),
-          Text(
-            l10n.aboutVersion(appBuildNumber, config.appVersion),
-            style: LinefmText.listTitle.copyWith(color: c.muted),
-          ),
-          const SizedBox(height: 28),
-          const _MadeBy(),
-          const SizedBox(height: 28),
-          const RadioGruppeCredit(),
-          const SizedBox(height: 28),
-          const _Developer(),
-          const SizedBox(height: 8),
-          Divider(color: c.line, height: 48),
-          _LinkRow(
-            label: l10n.footerImprint,
-            linkUrl: LegalKind.imprint.webUri,
-            onTap: () => openLegal(context, LegalKind.imprint),
-          ),
-          _LinkRow(
-            label: l10n.footerPrivacy,
-            linkUrl: LegalKind.privacy.webUri,
-            onTap: () => openLegal(context, LegalKind.privacy),
-          ),
-          _LinkRow(
-            label: l10n.aboutLicenses,
-            onTap: () => showLicensePage(
-              context: context,
-              applicationName: l10n.appTitle,
-              applicationVersion: l10n.aboutVersion(
-                appBuildNumber,
-                config.appVersion,
+    // Eigene Seite: als Hauptinhalt kennzeichnen (NEU-2, Landmarke).
+    return Semantics(
+      container: true,
+      explicitChildNodes: true,
+      role: SemanticsRole.main,
+      child: Scaffold(
+        appBar: AppBar(),
+        body: ListView(
+          padding: EdgeInsets.fromLTRB(side, 20, side, 48),
+          children: <Widget>[
+            SectionHeading(
+              l10n.aboutTitle,
+              style: TextStyle(fontSize: width < 600 ? 18 : 25),
+            ),
+            Text(
+              l10n.aboutVersion(appBuildNumber, config.appVersion),
+              style: LinefmText.listTitle.copyWith(color: c.muted),
+            ),
+            const SizedBox(height: 28),
+            const _MadeBy(),
+            const SizedBox(height: 28),
+            const RadioGruppeCredit(),
+            const SizedBox(height: 28),
+            const _Developer(),
+            const SizedBox(height: 8),
+            Divider(color: c.line, height: 48),
+            _LinkRow(
+              label: l10n.footerImprint,
+              linkUrl: LegalKind.imprint.webUri,
+              onTap: () => openLegal(context, LegalKind.imprint),
+            ),
+            _LinkRow(
+              label: l10n.footerPrivacy,
+              linkUrl: LegalKind.privacy.webUri,
+              onTap: () => openLegal(context, LegalKind.privacy),
+            ),
+            _LinkRow(
+              label: l10n.aboutLicenses,
+              onTap: () => showLicensePage(
+                context: context,
+                applicationName: l10n.appTitle,
+                applicationVersion: l10n.aboutVersion(
+                  appBuildNumber,
+                  config.appVersion,
+                ),
               ),
             ),
-          ),
-          _LinkRow(
-            label: l10n.footerWebsite,
-            external: true,
-            linkUrl: Uri.parse(websiteUrl),
-            onTap: () => openExternalUrl(context, ref, websiteUrl),
-          ),
-          if (trust.isNotEmpty) ...<Widget>[
-            Divider(color: c.line, height: 48),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: <Widget>[
-                for (final t in trust)
-                  OutlinedButton.icon(
-                    onPressed: () => openExternalUrl(context, ref, t.url),
-                    icon: const Icon(Icons.open_in_new, size: 18),
-                    label: Text(t.label),
-                  ),
-              ],
+            _LinkRow(
+              label: l10n.footerWebsite,
+              external: true,
+              linkUrl: Uri.parse(websiteUrl),
+              onTap: () => openExternalUrl(context, ref, websiteUrl),
             ),
+            if (trust.isNotEmpty) ...<Widget>[
+              Divider(color: c.line, height: 48),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: <Widget>[
+                  for (final t in trust)
+                    OutlinedButton.icon(
+                      onPressed: () => openExternalUrl(context, ref, t.url),
+                      icon: const Icon(Icons.open_in_new, size: 18),
+                      label: Text(t.label),
+                    ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

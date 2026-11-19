@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/semantics.dart' show OrdinalSortKey;
+import 'package:flutter/rendering.dart' show RenderProxyBox;
+import 'package:flutter/semantics.dart' show OrdinalSortKey, SemanticsRole;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -298,6 +299,65 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 }
 
+/// Ein Bereich der Shell mit fester Tab- und Screenreader-Position.
+///
+/// Jeder Bereich ist eine eigene [FocusTraversalGroup]: Tab laeuft erst
+/// durch den ganzen Bereich, dann zum naechsten. Ohne diese Ordnung sortiert
+/// Flutter nach Lage auf dem Schirm; im Kompakt-Layout liegen Karten hinter
+/// Mini-Player und Navigation, und der Fokus sprang zwischen beiden hin
+/// und her (NEU-1).
+///
+/// [role] und [label] machen den Bereich zur Landmarke (main, navigation,
+/// complementary, region), damit Screenreader direkt hinspringen koennen
+/// und alle Inhalte in einer Landmarke liegen (NEU-2, axe `region`).
+Widget _ordered(
+  int order,
+  Widget child, {
+  SemanticsRole role = SemanticsRole.none,
+  String? label,
+}) => FocusTraversalOrder(
+  order: NumericFocusOrder(order.toDouble()),
+  child: FocusTraversalGroup(
+    child: Semantics(
+      container: true,
+      explicitChildNodes: true,
+      sortKey: OrdinalSortKey(order.toDouble()),
+      role: role,
+      label: label,
+      child: child,
+    ),
+  ),
+);
+
+/// Bereich fuer Hinweise (Offline, Speicher, Autoplay). Landmarke nur,
+/// solange wirklich ein Hinweis steht; sonst gaebe es eine leere Region.
+class _NoticesRegion extends ConsumerWidget {
+  const _NoticesRegion({required this.compact, required this.child});
+
+  /// Kompakt-Layout: Autoplay-Leiste steht im Mini-Player-Platz und laesst
+  /// den Speicher-Hinweis warten (siehe [_StorageNoticeSlot]).
+  final bool compact;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final offline = !(ref.watch(onlineProvider).value ?? true);
+    final blocked = ref.watch(autoplayBlockedProvider);
+    final player = ref.watch(navigationProvider) == AppScreen.player;
+    final storage =
+        !ref.watch(storageConsentProvider) && !(compact && blocked && !player);
+    final visible = offline || storage || (!compact && blocked);
+    if (!visible) return child;
+    return Semantics(
+      container: true,
+      explicitChildNodes: true,
+      role: SemanticsRole.region,
+      label: AppLocalizations.of(context).regionNotices,
+      child: child,
+    );
+  }
+}
+
 /// Inhalt eines Bereichs der Shell (ohne Player).
 Widget _content(AppScreen screen, {required EdgeInsets stationsPadding}) =>
     switch (screen) {
@@ -309,22 +369,47 @@ Widget _content(AppScreen screen, {required EdgeInsets stationsPadding}) =>
 
 // ------------------------------------------------------------ Kompakt
 
-class _CompactLayout extends ConsumerWidget {
+class _CompactLayout extends StatefulWidget {
   const _CompactLayout({required this.screen});
 
   final AppScreen screen;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  State<_CompactLayout> createState() => _CompactLayoutState();
+}
+
+class _CompactLayoutState extends State<_CompactLayout> {
+  /// Gemessene Hoehe des unteren Stapels (Hinweise, Mini-Player,
+  /// Navigation). Der Inhalt haelt so viel Platz frei, damit z. B. der
+  /// Speicher-Hinweis keine Player-Knoepfe verdeckt (NEU-3).
+  double _bottomStack = 0;
+
+  void _onBottomStack(Size size) {
+    if (!mounted || (size.height - _bottomStack).abs() < 0.5) return;
+    setState(() => _bottomStack = size.height);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screen = widget.screen;
     final padding = MediaQuery.paddingOf(context);
     final player = screen == AppScreen.player;
     final top = padding.top + LinefmMetrics.headerHeight;
-    final bottom = padding.bottom + LinefmMetrics.navHeight + _miniReserve;
+    final bottom = math.max(
+      padding.bottom + LinefmMetrics.navHeight + _miniReserve,
+      _bottomStack + 12,
+    );
     final reduce = MediaQuery.disableAnimationsOf(context);
+    final l10n = AppLocalizations.of(context);
 
     final Widget content;
     if (player) {
-      content = const PlayerScreen(embedded: false);
+      content = PlayerScreen(
+        embedded: false,
+        bottomInset:
+            math.max(padding.bottom + LinefmMetrics.navHeight, _bottomStack) +
+            24,
+      );
     } else {
       final inner = _content(
         screen,
@@ -342,44 +427,119 @@ class _CompactLayout extends ConsumerWidget {
       );
     }
 
-    return Stack(
-      children: <Widget>[
-        Positioned.fill(
-          child: AnimatedSwitcher(
-            duration: reduce ? Duration.zero : LinefmMetrics.fast,
-            child: KeyedSubtree(
-              key: ValueKey<AppScreen>(screen),
-              child: content,
+    // Reihenfolge fuer Tab und Screenreader: Header, Inhalt, Hinweise,
+    // Mini-Player, Navigation. Kein umlaufender Bereich: nach der
+    // Navigation verlaesst Tab die App wie gewohnt (NEU-1).
+    return FocusTraversalGroup(
+      policy: OrderedTraversalPolicy(),
+      child: Stack(
+        children: <Widget>[
+          Positioned.fill(
+            child: _ordered(
+              2,
+              role: SemanticsRole.main,
+              AnimatedSwitcher(
+                duration: reduce ? Duration.zero : LinefmMetrics.fast,
+                child: KeyedSubtree(
+                  key: ValueKey<AppScreen>(screen),
+                  child: content,
+                ),
+              ),
             ),
           ),
-        ),
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: _Header(transparent: player),
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              const _OfflineBanner(),
-              // Handy: nur ein Hinweis zur Zeit. Steht die Start-Leiste,
-              // wartet der Speicher-Hinweis, damit bei 320 x 640 Inhalt
-              // sichtbar bleibt (U1).
-              const _StorageNoticeSlot(yieldToAutoplay: true),
-              const _MiniPlayerOrStart(),
-              SizedBox(height: player ? 0 : 12),
-              _BottomNav(screen: screen),
-            ],
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _ordered(
+              1,
+              role: SemanticsRole.region,
+              label: l10n.regionHeader,
+              _Header(transparent: player),
+            ),
           ),
-        ),
-      ],
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _SizeReporter(
+              onSize: _onBottomStack,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  _ordered(
+                    3,
+                    const _NoticesRegion(
+                      compact: true,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          _OfflineBanner(),
+                          // Handy: nur ein Hinweis zur Zeit. Steht die
+                          // Start-Leiste, wartet der Speicher-Hinweis, damit
+                          // bei 320 x 640 Inhalt sichtbar bleibt (U1).
+                          _StorageNoticeSlot(yieldToAutoplay: true),
+                        ],
+                      ),
+                    ),
+                  ),
+                  _ordered(
+                    4,
+                    role: player
+                        ? SemanticsRole.none
+                        : SemanticsRole.complementary,
+                    label: player ? null : l10n.navPlayer,
+                    const _MiniPlayerOrStart(),
+                  ),
+                  SizedBox(height: player ? 0 : 12),
+                  _ordered(
+                    5,
+                    role: SemanticsRole.navigation,
+                    label: l10n.navMain,
+                    _BottomNav(screen: screen),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
+}
+
+/// Meldet die Groesse des Kindes nach jedem Layout, wenn sie sich aendert.
+class _SizeReporter extends SingleChildRenderObjectWidget {
+  const _SizeReporter({required this.onSize, required super.child});
+
+  final ValueChanged<Size> onSize;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderSizeReporter(onSize);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderSizeReporter renderObject,
+  ) => renderObject.onSize = onSize;
+}
+
+class _RenderSizeReporter extends RenderProxyBox {
+  _RenderSizeReporter(this.onSize);
+
+  ValueChanged<Size> onSize;
+  Size? _last;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    if (size == _last) return;
+    _last = size;
+    final reported = size;
+    WidgetsBinding.instance.addPostFrameCallback((_) => onSize(reported));
   }
 }
 
@@ -408,30 +568,19 @@ class _ExpandedLayout extends ConsumerWidget {
     // Tab- und Screenreader-Reihenfolge wie die Optik: Navigation, Header,
     // Inhalt, Hinweise, Player (A11Y-04). Ohne feste Ordnung kam der Header
     // erst nach den Karten.
-    Widget part(int order, Widget child) => FocusTraversalOrder(
-      order: NumericFocusOrder(order.toDouble()),
-      child: FocusTraversalGroup(
-        child: Semantics(
-          container: true,
-          explicitChildNodes: true,
-          sortKey: OrdinalSortKey(order.toDouble()),
-          child: child,
-        ),
-      ),
-    );
-
     return SafeArea(
       child: FocusTraversalGroup(
         policy: OrderedTraversalPolicy(),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            part(
+            _ordered(
               1,
+              role: SemanticsRole.navigation,
+              label: l10n.navMain,
               Semantics(
                 container: true,
                 explicitChildNodes: true,
-                label: l10n.navMain,
                 child: NavigationRail(
                   selectedIndex: index < 0 ? null : index,
                   labelType: NavigationRailLabelType.all,
@@ -455,10 +604,16 @@ class _ExpandedLayout extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  part(2, const _Header(transparent: false, inset: false)),
+                  _ordered(
+                    2,
+                    role: SemanticsRole.region,
+                    label: l10n.regionHeader,
+                    const _Header(transparent: false, inset: false),
+                  ),
                   Expanded(
-                    child: part(
+                    child: _ordered(
                       3,
+                      role: SemanticsRole.main,
                       _content(
                         shown,
                         stationsPadding: const EdgeInsets.fromLTRB(
@@ -472,18 +627,21 @@ class _ExpandedLayout extends ConsumerWidget {
                   ),
                   // Im Fluss unter dem Inhalt statt als Overlay: verdeckt
                   // nichts und liegt nicht ueber der ganzen App (A11Y-01).
-                  part(
+                  _ordered(
                     4,
-                    const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        AutoplayStartButton(
-                          padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
-                        ),
-                        _OfflineBanner(),
-                        _StorageNoticeSlot(),
-                      ],
+                    const _NoticesRegion(
+                      compact: false,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          AutoplayStartButton(
+                            padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          ),
+                          _OfflineBanner(),
+                          _StorageNoticeSlot(),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -491,7 +649,12 @@ class _ExpandedLayout extends ConsumerWidget {
             ),
             SizedBox(
               width: playerWidth,
-              child: part(5, const PlayerScreen(embedded: true)),
+              child: _ordered(
+                5,
+                role: SemanticsRole.complementary,
+                label: l10n.navPlayer,
+                const PlayerScreen(embedded: true),
+              ),
             ),
           ],
         ),
@@ -611,10 +774,10 @@ class _BottomNav extends ConsumerWidget {
       (AppScreen.player, FontAwesomeIcons.headphones, l10n.navPlayer),
       (AppScreen.history, FontAwesomeIcons.clockRotateLeft, l10n.navHistory),
     ];
+    // Landmarke und Name setzt die Shell (_ordered, NEU-2).
     return Semantics(
       container: true,
       explicitChildNodes: true,
-      label: l10n.navMain,
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: c.navBg,

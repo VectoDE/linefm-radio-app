@@ -34,6 +34,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navMain => 'Hauptnavigation';
 
   @override
+  String get regionHeader => 'Kopfbereich';
+
+  @override
+  String get regionNotices => 'Hinweise';
+
+  @override
   String get loaderSemantics => 'LINEFM wird geladen';
 
   @override
@@ -531,9 +537,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get alarmTitle => 'Wecker';
 
   @override
-  String get alarmEnabled => 'Wecker aktiv';
-
-  @override
   String get alarmTime => 'Uhrzeit';
 
   @override
@@ -575,9 +578,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get alarmAdd => 'Wecker hinzufügen';
-
-  @override
-  String get alarmDelete => 'Wecker löschen';
 
   @override
   String get alarmNoteIos =>

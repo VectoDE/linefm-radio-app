@@ -160,6 +160,60 @@ void main() {
     });
   });
 
+  group('Tastatur-Reihenfolge (NEU-1)', () {
+    testWidgets('Kompakt: Header, Inhalt, Hinweise, Mini-Player, Navigation', (
+      tester,
+    ) async {
+      useSize(tester, 412, 860);
+      final host = AppHost(settings: _noAutoplay);
+      await pumpApp(tester, host);
+
+      final forward = await _tabRegions(tester, LogicalKeyboardKey.tab, 60);
+      // Ein voller Durchlauf: jeder Bereich kommt vor, keiner kehrt nach
+      // einem spaeteren Bereich zurueck (keine Falle im unteren Stapel).
+      final firstPass = _untilWrap(forward);
+      expect(firstPass.toSet(), containsAll(<int>[1, 2, 4, 5]));
+      expect(_isSorted(firstPass), isTrue, reason: '$firstPass');
+      expect(firstPass.last, 5);
+      // Danach verlaesst Tab die Bereiche (Shell selbst) oder beginnt
+      // wieder beim Header.
+      expect(forward[firstPass.length], anyOf(0, 1));
+
+      final backward = await _tabRegions(
+        tester,
+        LogicalKeyboardKey.tab,
+        40,
+        shift: true,
+      );
+      final backPass = _untilWrap(backward, reverse: true);
+      expect(
+        _isSorted(backPass.reversed.toList()),
+        isTrue,
+        reason: '$backPass',
+      );
+      await disposeApp(tester, host);
+    });
+
+    testWidgets('Kompakt: Favoriten und Einstellungen per Tab erreichbar', (
+      tester,
+    ) async {
+      useSize(tester, 412, 860);
+      final host = AppHost(settings: _noAutoplay);
+      await pumpApp(tester, host);
+
+      final tooltips = <String>{};
+      for (var i = 0; i < 4; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+        final context = FocusManager.instance.primaryFocus?.context;
+        final tooltip = context?.findAncestorWidgetOfExactType<Tooltip>();
+        if (tooltip?.message != null) tooltips.add(tooltip!.message!);
+      }
+      expect(tooltips, contains('Einstellungen'));
+      await disposeApp(tester, host);
+    });
+  });
+
   group('Tablet/Desktop', () {
     testWidgets('zweispaltig: Rail, Liste und eingebetteter Player', (
       tester,
@@ -197,4 +251,55 @@ void main() {
       await disposeApp(tester, host);
     });
   });
+}
+
+/// Drueckt [count] mal (Shift+)Tab und liefert je Schritt den Shell-Bereich
+/// des fokussierten Elements (1 Header ... 5 Navigation, 0 ausserhalb).
+Future<List<int>> _tabRegions(
+  WidgetTester tester,
+  LogicalKeyboardKey key,
+  int count, {
+  bool shift = false,
+}) async {
+  final regions = <int>[];
+  for (var i = 0; i < count; i++) {
+    if (shift) await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.sendKeyEvent(key);
+    if (shift) await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.pump(const Duration(milliseconds: 50));
+    regions.add(_regionOf(FocusManager.instance.primaryFocus?.context));
+  }
+  return regions;
+}
+
+/// Aeusserste [FocusTraversalOrder] ueber [context] = Bereich der Shell.
+int _regionOf(BuildContext? context) {
+  if (context == null) return 0;
+  var region = 0;
+  context.visitAncestorElements((element) {
+    final widget = element.widget;
+    if (widget is FocusTraversalOrder) {
+      final order = widget.order;
+      if (order is NumericFocusOrder) region = order.order.toInt();
+    }
+    return true;
+  });
+  return region;
+}
+
+/// Erster Durchlauf bis zum Umbruch (Bereich faellt bzw. steigt wieder).
+List<int> _untilWrap(List<int> regions, {bool reverse = false}) {
+  final out = <int>[];
+  for (final r in regions) {
+    if (out.isNotEmpty && (reverse ? r > out.last : r < out.last)) break;
+    out.add(r);
+  }
+  return out;
+}
+
+bool _isSorted(List<int> values) {
+  for (var i = 1; i < values.length; i++) {
+    if (values[i] < values[i - 1]) return false;
+  }
+  return true;
 }

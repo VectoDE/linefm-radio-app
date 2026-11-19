@@ -146,6 +146,18 @@ abstract class AppLocalizations {
   /// **'Hauptnavigation'**
   String get navMain;
 
+  /// No description provided for @regionHeader.
+  ///
+  /// In de, this message translates to:
+  /// **'Kopfbereich'**
+  String get regionHeader;
+
+  /// No description provided for @regionNotices.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinweise'**
+  String get regionNotices;
+
   /// No description provided for @loaderSemantics.
   ///
   /// In de, this message translates to:
@@ -956,12 +968,6 @@ abstract class AppLocalizations {
   /// **'Wecker'**
   String get alarmTitle;
 
-  /// No description provided for @alarmEnabled.
-  ///
-  /// In de, this message translates to:
-  /// **'Wecker aktiv'**
-  String get alarmEnabled;
-
   /// No description provided for @alarmTime.
   ///
   /// In de, this message translates to:
@@ -1027,12 +1033,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Wecker hinzufügen'**
   String get alarmAdd;
-
-  /// No description provided for @alarmDelete.
-  ///
-  /// In de, this message translates to:
-  /// **'Wecker löschen'**
-  String get alarmDelete;
 
   /// No description provided for @alarmNoteIos.
   ///

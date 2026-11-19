@@ -1,0 +1,6 @@
+# Sicherheitskontakt nach RFC 9116. Platzhalter vor dem Ausrollen ersetzen (siehe SECURITY.md).
+# Expires erneuern, spaetestens alle 6 Monate (RFC 9116 empfiehlt unter einem Jahr).
+Contact: {{SECURITY_KONTAKT}}
+Expires: 2027-05-19T00:00:00Z
+Preferred-Languages: de, en
+Canonical: https://app.linefm.de/.well-known/security.txt

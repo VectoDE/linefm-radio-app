@@ -205,5 +205,6 @@
   "trayStop": "Stop",
   "trayStations": "Stations",
   "trayMiniPlayer": "Mini player",
-  "trayQuit": "Quit"
+  "trayQuit": "Quit",
+  "trayAlwaysOnTop": "Always on top"
 }

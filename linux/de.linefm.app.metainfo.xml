@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream-Metainfo fuer Flathub, GNOME Software und KDE Discover.
+     Pruefen mit: appstreamcli validate --pedantic linux/de.linefm.app.metainfo.xml
+     Offen bis zum Store-Release (P26/P28): Screenshots, Release-Datum,
+     Projektlizenz (derzeit proprietaer, im Repo liegt noch keine LICENSE). -->
+<component type="desktop-application">
+  <id>de.linefm.app</id>
+  <name>LINEFM Radio</name>
+  <summary>Live radio of the LINEFM stations</summary>
+  <summary xml:lang="de">Live-Radio der LINEFM-Sender</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+  <developer id="de.linefm">
+    <name>LINEFM</name>
+  </developer>
+  <url type="homepage">https://app.linefm.de</url>
+  <description>
+    <p>Listen to the LINEFM stations live: LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM and FobFM.</p>
+    <p>See the current song with cover, browse the recent history and save your favorites. The tray icon keeps the radio running in the background, a mini player stays on top of other windows, and media keys and global shortcuts control playback.</p>
+  </description>
+  <description xml:lang="de">
+    <p>Hoere die LINEFM-Sender live: LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM und FobFM.</p>
+    <p>Die App zeigt den aktuellen Song mit Cover, den Verlauf und deine Favoriten. Das Tray-Symbol haelt das Radio im Hintergrund am Laufen, ein Mini-Player bleibt ueber anderen Fenstern, und Medientasten sowie globale Tastenkuerzel steuern die Wiedergabe.</p>
+  </description>
+  <launchable type="desktop-id">de.linefm.app.desktop</launchable>
+  <provides>
+    <binary>linefm_radio</binary>
+  </provides>
+  <categories>
+    <category>AudioVideo</category>
+    <category>Audio</category>
+    <category>Player</category>
+    <category>Music</category>
+  </categories>
+  <keywords>
+    <keyword>radio</keyword>
+    <keyword>webradio</keyword>
+    <keyword>music</keyword>
+    <keyword>stream</keyword>
+  </keywords>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </supports>
+  <requires>
+    <internet>always</internet>
+    <display_length compare="ge">360</display_length>
+  </requires>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.0.0" date="2026-11-19"/>
+  </releases>
+</component>

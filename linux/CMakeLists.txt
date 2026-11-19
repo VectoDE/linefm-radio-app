@@ -126,3 +126,20 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endif()
+
+# Desktop-Integration (Paket P18): Starter, AppStream-Metainfo und Icons
+# landen im Bundle unter share/ (Flatpak, Snap und .deb uebernehmen sie von
+# dort in ihr Dateisystem-Layout). Die Dateinamen entsprechen APPLICATION_ID.
+set(INSTALL_BUNDLE_SHARE_DIR "${CMAKE_INSTALL_PREFIX}/share")
+
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/${APPLICATION_ID}.desktop"
+  DESTINATION "${INSTALL_BUNDLE_SHARE_DIR}/applications"
+  COMPONENT Runtime)
+
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/${APPLICATION_ID}.metainfo.xml"
+  DESTINATION "${INSTALL_BUNDLE_SHARE_DIR}/metainfo"
+  COMPONENT Runtime)
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/assets/icons/hicolor"
+  DESTINATION "${INSTALL_BUNDLE_SHARE_DIR}/icons"
+  COMPONENT Runtime)

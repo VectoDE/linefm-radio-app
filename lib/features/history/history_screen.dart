@@ -151,7 +151,10 @@ class _LiveBadge extends StatelessWidget {
         border: Border.all(color: c.line),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: const EdgeInsets.symmetric(
+          horizontal: LinefmSpace.sm,
+          vertical: LinefmSpace.xs,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -159,7 +162,7 @@ class _LiveBadge extends StatelessWidget {
               decoration: BoxDecoration(color: c.heart, shape: BoxShape.circle),
               child: const SizedBox.square(dimension: 6),
             ),
-            const SizedBox(width: 5),
+            const SizedBox(width: LinefmSpace.xs),
             Text(
               label,
               style: LinefmText.time.copyWith(
@@ -181,7 +184,7 @@ class _Loading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32),
+      padding: const EdgeInsets.symmetric(vertical: LinefmSpace.xxl),
       child: Center(
         child: SizedBox.square(
           dimension: 24,
@@ -206,16 +209,19 @@ class _Message extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.linefm;
     return Padding(
-      padding: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.only(top: LinefmSpace.xs),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
             text,
-            style: LinefmText.listTitle.copyWith(color: c.muted, fontSize: 14),
+            style: LinefmText.listTitle.copyWith(
+              color: c.muted,
+              fontSize: LinefmType.body,
+            ),
           ),
           if (actionLabel != null && onAction != null) ...<Widget>[
-            const SizedBox(height: 8),
+            const SizedBox(height: LinefmSpace.sm),
             TextButton(
               onPressed: () => unawaited(onAction!()),
               child: Text(actionLabel!),

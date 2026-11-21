@@ -93,13 +93,13 @@ class _RingingBanner extends StatelessWidget {
         final c = context.linefm;
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(LinefmSpace.md),
             child: Material(
               color: c.surfaceRaised,
               elevation: 6,
               borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
               child: Padding(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(LinefmSpace.lg),
                 child: Semantics(
                   liveRegion: true,
                   container: true,
@@ -110,10 +110,10 @@ class _RingingBanner extends StatelessWidget {
                         l10n.alarmRingingBody(ringing.station.displayName),
                         style: LinefmText.listTitle.copyWith(color: c.text),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: LinefmSpace.md),
                       Wrap(
-                        spacing: 10,
-                        runSpacing: 8,
+                        spacing: LinefmSpace.md,
+                        runSpacing: LinefmSpace.sm,
                         children: <Widget>[
                           FilledButton(
                             onPressed: () => coordinator.snooze(ringing.ruleId),

@@ -27,6 +27,7 @@ Erste Version. Noch in keinem Store veröffentlicht, das Datum wird beim Release
 - Der Service Worker legt beide Caches pro Build an und räumt alte Caches beim Update ab.
 - Manifest-Dateien (`AssetManifest.*`, `FontManifest.json`, `NOTICES`) werden nicht mehr einen Tag gecacht, sondern bei jedem Aufruf geprüft.
 - Komprimierung deckt jetzt Schriften und `application/octet-stream` ab.
+- Der Speicher-Hinweis erscheint nur noch im Browser als Banner. In der App (Android, iOS) und auf dem Desktop (Windows, macOS, Linux) öffnet sich beim ersten Start stattdessen ein Popup, das mit „Verstanden“ bestätigt werden muss. Zurück, Esc und ein Tipp daneben schließen es nicht. Der Datenschutz-Link öffnet die Seite, danach steht das Popup weiter offen. Reihenfolge beim Start: Ladebildschirm, Speicher-Hinweis, Einwilligung, Autoplay. „Speicher löschen“ bringt das Popup zurück.
 
 ### Sicherheit
 

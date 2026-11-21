@@ -9,7 +9,7 @@ ThemeData buildLinefmTheme(Brightness brightness) {
       : LinefmColors.light;
   final scheme =
       ColorScheme.fromSeed(
-        seedColor: const Color(0xFF4B4B7D),
+        seedColor: LinefmPalette.seed,
         brightness: brightness,
       ).copyWith(
         primary: tokens.accent,
@@ -72,7 +72,7 @@ ThemeData buildLinefmTheme(Brightness brightness) {
       ),
     ),
     switchTheme: SwitchThemeData(
-      thumbColor: const WidgetStatePropertyAll<Color>(Color(0xFFFFFFFF)),
+      thumbColor: const WidgetStatePropertyAll<Color>(LinefmPalette.paper),
       trackColor: WidgetStateProperty.resolveWith<Color>(
         (states) => states.contains(WidgetState.selected)
             ? tokens.switchTrackOn
@@ -156,7 +156,7 @@ ThemeData buildLinefmTheme(Brightness brightness) {
         side: BorderSide(color: tokens.line),
       ),
       titleTextStyle: LinefmText.sectionHeading.copyWith(
-        fontSize: 16,
+        fontSize: LinefmType.bodyLarge,
         color: tokens.text,
       ),
       contentTextStyle: LinefmText.listTitle.copyWith(color: tokens.text),

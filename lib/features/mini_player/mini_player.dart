@@ -90,7 +90,7 @@ class MiniPlayer extends ConsumerWidget {
     // Knoepfe).
     final rightEnd = Color.alphaBlend(
       station.color.withValues(alpha: 0.82),
-      const Color(0xFF1B1D2B),
+      LinefmPalette.miniPlayerBase,
     );
     final onRight = Contrast.onColor(rightEnd, large: true);
 
@@ -99,7 +99,9 @@ class MiniPlayer extends ConsumerWidget {
     );
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 16),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? LinefmSpace.md : LinefmSpace.lg,
+      ),
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: radius,
@@ -122,8 +124,8 @@ class MiniPlayer extends ConsumerWidget {
                 constraints: BoxConstraints(minHeight: compact ? 78 : 90),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 7,
+                    horizontal: LinefmSpace.sm,
+                    vertical: LinefmSpace.sm,
                   ),
                   child: Row(
                     children: <Widget>[
@@ -225,11 +227,11 @@ class _TrackArea extends StatelessWidget {
                       title,
                       enabled: marquee,
                       style: LinefmText.miniTitle(compact: compact)
-                          .copyWith(color: Colors.white),
+                          .copyWith(color: LinefmPalette.paper),
                     ),
                     if (artist.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(top: 3),
+                        padding: const EdgeInsets.only(top: LinefmSpace.xs),
                         child: MarqueeText(
                           artist,
                           enabled: marquee,
@@ -304,7 +306,7 @@ class _MiniBackdrop extends StatelessWidget {
               gradient: LinearGradient(
                 begin: _from,
                 end: _to,
-                colors: <Color>[color, const Color(0x00000000)],
+                colors: <Color>[color, LinefmPalette.clearBlack],
               ),
             ),
           ),
@@ -314,7 +316,7 @@ class _MiniBackdrop extends StatelessWidget {
               begin: _from,
               end: _to,
               colors: <Color>[
-                const Color(0x00000000),
+                LinefmPalette.clearBlack,
                 color.withValues(alpha: 0.28),
                 color.withValues(alpha: 0.82),
               ],
@@ -366,7 +368,7 @@ class _SleepRemainingState extends ConsumerState<_SleepRemaining> {
     final minutes = (left.inSeconds / 60).ceil();
     final text = AppLocalizations.of(context).sleepRemainingShort(minutes);
     return Padding(
-      padding: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.only(top: LinefmSpace.xs),
       child: Semantics(
         liveRegion: true,
         label: text,
@@ -379,7 +381,7 @@ class _SleepRemainingState extends ConsumerState<_SleepRemaining> {
               size: 10,
               color: Color.fromRGBO(255, 255, 255, .82),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: LinefmSpace.sm),
             Flexible(
               child: Text(
                 text,

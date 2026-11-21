@@ -80,7 +80,7 @@ class _SettingsSwitchState extends State<SettingsSwitch> {
                 constraints: const BoxConstraints(
                   minHeight: LinefmMetrics.minTarget,
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: LinefmSpace.lg),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
                   border: Border.all(
@@ -100,7 +100,7 @@ class _SettingsSwitchState extends State<SettingsSwitch> {
                               color: c.text,
                             ),
                           ),
-                          const SizedBox(height: 5),
+                          const SizedBox(height: LinefmSpace.xs),
                           Text(
                             widget.subtitle,
                             style: LinefmText.settingCopy.copyWith(
@@ -110,7 +110,7 @@ class _SettingsSwitchState extends State<SettingsSwitch> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 24),
+                    const SizedBox(width: LinefmSpace.xl),
                     _Track(value: widget.value, colors: c),
                   ],
                 ),
@@ -154,10 +154,10 @@ class _Track extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Color(0xFFFFFFFF),
+              color: LinefmPalette.paper,
               boxShadow: <BoxShadow>[
                 BoxShadow(
-                  color: Color(0x33000000),
+                  color: LinefmPalette.knobShadow,
                   blurRadius: 3,
                   offset: Offset(0, 1),
                 ),

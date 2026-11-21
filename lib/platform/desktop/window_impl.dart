@@ -3,6 +3,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart' show debugPrint;
@@ -41,6 +42,7 @@ class WindowManagerDesktopWindow with WindowListener implements DesktopWindow {
   bool _closeToTray = true;
   bool _trayAvailable = true;
   bool _mini = false;
+  bool _customTitleBar = false;
   Timer? _saveTimer;
   SavedBounds? _normalBounds;
 
@@ -78,6 +80,7 @@ class WindowManagerDesktopWindow with WindowListener implements DesktopWindow {
     await _wm.setPreventClose(closeToTray);
     await _wm.setTitle(desktopWindowTitle);
     await _wm.setMinimumSize(normalWindowMinimum);
+    await _hideSystemTitleBar();
 
     final saved = _consent
         ? SavedBounds.decode(
@@ -94,6 +97,34 @@ class WindowManagerDesktopWindow with WindowListener implements DesktopWindow {
       _normalBounds = saved;
     }
   }
+
+  /// true, wenn die Systemleiste ausgeblendet ist und die App ihre eigene
+  /// zeichnet (`DesktopTitleBar`, Issue #87).
+  bool get customTitleBar => _customTitleBar;
+
+  /// Blendet die Titelleiste des Systems aus. Windows behaelt Rahmen,
+  /// Schatten, runde Ecken (Windows 11), Systemmenue und Andocken (nativeapi
+  /// laesst WS_CAPTION stehen und gibt nur das obere Band dem Inhalt),
+  /// macOS die Ampel-Schaltflaechen, Linux verliert die GTK-Dekoration.
+  /// Schlaegt das fehl, bleibt die Systemleiste und die App zeichnet keine.
+  Future<void> _hideSystemTitleBar() async {
+    try {
+      await _applyHiddenTitleBar();
+      _customTitleBar = true;
+    } on Object catch (e) {
+      debugPrint('Eigene Titelleiste nicht moeglich: $e');
+      _customTitleBar = false;
+    }
+  }
+
+  Future<void> _applyHiddenTitleBar() => _wm.setTitleBarStyle(
+    TitleBarStyle.hidden,
+    // Windows: haelt WS_SYSMENU (Alt+Leertaste, Snap-Layouts), macOS: Ampeln.
+    windowButtonVisibility: !Platform.isLinux,
+  );
+
+  /// Aktuell maximiert (Startzustand der eigenen Leiste).
+  Future<bool> isMaximized() => _wm.isMaximized();
 
   @override
   Future<void> show() async {
@@ -157,7 +188,13 @@ class WindowManagerDesktopWindow with WindowListener implements DesktopWindow {
     await _saveMini(onTop: await _wm.isAlwaysOnTop());
     _mini = false;
     await _wm.setAlwaysOnTop(alwaysOnTop);
-    await _wm.setTitleBarStyle(TitleBarStyle.normal);
+    // Zurueck zur eigenen Leiste (Issue #87); setAsFrameless des
+    // Mini-Fensters hebt erst der neue Stil auf.
+    if (_customTitleBar) {
+      await _applyHiddenTitleBar();
+    } else {
+      await _wm.setTitleBarStyle(TitleBarStyle.normal);
+    }
     await _wm.setResizable(true);
     await _wm.setMinimumSize(normalWindowMinimum);
     final bounds = _normalBounds;

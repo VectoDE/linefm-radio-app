@@ -101,7 +101,7 @@ class _SleepTimerRowState extends ConsumerState<SleepTimerRow> {
           l10n.sleepTimerTitle,
           style: LinefmText.settingTitle.copyWith(color: c.text),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: LinefmSpace.xs),
         Semantics(
           liveRegion: true,
           child: Text(
@@ -110,7 +110,7 @@ class _SleepTimerRowState extends ConsumerState<SleepTimerRow> {
           ),
         ),
         if (!endOfSongOk && track != null) ...<Widget>[
-          const SizedBox(height: 4),
+          const SizedBox(height: LinefmSpace.xs),
           Text(
             l10n.sleepTimerEndOfSongUnavailable,
             style: LinefmText.settingCopy.copyWith(color: c.muted),
@@ -128,7 +128,7 @@ class _SleepTimerRowState extends ConsumerState<SleepTimerRow> {
           borderRadius: BorderRadius.circular(LinefmMetrics.radiusLogo),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: LinefmSpace.md),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<SleepTimerMode>(
               value: current,
@@ -162,7 +162,7 @@ class _SleepTimerRowState extends ConsumerState<SleepTimerRow> {
             : null,
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: LinefmSpace.lg),
         child: LayoutBuilder(
           builder: (context, box) {
             // Schmal oder grosse Schrift: Auswahl unter den Text.
@@ -174,7 +174,7 @@ class _SleepTimerRowState extends ConsumerState<SleepTimerRow> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   copy,
-                  const SizedBox(height: 12),
+                  const SizedBox(height: LinefmSpace.md),
                   picker(expand: true),
                 ],
               );
@@ -182,7 +182,7 @@ class _SleepTimerRowState extends ConsumerState<SleepTimerRow> {
             return Row(
               children: <Widget>[
                 Expanded(child: copy),
-                const SizedBox(width: 24),
+                const SizedBox(width: LinefmSpace.xl),
                 picker(expand: false),
               ],
             );

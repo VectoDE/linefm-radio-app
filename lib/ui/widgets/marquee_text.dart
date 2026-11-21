@@ -134,10 +134,10 @@ class _BandState extends State<_Band> with SingleTickerProviderStateMixin {
         blendMode: BlendMode.dstIn,
         shaderCallback: (rect) => const LinearGradient(
           colors: <Color>[
-            Color(0x00FFFFFF),
-            Color(0xFFFFFFFF),
-            Color(0xFFFFFFFF),
-            Color(0x00FFFFFF),
+            LinefmPalette.clearWhite,
+            LinefmPalette.paper,
+            LinefmPalette.paper,
+            LinefmPalette.clearWhite,
           ],
           stops: <double>[0, 0.04, 0.96, 1],
         ).createShader(rect),

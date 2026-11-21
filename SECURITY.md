@@ -84,7 +84,11 @@ Signierte Releases: Jede Release-Datei trägt eine GitHub-Attestierung und eine 
 5. **Abschließen:** Nach dem Merge laufen die Scanner auf `main` erneut. Ist der Alert zu, schließt `security-alerts.yml` das Issue automatisch; öffnet er sich wieder, wird das Issue wieder geöffnet.
 6. **Verwerfen nur mit Begründung:** Ein Alert wird nur als „False positive“ oder „Won't fix“ verworfen, wenn das sachlich begründet ist (z. B. strukturell nicht erreichbare Scorecard-Checks, siehe unten). Die Begründung steht im Alert.
 
-Dependabot- und Secret-Scanning-Alerts kann der Standard-Token der Actions nicht lesen. Dafür braucht der Abgleich das Secret `SECURITY_ALERTS_TOKEN` (Fine-grained Token nur für dieses Repository mit Lesezugriff auf Dependabot alerts und Secret scanning alerts, Schreibzugriff auf Issues; für das Project zusätzlich Projects). Ohne das Secret gleicht der Workflow nur Code Scanning ab und meldet das als Warnung.
+Dependabot- und Secret-Scanning-Alerts kann der Standard-Token der Actions nicht lesen. Der Inhaber hat entschieden, dafür kein zusätzliches Token einzurichten. `security-alerts.yml` gleicht deshalb regulär nur Code Scanning ab und weist mit einem Hinweis darauf hin. Dependabot- und Secret-Funde werden über die Security-Ansicht des Repositories geprüft.
+
+### Branch-Schutz und Merge-Ablauf
+
+Der Branch-Schutz von `main` verlangt keine Pflicht-Freigabe durch eine zweite Person. Das ist eine Entscheidung des Inhabers; das Projekt hat einen einzigen Entwickler. Dependabot-PRs werden nach grüner CI zeitnah gemergt (Merge-Wächter). Die Scorecard-Checks Code-Review und Branch-Protection bleiben dadurch teilweise unerreicht (siehe unten).
 
 ### Scorecard-Checks, die strukturell nicht voll erreichbar sind
 

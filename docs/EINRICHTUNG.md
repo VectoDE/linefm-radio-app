@@ -563,14 +563,10 @@ Das gilt nur für die Web-Version. Alles ist aus, solange du keine Werte einträ
 - **Woher:** GitHub > Settings > Developer settings > Fine-grained tokens. Code Scanning in privaten Repos braucht GitHub Code Security.
 - **Prüfschritt:** Der Scorecard-Lauf ist grün, das Badge in der README zeigt einen Wert.
 
-#### Token für Sicherheitsfunde (optional)
+#### Token für Sicherheitsfunde (nicht vorgesehen)
 
-- **Was:** `SECURITY_ALERTS_TOKEN` ist ein Fine-grained-Token nur für dieses Repository: Dependabot alerts (lesen), Secret scanning alerts (lesen), Issues (lesen und schreiben); für das Project zusätzlich das Konto-Recht Projects (lesen und schreiben).
-- **Wozu:** `security-alerts.yml` legt für jeden offenen Alert ein Issue `typ:sicherheit` an. Code Scanning geht ohne Token; Dependabot, Secret Scanning und das Eintragen ins Project 26 nur mit Token.
-- **Wo eintragen:** Secret `SECURITY_ALERTS_TOKEN`.
-- **Woher:** GitHub > Settings > Developer settings > Fine-grained tokens.
-- **Prüfschritt:** Workflow „Sicherheitsfunde“ von Hand starten; die Zusammenfassung zeigt „Dependabot/Secret Scanning abgeglichen: true“.
-- [ ] erledigt
+- **Entscheidung des Inhabers (22.11.2026):** Es gibt kein `SECURITY_ALERTS_TOKEN`. Nichts einzurichten.
+- **Folge:** `security-alerts.yml` gleicht regulär nur Code Scanning ab. Dependabot- und Secret-Scanning-Alerts prüft der Betreiber in der Security-Ansicht des Repositories (siehe SECURITY.md).
 
 ---
 
@@ -799,7 +795,6 @@ Art: S = Secret, V = Variable. "Pflicht" heißt: ohne den Wert fehlt die Funktio
 | `GPG_PRIVATE_KEY` | S | Signierte Releases (optional) | `gpg --armor --export-secret-keys <ID>` | 12.2 |
 | `GPG_PASSPHRASE` | S | Signierte Releases (optional) | beim Erzeugen vergeben | 12.2 |
 | `SCORECARD_TOKEN` | S | OpenSSF Scorecard (optional) | GitHub, Fine-grained token | 12.3 |
-| `SECURITY_ALERTS_TOKEN` | S | Sicherheitsfunde als Issues (optional) | GitHub, Fine-grained token | 12.3 |
 | `CODE_SCANNING_ENABLED` | V | CodeQL (optional) | `true` | 12.3 |
 
 ## Anhang B: Alle Platzhalter

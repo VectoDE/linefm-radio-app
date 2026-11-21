@@ -14,11 +14,10 @@ name: Sicherheitsfunde
 # Meldungstexte oder Geheimnistypen.
 #
 # Rechte: GITHUB_TOKEN liest Code Scanning (security-events: read) und pflegt Issues.
-# Dependabot- und Secret-Scanning-Alerts sowie das Project 26 erreicht GITHUB_TOKEN
-# nicht. Dafuer ist das optionale Secret SECURITY_ALERTS_TOKEN vorgesehen
-# (Fine-grained PAT, nur dieses Repo: Dependabot alerts read, Secret scanning
-# alerts read, Issues read/write; fuer das Project zusaetzlich Konto-Recht
-# Projects read/write). Fehlt es, werden diese Quellen mit Warnung uebersprungen.
+# Dependabot- und Secret-Scanning-Alerts erreicht GITHUB_TOKEN nicht. Ein
+# zusaetzliches Token gibt es nach Entscheidung des Inhabers nicht (22.11.2026):
+# Der Abgleich beschraenkt sich regulaer auf Code Scanning. Dependabot- und
+# Secret-Funde werden ueber die Security-Ansicht des Repos geprueft (SECURITY.md).
 
 on:
   # Ausnahme dangerous-triggers in .github/zizmor.yml begruendet.
@@ -58,10 +57,7 @@ jobs:
       - name: Alerts abgleichen
         env:
           GH_TOKEN: ${{ github.token }}
-          EXTRA_TOKEN: ${{ secrets.SECURITY_ALERTS_TOKEN }}
           REPO: ${{ github.repository }}
-          OWNER: ${{ github.repository_owner }}
-          PROJECT_NUMBER: "26"
           LABEL: typ:sicherheit
         run: |
           set -euo pipefail
@@ -78,22 +74,9 @@ jobs:
             --jq '.[] | ["code-scanning", (.number|tostring), (.rule.security_severity_level // .rule.severity // "unbekannt"), .tool.name, .html_url] | @tsv' \
             >> "$work/open.tsv"
 
-          extra_ok=false
-          if [ -n "$EXTRA_TOKEN" ]; then
-            if GH_TOKEN="$EXTRA_TOKEN" gh api --paginate "repos/$REPO/dependabot/alerts?state=open&per_page=100" \
-                 --jq '.[] | ["dependabot", (.number|tostring), (.security_advisory.severity // "unbekannt"), "Dependabot", .html_url] | @tsv' \
-                 > "$work/dep.tsv" \
-               && GH_TOKEN="$EXTRA_TOKEN" gh api --paginate "repos/$REPO/secret-scanning/alerts?state=open&per_page=100" \
-                 --jq '.[] | ["secret-scanning", (.number|tostring), "hoch", "Secret Scanning", .html_url] | @tsv' \
-                 > "$work/sec.tsv"; then
-              cat "$work/dep.tsv" "$work/sec.tsv" >> "$work/open.tsv"
-              extra_ok=true
-            else
-              echo "::warning::SECURITY_ALERTS_TOKEN vorhanden, aber Dependabot/Secret Scanning nicht lesbar. Rechte pruefen."
-            fi
-          else
-            echo "::warning::SECURITY_ALERTS_TOKEN fehlt: Dependabot- und Secret-Scanning-Alerts werden nicht abgeglichen (siehe SECURITY.md)."
-          fi
+          # Regulaerer Betrieb: nur Code Scanning. Dependabot und Secret Scanning
+          # sind mit dem Actions-Token nicht lesbar und werden nicht abgeglichen.
+          echo "::notice::Abgleich nur fuer Code Scanning. Dependabot- und Secret-Scanning-Alerts werden in der Security-Ansicht des Repos geprueft (siehe SECURITY.md)."
 
           # Vorhandene Issues mit Marker "<!-- sicherheitsfund:quelle:nummer -->".
           gh issue list --repo "$REPO" --label "$LABEL" --state all --limit 1000 \
@@ -121,10 +104,6 @@ jobs:
               issue_url="$(gh issue create --repo "$REPO" --label "$LABEL" \
                 --title "Sicherheitsfund: $tool, $kind #$num ($sev)" --body "$body")"
               created=$((created + 1))
-              if [ "$extra_ok" = true ]; then
-                GH_TOKEN="$EXTRA_TOKEN" gh project item-add "$PROJECT_NUMBER" --owner "$OWNER" --url "$issue_url" \
-                  || echo "::warning::Issue nicht ins Project $PROJECT_NUMBER uebernommen (Rechte des Tokens?)."
-              fi
             else
               inum="$(cut -f2 <<<"$line")"; istate="$(cut -f3 <<<"$line")"
               if [ "$istate" = "CLOSED" ]; then
@@ -134,12 +113,12 @@ jobs:
             fi
           done < "$work/open.tsv"
 
-          # Offene Issues schliessen, deren Alert nicht mehr offen ist. Quellen, die
-          # nicht gelesen werden konnten, bleiben unangetastet.
+          # Offene Issues schliessen, deren Code-Scanning-Alert nicht mehr offen ist.
+          # Issues anderer Quellen bleiben unangetastet.
           while IFS=$'\t' read -r key inum istate; do
             [ "$istate" = "OPEN" ] || continue
             kind="${key%%:*}"
-            if [ "$kind" != "code-scanning" ] && [ "$extra_ok" != true ]; then continue; fi
+            [ "$kind" = "code-scanning" ] || continue
             if ! awk -F'\t' -v k="$key" '$1":"$2==k {f=1} END {exit !f}' "$work/open.tsv"; then
               gh issue close "$inum" --repo "$REPO" --reason completed \
                 --comment "Der Alert $key ist geschlossen (behoben oder begruendet verworfen)."
@@ -150,6 +129,6 @@ jobs:
           {
             echo "### Sicherheitsfunde"
             echo "- Offene Alerts: $(wc -l < "$work/open.tsv")"
-            echo "- Dependabot/Secret Scanning abgeglichen: $extra_ok"
+            echo "- Quelle: nur Code Scanning (Dependabot/Secret Scanning siehe Security-Ansicht)"
             echo "- Issues angelegt: $created, wieder geoeffnet: $reopened, geschlossen: $closed"
           } >> "$GITHUB_STEP_SUMMARY"

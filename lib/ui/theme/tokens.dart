@@ -69,7 +69,7 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     surface: Color(0xFF181B2B),
     surfaceRaised: Color(0xFF202337),
     text: Color(0xFFFFFFFF),
-    muted: Color(0xFF898DA1),
+    muted: Color(0xFF898DA2),
     line: Color.fromRGBO(255, 255, 255, 0.09),
     accent: Color(0xFFFFFFFF),
     heart: Color(0xFFFF4B6E),

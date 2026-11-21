@@ -15,11 +15,12 @@ Erste Version. Noch in keinem Store veröffentlicht, das Datum wird beim Release
 - Android: Homescreen-Widget, Android Auto, Chromecast.
 - Desktop: Tray-Symbol, Mini-Fenster, Tastenkürzel.
 - Deep Links `https://app.linefm.de/?station=<sender>` und `linefm://play?station=<sender>`.
-- Deutsch und Englisch, heller und dunkler Modus.
+- Deutsch und Englisch, heller und dunkler Modus. In den Einstellungen wählbar: Systemsprache, Deutsch oder English, sofort wirksam und gespeichert. Wecker-Benachrichtigungen, Tray-Menü, Auto-Menü, Widget und Favoriten-Export folgen der gewählten Sprache. Alle sichtbaren Texte stehen in den ARB-Dateien, auch die Spaltenköpfe des Favoriten-Exports und die Ordnernamen des Auto-Menüs.
 - Web-Version mit Service Worker, Sicherheits-Headern und Hosting-Konfigurationen für nginx, Traefik, Cloudflare Pages und Plesk.
 - Optionale, selbst gehostete Telemetrie (Umami, GlitchTip) nach Einwilligung.
 - Rechtstexte (Entwurf) und Erklärung zur Barrierefreiheit (Entwurf).
 - Pipelines für Build, Release und Store-Upload (GitHub Actions).
+- Anleitung [Bauen und Starten](docs/BAUEN-UND-STARTEN.md) für Betreiber: Bau über GitHub Actions, lokal bauen, Ergebnisse öffnen. Start-Skripte `tool/bauen.ps1` und `tool/bauen.sh`.
 
 ### Geändert
 

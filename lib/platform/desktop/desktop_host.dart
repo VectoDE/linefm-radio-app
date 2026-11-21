@@ -91,6 +91,10 @@ class _DesktopHostState extends ConsumerState<DesktopHost> {
         fireImmediately: true,
       )
       ..listenManual(
+        settingsProvider.select((s) => s.language),
+        (_, _) => unawaited(_desktop.tray.refresh()),
+      )
+      ..listenManual(
         playerStateProvider,
         (_, _) => unawaited(_desktop.tray.refresh()),
       )

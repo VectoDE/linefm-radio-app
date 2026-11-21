@@ -31,6 +31,7 @@ import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/features/loader/app_loader.dart';
 import 'package:linefm_radio/features/player/player_screen.dart';
+import 'package:linefm_radio/features/settings/settings_screen.dart';
 import 'package:linefm_radio/features/stations/station_card.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/platform/desktop/desktop_controller.dart';
@@ -201,18 +202,20 @@ void main() {
         find.descendant(of: rail, matching: find.text('EINSTELLUNGEN')),
       );
       await _pumpFor(tester, const Duration(milliseconds: 600));
+      await _reveal(tester, find.text('Sprache'));
       expect(find.text('Sprache'), findsOneWidget);
       _expectRail104(tester, 'de, Fensterbreite $width');
       await _shot(tester, '101-de-${width.round()}');
 
       // Deutsch -> Englisch: Breite je Frame des Wechsels pruefen.
-      await tester.ensureVisible(find.text('English'));
+      await _reveal(tester, find.text('English'));
       await tester.tap(find.text('English'));
       final widths = <double>[];
       for (var i = 0; i < 12; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         widths.add(tester.getSize(rail).width);
       }
+      await _reveal(tester, find.text('Language'));
       expect(find.text('Language'), findsOneWidget);
       expect(
         find.descendant(of: rail, matching: find.text('SETTINGS')),
@@ -225,9 +228,10 @@ void main() {
       await _shot(tester, '101-en-${width.round()}');
 
       // Und zurueck.
-      await tester.ensureVisible(find.text('Deutsch'));
+      await _reveal(tester, find.text('Deutsch'));
       await tester.tap(find.text('Deutsch'));
       await _pumpFor(tester, const Duration(milliseconds: 600));
+      await _reveal(tester, find.text('Sprache'));
       expect(find.text('Sprache'), findsOneWidget);
       _expectRail104(tester, 'de nach Rueckwechsel, Breite $width');
       expect(tester.takeException(), isNull);
@@ -551,13 +555,27 @@ Finder _caption(CaptionButtonKind kind) => find.byWidgetPredicate(
   description: 'CaptionButton(${kind.name})',
 );
 
+/// Scrollt die Einstellungen, bis [target] gebaut und sichtbar ist.
+Future<void> _reveal(WidgetTester tester, Finder target) async {
+  final scrollable = find
+      .descendant(
+        of: find.byType(SettingsScreen),
+        matching: find.byType(Scrollable),
+      )
+      .first;
+  await tester.scrollUntilVisible(target, 120, scrollable: scrollable);
+  await tester.pump(const Duration(milliseconds: 100));
+}
+
 Future<void> _tapStation(WidgetTester tester, Station s) async {
   final card = find.byWidgetPredicate(
     (w) => w is StationCard && w.station.slug == s.slug,
     description: 'Senderkarte ${s.slug}',
   );
   expect(card, findsOneWidget);
-  await tester.ensureVisible(card);
+  // Mittig scrollen: am Rand liegt der Header ueber der Karte.
+  await Scrollable.ensureVisible(tester.element(card), alignment: 0.5);
+  await tester.pump(const Duration(milliseconds: 100));
   await tester.tap(card);
 }
 

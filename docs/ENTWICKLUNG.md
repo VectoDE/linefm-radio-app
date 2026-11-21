@@ -150,6 +150,10 @@ Referenzbilder hängen von der Rasterung der Plattform ab. Sie gelten deshalb nu
 - Alternativ lokal auf Windows 11: `flutter test --update-goldens test/ui/components_golden_test.dart` (je Datei), Bilder prüfen und committen. Die CI bleibt maßgeblich: stimmt sie nicht überein, gilt das Artifact.
 - Ein neuer Golden-Test braucht das Tag (`@Tags(<String>['golden'])` und `library;` ganz oben), den Dateinamen `*_golden_test.dart` und `setUpAll(prepareGoldens)` aus `test/golden_support.dart`.
 
+### Windows-Integrationstest
+
+`integration_test/windows_app_test.dart` startet die echte App in einem echten Windows-Fenster (Netzwerk-Fakes für laut.fm, kein Audio) und prüft Senderwechsel (#99), Sprachwechsel mit fester Rail-Breite (#101) und die eigene Titelleiste (#87: Maximieren, Doppelklick, Minimieren, Schließen in den Tray, Größe setzen). Er läuft nur in der CI (Workflow `itest-windows.yml`, bei Pull Request und manuell), nicht lokal. Die Bilder je Schritt liegen im Artifact `windows-itest-screens`: `gh run download <run-id> -n windows-itest-screens -D tmp-itest`. Nicht geprüft werden Ziehen, Andocken und Snap-Layouts (echte Mauseingaben des Betriebssystems).
+
 - Schwere Builds (APK, Windows, Web) laufen nicht parallel zu `flutter test`, das braucht viel Arbeitsspeicher.
 - Eine Live-Probe der laut.fm-Schnittstelle liegt in `tool/dev/now_playing_probe.dart`.
 

@@ -81,7 +81,7 @@ class FavoritesImport {
 
   // ------------------------------------------------------------------ CSV
 
-  static const List<FavoritesExportLabels> _labels = <FavoritesExportLabels>[
+  static final List<FavoritesExportLabels> _labels = <FavoritesExportLabels>[
     FavoritesExportLabels.de,
     FavoritesExportLabels.en,
   ];

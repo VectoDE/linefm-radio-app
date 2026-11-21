@@ -77,7 +77,7 @@ Die Werte sind im Binary lesbar. Keine Geheimnisse hinein. Ohne Telemetrie-Werte
 - Verpackung für die Verteilung (Inno Setup, MSIX, Flatpak, Snap, DMG, iOS-Export): [packaging/README.md](../packaging/README.md).
 - `flutter build` schreibt `lib/l10n/gen/*` mit anderen Zeilenenden neu. Diese Änderungen nicht committen, zurücksetzen.
 - App-Icons entstehen aus einer Quelle mit `tool/generate_icons.sh` (Quelle `assets/branding/source/`). Das Icon wird technisch skaliert, nicht verändert.
-- Übersetzungen: `lib/l10n/app_de.arb` ist die Vorlage, `app_en.arb` die zweite Sprache. `flutter gen-l10n` erzeugt `lib/l10n/gen/`. Jeder Schlüssel muss in beiden Sprachen stehen.
+- Übersetzungen: `lib/l10n/app_de.arb` ist die Vorlage, `app_en.arb` die zweite Sprache. `flutter gen-l10n` erzeugt `lib/l10n/gen/`. Jeder Schlüssel muss in beiden Sprachen stehen (CI-Job und `test/app/language_test.dart` prüfen das). Neue sichtbare Texte kommen immer in die ARB-Dateien, nie als Literal in den Code. Texte ohne BuildContext (Wecker, Tray, Auto-Menü) holen `systemLocalizations()` aus `lib/l10n/system_l10n.dart`; das berücksichtigt die in den Einstellungen gewählte Sprache.
 
 ## Tests
 
@@ -172,7 +172,7 @@ Tests: `test/platform/deep_links_test.dart`, `android_deep_links_test.dart`, `we
 - **targetSdk** kommt aus Flutter (`flutter.targetSdkVersion`, mit Flutter 3.50 also API 36), `compileSdk` steht fest auf 37 (`android/app/build.gradle.kts`). Nach einem Flutter-Update prüfen, ob sich der Wert geändert hat, und die Punkte unten neu ansehen.
 - **Edge-to-Edge:** Ab targetSdk 35 zeichnet Android jede App unter Status- und Navigationsleiste; ab API 36 lässt sich das nicht mehr abschalten. Flutter zeichnet ohnehin randlos, die Shell hält Inhalte mit `SafeArea` von den Leisten fern. Neue Bildschirme brauchen das ebenfalls, sonst liegen Knöpfe unter der Gestenleiste.
 - **Vorhersagbares Zurück:** `android:enableOnBackInvokedCallback="true"` im Manifest. Die Shell nutzt `PopScope` (`canPop` nur auf der Senderliste), das mit der Geste zusammenarbeitet. Der Test „Vorhersagbares Zurueck“ in `test/app/shell_test.dart` spielt die Geste über den Kanal `flutter/backgesture` nach. Kein `WillPopScope` verwenden, das bricht die Geste.
-- **Sprachen pro App:** `res/xml/locales_config.xml` nennt de und en (Android 13+, Einstellungen > Apps > Sprache). Kommt eine Sprache unter `lib/l10n/` dazu, dort ergänzen.
+- **Sprachen pro App:** `res/xml/locales_config.xml` nennt de und en (Android 13+, Einstellungen > Apps > Sprache). Kommt eine Sprache unter `lib/l10n/` dazu, dort ergänzen. Die Sprachwahl in der App (Einstellungen) ist unabhängig davon: Ohne eigene Wahl gilt die Systemsprache bzw. die Per-App-Sprache des Systems, die Wahl in der App geht der Systemsprache vor.
 
 ## laut.fm: WebSocket bewusst aus
 

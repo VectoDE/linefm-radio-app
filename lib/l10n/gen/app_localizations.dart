@@ -680,6 +680,60 @@ abstract class AppLocalizations {
   /// **'Dunkel'**
   String get themeDark;
 
+  /// Einstellungen: Überschrift der Sprachauswahl
+  ///
+  /// In de, this message translates to:
+  /// **'Sprache'**
+  String get settingLanguageTitle;
+
+  /// Einstellungen: Erklärung unter der Sprachauswahl
+  ///
+  /// In de, this message translates to:
+  /// **'Systemsprache oder fest Deutsch bzw. Englisch. Die Änderung gilt sofort.'**
+  String get settingLanguageBody;
+
+  /// Sprachauswahl: folgt der Sprache des Geräts (Rückfall Englisch)
+  ///
+  /// In de, this message translates to:
+  /// **'Systemsprache'**
+  String get languageSystem;
+
+  /// Sprachauswahl: Eigenname der Sprache, in beiden Sprachen gleich, nicht übersetzen
+  ///
+  /// In de, this message translates to:
+  /// **'Deutsch'**
+  String get languageGerman;
+
+  /// Sprachauswahl: Eigenname der Sprache, in beiden Sprachen gleich, nicht übersetzen
+  ///
+  /// In de, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// Favoriten-Export (CSV): Spaltenkopf Titel
+  ///
+  /// In de, this message translates to:
+  /// **'Titel'**
+  String get exportColumnTitle;
+
+  /// Favoriten-Export (CSV): Spaltenkopf Künstler
+  ///
+  /// In de, this message translates to:
+  /// **'Künstler'**
+  String get exportColumnArtist;
+
+  /// Favoriten-Export (CSV): Spaltenkopf Sender
+  ///
+  /// In de, this message translates to:
+  /// **'Sender'**
+  String get exportColumnStation;
+
+  /// Favoriten-Export (CSV): Spaltenkopf Datum des Merkens
+  ///
+  /// In de, this message translates to:
+  /// **'Gemerkt am'**
+  String get exportColumnSavedAt;
+
   /// No description provided for @settingAutoplayTitle.
   ///
   /// In de, this message translates to:

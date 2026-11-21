@@ -5,6 +5,7 @@ import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/data/storage/webapp_migration.dart';
+import 'package:linefm_radio/l10n/system_l10n.dart';
 import 'package:linefm_radio/platform/carplay_bridge.dart';
 import 'package:linefm_radio/platform/deep_links.dart';
 import 'package:linefm_radio/platform/desktop/desktop_controller.dart';
@@ -44,6 +45,8 @@ Future<void> main(List<String> args) async {
     DeepLinks.dispatchFromArguments,
   );
   final prefs = await prefsReady;
+  // Gewaehlte Sprache fuer Texte ohne BuildContext (Wecker, Tray, Auto-Menue).
+  appLanguageOverride = prefs.readSettings().language.code;
   final telemetry = await initTelemetry(config: appConfig, prefs: prefs);
   telemetry.installCrashHandlers();
   await Future.wait(<Future<void>>[initAlarm(), initHomeWidget()]);

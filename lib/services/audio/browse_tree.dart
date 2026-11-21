@@ -1,7 +1,10 @@
+import 'dart:ui' show Locale;
+
 import 'package:audio_service/audio_service.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
+import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 
 /// Liefert das Bild eines Senders im Auto-Menue.
 typedef StationArtUri = Uri Function(Station station);
@@ -51,10 +54,23 @@ class AutoMenuFolder {
 /// Ordnernamen des Auto-Menues (lokalisiert vom Aufrufer).
 class AutoMenuTitles {
   const AutoMenuTitles({
-    this.favoriteStations = 'Favoriten-Sender',
-    this.stations = 'Sender',
-    this.recent = 'Zuletzt gehört',
+    required this.favoriteStations,
+    required this.stations,
+    required this.recent,
   });
+
+  /// Titel aus den ARB-Dateien.
+  factory AutoMenuTitles.fromLocalizations(AppLocalizations l10n) =>
+      AutoMenuTitles(
+        favoriteStations: l10n.browseFavoriteStations,
+        stations: l10n.browseStations,
+        recent: l10n.browseRecent,
+      );
+
+  /// Ohne Angabe des Aufrufers: Deutsch (Hauptsprache der App).
+  factory AutoMenuTitles.fallback() => AutoMenuTitles.fromLocalizations(
+    lookupAppLocalizations(const Locale('de')),
+  );
 
   final String favoriteStations;
   final String stations;
@@ -108,31 +124,34 @@ class BrowseTree {
   static List<AutoMenuFolder> menu({
     List<Station> favorites = const <Station>[],
     Station? recent,
-    AutoMenuTitles titles = const AutoMenuTitles(),
-  }) => <AutoMenuFolder>[
-    AutoMenuFolder(
-      section: AutoMenuSection.favoriteStations,
-      title: titles.favoriteStations,
-      stations: List<Station>.unmodifiable(favorites),
-    ),
-    AutoMenuFolder(
-      section: AutoMenuSection.stations,
-      title: titles.stations,
-      stations: stationsCatalog,
-    ),
-    AutoMenuFolder(
-      section: AutoMenuSection.recent,
-      title: titles.recent,
-      stations: <Station>[?recent],
-    ),
-  ];
+    AutoMenuTitles? titles,
+  }) {
+    final names = titles ?? AutoMenuTitles.fallback();
+    return <AutoMenuFolder>[
+      AutoMenuFolder(
+        section: AutoMenuSection.favoriteStations,
+        title: names.favoriteStations,
+        stations: List<Station>.unmodifiable(favorites),
+      ),
+      AutoMenuFolder(
+        section: AutoMenuSection.stations,
+        title: names.stations,
+        stations: stationsCatalog,
+      ),
+      AutoMenuFolder(
+        section: AutoMenuSection.recent,
+        title: names.recent,
+        stations: <Station>[?recent],
+      ),
+    ];
+  }
 
   /// Kinder eines Knotens. Unbekannte Knoten liefern eine leere Liste.
   static List<MediaItem> children(
     String parentId, {
     List<Station> favorites = const <Station>[],
     Station? recent,
-    AutoMenuTitles titles = const AutoMenuTitles(),
+    AutoMenuTitles? titles,
     StationArtUri art = remoteArt,
   }) {
     final folders = menu(favorites: favorites, recent: recent, titles: titles);

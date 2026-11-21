@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:ui' show Locale, PlatformDispatcher;
+import 'dart:ui' show Locale;
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
@@ -11,6 +11,7 @@ import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/l10n/system_l10n.dart';
 import 'package:linefm_radio/services/audio/browse_tree.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/audio/radio_player.dart';
@@ -252,13 +253,9 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   /// Ordnernamen in der Systemsprache (Rueckfall Englisch).
   static AutoMenuTitles autoMenuTitles([Locale? locale]) {
     final l10n = lookupAppLocalizations(
-      _supportedLocale(locale ?? PlatformDispatcher.instance.locale),
+      _supportedLocale(locale ?? effectiveSystemLocale()),
     );
-    return AutoMenuTitles(
-      favoriteStations: l10n.browseFavoriteStations,
-      stations: l10n.browseStations,
-      recent: l10n.browseRecent,
-    );
+    return AutoMenuTitles.fromLocalizations(l10n);
   }
 
   static Locale _supportedLocale(Locale locale) =>

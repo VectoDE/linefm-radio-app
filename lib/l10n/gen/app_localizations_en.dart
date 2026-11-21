@@ -88,6 +88,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storageNoticeDismiss => 'Got it';
 
   @override
+  String get storageNoticeTitle => 'Storage on this device';
+
+  @override
   String get favoritesButton => 'Favorites';
 
   @override
@@ -366,6 +369,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeDark => 'Dark';
+
+  @override
+  String get settingLanguageTitle => 'Language';
+
+  @override
+  String get settingLanguageBody =>
+      'System language, or fixed to German or English. The change applies right away.';
+
+  @override
+  String get languageSystem => 'System language';
+
+  @override
+  String get languageGerman => 'Deutsch';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get exportColumnTitle => 'Title';
+
+  @override
+  String get exportColumnArtist => 'Artist';
+
+  @override
+  String get exportColumnStation => 'Station';
+
+  @override
+  String get exportColumnSavedAt => 'Saved on';
 
   @override
   String get settingAutoplayTitle => 'Play on launch';

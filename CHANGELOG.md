@@ -15,11 +15,12 @@ Erste Version. Noch in keinem Store veröffentlicht, das Datum wird beim Release
 - Android: Homescreen-Widget, Android Auto, Chromecast.
 - Desktop: Tray-Symbol, Mini-Fenster, Tastenkürzel.
 - Deep Links `https://app.linefm.de/?station=<sender>` und `linefm://play?station=<sender>`.
-- Deutsch und Englisch, heller und dunkler Modus.
+- Deutsch und Englisch, heller und dunkler Modus. In den Einstellungen wählbar: Systemsprache, Deutsch oder English, sofort wirksam und gespeichert. Wecker-Benachrichtigungen, Tray-Menü, Auto-Menü, Widget und Favoriten-Export folgen der gewählten Sprache. Alle sichtbaren Texte stehen in den ARB-Dateien, auch die Spaltenköpfe des Favoriten-Exports und die Ordnernamen des Auto-Menüs.
 - Web-Version mit Service Worker, Sicherheits-Headern und Hosting-Konfigurationen für nginx, Traefik, Cloudflare Pages und Plesk.
 - Optionale, selbst gehostete Telemetrie (Umami, GlitchTip) nach Einwilligung.
 - Rechtstexte (Entwurf) und Erklärung zur Barrierefreiheit (Entwurf).
 - Pipelines für Build, Release und Store-Upload (GitHub Actions).
+- Anleitung [Bauen und Starten](docs/BAUEN-UND-STARTEN.md) für Betreiber: Bau über GitHub Actions, lokal bauen, Ergebnisse öffnen. Start-Skripte `tool/bauen.ps1` und `tool/bauen.sh`.
 
 ### Geändert
 
@@ -28,6 +29,7 @@ Erste Version. Noch in keinem Store veröffentlicht, das Datum wird beim Release
 - Der Service Worker legt beide Caches pro Build an und räumt alte Caches beim Update ab.
 - Manifest-Dateien (`AssetManifest.*`, `FontManifest.json`, `NOTICES`) werden nicht mehr einen Tag gecacht, sondern bei jedem Aufruf geprüft.
 - Komprimierung deckt jetzt Schriften und `application/octet-stream` ab.
+- Der Speicher-Hinweis erscheint nur noch im Browser als Banner. In der App (Android, iOS) und auf dem Desktop (Windows, macOS, Linux) öffnet sich beim ersten Start stattdessen ein Popup, das mit „Verstanden“ bestätigt werden muss. Zurück, Esc und ein Tipp daneben schließen es nicht. Der Datenschutz-Link öffnet die Seite, danach steht das Popup weiter offen. Reihenfolge beim Start: Ladebildschirm, Speicher-Hinweis, Einwilligung, Autoplay. „Speicher löschen“ bringt das Popup zurück.
 
 ### Sicherheit
 

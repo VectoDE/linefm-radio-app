@@ -88,6 +88,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get storageNoticeDismiss => 'Verstanden';
 
   @override
+  String get storageNoticeTitle => 'Speicher auf diesem Gerät';
+
+  @override
   String get favoritesButton => 'Favoriten';
 
   @override
@@ -367,6 +370,34 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get themeDark => 'Dunkel';
+
+  @override
+  String get settingLanguageTitle => 'Sprache';
+
+  @override
+  String get settingLanguageBody =>
+      'Systemsprache oder fest Deutsch bzw. Englisch. Die Änderung gilt sofort.';
+
+  @override
+  String get languageSystem => 'Systemsprache';
+
+  @override
+  String get languageGerman => 'Deutsch';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get exportColumnTitle => 'Titel';
+
+  @override
+  String get exportColumnArtist => 'Künstler';
+
+  @override
+  String get exportColumnStation => 'Sender';
+
+  @override
+  String get exportColumnSavedAt => 'Gemerkt am';
 
   @override
   String get settingAutoplayTitle => 'Beim Start abspielen';

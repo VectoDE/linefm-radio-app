@@ -12,6 +12,7 @@ import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/features/loader/app_loader.dart';
+import 'package:linefm_radio/features/settings/platform_info.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
@@ -85,8 +86,12 @@ class AppHost {
     AppSettings? settings,
     this.repository,
     this.extra = const <Override>[],
+    this.platform,
+    bool storageConfirmed = true,
   }) : prefs = prefs ?? InMemoryPrefsStore() {
     if (settings != null) this.prefs.writeSettings(settings).ignore();
+    // Speicher-Hinweis bestaetigt: App und Desktop zeigen sonst ein Popup.
+    if (storageConfirmed) this.prefs.setStorageConsent(value: true).ignore();
   }
 
   final InMemoryPrefsStore prefs;
@@ -94,6 +99,7 @@ class AppHost {
   final RecordingSink sink = RecordingSink();
   TestRepository? repository;
   final List<Override> extra;
+  final PlatformInfo? platform;
 
   late final ProviderContainer container = ProviderContainer(
     overrides: <Override>[
@@ -116,6 +122,7 @@ class AppHost {
       ),
       // Einwilligung bereits erteilt: kein Dialog im Test.
       telemetryConsentProvider.overrideWith(_ConsentGiven.new),
+      if (platform != null) platformInfoProvider.overrideWithValue(platform!),
       ...extra,
     ],
   );

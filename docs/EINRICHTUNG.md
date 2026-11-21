@@ -2,6 +2,8 @@
 
 Diese Liste enthält alles, was du als Betreiber wissen, besorgen und eintragen musst, damit LINEFM Radio in den Stores und im Web erscheint und einwandfrei läuft. Alles andere ist vorbereitet. Du brauchst kein Programmierwissen. Wo ein Entwickler etwas tun muss, steht es dabei.
 
+Die App selbst bauen, herunterladen und öffnen, ohne den Entwickler zu fragen: [BAUEN-UND-STARTEN.md](BAUEN-UND-STARTEN.md).
+
 ## So liest du diese Liste
 
 Jeder Schritt hat eine Nummer (zum Beispiel 6.4) und diese fünf Angaben:
@@ -196,7 +198,7 @@ dart run tool/gen_legal_html.dart --values=legal_values.json --fill-assets --str
 ### 3.4 Texte lesen und abstimmen
 
 - **Was:** Impressum und Datenschutzerklärung lesen und mit einem Anwalt abstimmen.
-- **Wozu:** Die Texte sind ein Entwurf nach Stand November 2026. Offen sind Rundfunkrecht (MStV, Bagatellrundfunk), Speicher-Hinweis in den nativen Apps und der Wortlaut des Einwilligungsdialogs (Abschnitt A4 der Freigabe-Checkliste).
+- **Wozu:** Die Texte sind ein Entwurf nach Stand November 2026. Offen sind Rundfunkrecht (MStV, Bagatellrundfunk), Speicher-Hinweis in den nativen Apps (Popup statt Banner) und der Wortlaut des Einwilligungsdialogs (Abschnitt A4 der Freigabe-Checkliste).
 - **Wo eintragen:** Abschnitt A4 und C der Freigabe-Checkliste.
 - **Woher:** Anwalt.
 - **Prüfschritt:** `/impressum/` und `/datenschutz/` sind erreichbar, ohne offene Platzhalter und ohne `noindex`.

@@ -15,6 +15,15 @@ Chromecast läuft über `flutter_chrome_cast`, das das Google Cast SDK per
 Swift Package Manager zieht (`SRGSSR/google-cast-sdk`); ab SDK 4.8.6 verlangt
 Google iOS 16. macOS: Flutter hebt das Ziel beim Build selbst auf 12.0.
 
+Cast-SDK-Pin: Das Plugin (2.0.0) erklärt selbst nur iOS 15, fordert das SDK
+aber mit `from: "4.8.4"` an. SPM löst dann 4.8.6 auf, und Xcode bricht am
+Plugin-Ziel ab („GoogleCast requires minimum platform version 16.0 … this
+target supports 15.0“), egal welche Mindestversion die App hat. Deshalb
+pinnt `Runner.xcodeproj` das SDK exakt auf 4.8.4 (`XCRemoteSwiftPackageReference`,
+ein Pin im Wurzelprojekt gewinnt gegen den Bereich des Plugins). Entfernen,
+sobald `flutter_chrome_cast` iOS 16 erklärt (Upstream-Issue
+felnanuke2/flutter_google_cast#90), dann läuft wieder das aktuelle SDK.
+
 ## Überblick iOS (`ios/Runner`)
 
 | Datei | Aufgabe |

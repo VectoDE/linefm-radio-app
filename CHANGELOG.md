@@ -23,7 +23,7 @@ Erste Version. Noch in keinem Store veröffentlicht, das Datum wird beim Release
 
 ### Geändert
 
-- iOS braucht mindestens iOS 16 (geplant war iOS 13). Das Google Cast SDK für Chromecast verlangt ab Version 4.8.6 iOS 16.
+- iOS braucht mindestens iOS 16 (geplant war iOS 13). Das Google Cast SDK für Chromecast verlangt ab Version 4.8.6 iOS 16. Bis das Cast-Plugin das selbst erklärt, ist das SDK auf 4.8.4 festgelegt.
 - Der Web-Postbuild entfernt Sourcemaps, Debug-Symbole und ungenutzte Engine-Varianten. Der Ausrollordner schrumpft von 49,5 auf 33,3 MB, der Startsatz bleibt gleich.
 - Der Service Worker legt beide Caches pro Build an und räumt alte Caches beim Update ab.
 - Manifest-Dateien (`AssetManifest.*`, `FontManifest.json`, `NOTICES`) werden nicht mehr einen Tag gecacht, sondern bei jedem Aufruf geprüft.

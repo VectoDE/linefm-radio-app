@@ -1,0 +1,5 @@
+{
+  "hinweis": "Nur Schema, die App liest diese Datei noch nicht. Anleitung: docs/KONFIGURATION.md",
+  "enabled": false,
+  "channel": "stable"
+}

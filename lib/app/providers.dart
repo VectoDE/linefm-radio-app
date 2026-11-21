@@ -278,7 +278,12 @@ final historyProvider = StreamProvider<List<HistoryEntry>>((ref) {
   return ref.watch(nowPlayingRepositoryProvider).watchHistory(station);
 });
 
+/// Hoererzahl der aktiven Station; null (und kein Abruf), solange
+/// `showListenerCount` in config/features.json nicht true ist.
 final listenersProvider = StreamProvider<int?>((ref) {
+  if (!ref.watch(appConfigProvider).showListenerCount) {
+    return Stream<int?>.value(null);
+  }
   final station = ref.watch(activeStationProvider);
   return ref.watch(nowPlayingRepositoryProvider).watchListeners(station);
 });

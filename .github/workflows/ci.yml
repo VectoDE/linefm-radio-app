@@ -62,7 +62,7 @@ jobs:
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfigurationsdateien pruefen (assets/config, Issue #91)
+      - name: Konfigurationsordner pruefen (config/, Issue #91)
         run: dart run tool/check_config.dart
 
       # Golden-Tests (*_golden_test.dart, Tag "golden") haengen von der Rasterung des

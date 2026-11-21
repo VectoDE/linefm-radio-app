@@ -58,7 +58,9 @@ flutter:
   uses-material-design: true
   generate: true
   assets:
-    - assets/config/
+    # Senderliste (Issue #91); die uebrigen Dateien in config/ sind nur
+    # Beispiele bzw. Bauzeit-Werte und gehoeren nicht ins App-Paket.
+    - config/stations.json
     - assets/images/stations/
     - assets/images/brand/
     - assets/audio/

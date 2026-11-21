@@ -4,7 +4,7 @@
 // und beim Nachladen) und das Werkzeug tool/stations_check.dart (ohne
 // Flutter). So gibt es genau eine Pruefregel.
 //
-// Format (assets/config/stations.json):
+// Format (config/stations.json):
 //   {
 //     "schemaVersion": 1,
 //     "sender": [

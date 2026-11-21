@@ -178,6 +178,10 @@ if (Test-Path (Join-Path $repo 'config\app.json')) {
 } else {
   Write-Host 'Keine config\app.json, die App baut mit Standardwerten.'
 }
+if (Test-Path (Join-Path $repo 'config\features.json')) {
+  Write-Host 'config\features.json gefunden, Schalter werden uebernommen.'
+  $defineArgs += '--dart-define-from-file=config/features.json'
+}
 
 $webPort = $Port
 if ($Ziel -eq 'web') { $webPort = Get-FreierPort $Port }

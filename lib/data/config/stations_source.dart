@@ -11,7 +11,7 @@ import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/stations_config.dart';
 
 /// Mitgelieferte Senderliste (einzige Quelle, Issue #91).
-const String stationsAssetPath = 'assets/config/stations.json';
+const String stationsAssetPath = 'config/stations.json';
 
 /// Laedt die mitgelieferte Senderliste. main() wartet darauf, bevor Audio,
 /// CarPlay, Wecker und Deep Links starten; die Datei ist wenige KB gross und

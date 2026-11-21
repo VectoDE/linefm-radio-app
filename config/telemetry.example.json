@@ -1,0 +1,8 @@
+{
+  "hinweis": "Nur Schema, die App liest diese Datei noch nicht; heute stehen die Werte in app.json. Anleitung: docs/KONFIGURATION.md",
+  "umamiUrl": "",
+  "umamiWebsiteId": "",
+  "sentryDsn": "",
+  "sentryEnvironment": "",
+  "firebaseEnabled": false
+}

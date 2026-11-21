@@ -138,6 +138,10 @@ if [ -f "$repo/config/app.json" ]; then
 else
   echo "Keine config/app.json, die App baut mit Standardwerten."
 fi
+if [ -f "$repo/config/features.json" ]; then
+  echo "config/features.json gefunden, Schalter werden uebernommen."
+  define_args+=(--dart-define-from-file=config/features.json)
+fi
 
 port_frei() {
   # Frei, wenn sich nichts mit dem Port verbinden laesst.

@@ -51,7 +51,11 @@ app.*.map.json
 
 # LINEFM
 /_input/
-/config/app.json
+# config/: im Repo nur *.example.json und die Senderliste (Issue #91).
+# Echte Dateien (app.json, features.json, operator.json, ...) bleiben lokal.
+/config/*.json
+!/config/*.example.json
+!/config/stations.json
 key.properties
 **/key.properties
 *.jks

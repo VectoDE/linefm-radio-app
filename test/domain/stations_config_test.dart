@@ -28,9 +28,9 @@ void main() {
   ];
 
   group('echte Dateien', () {
-    test('assets/config/stations.json ist gueltig', () {
+    test('config/stations.json ist gueltig', () {
       final r = parseStationsConfigBytes(
-        File('assets/config/stations.json').readAsBytesSync(),
+        File('config/stations.json').readAsBytesSync(),
       );
       expect(r.errors, isEmpty);
       expect(r.active, isNotEmpty);

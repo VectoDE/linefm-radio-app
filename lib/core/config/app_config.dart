@@ -20,6 +20,7 @@ class AppConfig {
     this.trustGridinsoftUrl = '',
     this.trustTrustpilotUrl = '',
     this.stationsUrl = '',
+    this.showListenerCount = false,
   });
 
   /// Liest die per --dart-define gesetzten Werte.
@@ -42,6 +43,7 @@ class AppConfig {
     trustGridinsoftUrl: String.fromEnvironment('TRUST_GRIDINSOFT_URL'),
     trustTrustpilotUrl: String.fromEnvironment('TRUST_TRUSTPILOT_URL'),
     stationsUrl: String.fromEnvironment('STATIONS_URL'),
+    showListenerCount: bool.fromEnvironment('showListenerCount'),
   );
 
   final String appEnv;
@@ -73,6 +75,10 @@ class AppConfig {
   /// `https://app.linefm.de/stations.json`. Leer = nur die mitgelieferte
   /// Liste, kein Netzabruf. Nur https (siehe StationsUpdater.parseUrl).
   final String stationsUrl;
+
+  /// Hoererzahl im Player anzeigen (config/features.json,
+  /// `showListenerCount`). Standard aus; ohne Datei wird sie nicht abgefragt.
+  final bool showListenerCount;
 
   bool get umamiConfigured => umamiUrl.isNotEmpty && umamiWebsiteId.isNotEmpty;
   bool get sentryConfigured => sentryDsn.isNotEmpty;
@@ -127,6 +133,7 @@ class AppConfig {
     String? trustGridinsoftUrl,
     String? trustTrustpilotUrl,
     String? stationsUrl,
+    bool? showListenerCount,
   }) => AppConfig(
     appEnv: appEnv ?? this.appEnv,
     appVersion: appVersion ?? this.appVersion,
@@ -143,5 +150,6 @@ class AppConfig {
     trustGridinsoftUrl: trustGridinsoftUrl ?? this.trustGridinsoftUrl,
     trustTrustpilotUrl: trustTrustpilotUrl ?? this.trustTrustpilotUrl,
     stationsUrl: stationsUrl ?? this.stationsUrl,
+    showListenerCount: showListenerCount ?? this.showListenerCount,
   );
 }

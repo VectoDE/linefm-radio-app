@@ -272,6 +272,7 @@ jobs:
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
           legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
           sentry-dsn: ${{ vars.SENTRY_DSN }}
@@ -377,6 +378,7 @@ jobs:
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
           legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
           sentry-dsn: ${{ vars.SENTRY_DSN }}
@@ -481,6 +483,7 @@ jobs:
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
           legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
           sentry-dsn: ${{ vars.SENTRY_DSN }}
@@ -562,6 +565,7 @@ jobs:
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
           legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
           sentry-dsn: ${{ vars.SENTRY_DSN }}
@@ -738,6 +742,7 @@ jobs:
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
           legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
           sentry-dsn: ${{ vars.SENTRY_DSN }}
@@ -876,6 +881,7 @@ jobs:
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
           legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
 
       - name: iOS bauen (no-codesign)
         run: flutter build ios $FLUTTER_BUILD_FLAGS --no-codesign --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"

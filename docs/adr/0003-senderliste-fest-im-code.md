@@ -1,6 +1,6 @@
 # ADR 0003: Senderliste fest im Code
 
-Status: angenommen
+Status: ersetzt durch [ADR 0008](0008-senderliste-als-konfigurationsdatei.md) (21.11.2026)
 Quelle: Entscheidung 7 des Inhabers (18.11.2026)
 
 ## Kontext

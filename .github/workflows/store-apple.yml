@@ -182,6 +182,7 @@ jobs:
           # Store-Upload: immer strikt, auch bei manuellem Lauf mit Vorabversion (N7).
           legal-strict: true
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
           sentry-dsn: ${{ vars.SENTRY_DSN }}
@@ -301,6 +302,7 @@ jobs:
           # Store-Upload: immer strikt, auch bei manuellem Lauf mit Vorabversion (N7).
           legal-strict: true
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
           sentry-dsn: ${{ vars.SENTRY_DSN }}

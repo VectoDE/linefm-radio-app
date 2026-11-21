@@ -38,9 +38,7 @@ void main() {
 
   test('NowPlayingRepository live $minutes min', () async {
     installBundledStations(
-      parseStationsConfig(
-        File('assets/config/stations.json').readAsStringSync(),
-      ),
+      parseStationsConfig(File('config/stations.json').readAsStringSync()),
     );
     final cache = HttpCache();
     final api = HttpLautApi(cache: cache);

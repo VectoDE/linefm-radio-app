@@ -145,7 +145,7 @@ void main() {
       addTearDown(h.container.dispose);
       await _pump(tester, h);
 
-      expect(find.text("I Was Lovin' You"), findsOneWidget);
+      expect(find.text("I WAS LOVIN' YOU"), findsOneWidget);
       expect(find.text('James Hype'), findsOneWidget);
       expect(find.text('1234 hören gerade zu'), findsOneWidget);
       expect(find.bySemanticsLabel('Stream starten'), findsOneWidget);
@@ -217,7 +217,7 @@ void main() {
       await _pump(tester, h);
 
       await tester.fling(
-        find.text("I Was Lovin' You"),
+        find.text("I WAS LOVIN' YOU"),
         const Offset(-300, 0),
         1500,
       );
@@ -228,7 +228,7 @@ void main() {
       expect(h.hub.names, isNot(contains('play')));
 
       await tester.fling(
-        find.text("I Was Lovin' You"),
+        find.text("I WAS LOVIN' YOU"),
         const Offset(300, 0),
         1500,
       );
@@ -246,7 +246,7 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Stream starten'));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.fling(
-        find.text("I Was Lovin' You"),
+        find.text("I WAS LOVIN' YOU"),
         const Offset(-300, 0),
         1500,
       );

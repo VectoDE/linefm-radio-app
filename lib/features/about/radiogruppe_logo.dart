@@ -36,9 +36,12 @@ class RadioGruppeCredit extends ConsumerWidget {
       children: <Widget>[
         Text(
           l10n.creditsOfferedBy,
-          style: LinefmText.listTitle.copyWith(color: c.muted, fontSize: 13),
+          style: LinefmText.listTitle.copyWith(
+            color: c.muted,
+            fontSize: LinefmType.caption,
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: LinefmSpace.md),
         SemanticFocus(
           builder: (_, focused, onFocus, child) => Semantics(
             container: true,
@@ -87,8 +90,8 @@ class _Logo extends StatelessWidget {
     final fallback = Text(
       name,
       style: LinefmText.settingTitle.copyWith(
-        color: light ? const Color(0xFFFFFFFF) : c.text,
-        fontSize: 16,
+        color: light ? LinefmPalette.paper : c.text,
+        fontSize: LinefmType.bodyLarge,
       ),
     );
     // Im Web kann das Bild als <img>-Plattformansicht landen, und die hat
@@ -111,11 +114,14 @@ class _Logo extends StatelessWidget {
     if (!light) return image;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFF0F1221),
+        color: LinefmPalette.ink,
         borderRadius: BorderRadius.circular(LinefmMetrics.radiusLogo),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+          horizontal: LinefmSpace.md,
+          vertical: LinefmSpace.sm,
+        ),
         child: image,
       ),
     );

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:ui' show Locale, PlatformDispatcher;
+import 'dart:ui' show Locale;
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
@@ -11,6 +11,7 @@ import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/l10n/system_l10n.dart';
 import 'package:linefm_radio/services/audio/browse_tree.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/audio/radio_player.dart';
@@ -132,9 +133,7 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
     _reconnectAttempt = 0;
     _resumeAfterInterruption = false;
     _errorMessage = null;
-    mediaItem.add(
-      BrowseTree.stationItem(station, track: _tracks[station.slug]),
-    );
+    mediaItem.add(BrowseTree.stationItem(station, track: _knownTrack(station)));
     _connectStartedAt = DateTime.now();
     _emit(_state.copyWith(status: PlayerStatus.connecting, station: station));
     await _connect(station, gen);
@@ -164,7 +163,10 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   @override
   Future<void> updateNowPlaying(Station station, Track? track) async {
     _tracks[station.slug] = track;
-    final current = _desired ?? _state.station ?? _recent;
+    // Issue #99: Laeuft nichts, zeigt die Benachrichtigung den in der App
+    // gewaehlten Sender (_recent), nicht den zuletzt gespielten
+    // (_state.station); sonst bliebe dort der Titel des alten Senders stehen.
+    final current = _desired ?? _recent ?? _state.station;
     if (current == null || current == station) {
       mediaItem.add(BrowseTree.stationItem(station, track: track));
     }
@@ -183,6 +185,17 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
       await subject.close();
     }
     await _player.dispose();
+  }
+
+  /// Gemerkter Titel der Station, aber nur, solange er laut `endsAt` noch
+  /// laeuft. Ein abgelaufener Titel (z. B. Wechsel per Medientaste auf einen
+  /// lange nicht gewaehlten Sender) wird nicht gezeigt; die App meldet den
+  /// aktuellen nach (Issue #99).
+  Track? _knownTrack(Station station) {
+    final track = _tracks[station.slug];
+    final endsAt = track?.endsAt;
+    if (endsAt != null && endsAt.isBefore(DateTime.now())) return null;
+    return track;
   }
 
   void _setRecent(Station station) {
@@ -252,13 +265,9 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   /// Ordnernamen in der Systemsprache (Rueckfall Englisch).
   static AutoMenuTitles autoMenuTitles([Locale? locale]) {
     final l10n = lookupAppLocalizations(
-      _supportedLocale(locale ?? PlatformDispatcher.instance.locale),
+      _supportedLocale(locale ?? effectiveSystemLocale()),
     );
-    return AutoMenuTitles(
-      favoriteStations: l10n.browseFavoriteStations,
-      stations: l10n.browseStations,
-      recent: l10n.browseRecent,
-    );
+    return AutoMenuTitles.fromLocalizations(l10n);
   }
 
   static Locale _supportedLocale(Locale locale) =>

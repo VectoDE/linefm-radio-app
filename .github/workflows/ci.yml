@@ -62,8 +62,9 @@ jobs:
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 
-      # Golden-Tests (*_golden_test.dart) haengen von der Schriftrasterung des Betriebssystems
-      # ab; die Referenzbilder entstehen unter Windows und laufen im Job "goldens".
+      # Golden-Tests (*_golden_test.dart, Tag "golden") haengen von der Rasterung des
+      # Betriebssystems ab und laufen deshalb im Job "goldens" (Windows-Runner), nur dort
+      # entstehen und gelten die Referenzbilder.
       - name: Tests mit Coverage (ohne Goldens)
         run: |
           mapfile -t files < <(find test -name '*_test.dart' ! -name '*_golden_test.dart' | sort)
@@ -135,7 +136,7 @@ jobs:
           GOLDEN_FILES: ${{ steps.find.outputs.files }}
         run: |
           read -r -a files <<< "$GOLDEN_FILES"
-          flutter test --reporter=expanded "${files[@]}"
+          flutter test --reporter=expanded --tags golden "${files[@]}"
 
       - name: Abweichungen hochladen
         if: failure()
@@ -143,6 +144,27 @@ jobs:
         with:
           name: golden-failures
           path: test/**/failures/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # Bei Abweichung oder fehlenden Referenzbildern: Bilder auf diesem Runner neu erzeugen und
+      # als Kandidaten bereitstellen. Nach Sichtpruefung in den Branch kopieren und committen
+      # (docs/ENTWICKLUNG.md, "Goldens aktualisieren"). Der Job bleibt rot.
+      - name: Referenzbilder-Kandidaten erzeugen
+        if: failure() && steps.find.outputs.count != '0'
+        shell: bash
+        env:
+          GOLDEN_FILES: ${{ steps.find.outputs.files }}
+        run: |
+          read -r -a files <<< "$GOLDEN_FILES"
+          flutter test --update-goldens --tags golden "${files[@]}"
+
+      - name: Kandidaten hochladen
+        if: failure() && steps.find.outputs.count != '0'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: golden-kandidaten
+          path: test/**/goldens/*.png
           if-no-files-found: ignore
           retention-days: 14
 

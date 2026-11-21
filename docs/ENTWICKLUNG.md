@@ -23,6 +23,51 @@ flutter test
 flutter run -d chrome        # oder windows, android, ...
 ```
 
+### Flutter-Version: eine Quelle
+
+Die Version steht in `.fvmrc` (`3.50.0`). FVM liest die Datei, wenn du es nutzt (`fvm use`, optional, nicht nötig). Dieselbe Version steht an vier weiteren Stellen: im Standardwert von `.github/actions/setup-flutter/action.yml` (CI), in `.devcontainer/Dockerfile`, als Untergrenze in `pubspec.yaml` und in der Tabelle oben. Der Test `test/tool/flutter_version_test.dart` schlägt fehl, sobald eine Stelle abweicht, und prüft auch, dass kein Workflow eine eigene Version setzt. Ein Flutter-Update ändert alle Stellen in einem Pull Request. Bei dem neuen Dockerfile zusätzlich die Prüfsumme aus `https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json` übernehmen (Feld `sha256` der Version).
+
+### Aufgaben-Starter: `tool/task.dart`
+
+Ein Einstieg für alle Systeme (Windows, Linux, macOS), ohne zusätzliche Programme:
+
+```bash
+dart tool/task.dart help           # alle Aufgaben
+dart tool/task.dart check          # Format, Analyzer, Tests, wie die CI
+dart tool/task.dart test test/tool/task_test.dart
+dart tool/task.dart web-build      # Build, Ersatzschriften, Postbuild
+```
+
+| Aufgabe | Was sie tut |
+|---|---|
+| `pub-get` | `flutter pub get --enforce-lockfile` |
+| `format`, `format-check` | `dart format` ändernd bzw. nur prüfend |
+| `analyze` | `flutter analyze --fatal-infos` |
+| `test [Pfade]` | `flutter test`, alle oder die genannten Dateien |
+| `gen-l10n` | `flutter gen-l10n` |
+| `store-metadata [--write]` | Store-Metadaten prüfen oder aus `docs/STORE-TEXTE.md` neu erzeugen |
+| `web-build` | Web-Build wie in der CI (braucht `config/app.json`) |
+| `check` | `format-check`, `analyze` und `test` nacheinander |
+
+Bewusst `dart tool/task.dart` und nicht `dart run`: `dart run` baut die Native-Asset-Hooks der Abhängigkeiten mit (unter Windows Rust, unter Linux GTK) und braucht dafür lange. Der Starter selbst nutzt nur `dart:`-Bibliotheken.
+
+### Dev-Container
+
+`.devcontainer/` richtet in VS Code (Erweiterung "Dev Containers") oder in GitHub Codespaces eine Linux-Umgebung ein: Ubuntu 24.04 (Basisimage per Digest gepinnt), Flutter aus dem offiziellen Archiv mit geprüfter SHA-256, die Linux-Build-Pakete aus `.github/actions/linux-deps` und die Dart- und Flutter-Erweiterungen. Beim Anlegen läuft `flutter pub get --enforce-lockfile`.
+
+Was der Container kann: Analyse, Tests, Formatierung, Web-Build, Linux-Desktop-Build (ohne Anzeige, also Build ohne Start). Was er nicht kann: Android (kein Android SDK enthalten), Windows, macOS und iOS. Dafür brauchst du den jeweiligen Rechner. Dependabot hält den Digest des Basisimages aktuell. **Der Container ist noch nicht auf einem Rechner gebaut worden** (kein Docker in der bisherigen Entwicklung). Der erste Aufbau zeigt, ob die Pakete und die Prüfsumme stimmen.
+
+### Store-Texte und fastlane-Struktur
+
+`docs/STORE-TEXTE.md` ist die Quelle der Wahrheit für die Store-Texte. `fastlane/metadata/` (Google Play unter `android/<Sprache>/`, App Store unter `<Sprache>/`) wird daraus erzeugt:
+
+```bash
+dart tool/task.dart store-metadata --write   # nach jeder Textänderung
+dart tool/task.dart store-metadata           # prüfen
+```
+
+`test/tool/store_metadata_test.dart` prüft Zeichenlimits (Google Play: 30 / 80 / 4000, App Store: 30 / 30 / 4000, Schlüsselwörter 100 Bytes), Vollständigkeit in Deutsch und Englisch und dass beide Seiten übereinstimmen. Die Quellen der Limits stehen im Kopf von `tool/store_metadata.dart`. fastlane selbst ist nicht installiert und nicht nötig, die Pipelines laden ohne fastlane hoch ([stores-pipelines.md](stores-pipelines.md)). Die Struktur folgt nur den Dateinamen von `supply` und `deliver`, damit ein späterer Umstieg ohne Umbau geht. Die Angaben für die Datenschutz-Formulare der Stores stehen in [STORE-DATENSCHUTZANGABEN.md](STORE-DATENSCHUTZANGABEN.md).
+
 ### UI-Bibliothek: material_ui
 
 Die App importiert `package:material_ui/material_ui.dart` und **nicht** `package:flutter/material.dart`. Das gilt für alle Dateien unter `lib/` und `test/`. Lokalisierungs-Delegates kommen aus `material_ui` (`GlobalMaterialLocalizations.delegates`).
@@ -77,7 +122,7 @@ Die Werte sind im Binary lesbar. Keine Geheimnisse hinein. Ohne Telemetrie-Werte
 - Verpackung für die Verteilung (Inno Setup, MSIX, Flatpak, Snap, DMG, iOS-Export): [packaging/README.md](../packaging/README.md).
 - `flutter build` schreibt `lib/l10n/gen/*` mit anderen Zeilenenden neu. Diese Änderungen nicht committen, zurücksetzen.
 - App-Icons entstehen aus einer Quelle mit `tool/generate_icons.sh` (Quelle `assets/branding/source/`). Das Icon wird technisch skaliert, nicht verändert.
-- Übersetzungen: `lib/l10n/app_de.arb` ist die Vorlage, `app_en.arb` die zweite Sprache. `flutter gen-l10n` erzeugt `lib/l10n/gen/`. Jeder Schlüssel muss in beiden Sprachen stehen.
+- Übersetzungen: `lib/l10n/app_de.arb` ist die Vorlage, `app_en.arb` die zweite Sprache. `flutter gen-l10n` erzeugt `lib/l10n/gen/`. Jeder Schlüssel muss in beiden Sprachen stehen (CI-Job und `test/app/language_test.dart` prüfen das). Neue sichtbare Texte kommen immer in die ARB-Dateien, nie als Literal in den Code. Texte ohne BuildContext (Wecker, Tray, Auto-Menü) holen `systemLocalizations()` aus `lib/l10n/system_l10n.dart`; das berücksichtigt die in den Einstellungen gewählte Sprache.
 
 ## Tests
 
@@ -90,13 +135,21 @@ flutter test
 - `test/` spiegelt die Struktur von `lib/`: `domain`, `data`, `services`, `features`, `platform`, `ui`, `app`, `tool`. Netzwerk-Fixtures liegen in `test/fixtures/`.
 - Getestet wird, was absichert: Logik, Parser, Regeln, Wecker-Berechnung, Sleeptimer, Deep Links, Persistenz, Verdrahtung. Reine Optik nur über Goldens.
 - Dienste werden über Provider mit Fakes ersetzt (siehe `test/app/app_host.dart` und `test/features/feature_host.dart`). Echtes Netzwerk gibt es in Tests nicht.
-- **Goldens** (Bildvergleich) liegen in `test/features/goldens/` und werden von `test/features/history_favorites_golden_test.dart` geprüft. Nach einer **gewollten** Änderung der Darstellung neu erzeugen und die Bilder im Diff ansehen:
+- **Goldens** (Bildvergleich) prüfen die Kernkomponenten in Dark und Hell: Stationskarte, Play-Knopf, Mini-Player, Player, Favoriten-Herz mit Badge, Einstellungs-Schalter, Knöpfe, Abschnittsüberschrift, Dialog, Sheet, App-Rahmen (Header, Navigation) und Einstellungen sowie Verlauf und Favoriten. Dateien: `test/ui/components_golden_test.dart`, `test/app/shell_golden_test.dart`, `test/features/history_favorites_golden_test.dart`; Bilder je Test in `goldens/<name>_dark.png` und `goldens/<name>_light.png` daneben.
 
-```bash
-flutter test --update-goldens test/features/history_favorites_golden_test.dart
-```
+### Goldens aktualisieren
 
-  Goldens hängen von Schriften und Betriebssystem ab. Erzeuge und prüfe sie immer auf derselben Plattform wie die CI und bewerte Unterschiede von Hand, bevor du sie übernimmst.
+Referenzbilder hängen von der Rasterung der Plattform ab. Sie gelten deshalb nur dort, wo sie entstanden sind: auf dem CI-Runner des Jobs „Golden-Tests (Windows)“ (`windows-latest`). Die Tests tragen das Tag `golden` (`dart_test.yaml`) und enden auf `_golden_test.dart`; der normale Testjob lässt sie aus.
+
+- **Lokal** laufen sie durch (Layout, keine Ausnahmen), vergleichen aber keine Pixel und werden so nicht fälschlich rot. Die Meldung „Golden-Vergleich uebersprungen“ steht im Log. Mit `GOLDENS=1` (PowerShell: `$env:GOLDENS=1`) erzwingst du den Vergleich auch lokal; auf Windows 11 waren die Bilder bei der Einführung byte-gleich zu denen der CI, auf anderen Systemen sind Abweichungen zu erwarten.
+- **Feste Bedingungen** machen die Bilder reproduzierbar: echte App-Schriften aus dem Font-Manifest (nicht Ahem), Fenstergröße fest bei Pixelverhältnis 1, Lauftext aus, keine Netzbilder (Fakes, Senderlogos ohne Netz), Sender ohne ladbares Logo zeigen das Kürzel.
+- **Nach einer gewollten Änderung der Darstellung:**
+  1. Branch pushen. Der Job „Golden-Tests (Windows)“ wird rot und lädt das Artifact `golden-kandidaten` (alle Bilder, auf dem Runner neu erzeugt) und `golden-failures` (Unterschiede je Bild) hoch.
+  2. Artifact laden: `gh run download <run-id> -n golden-kandidaten -D tmp-goldens`, die PNGs unter `test/**/goldens/` kopieren.
+  3. Die Bilder im Diff ansehen, nur gewollte Änderungen committen, pushen. Der Job wird grün.
+- Alternativ lokal auf Windows 11: `flutter test --update-goldens test/ui/components_golden_test.dart` (je Datei), Bilder prüfen und committen. Die CI bleibt maßgeblich: stimmt sie nicht überein, gilt das Artifact.
+- Ein neuer Golden-Test braucht das Tag (`@Tags(<String>['golden'])` und `library;` ganz oben), den Dateinamen `*_golden_test.dart` und `setUpAll(prepareGoldens)` aus `test/golden_support.dart`.
+
 - Schwere Builds (APK, Windows, Web) laufen nicht parallel zu `flutter test`, das braucht viel Arbeitsspeicher.
 - Eine Live-Probe der laut.fm-Schnittstelle liegt in `tool/dev/now_playing_probe.dart`.
 
@@ -122,7 +175,8 @@ android/ ios/ macos/ windows/ linux/ web/   Plattformprojekte
 packages/linefm_firebase                      optionales Firebase-Paket (nicht in pubspec)
 deploy/  Server-Konfiguration für das Web-Hosting
 packaging/  Installer und Store-Pakete
-tool/    Generatoren: Icons, Rechtstexte, Web-Postbuild, Firebase-Schalter
+tool/    Generatoren und Werkzeuge: Icons, Rechtstexte, Web-Postbuild, Firebase-Schalter,
+         Store-Metadaten (store_metadata.dart), Aufgaben-Starter (task.dart)
 ```
 
 ### Provider (Riverpod)
@@ -144,6 +198,20 @@ State-Management ist `flutter_riverpod` 3. Alle Provider stehen in `lib/app/prov
 4. Bildschirm in `features/`, Texte in beide ARB-Dateien.
 5. `dart format`, `flutter analyze --fatal-infos`, `flutter test`.
 
+## Eigene Fenster-Titelleiste (Desktop)
+
+Windows, Linux und macOS zeigen statt der Systemleiste eine eigene Leiste im App-Design (Issue #87): Logo (Motiv des App-Symbols), Name „LINEFM RADIO“ in Syncopate, Hintergrund `background` wie der Header darunter, Dunkel und Hell. Web und Mobil sind nicht betroffen.
+
+- **Aufbau:** `lib/platform/desktop/title_bar.dart` (Widget), `window_caption.dart` (plattformneutrale Schnittstelle `WindowCaptionControls`, Fakes in Tests), `window_caption_impl.dart` (Umsetzung mit window_manager 0.7 / nativeapi). `DesktopHost` setzt die Leiste über die App; der Baum um die App bleibt in jedem Zustand gleich.
+- **Ausblenden der Systemleiste:** `WindowManagerDesktopWindow.init` ruft `setTitleBarStyle(TitleBarStyle.hidden)`. Schlägt das fehl, bleibt die Systemleiste und die App zeichnet keine eigene (`CaptionStyle.none`). Der native Fenstertitel („LINEFM | Radio“, Taskleiste, Alt+Tab, Einzelinstanz-Suche im Runner) bleibt unverändert.
+- **Windows:** Eigene Schaltflächen Minimieren, Maximieren/Wiederherstellen, Schließen (46 × 40, Hover 8 %, gedrückt 12 %, Schließen rot `#C42B1C`, inaktives Fenster gedämpft). nativeapi lässt `WS_CAPTION`/`WS_SYSMENU` stehen und gibt nur das obere Band dem Inhalt: Rahmen, Schatten und runde Ecken von Windows 11, Größenänderung an allen Kanten (oben per Hit-Test), Andocken und Alt+Leertaste bleiben. Maximiert passt der Inhalt auf den Arbeitsbereich (kein 8-px-Überhang). `MaximizeButtonArea` meldet den Maximieren-Knopf als `HTMAXBUTTON`, damit die Snap-Layouts von Windows 11 beim Überfahren erscheinen. Ziehen, Doppelklick (maximieren/wiederherstellen) und Rechtsklick (Systemmenü) kommen von `DragToMoveArea`. Kein eigener Code im Runner nötig.
+- **Schließen:** Der Knopf löst dieselbe Schließen-Anfrage aus wie die Systemleiste (`windowManager.close()` → `onWindowClose`): je nach Einstellung in den Tray oder Beenden.
+- **Linux:** Die GTK-Dekoration entfällt (nativeapi blendet die Header-Bar aus bzw. schaltet die Dekoration ab, `linux/runner` bleibt unverändert). Weil der Fensterrahmen unter X11 dann fehlt, liefert `DragToResizeArea` 6 dp breite Griffe an Kanten und Ecken (aus bei maximiert, Vollbild, Mini-Fenster). Unter Wayland bewegt und skaliert der Compositor das Fenster über dieselben Aufrufe; einen Schatten zeichnet die App dort nicht.
+- **macOS:** Titelzeile transparent und ausgeblendet, die Ampeln bleiben nativ links. Die Leiste ist 28 pt hoch (Systemhöhe, damit die Ampeln mittig stehen), Logo und Name beginnen bei 78 pt. Doppelklick folgt der Systemeinstellung (Zoomen/Minimieren).
+- **Vollbild und Mini-Fenster:** Im Vollbild entfällt die Leiste. Das Mini-Fenster (rahmenlos) zeigt keine Leiste; beim Zurückwechseln stellt `exitMini` den versteckten Stil wieder her.
+- **Tastatur und Screenreader:** Tab läuft wie bei nativen Titelleisten nur durch die App (der Navigator hält den Fokus in seinem Bereich), die Leiste steht also nie vor dem Hauptinhalt. Fenster-Aktionen per Tastatur gehen über das System: Alt+Leertaste (Systemmenü), Win+Pfeiltasten, Alt+F4. Screenreader erreichen die Schaltflächen über ihre Semantik (Knopf mit Namen), die Schaltflächen reagieren auch auf Enter und Leertaste, wenn sie den Fokus haben. Namen und Hinweisblasen kommen aus den ARB-Schlüsseln `windowMinimize`, `windowMaximize`, `windowRestore`, `windowClose` und folgen der gewählten App-Sprache. Logo und Name sind für Screenreader ausgeblendet, den Fenstertitel liest das System vor.
+- **Tests:** `test/platform/desktop/title_bar_test.dart`.
+
 ## Deep Links: Wege pro Plattform
 
 Format: `linefm://play?station=<slug>` und `https://app.linefm.de/?station=<slug>` (beliebiger Pfad). Gültige Slugs stehen in `lib/domain/stations_catalog.dart`. Alles läuft über `DeepLinks.dispatch` in `lib/platform/deep_links.dart` mit Puffer für den Kaltstart und Filter gegen doppelte Zustellung (2 Sekunden). Unbekannte Sender und fremde Schemata (z. B. `javascript:`) werden verworfen.
@@ -164,7 +232,7 @@ Tests: `test/platform/deep_links_test.dart`, `android_deep_links_test.dart`, `we
 - **targetSdk** kommt aus Flutter (`flutter.targetSdkVersion`, mit Flutter 3.50 also API 36), `compileSdk` steht fest auf 37 (`android/app/build.gradle.kts`). Nach einem Flutter-Update prüfen, ob sich der Wert geändert hat, und die Punkte unten neu ansehen.
 - **Edge-to-Edge:** Ab targetSdk 35 zeichnet Android jede App unter Status- und Navigationsleiste; ab API 36 lässt sich das nicht mehr abschalten. Flutter zeichnet ohnehin randlos, die Shell hält Inhalte mit `SafeArea` von den Leisten fern. Neue Bildschirme brauchen das ebenfalls, sonst liegen Knöpfe unter der Gestenleiste.
 - **Vorhersagbares Zurück:** `android:enableOnBackInvokedCallback="true"` im Manifest. Die Shell nutzt `PopScope` (`canPop` nur auf der Senderliste), das mit der Geste zusammenarbeitet. Der Test „Vorhersagbares Zurueck“ in `test/app/shell_test.dart` spielt die Geste über den Kanal `flutter/backgesture` nach. Kein `WillPopScope` verwenden, das bricht die Geste.
-- **Sprachen pro App:** `res/xml/locales_config.xml` nennt de und en (Android 13+, Einstellungen > Apps > Sprache). Kommt eine Sprache unter `lib/l10n/` dazu, dort ergänzen.
+- **Sprachen pro App:** `res/xml/locales_config.xml` nennt de und en (Android 13+, Einstellungen > Apps > Sprache). Kommt eine Sprache unter `lib/l10n/` dazu, dort ergänzen. Die Sprachwahl in der App (Einstellungen) ist unabhängig davon: Ohne eigene Wahl gilt die Systemsprache bzw. die Per-App-Sprache des Systems, die Wahl in der App geht der Systemsprache vor.
 
 ## laut.fm: WebSocket bewusst aus
 
@@ -190,6 +258,9 @@ Entscheidung: kein eigener Fork des Plugins. Die Datenschutzerklärung (Abschnit
 
 ## Weiterführende Dokumente
 
+- Betrieb: [Betriebshandbuch](betrieb/RUNBOOK.md) (Deploy, Rollback, Wiederherstellung, Uptime-Monitor), [Störungen und Vorfälle](betrieb/INCIDENT.md), [Bedrohungsmodell](betrieb/BEDROHUNGSMODELL.md)
+- Architekturentscheidungen: [adr/](adr/README.md)
+- Wettbewerbsabgleich: [WETTBEWERB.md](WETTBEWERB.md)
 - Web-Hosting: [hosting-uebersicht.md](hosting-uebersicht.md) mit [nginx](hosting-nginx.md), [Traefik](hosting-traefik.md), [Cloudflare](hosting-cloudflare.md), [Plesk](hosting-plesk.md)
 - Telemetrie und Selbsthosting von Umami und GlitchTip: [telemetry.md](telemetry.md)
 - Verpackung und Signierung: [packaging/README.md](../packaging/README.md)

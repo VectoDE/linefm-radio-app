@@ -43,7 +43,7 @@ Diese Punkte lassen sich nicht als "offen" begründen. Solange einer nicht erfü
 - [ ] Rechtsprüfung durch jaybelife oder einen Anwalt ist erfolgt. Offene Rechtsfragen, die jaybelife selbst klärt:
   - [ ] **Rundfunkrecht (MStV):** Ist für das Webradio eine Zulassung nötig, oder gilt es als zulassungsfrei? Welche Angaben verlangt § 18 MStV im Impressum (verantwortliche Person)? Die Felder `AUFSICHTSBEHOERDE_MEDIEN` und `VERANTWORTLICHER_MSTV` stehen noch offen.
   - [ ] **GEMA und GVL:** Sind die Musikrechte für die Wiedergabe über eine eigene App abgedeckt? Unsere Quelle (laut.fm) belegt das nur in einem Artikel von 2015. Empfehlung: schriftliche Bestätigung von laut.fm (`team@laut.fm`) einholen.
-  - [ ] **Speicher-Hinweis in den nativen Apps:** Der Hinweis "Wir speichern kleine Daten …" erscheint überall wie in der Web-App. Prüfen lassen, ob er in den nativen Apps rechtlich nötig oder ausreichend ist.
+  - [ ] **Speicher-Hinweis in den nativen Apps:** Der Hinweis erscheint im Browser als Banner am unteren Rand, in der App und auf dem Desktop als Popup beim ersten Start, das mit "Verstanden" bestätigt werden muss. Prüfen lassen, ob er in den nativen Apps rechtlich nötig oder ausreichend ist.
   - [ ] **Einwilligung nach DSGVO/TDDDG:** Wortlaut des Einwilligungsdialogs für Statistik und Absturzberichte prüfen, falls Telemetrie aktiv wird.
   - [ ] **Barrierefreiheit (BFSG):** Klären, ob für das Angebot eine Erklärung zur Barrierefreiheit nötig ist.
 
@@ -116,17 +116,20 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 - [ ] Tastenkürzel funktionieren.
 - [ ] **Deep Link:** `linefm://play?station=linefmrap` im Browser oder Terminal öffnet die App beim richtigen Sender, auch wenn sie schon läuft.
 - [ ] Hohe Skalierung (150 und 200 Prozent), mehrere Monitore.
+- [ ] **Eigene Titelleiste:** Logo und Name scharf, Farbe wie der Header (Dunkel und Hell); Hover, Druck und rotes Schließen; inaktives Fenster gedämpft. Ziehen, Doppelklick, Andocken an Ränder, Snap-Layouts beim Überfahren von Maximieren, Größenänderung an allen Kanten, Schatten und runde Ecken (Windows 11), maximiert kein abgeschnittener Rand, Rechtsklick und Alt+Leertaste öffnen das Systemmenü. Schließen verhält sich wie vorher (Tray bzw. Beenden).
 
 ### B5. Linux
 
 - [ ] Start aus Flatpak und Snap (wenn veröffentlicht), sonst aus dem Tarball.
 - [ ] Wiedergabe, Medientasten (MPRIS, der Linux-Standard dafür), Tray-Symbol (Symbol im Infobereich, je nach Desktop), Mini-Fenster.
 - [ ] Deep Link `linefm://play?station=...` über die Desktop-Datei.
+- [ ] Eigene Titelleiste ohne zweite Systemleiste, Verschieben und Größenänderung an allen Kanten unter X11 und Wayland (GNOME, KDE).
 
 ### B6. macOS
 
 - [ ] DMG öffnen, App starten laut [Anleitung](../packaging/macos/LIES-MICH-ZUERST.txt) (macOS 15 verlangt den Weg über Systemeinstellungen).
 - [ ] Wiedergabe, Medientasten, Tray-Symbol in der Menüleiste, Mini-Fenster.
+- [ ] Titelleiste in App-Farbe, Ampeln links mittig, Logo und Name überlappen sie nicht; Ziehen und Doppelklick (laut Systemeinstellung), Vollbild über die grüne Ampel.
 
 ### B7. Web
 

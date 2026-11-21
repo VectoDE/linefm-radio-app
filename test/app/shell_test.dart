@@ -8,6 +8,7 @@ import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/features/mini_player/mini_player.dart';
 import 'package:linefm_radio/features/player/player_screen.dart';
+import 'package:linefm_radio/features/settings/platform_info.dart';
 import 'package:linefm_radio/features/settings/settings_screen.dart';
 import 'package:linefm_radio/features/storage_notice/storage_notice.dart';
 import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
@@ -54,7 +55,14 @@ void main() {
       tester,
     ) async {
       useSize(tester, 390, 844);
-      final host = AppHost(settings: _noAutoplay);
+      final host = AppHost(
+        settings: _noAutoplay,
+        platform: const PlatformInfo(
+          isWeb: true,
+          platform: TargetPlatform.android,
+        ),
+        storageConfirmed: false,
+      );
       await pumpApp(tester, host);
 
       expect(find.text('LINEFM'), findsOneWidget);

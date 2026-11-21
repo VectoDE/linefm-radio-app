@@ -1,0 +1,11 @@
+# Konfiguration fuer zizmor (supply-chain.yml, Job "Workflow-Pruefung").
+# Jede Ausnahme braucht eine Begruendung und einen Pruefpunkt, wann sie faellt.
+rules:
+  # self-repository (ab zizmor 1.30) empfiehlt "uses: $/.github/actions/..." statt
+  # "./.github/actions/..." (GitHub, seit 30.07.2026). Kein Sicherheitsbefund im
+  # engeren Sinn: Unsere lokalen Actions laufen immer nach actions/checkout mit
+  # persist-credentials: false aus dem eigenen Commit. Umstellung zurueckgestellt,
+  # weil actionlint 1.7.12 (aktuelle Version) die Syntax noch als Fehler meldet
+  # (rhysd/actionlint#711, #732). Umstellen, sobald actionlint sie kennt.
+  self-repository:
+    disable: true

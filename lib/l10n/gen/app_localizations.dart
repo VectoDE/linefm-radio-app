@@ -248,6 +248,12 @@ abstract class AppLocalizations {
   /// **'Verstanden'**
   String get storageNoticeDismiss;
 
+  /// Titel des Speicher-Hinweises, der in der App und auf dem Desktop als Popup erscheint.
+  ///
+  /// In de, this message translates to:
+  /// **'Speicher auf diesem Gerät'**
+  String get storageNoticeTitle;
+
   /// No description provided for @favoritesButton.
   ///
   /// In de, this message translates to:
@@ -679,6 +685,60 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Dunkel'**
   String get themeDark;
+
+  /// Einstellungen: Überschrift der Sprachauswahl
+  ///
+  /// In de, this message translates to:
+  /// **'Sprache'**
+  String get settingLanguageTitle;
+
+  /// Einstellungen: Erklärung unter der Sprachauswahl
+  ///
+  /// In de, this message translates to:
+  /// **'Systemsprache oder fest Deutsch bzw. Englisch. Die Änderung gilt sofort.'**
+  String get settingLanguageBody;
+
+  /// Sprachauswahl: folgt der Sprache des Geräts (Rückfall Englisch)
+  ///
+  /// In de, this message translates to:
+  /// **'Systemsprache'**
+  String get languageSystem;
+
+  /// Sprachauswahl: Eigenname der Sprache, in beiden Sprachen gleich, nicht übersetzen
+  ///
+  /// In de, this message translates to:
+  /// **'Deutsch'**
+  String get languageGerman;
+
+  /// Sprachauswahl: Eigenname der Sprache, in beiden Sprachen gleich, nicht übersetzen
+  ///
+  /// In de, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// Favoriten-Export (CSV): Spaltenkopf Titel
+  ///
+  /// In de, this message translates to:
+  /// **'Titel'**
+  String get exportColumnTitle;
+
+  /// Favoriten-Export (CSV): Spaltenkopf Künstler
+  ///
+  /// In de, this message translates to:
+  /// **'Künstler'**
+  String get exportColumnArtist;
+
+  /// Favoriten-Export (CSV): Spaltenkopf Sender
+  ///
+  /// In de, this message translates to:
+  /// **'Sender'**
+  String get exportColumnStation;
+
+  /// Favoriten-Export (CSV): Spaltenkopf Datum des Merkens
+  ///
+  /// In de, this message translates to:
+  /// **'Gemerkt am'**
+  String get exportColumnSavedAt;
 
   /// No description provided for @settingAutoplayTitle.
   ///
@@ -1441,6 +1501,36 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Wecker {time} löschen'**
   String alarmDeleteAt(String time);
+
+  /// Zweiter Teil des Namens in der eigenen Fenster-Titelleiste (Desktop), nach der Wortmarke brandName.
+  ///
+  /// In de, this message translates to:
+  /// **'Radio'**
+  String get windowTitleProduct;
+
+  /// No description provided for @windowMinimize.
+  ///
+  /// In de, this message translates to:
+  /// **'Minimieren'**
+  String get windowMinimize;
+
+  /// No description provided for @windowMaximize.
+  ///
+  /// In de, this message translates to:
+  /// **'Maximieren'**
+  String get windowMaximize;
+
+  /// No description provided for @windowRestore.
+  ///
+  /// In de, this message translates to:
+  /// **'Wiederherstellen'**
+  String get windowRestore;
+
+  /// No description provided for @windowClose.
+  ///
+  /// In de, this message translates to:
+  /// **'Schließen'**
+  String get windowClose;
 }
 
 class _AppLocalizationsDelegate

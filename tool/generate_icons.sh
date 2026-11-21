@@ -59,7 +59,7 @@ magick "$SRC" -filter Lanczos -resize 1024x1024 -alpha off -strip -define png:co
 # Ebenen 1024 fuer Weiterverwendung (Wortmarke 1:1, Flaeche).
 fg 1024 "$(awk 'BEGIN{printf "%.6f", 1024/600}')" assets/branding/icon_foreground_1024.png
 magick -size 1024x1024 "xc:$C_RIGHT" -fill "$C_LEFT" \
-  -draw "polygon 0,0 $(awk -v a=$X0 'BEGIN{printf "%.3f", a*1024/600}'),0 $(awk -v a=$X600 'BEGIN{printf "%.3f", a*1024/600}'),1024 0,1024" \
+  -draw "polygon 0,0 $(awk -v a="$X0" 'BEGIN{printf "%.3f", a*1024/600}'),0 $(awk -v a="$X600" 'BEGIN{printf "%.3f", a*1024/600}'),1024 0,1024" \
   -strip assets/branding/icon_background_1024.png
 
 # Play-Store-Icon (512, opak).
@@ -75,7 +75,7 @@ for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
   rs "$s" "$RES/mipmap-$d/ic_launcher.png"
   # Runde Variante (Kreismaske, Aussenseite transparent)
   magick -size "${s}x${s}" xc:black -fill white \
-    -draw "circle $(awk -v s=$s 'BEGIN{printf "%.2f,%.2f %.2f,%.2f", s/2,s/2,s/2,0}')" "$W/rmask.png"
+    -draw "circle $(awk -v s="$s" 'BEGIN{printf "%.2f,%.2f %.2f,%.2f", s/2,s/2,s/2,0}')" "$W/rmask.png"
   magick "$RES/mipmap-$d/ic_launcher.png" "$W/rmask.png" -alpha off \
     -compose CopyOpacity -composite -strip "$RES/mipmap-$d/ic_launcher_round.png"
   # Adaptive Vordergrund: 108dp-Canvas, Wortmarke 1:1 zur Quelle (Radius 30,8dp < 33dp Safe-Zone)
@@ -84,7 +84,7 @@ for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
   # Benachrichtigungs-Icon: weiss, transparent, 24dp
   np="$(awk -v k="${DENS[$d]}" 'BEGIN{printf "%d", 24*k}')"
   magick "$W/alpha600.png" -trim +repage -filter Lanczos \
-    -resize "$(awk -v n=$np 'BEGIN{printf "%dx", n-2*int(n/12)}')" \
+    -resize "$(awk -v n="$np" 'BEGIN{printf "%dx", n-2*int(n/12)}')" \
     -background black -gravity center -extent "${np}x${np}" "$W/nmask.png"
   magick -size "${np}x${np}" xc:white "$W/nmask.png" -alpha off \
     -compose CopyOpacity -composite -strip "$RES/drawable-$d/ic_stat_linefm.png"
@@ -92,8 +92,8 @@ done
 
 mkdir -p "$RES/mipmap-anydpi-v26" "$RES/drawable"
 # Adaptive Hintergrund-Ebene als Vektor: Flaeche aus der Quelle, 108dp-Viewport (Faktor 0,18).
-X0_DP="$(awk -v a=$X0 'BEGIN{printf "%.2f", a*0.18}')"
-X1_DP="$(awk -v a=$X600 'BEGIN{printf "%.2f", a*0.18}')"
+X0_DP="$(awk -v a="$X0" 'BEGIN{printf "%.2f", a*0.18}')"
+X1_DP="$(awk -v a="$X600" 'BEGIN{printf "%.2f", a*0.18}')"
 cat > "$RES/drawable/ic_launcher_background.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"

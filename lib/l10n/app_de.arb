@@ -43,6 +43,10 @@
   "storageNoticeBodyDevice": "LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt gehörten Sender auf diesem Gerät, damit die App sie beim nächsten Start kennt.",
   "storageNoticePrivacy": "Datenschutz",
   "storageNoticeDismiss": "Verstanden",
+  "storageNoticeTitle": "Speicher auf diesem Gerät",
+  "@storageNoticeTitle": {
+    "description": "Titel des Speicher-Hinweises, der in der App und auf dem Desktop als Popup erscheint."
+  },
   "favoritesButton": "Favoriten",
   "favoritesButtonCount": "Favoriten, {count, plural, =1{1 Song} other{{count} Songs}}",
   "@favoritesButtonCount": {
@@ -245,6 +249,42 @@
   "themeSystem": "System",
   "themeLight": "Hell",
   "themeDark": "Dunkel",
+  "settingLanguageTitle": "Sprache",
+  "@settingLanguageTitle": {
+    "description": "Einstellungen: Überschrift der Sprachauswahl"
+  },
+  "settingLanguageBody": "Systemsprache oder fest Deutsch bzw. Englisch. Die Änderung gilt sofort.",
+  "@settingLanguageBody": {
+    "description": "Einstellungen: Erklärung unter der Sprachauswahl"
+  },
+  "languageSystem": "Systemsprache",
+  "@languageSystem": {
+    "description": "Sprachauswahl: folgt der Sprache des Geräts (Rückfall Englisch)"
+  },
+  "languageGerman": "Deutsch",
+  "@languageGerman": {
+    "description": "Sprachauswahl: Eigenname der Sprache, in beiden Sprachen gleich, nicht übersetzen"
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "Sprachauswahl: Eigenname der Sprache, in beiden Sprachen gleich, nicht übersetzen"
+  },
+  "exportColumnTitle": "Titel",
+  "@exportColumnTitle": {
+    "description": "Favoriten-Export (CSV): Spaltenkopf Titel"
+  },
+  "exportColumnArtist": "Künstler",
+  "@exportColumnArtist": {
+    "description": "Favoriten-Export (CSV): Spaltenkopf Künstler"
+  },
+  "exportColumnStation": "Sender",
+  "@exportColumnStation": {
+    "description": "Favoriten-Export (CSV): Spaltenkopf Sender"
+  },
+  "exportColumnSavedAt": "Gemerkt am",
+  "@exportColumnSavedAt": {
+    "description": "Favoriten-Export (CSV): Spaltenkopf Datum des Merkens"
+  },
   "settingAutoplayTitle": "Beim Start abspielen",
   "settingAutoplayBody": "Der zuletzt gehörte Sender startet automatisch.",
   "settingAutoplayBodyWeb": "Der zuletzt gehörte Sender startet nach deinem ersten Tippen oder Klick.",
@@ -498,5 +538,13 @@
         "type": "String"
       }
     }
-  }
+  },
+  "windowTitleProduct": "Radio",
+  "@windowTitleProduct": {
+    "description": "Zweiter Teil des Namens in der eigenen Fenster-Titelleiste (Desktop), nach der Wortmarke brandName."
+  },
+  "windowMinimize": "Minimieren",
+  "windowMaximize": "Maximieren",
+  "windowRestore": "Wiederherstellen",
+  "windowClose": "Schließen"
 }

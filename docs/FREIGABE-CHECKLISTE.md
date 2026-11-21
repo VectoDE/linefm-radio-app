@@ -13,6 +13,7 @@ Die Kontoeinrichtung steht in [EINRICHTUNG.md](EINRICHTUNG.md).
 Diese Punkte lassen sich nicht als "offen" begründen. Solange einer nicht erfüllt ist, wird nicht veröffentlicht bzw. nicht eingeschaltet.
 
 - [ ] **Telemetrie nicht aktivieren, solange keine AVV unterschrieben ist.** Erst wenn der Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO) mit dem Betreiber der Statistik- bzw. Fehlerberichte-Instanz unterschrieben vorliegt, dürfen `UMAMI_*`, `SENTRY_DSN` oder Firebase in `config/app.json` bzw. den CI-Variablen gesetzt werden. Hintergrund: Mit aktiver Telemetrie sagt die Datenschutzerklärung, dass diese Verträge bestehen (Abschnitt 12). Ohne Telemetrie erscheint der Satz nicht.
+- [ ] **App-Icon und Markenlogos nicht in Stores veröffentlichen, solange jaybelife nicht schriftlich zugestimmt hat.** Das gilt für das Icon aus `https://cdn.linefm.de/images/icons/main.png` (Android, iOS, macOS, Windows, Linux, Web), die Store-Grafiken und das Social-Preview-Bild. Mündlich erteilte Freigaben reichen nicht, die Antwort muss als E-Mail oder Issue-Eintrag vorliegen (siehe A3, Issues #58 und #76). Bis dahin gehen keine Store-Einreichung, kein Upload des Social-Previews und kein Release mit diesem Icon nach außen.
 - [ ] Der Release-Build mit `--strict` läuft durch: keine offenen Pflicht-Platzhalter in Rechtstexten, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `BARRIEREFREIHEIT.md` und `security.txt`.
 
 ## A. Bestätigungen durch jaybelife

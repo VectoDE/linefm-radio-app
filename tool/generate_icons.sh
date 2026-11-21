@@ -46,6 +46,12 @@ fg() {
 # rs SIZE OUT : Quadrat aus der 1024er Vollflaeche, Lanczos.
 rs() { magick assets/branding/icon_1024.png -filter Lanczos -resize "${1}x${1}" -strip -define png:color-type=2 "$2"; }
 
+# sm SIZE OUT : Kleinstufe (<= 32 px). Reiner Ausschnitt der Quelle (360x360 px um die
+# Wortmarke) statt Gesamtbild, Lanczos plus leichtes Unsharp. Bei 16 bis 32 px waere die
+# Wortmarke im Gesamtbild nur 8 bis 16 px breit und nicht mehr lesbar; der Ausschnitt
+# aendert weder Farben noch Form, nur den Bildausschnitt.
+sm() { magick "$SRC" -crop 360x360+118+109 +repage -filter Lanczos -resize "${1}x${1}"   -unsharp 0x0.5+0.5+0 -alpha off -strip -define png:color-type=2 "$2"; }
+
 # 3. Vollflaeche 1024 (reine Hochskalierung der Quelle).
 mkdir -p assets/branding
 magick "$SRC" -filter Lanczos -resize 1024x1024 -alpha off -strip -define png:color-type=2 assets/branding/icon_1024.png
@@ -124,6 +130,17 @@ for f in "$IOS"/Icon-App-*.png; do
     -background "$C_RIGHT" -alpha remove -alpha off -strip -define png:color-type=2 "$f"
 done
 
+# 5b. iOS-Startbild: Icon als Kreis (wie Android-Splash), 112 pt, transparent auf #0F1221
+# (Hintergrund setzt LaunchScreen.storyboard).
+LI=ios/Runner/Assets.xcassets/LaunchImage.imageset
+for k in 1 2 3; do
+  px=$((112*k))
+  magick -size "${px}x${px}" xc:black -fill white     -draw "circle $(awk -v s=$px 'BEGIN{printf "%.2f,%.2f %.2f,%.2f", s/2,s/2,s/2,0}')" "$W/lmask.png"
+  magick assets/branding/icon_1024.png -filter Lanczos -resize "${px}x${px}" "$W/lmask.png" -alpha off     -compose CopyOpacity -composite -strip "$W/li.png"
+  if [ "$k" = 1 ]; then out="$LI/LaunchImage.png"; else out="$LI/LaunchImage@${k}x.png"; fi
+  cp "$W/li.png" "$out"
+done
+
 # 6. macOS: Rundrechteck-Zuschnitt (824 px im 1024er Raster, Radius 185) -----
 MAC=macos/Runner/Assets.xcassets/AppIcon.appiconset
 magick -size 824x824 xc:black -fill white -draw "roundrectangle 0,0 823,823 185,185" "$W/mmask.png"
@@ -134,20 +151,25 @@ for n in 16 32 64 128 256 512 1024; do
   magick "$W/mac1024.png" -filter Lanczos -resize "${n}x${n}" -strip "$MAC/app_icon_$n.png"
 done
 
-# 7. Windows -----------------------------------------------------------------
-for n in 16 24 32 48 64 128 256; do rs "$n" "$W/ico_$n.png"; done
-magick "$W/ico_16.png" "$W/ico_24.png" "$W/ico_32.png" "$W/ico_48.png" \
-  "$W/ico_64.png" "$W/ico_128.png" "$W/ico_256.png" windows/runner/resources/app_icon.ico
+# 7. Windows: Stufen 16 bis 256; <= 32 px als Ausschnitt (sm), darueber Gesamtbild (rs).
+ICO_LIST=()
+for n in 16 20 24 32 40 48 64 128 256; do
+  if [ "$n" -le 32 ]; then sm "$n" "$W/ico_$n.png"; else rs "$n" "$W/ico_$n.png"; fi
+  ICO_LIST+=("$W/ico_$n.png")
+done
+magick "${ICO_LIST[@]}" windows/runner/resources/app_icon.ico
 
 # 8. Linux (hicolor-Struktur, APPLICATION_ID de.linefm.app) ------------------
 for n in 16 24 32 48 64 128 256 512; do
   d="linux/assets/icons/hicolor/${n}x${n}/apps"; mkdir -p "$d"
-  rs "$n" "$d/de.linefm.app.png"
+  if [ "$n" -le 32 ]; then sm "$n" "$d/de.linefm.app.png"; else rs "$n" "$d/de.linefm.app.png"; fi
 done
 
 # 9. Web ---------------------------------------------------------------------
 mkdir -p web/icons
 rs 48 web/favicon.png
+sm 16 web/icons/favicon-16.png
+sm 32 web/icons/favicon-32.png
 rs 192 web/icons/Icon-192.png
 rs 512 web/icons/Icon-512.png
 rs 192 web/icons/Icon-maskable-192.png   # Wortmarkenradius 28,5 % < 40 % Safe-Zone
@@ -161,5 +183,13 @@ magick "$W/alpha600.png" -crop 326x142+135+218 +repage -filter Lanczos -resize 6
   -background black -gravity center -extent 1200x630 "$W/og_mask.png"
 magick -size 1200x630 xc:white "$W/og_mask.png" -alpha off -compose CopyOpacity -composite "$W/og_fg.png"
 magick "$W/og_bg.png" "$W/og_fg.png" -compose Over -composite -strip web/icons/og-image.png
+
+# 10. Social-Preview 1280x640 (GitHub, Hochladen nur im Browser durch den Inhaber).
+# Nur vorhandene Bestandteile: Logo-Kachel, Markenfarben, Schriften aus assets/fonts.
+F=assets/fonts
+mkdir -p docs/assets
+magick -size 420x420 xc:black -fill white -draw "roundrectangle 0,0 419,419 94,94" "$W/pm.png"
+magick "$SRC" -filter Lanczos -resize 420x420 "$W/pm.png" -alpha off -compose CopyOpacity -composite "$W/tile.png"
+magick -size 1280x640 "xc:#0F1221" "$W/tile.png" -geometry +90+110 -composite   -font $F/Syncopate-Bold.ttf -fill white -pointsize 58 -annotate +560+270 'LINEFM'   -font $F/Syncopate-Bold.ttf -fill '#A4A7B6' -pointsize 58 -annotate +560+350 'RADIO'   -font $F/Poppins-Regular.ttf -fill '#A4A7B6' -pointsize 26 -annotate +562+430 'LineFM +MAIN, +RAP, +GAMING, +LOFI live hören'   -font $F/Poppins-SemiBold.ttf -fill white -pointsize 22 -annotate +562+480 'Android · iOS · Windows · macOS · Linux · Web'   -depth 8 -strip -define png:color-type=2 docs/assets/social-preview.png
 
 echo "Icons erzeugt."

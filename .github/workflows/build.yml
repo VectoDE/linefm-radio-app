@@ -901,6 +901,8 @@ jobs:
           check "App: UIBackgroundModes audio" 'val "$app/Info.plist" UIBackgroundModes | grep -qx "[[:space:]]*audio"'
           check "App: CarPlay-Szene im Manifest" '[ -n "$(val "$app/Info.plist" UIApplicationSceneManifest:UISceneConfigurations:CPTemplateApplicationSceneSessionRoleApplication:0:UISceneDelegateClassName)" ]'
           check "App: NSLocalNetworkUsageDescription" '[ -n "$(val "$app/Info.plist" NSLocalNetworkUsageDescription)" ]'
+          check "App: AppIcon als Primaersymbol" '[ "$(val "$app/Info.plist" CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName)" = "AppIcon" ]'
+          check "App: Asset-Katalog kompiliert" '[ -f "$app/Assets.car" ]'
           strings -a "$app/Runner" > "$RUNNER_TEMP/runner.strings" || true
           strings -a "$appex/LinefmWidgetExtension" > "$RUNNER_TEMP/widget.strings" || true
           for s in CarPlaySceneDelegate SceneDelegate AlarmNotifications AirPlayRoutePickerFactory \

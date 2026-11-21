@@ -691,6 +691,8 @@ class WelcomePage extends StatelessWidget {
         BodyText(s.versionLine(ctx.version), muted: true),
         if (ctx.publisher.isNotEmpty)
           BodyText(s.publisherLine(ctx.publisher), muted: true),
+        if (ctx.manufacturer.isNotEmpty)
+          BodyText(s.manufacturerLine(ctx.manufacturer), muted: true),
         if (ctx.sizeBytes > 0)
           BodyText(s.sizeLine(s.formatBytes(ctx.sizeBytes)), muted: true),
       ],

@@ -120,6 +120,7 @@ struct Product {
   std::wstring name;          // Anzeigename, z. B. "LINEFM Radio"
   std::wstring version;       // Versionslabel, z. B. "1.2.3" oder "1.2.3-rc.1"
   std::wstring publisher;     // Herausgeber in "Apps & Features"
+  std::wstring manufacturer;  // Hersteller (nur Anzeige)
   std::wstring exe_name;      // Programmdatei, z. B. "linefm_radio.exe"
   std::wstring url;           // Website
   std::wstring app_id;        // feste GUID, z. B. "{6F3B...}"

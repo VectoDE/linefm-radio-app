@@ -55,6 +55,7 @@ class SetupContext {
     required this.productName,
     required this.version,
     required this.publisher,
+    this.manufacturer = '',
     required this.exeName,
     required this.url,
     required this.installedUser,
@@ -82,6 +83,7 @@ class SetupContext {
       productName: _string(product['name'], 'LINEFM Radio'),
       version: _string(product['version']),
       publisher: _string(product['publisher']),
+      manufacturer: _string(product['manufacturer']),
       exeName: _string(product['exe'], 'linefm_radio.exe'),
       url: _string(product['url']),
       installedUser: Installed.fromJson(installed['user']),
@@ -113,6 +115,9 @@ class SetupContext {
   final String productName;
   final String version;
   final String publisher;
+
+  /// Hersteller der Software (nur Anzeige), leer wenn nicht gesetzt.
+  final String manufacturer;
   final String exeName;
   final String url;
   final Installed? installedUser;

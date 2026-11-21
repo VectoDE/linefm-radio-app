@@ -644,7 +644,7 @@ jobs:
             $msixArgs += @('--certificate-path', $env:PFX_PATH, '--certificate-password', $env:PFX_PASSWORD)
           } else {
             # Unsigniert verlangt msix eine Publisher-Identitaet; mit Zertifikat kommt sie aus dem Zertifikat.
-            $msixArgs += @('--sign-msix', 'false', '--publisher', 'CN=LineFM Studios')
+            $msixArgs += @('--sign-msix', 'false', '--publisher', 'CN=LineFM Studios', '--publisher-display-name', 'LineFM Studios')
             "- Windows: MSIX **unsigniert** (kein Code-Signing-Zertifikat), Sideload erst nach Signatur" | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
           }
           dart @msixArgs

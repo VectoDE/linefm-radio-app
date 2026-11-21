@@ -16,6 +16,7 @@ void main() {
       expect(c.productName, 'LINEFM Radio');
       expect(c.version, '1.2.0');
       expect(c.publisher, 'LineFM Studios');
+      expect(c.manufacturer, 'Tim Hauke');
       expect(c.defaultScope, Scope.user);
       expect(c.machineDir, r'C:\Program Files\LINEFM Radio');
       expect(c.installed, isNull);

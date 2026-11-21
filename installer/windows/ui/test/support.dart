@@ -68,7 +68,7 @@ class FakePlatform implements SetupPlatform {
 
 const String installJson = '''
 {"mode":"install","engine":"C:\\\\Users\\\\a\\\\Downloads\\\\setup.exe",
- "product":{"name":"LINEFM Radio","version":"1.2.0","publisher":"LineFM Studios",
+ "product":{"name":"LINEFM Radio","version":"1.2.0","publisher":"LineFM Studios","manufacturer":"Tim Hauke",
   "exe":"linefm_radio.exe","url":"https://app.linefm.de"},
  "installed":{"user":null,"machine":null},
  "defaults":{"scope":"user",
@@ -90,6 +90,7 @@ SetupContext installContext({
     productName: base.productName,
     version: base.version,
     publisher: base.publisher,
+    manufacturer: base.manufacturer,
     exeName: base.exeName,
     url: base.url,
     installedUser: user,
@@ -122,6 +123,7 @@ SetupContext uninstallContext() {
     productName: base.productName,
     version: base.version,
     publisher: base.publisher,
+    manufacturer: base.manufacturer,
     exeName: base.exeName,
     url: base.url,
     installedUser: installed,
@@ -139,5 +141,5 @@ SetupContext uninstallContext() {
 }
 
 const String licenseSample =
-    'LINEFM Radio\nCopyright (c) 2026 LineFM Studios.\n\n'
+    'LINEFM Radio\nCopyright (c) 2026 Tim Hauke.\n\n'
     'Beispieltext der Lizenz für Tests.';

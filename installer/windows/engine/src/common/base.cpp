@@ -527,6 +527,7 @@ bool ParseProduct(const std::string& ini_text, Product* out,
     if (key == L"name") p.name = value;
     else if (key == L"version") p.version = value;
     else if (key == L"publisher") p.publisher = value;
+    else if (key == L"manufacturer") p.manufacturer = value;
     else if (key == L"exe_name") p.exe_name = value;
     else if (key == L"url") p.url = value;
     else if (key == L"app_id") p.app_id = value;

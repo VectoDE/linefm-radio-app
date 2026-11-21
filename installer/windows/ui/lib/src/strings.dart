@@ -79,6 +79,8 @@ class S {
       _t('Version $version', 'Version $version');
   String publisherLine(String publisher) =>
       _t('Herausgeber: $publisher', 'Publisher: $publisher');
+  String manufacturerLine(String manufacturer) =>
+      _t('Hersteller: $manufacturer', 'Developer: $manufacturer');
   String sizeLine(String size) =>
       _t('Benötigter Speicher: $size', 'Disk space required: $size');
 

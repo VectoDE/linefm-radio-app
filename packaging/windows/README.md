@@ -16,6 +16,7 @@ Der Installer hat eine eigene Oberfläche im App-Design (Bedienung: `docs/BAUEN-
 |---|---|
 | `name` | Anzeigename (Verknüpfungen, "Installierte Apps") |
 | `publisher` | Herausgeber, `LineFM Studios` |
+| `manufacturer` | Hersteller, `Tim Hauke` (optional, erscheint in der Oberfläche) |
 | `exe_name` | Programmdatei der App |
 | `url` | Website (Support-Link in "Installierte Apps") |
 | `app_id` | feste GUID, darf sich nie ändern (Update-Erkennung) |
@@ -68,7 +69,7 @@ Die MSIX-Konfiguration liegt bereits in `pubspec.yaml` (`msix_config`):
 ```yaml
 msix_config:
   display_name: LINEFM Radio
-  publisher_display_name: LINEFM
+  publisher_display_name: LineFM Studios
   identity_name: de.linefm.app
   msix_version: 1.0.0.0
   logo_path: assets/branding/icon_1024.png

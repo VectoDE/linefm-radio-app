@@ -93,7 +93,7 @@ BEGIN
             VALUE "FileDescription", "LINEFM Radio Setup" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "linefm_setup" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 LineFM Studios" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Tim Hauke" "\0"
             VALUE "OriginalFilename", "linefm_setup.exe" "\0"
             VALUE "ProductName", "LINEFM Radio Setup" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

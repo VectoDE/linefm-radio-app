@@ -455,6 +455,7 @@ std::string ContextJson(const std::wstring& mode, const Product& p,
   json += ",\"product\":{\"name\":" + JsonString(p.name) +
           ",\"version\":" + JsonString(p.version) +
           ",\"publisher\":" + JsonString(p.publisher) +
+          ",\"manufacturer\":" + JsonString(p.manufacturer) +
           ",\"exe\":" + JsonString(p.exe_name) +
           ",\"url\":" + JsonString(p.url) + "}";
   json += ",\"installed\":{\"user\":" + InstalledJson(user) +

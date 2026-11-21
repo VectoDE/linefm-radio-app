@@ -29,7 +29,7 @@ BEGIN
             VALUE "FileDescription", "LINEFM Radio Setup"
             VALUE "FileVersion", "@LF_VERSION@"
             VALUE "InternalName", "setup"
-            VALUE "LegalCopyright", "Copyright (C) 2026 LineFM Studios"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Tim Hauke"
             VALUE "OriginalFilename", "setup.exe"
             VALUE "ProductName", "LINEFM Radio"
             VALUE "ProductVersion", "@LF_VERSION@"

@@ -1513,6 +1513,36 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Der gewählte Sender ist nicht mehr verfügbar. Der Wecker spielt {station}.'**
   String alarmStationUnavailable(String station);
+
+  /// Zweiter Teil des Namens in der eigenen Fenster-Titelleiste (Desktop), nach der Wortmarke brandName.
+  ///
+  /// In de, this message translates to:
+  /// **'Radio'**
+  String get windowTitleProduct;
+
+  /// No description provided for @windowMinimize.
+  ///
+  /// In de, this message translates to:
+  /// **'Minimieren'**
+  String get windowMinimize;
+
+  /// No description provided for @windowMaximize.
+  ///
+  /// In de, this message translates to:
+  /// **'Maximieren'**
+  String get windowMaximize;
+
+  /// No description provided for @windowRestore.
+  ///
+  /// In de, this message translates to:
+  /// **'Wiederherstellen'**
+  String get windowRestore;
+
+  /// No description provided for @windowClose.
+  ///
+  /// In de, this message translates to:
+  /// **'Schließen'**
+  String get windowClose;
 }
 
 class _AppLocalizationsDelegate

@@ -854,4 +854,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String alarmStationUnavailable(String station) {
     return 'Der gewählte Sender ist nicht mehr verfügbar. Der Wecker spielt $station.';
   }
+
+  @override
+  String get windowTitleProduct => 'Radio';
+
+  @override
+  String get windowMinimize => 'Minimieren';
+
+  @override
+  String get windowMaximize => 'Maximieren';
+
+  @override
+  String get windowRestore => 'Wiederherstellen';
+
+  @override
+  String get windowClose => 'Schließen';
 }

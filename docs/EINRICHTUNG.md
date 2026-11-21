@@ -42,7 +42,7 @@ Haken setzen, sobald ein Schritt erledigt und geprüft ist.
 | 9 | Statistik und Absturzberichte (optional) | 2 (AVV) | 1 Tag |
 | 10 | Search Console, GA4 und GTM | 5 | 1 Tag |
 | 11 | Vertrauens-Badges | 5 | je nach Anbieter |
-| 12 | Signierte Releases (GPG optional) | 1 | 1 Stunde |
+| 12 | Signierte Releases (GPG optional), Scanner-Konten (optional) | 1 | 1 bis 2 Stunden |
 | 13 | Datenschutzangaben je Store | 3, 6 bis 9 | 1 Tag |
 | 14 | Bilder und Screenshots | 6 bis 8 | Tage |
 | 15 | Apple (später) | 1 | Wochen |
@@ -535,7 +535,7 @@ Das gilt nur für die Web-Version. Alles ist aus, solange du keine Werte einträ
 
 ---
 
-## 12. Signierte Releases
+## 12. Signierte Releases und Sicherheits-Scanner
 
 ### 12.1 Automatische Signatur (nichts zu tun)
 

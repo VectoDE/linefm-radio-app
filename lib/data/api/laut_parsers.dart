@@ -212,7 +212,8 @@ class LautParsers {
 
   static int? _int(Object? value) {
     if (value is int) return value;
-    if (value is num) return value.toInt();
+    // jsonDecode('1e999') liefert Unendlich; toInt() wuerde dort werfen.
+    if (value is num) return value.isFinite ? value.toInt() : null;
     if (value is String) return int.tryParse(value.trim());
     return null;
   }

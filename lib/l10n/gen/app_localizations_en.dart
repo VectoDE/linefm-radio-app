@@ -850,4 +850,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String alarmStationUnavailable(String station) {
     return 'The selected station is no longer available. The alarm will play $station.';
   }
+
+  @override
+  String get windowTitleProduct => 'Radio';
+
+  @override
+  String get windowMinimize => 'Minimize';
+
+  @override
+  String get windowMaximize => 'Maximize';
+
+  @override
+  String get windowRestore => 'Restore';
+
+  @override
+  String get windowClose => 'Close';
 }

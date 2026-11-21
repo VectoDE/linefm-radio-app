@@ -585,21 +585,27 @@ class _ExpandedLayout extends ConsumerWidget {
               Semantics(
                 container: true,
                 explicitChildNodes: true,
-                child: NavigationRail(
-                  selectedIndex: index < 0 ? null : index,
-                  labelType: NavigationRailLabelType.all,
-                  groupAlignment: -0.85,
-                  onDestinationSelected: (i) =>
-                      ref.read(navigationProvider.notifier).go(railScreens[i]),
-                  destinations: <NavigationRailDestination>[
-                    _railItem(FontAwesomeIcons.play, l10n.navStations),
-                    _railItem(
-                      FontAwesomeIcons.clockRotateLeft,
-                      l10n.navHistory,
-                    ),
-                    _railItem(FontAwesomeIcons.heart, l10n.navFavorites),
-                    _railItem(FontAwesomeIcons.gear, l10n.navSettings),
-                  ],
+                child: SizedBox(
+                  key: const ValueKey<String>('shell-rail'),
+                  width: LinefmMetrics.railWidth,
+                  child: NavigationRail(
+                    minWidth: LinefmMetrics.railWidth,
+                    selectedIndex: index < 0 ? null : index,
+                    labelType: NavigationRailLabelType.all,
+                    groupAlignment: -0.85,
+                    onDestinationSelected: (i) => ref
+                        .read(navigationProvider.notifier)
+                        .go(railScreens[i]),
+                    destinations: <NavigationRailDestination>[
+                      _railItem(FontAwesomeIcons.play, l10n.navStations),
+                      _railItem(
+                        FontAwesomeIcons.clockRotateLeft,
+                        l10n.navHistory,
+                      ),
+                      _railItem(FontAwesomeIcons.heart, l10n.navFavorites),
+                      _railItem(FontAwesomeIcons.gear, l10n.navSettings),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -669,7 +675,21 @@ class _ExpandedLayout extends ConsumerWidget {
   static NavigationRailDestination _railItem(FaIconData icon, String label) =>
       NavigationRailDestination(
         icon: FaIcon(icon, size: 18),
-        label: Text(label.toUpperCase()),
+        // Feste Breite: Lange Woerter (z. B. "EINSTELLUNGEN") werden
+        // verkleinert statt die Leiste zu verbreitern oder abgeschnitten zu
+        // werden. Der Screenreader liest immer den vollen Text (Issue #101).
+        label: SizedBox(
+          width: LinefmMetrics.railWidth - 16,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label.toUpperCase(),
+              maxLines: 1,
+              softWrap: false,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
       );
 }
 
@@ -863,12 +883,16 @@ class _NavItem extends StatelessWidget {
             children: <Widget>[
               FaIcon(icon, size: 18, color: color),
               const SizedBox(height: 8),
-              Text(
-                label.toUpperCase(),
-                maxLines: 1,
-                overflow: TextOverflow.fade,
-                softWrap: false,
-                style: LinefmText.nav.copyWith(color: color),
+              // Verkleinern statt Ausblenden, falls eine Sprache laenger ist
+              // als der feste Platz (Issue #101).
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label.toUpperCase(),
+                  maxLines: 1,
+                  softWrap: false,
+                  style: LinefmText.nav.copyWith(color: color),
+                ),
               ),
             ],
           ),

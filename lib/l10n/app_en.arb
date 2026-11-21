@@ -273,5 +273,10 @@
   "alarmEnabledAt": "Alarm {time} on",
   "alarmDeleteAt": "Delete alarm {time}",
   "stationUnavailable": "This station is no longer available in the app.",
-  "alarmStationUnavailable": "The selected station is no longer available. The alarm will play {station}."
+  "alarmStationUnavailable": "The selected station is no longer available. The alarm will play {station}.",
+  "windowTitleProduct": "Radio",
+  "windowMinimize": "Minimize",
+  "windowMaximize": "Maximize",
+  "windowRestore": "Restore",
+  "windowClose": "Close"
 }

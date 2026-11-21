@@ -7,6 +7,7 @@ Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI so
 [![Barrierefreiheit](https://github.com/VectoDE/linefm-radio-app/actions/workflows/a11y.yml/badge.svg?branch=main)](https://github.com/VectoDE/linefm-radio-app/actions/workflows/a11y.yml)
 [![Lieferkette](https://github.com/VectoDE/linefm-radio-app/actions/workflows/supply-chain.yml/badge.svg?branch=main)](https://github.com/VectoDE/linefm-radio-app/actions/workflows/supply-chain.yml)
 [![CodeQL](https://github.com/VectoDE/linefm-radio-app/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/VectoDE/linefm-radio-app/actions/workflows/codeql.yml)
+[![Semgrep](https://github.com/VectoDE/linefm-radio-app/actions/workflows/semgrep.yml/badge.svg?branch=main)](https://github.com/VectoDE/linefm-radio-app/actions/workflows/semgrep.yml)
 [![Lizenz: proprietär](https://img.shields.io/badge/Lizenz-propriet%C3%A4r-lightgrey)](LICENSE)
 
 

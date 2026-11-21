@@ -16,7 +16,7 @@ class SectionHeading extends StatelessWidget {
     this.text, {
     super.key,
     this.trailing,
-    this.padding = const EdgeInsets.only(bottom: 20),
+    this.padding = const EdgeInsets.only(bottom: LinefmSpace.gutter),
     this.style,
     this.headingLevel = 1,
   });
@@ -63,7 +63,7 @@ class SectionHeading extends StatelessWidget {
             ),
           ),
           if (trailing != null) ...<Widget>[
-            const SizedBox(width: 12),
+            const SizedBox(width: LinefmSpace.md),
             trailing!,
           ],
         ],

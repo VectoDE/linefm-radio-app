@@ -175,7 +175,7 @@ class PlayerView extends StatelessWidget {
                       liveLabel: strings.live,
                       color: fg,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: LinefmSpace.md),
                     _TrackInfo(
                       data: data,
                       strings: strings,
@@ -183,7 +183,7 @@ class PlayerView extends StatelessWidget {
                       viewportWidth: width,
                     ),
                     if (data.listeners != null) ...<Widget>[
-                      const SizedBox(height: 14),
+                      const SizedBox(height: LinefmSpace.lg),
                       _ListenerBadge(
                         text: strings.listeners(data.listeners!),
                         color: fg,
@@ -204,7 +204,7 @@ class PlayerView extends StatelessWidget {
                       color: fg,
                       onRetry: onRetry,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: LinefmSpace.sm),
                     _SecondaryRow(
                       data: data,
                       strings: strings,
@@ -216,7 +216,7 @@ class PlayerView extends StatelessWidget {
                       onSleepTimer: onSleepTimer,
                       sleepTimerActive: sleepTimerActive,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: LinefmSpace.md),
                   ],
                 ),
               ),
@@ -301,7 +301,7 @@ class _StationLine extends StatelessWidget {
     final style = TextStyle(
       fontFamily: LinefmFonts.brand,
       fontWeight: FontWeight.w700,
-      fontSize: 12,
+      fontSize: LinefmType.caption,
       height: 1.4,
       letterSpacing: 1.2,
       color: color.withValues(alpha: 0.82),
@@ -317,11 +317,11 @@ class _StationLine extends StatelessWidget {
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: LinefmSpace.sm),
           ExcludeSemantics(child: Text(liveLabel, style: style)),
           ExcludeSemantics(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: LinefmSpace.sm),
               child: Text('·', style: style),
             ),
           ),
@@ -376,20 +376,15 @@ class _TrackInfo extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: MarqueeText(
-                title,
+                // Syncopate ohne Kapitaelchen: Grossbuchstaben (D80-10).
+                title.toUpperCase(),
                 enabled: data.marquee,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: LinefmFonts.brand,
-                  fontWeight: FontWeight.w700,
-                  // Web-App: h1 mit 20 px. Auf Tablets etwas groesser.
-                  fontSize: viewportWidth >= 600 ? 24 : 20,
-                  height: 1.3,
-                  color: color,
-                ),
+                style: LinefmText.playerSongTitle(viewportWidth)
+                    .copyWith(color: color),
               ),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: LinefmSpace.xs),
             SizedBox(
               width: double.infinity,
               child: MarqueeText(
@@ -422,7 +417,10 @@ class _ListenerBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(LinefmMetrics.radiusPill),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        padding: const EdgeInsets.symmetric(
+          horizontal: LinefmSpace.md,
+          vertical: LinefmSpace.xs,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -433,7 +431,7 @@ class _ListenerBadge extends StatelessWidget {
                 color: color.withValues(alpha: 0.85),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: LinefmSpace.sm),
             Flexible(
               child: Text(
                 text,
@@ -540,7 +538,7 @@ class _StatusLine extends StatelessWidget {
       PlayerStatus.error => strings.streamError,
       _ => null,
     };
-    if (message == null) return const SizedBox(height: 12);
+    if (message == null) return const SizedBox(height: LinefmSpace.md);
     final style = LinefmText.listMeta.copyWith(
       color: color.withValues(alpha: 0.9),
     );
@@ -548,7 +546,7 @@ class _StatusLine extends StatelessWidget {
       liveRegion: true,
       container: true,
       child: Padding(
-        padding: const EdgeInsets.only(top: 12),
+        padding: const EdgeInsets.only(top: LinefmSpace.md),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -752,7 +750,7 @@ class _PillAction extends StatelessWidget {
           borderRadius: BorderRadius.circular(LinefmMetrics.radiusPill),
           child: Container(
             height: LinefmMetrics.minTarget,
-            padding: const EdgeInsets.symmetric(horizontal: 18),
+            padding: const EdgeInsets.symmetric(horizontal: LinefmSpace.gutter),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(LinefmMetrics.radiusPill),
               border: Border.all(color: border),
@@ -761,7 +759,7 @@ class _PillAction extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 FaIcon(icon, size: 15, color: color),
-                const SizedBox(width: 10),
+                const SizedBox(width: LinefmSpace.md),
                 Text(
                   label,
                   style: LinefmText.listMeta.copyWith(

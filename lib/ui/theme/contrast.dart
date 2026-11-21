@@ -1,5 +1,7 @@
 import 'dart:ui' show Color;
 
+import 'package:linefm_radio/ui/theme/tokens.dart';
+
 /// WCAG-2.x-Kontrastberechnung (relative Luminanz, Verhaeltnis 1:1 bis 21:1).
 abstract final class Contrast {
   /// Mindestkontrast fuer normalen Text (AA).
@@ -12,10 +14,10 @@ abstract final class Contrast {
   static const double aaaText = 7.0;
 
   /// Dunkler Vordergrund auf hellen Senderfarben (identisch zu `background`).
-  static const Color ink = Color(0xFF0F1221);
+  static const Color ink = LinefmPalette.ink;
 
   /// Heller Vordergrund auf dunklen Senderfarben.
-  static const Color paper = Color(0xFFFFFFFF);
+  static const Color paper = LinefmPalette.paper;
 
   /// Kontrastverhaeltnis zweier deckender Farben.
   static double ratio(Color a, Color b) {

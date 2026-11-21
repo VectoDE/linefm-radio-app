@@ -1,5 +1,3 @@
-import 'dart:ui' show Color;
-
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart'
     show TargetPlatform, debugPrint, defaultTargetPlatform, kIsWeb;
@@ -8,6 +6,7 @@ import 'package:linefm_radio/services/audio/audio_handler.dart';
 import 'package:linefm_radio/services/audio/native_audio_init_io.dart'
     if (dart.library.js_interop) 'package:linefm_radio/services/audio/native_audio_init_web.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
+import 'package:linefm_radio/ui/theme/tokens.dart';
 
 /// Kanal-ID der Android-Wiedergabe-Benachrichtigung.
 const String audioNotificationChannelId = 'de.linefm.app.audio';
@@ -47,7 +46,7 @@ Future<PlaybackService> initAudio() async {
         androidNotificationIcon: audioNotificationIcon,
         androidNotificationOngoing: true,
         androidStopForegroundOnPause: true,
-        notificationColor: const Color(0xFF0F1221),
+        notificationColor: LinefmPalette.ink,
         // Live-Radio: kein Vor-/Zuruecksetzen per Zeitsprung.
         fastForwardInterval: const Duration(seconds: 1),
         rewindInterval: const Duration(seconds: 1),

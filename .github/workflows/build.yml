@@ -16,6 +16,9 @@ on:
       - windows/**
       - linux/**
       - web/**
+      # Fensterverhalten (Titelleiste, Tray, Mini-Fenster) haengt am
+      # nativen Fenster und gilt erst mit gruenem Desktop-Build als belegt.
+      - lib/platform/desktop/**
       - pubspec.yaml
       - pubspec.lock
       - packaging/**

@@ -35,7 +35,7 @@ Alle Sender in einer App, kostenlos und ohne Konto.
 - **Schlafen und Wecken:** Sleeptimer (15, 30, 45 oder 60 Minuten) und Radiowecker mit Sender.
 - **Unterwegs:** Homescreen-Widget (Android), Android Auto, Chromecast. AirPlay und CarPlay sind vorbereitet, aber noch nicht veröffentlicht.
 - **Am Computer:** Tray-Symbol (Symbol im Infobereich der Taskleiste), Mini-Fenster, das im Vordergrund bleibt, Tastenkürzel.
-- **Deutsch und Englisch**, hell und dunkel, für Handy, Tablet und Desktop. Warum nur zwei Sprachen: [Sprachen](#sprachen).
+- **Deutsch und Englisch** (Systemsprache oder in den Einstellungen festgelegt), hell und dunkel, für Handy, Tablet und Desktop. Warum nur zwei Sprachen: [Sprachen](#sprachen).
 - **Links:** `https://app.linefm.de/?station=<sender>` und `linefm://play?station=<sender>` öffnen direkt den Sender.
 
 Datenschutz: Favoriten, Verlauf und Einstellungen bleiben auf deinem Gerät. Statistik und Absturzberichte sind nur aktiv, wenn der Betreiber sie einschaltet, und dann nur nach deiner Einwilligung. In der Web-Version kann der Betreiber zusätzlich eine Reichweitenmessung mit Google Analytics einrichten; auch die läuft nur, wenn du gesondert zustimmst. Impressum und Datenschutzerklärung stehen in der App und unter `/impressum/` und `/datenschutz/` auf der Web-Seite.
@@ -97,9 +97,9 @@ flutter run -d chrome
 
 Die App gibt es auf Deutsch und Englisch. Das weicht bewusst vom Hausstandard mit 31 Sprachen ab, der Inhaber hat das am 19.11.2026 so entschieden. Die Gründe:
 
-- Wer LINEFM hört, spricht fast immer Deutsch. Die Sender moderieren auf Deutsch, Titel und Sendungsnamen kommen aus laut.fm und bleiben unübersetzt. Englisch deckt alle anderen Geräte-Sprachen ab: Ist das Gerät auf eine andere Sprache gestellt, zeigt die App Englisch.
+- Wer LINEFM hört, spricht fast immer Deutsch. Die Sender moderieren auf Deutsch, Titel und Sendungsnamen kommen aus laut.fm und bleiben unübersetzt. Englisch deckt alle anderen Geräte-Sprachen ab: Ist das Gerät auf eine andere Sprache gestellt, zeigt die App Englisch. In den Einstellungen lässt sich die Sprache festlegen (Systemsprache, Deutsch oder English); die Wahl gilt sofort und wird mit den übrigen Einstellungen gespeichert. Rangfolge: Wahl in dieser Sitzung, dann `?lang=de|en` der Web-Adresse, dann gespeicherte Wahl, dann die Systemsprache. „Speicher löschen“ stellt wieder die Systemsprache ein.
 - Jede weitere Sprache brauchte geprüfte Übersetzungen der Rechtstexte (Impressum, Datenschutz) und der Store-Texte. Maschinell übersetzte Rechtstexte wollen wir nicht veröffentlichen.
-- Die Struktur ist erweiterbar. Texte stehen in ARB-Dateien unter `lib/l10n/` (Vorlage `app_de.arb`), Rechtstexte unter `assets/legal/<sprache>/`. Für eine neue Sprache kommen `app_<code>.arb` und die übersetzten Rechtstexte dazu, Flutter erzeugt die Zugriffsklassen beim Bauen. Dazu wird `resolveAppLocale` in `lib/app/app.dart` um die Sprache ergänzt, das ist eine Zeile.
+- Die Struktur ist erweiterbar. Texte stehen in ARB-Dateien unter `lib/l10n/` (Vorlage `app_de.arb`), Rechtstexte unter `assets/legal/<sprache>/`. Für eine neue Sprache kommen `app_<code>.arb` und die übersetzten Rechtstexte dazu, Flutter erzeugt die Zugriffsklassen beim Bauen. Dazu werden `resolveAppLocale` in `lib/app/app.dart` und `AppLanguage` in `lib/domain/app_settings.dart` um die Sprache ergänzt, dazu ein Eintrag in der Sprachwahl der Einstellungen.
 
 ## OpenSSF und Prüfsiegel
 

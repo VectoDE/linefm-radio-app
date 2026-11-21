@@ -135,7 +135,7 @@ done
 LI=ios/Runner/Assets.xcassets/LaunchImage.imageset
 for k in 1 2 3; do
   px=$((112*k))
-  magick -size "${px}x${px}" xc:black -fill white     -draw "circle $(awk -v s=$px 'BEGIN{printf "%.2f,%.2f %.2f,%.2f", s/2,s/2,s/2,0}')" "$W/lmask.png"
+  magick -size "${px}x${px}" xc:black -fill white     -draw "circle $(awk -v "s=$px" 'BEGIN{printf "%.2f,%.2f %.2f,%.2f", s/2,s/2,s/2,0}')" "$W/lmask.png"
   magick assets/branding/icon_1024.png -filter Lanczos -resize "${px}x${px}" "$W/lmask.png" -alpha off     -compose CopyOpacity -composite -strip "$W/li.png"
   if [ "$k" = 1 ]; then out="$LI/LaunchImage.png"; else out="$LI/LaunchImage@${k}x.png"; fi
   cp "$W/li.png" "$out"
@@ -152,7 +152,7 @@ for n in 64 128 256 512 1024; do
 done
 # 16 und 32 px: gleiche Schaerfung wie sm, gleiche Form (824/1024-Rundrechteck, Radius 185/824).
 for n in 16 32; do
-  inner=$(awk -v n=$n 'BEGIN{printf "%d", n*824/1024+0.5}')
+  inner=$(awk -v "n=$n" 'BEGIN{printf "%d", n*824/1024+0.5}')
   magick "$SRC" -filter Lanczos -resize "${inner}x${inner}" -unsharp 0x0.5+0.8+0 "$W/macs_img.png"
   magick "$W/mmask.png" -filter Lanczos -resize "${inner}x${inner}" "$W/macs_mask.png"
   magick "$W/macs_img.png" \( "$W/macs_mask.png" -colorspace gray \) -alpha off -compose CopyOpacity -composite -compose Over -background none -gravity center -extent "${n}x${n}" -strip -define png:color-type=6 "$MAC/app_icon_$n.png"

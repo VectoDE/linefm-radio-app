@@ -103,7 +103,7 @@ comm -13 "$out/measured.tmp" "$out/all.tmp" >"$out/unmeasured.txt"
   grep -v '^TOTAL|' "$rows" | sort -t'|' -k1,1n | awk -F'|' '{ printf "| %s | %s | %s | %s |\n", $2, $3, $4, ($5 == "" ? "-" : $5) }'
   if [ -s "$out/unmeasured.txt" ]; then
     echo
-    echo "**Ohne Messdaten (von keinem Test geladen, zaehlen mit 0 %):** $(wc -l <"$out/unmeasured.txt")"
+    echo "**Ohne Messdaten (von keinem Test geladen, nicht im Nenner, daher ist der Wert nach oben verzerrt):** $(wc -l <"$out/unmeasured.txt")"
     echo
     sed 's/^/- `/; s/$/`/' "$out/unmeasured.txt"
   fi

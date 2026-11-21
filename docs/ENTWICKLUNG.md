@@ -23,6 +23,51 @@ flutter test
 flutter run -d chrome        # oder windows, android, ...
 ```
 
+### Flutter-Version: eine Quelle
+
+Die Version steht in `.fvmrc` (`3.50.0`). FVM liest die Datei, wenn du es nutzt (`fvm use`, optional, nicht nötig). Dieselbe Version steht an vier weiteren Stellen: im Standardwert von `.github/actions/setup-flutter/action.yml` (CI), in `.devcontainer/Dockerfile`, als Untergrenze in `pubspec.yaml` und in der Tabelle oben. Der Test `test/tool/flutter_version_test.dart` schlägt fehl, sobald eine Stelle abweicht, und prüft auch, dass kein Workflow eine eigene Version setzt. Ein Flutter-Update ändert alle Stellen in einem Pull Request. Bei dem neuen Dockerfile zusätzlich die Prüfsumme aus `https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json` übernehmen (Feld `sha256` der Version).
+
+### Aufgaben-Starter: `tool/task.dart`
+
+Ein Einstieg für alle Systeme (Windows, Linux, macOS), ohne zusätzliche Programme:
+
+```bash
+dart tool/task.dart help           # alle Aufgaben
+dart tool/task.dart check          # Format, Analyzer, Tests, wie die CI
+dart tool/task.dart test test/tool/task_test.dart
+dart tool/task.dart web-build      # Build, Ersatzschriften, Postbuild
+```
+
+| Aufgabe | Was sie tut |
+|---|---|
+| `pub-get` | `flutter pub get --enforce-lockfile` |
+| `format`, `format-check` | `dart format` ändernd bzw. nur prüfend |
+| `analyze` | `flutter analyze --fatal-infos` |
+| `test [Pfade]` | `flutter test`, alle oder die genannten Dateien |
+| `gen-l10n` | `flutter gen-l10n` |
+| `store-metadata [--write]` | Store-Metadaten prüfen oder aus `docs/STORE-TEXTE.md` neu erzeugen |
+| `web-build` | Web-Build wie in der CI (braucht `config/app.json`) |
+| `check` | `format-check`, `analyze` und `test` nacheinander |
+
+Bewusst `dart tool/task.dart` und nicht `dart run`: `dart run` baut die Native-Asset-Hooks der Abhängigkeiten mit (unter Windows Rust, unter Linux GTK) und braucht dafür lange. Der Starter selbst nutzt nur `dart:`-Bibliotheken.
+
+### Dev-Container
+
+`.devcontainer/` richtet in VS Code (Erweiterung "Dev Containers") oder in GitHub Codespaces eine Linux-Umgebung ein: Ubuntu 24.04 (Basisimage per Digest gepinnt), Flutter aus dem offiziellen Archiv mit geprüfter SHA-256, die Linux-Build-Pakete aus `.github/actions/linux-deps` und die Dart- und Flutter-Erweiterungen. Beim Anlegen läuft `flutter pub get --enforce-lockfile`.
+
+Was der Container kann: Analyse, Tests, Formatierung, Web-Build, Linux-Desktop-Build (ohne Anzeige, also Build ohne Start). Was er nicht kann: Android (kein Android SDK enthalten), Windows, macOS und iOS. Dafür brauchst du den jeweiligen Rechner. Dependabot hält den Digest des Basisimages aktuell. **Der Container ist noch nicht auf einem Rechner gebaut worden** (kein Docker in der bisherigen Entwicklung). Der erste Aufbau zeigt, ob die Pakete und die Prüfsumme stimmen.
+
+### Store-Texte und fastlane-Struktur
+
+`docs/STORE-TEXTE.md` ist die Quelle der Wahrheit für die Store-Texte. `fastlane/metadata/` (Google Play unter `android/<Sprache>/`, App Store unter `<Sprache>/`) wird daraus erzeugt:
+
+```bash
+dart tool/task.dart store-metadata --write   # nach jeder Textänderung
+dart tool/task.dart store-metadata           # prüfen
+```
+
+`test/tool/store_metadata_test.dart` prüft Zeichenlimits (Google Play: 30 / 80 / 4000, App Store: 30 / 30 / 4000, Schlüsselwörter 100 Bytes), Vollständigkeit in Deutsch und Englisch und dass beide Seiten übereinstimmen. Die Quellen der Limits stehen im Kopf von `tool/store_metadata.dart`. fastlane selbst ist nicht installiert und nicht nötig, die Pipelines laden ohne fastlane hoch ([stores-pipelines.md](stores-pipelines.md)). Die Struktur folgt nur den Dateinamen von `supply` und `deliver`, damit ein späterer Umstieg ohne Umbau geht. Die Angaben für die Datenschutz-Formulare der Stores stehen in [STORE-DATENSCHUTZANGABEN.md](STORE-DATENSCHUTZANGABEN.md).
+
 ### UI-Bibliothek: material_ui
 
 Die App importiert `package:material_ui/material_ui.dart` und **nicht** `package:flutter/material.dart`. Das gilt für alle Dateien unter `lib/` und `test/`. Lokalisierungs-Delegates kommen aus `material_ui` (`GlobalMaterialLocalizations.delegates`).
@@ -90,13 +135,21 @@ flutter test
 - `test/` spiegelt die Struktur von `lib/`: `domain`, `data`, `services`, `features`, `platform`, `ui`, `app`, `tool`. Netzwerk-Fixtures liegen in `test/fixtures/`.
 - Getestet wird, was absichert: Logik, Parser, Regeln, Wecker-Berechnung, Sleeptimer, Deep Links, Persistenz, Verdrahtung. Reine Optik nur über Goldens.
 - Dienste werden über Provider mit Fakes ersetzt (siehe `test/app/app_host.dart` und `test/features/feature_host.dart`). Echtes Netzwerk gibt es in Tests nicht.
-- **Goldens** (Bildvergleich) liegen in `test/features/goldens/` und werden von `test/features/history_favorites_golden_test.dart` geprüft. Nach einer **gewollten** Änderung der Darstellung neu erzeugen und die Bilder im Diff ansehen:
+- **Goldens** (Bildvergleich) prüfen die Kernkomponenten in Dark und Hell: Stationskarte, Play-Knopf, Mini-Player, Player, Favoriten-Herz mit Badge, Einstellungs-Schalter, Knöpfe, Abschnittsüberschrift, Dialog, Sheet, App-Rahmen (Header, Navigation) und Einstellungen sowie Verlauf und Favoriten. Dateien: `test/ui/components_golden_test.dart`, `test/app/shell_golden_test.dart`, `test/features/history_favorites_golden_test.dart`; Bilder je Test in `goldens/<name>_dark.png` und `goldens/<name>_light.png` daneben.
 
-```bash
-flutter test --update-goldens test/features/history_favorites_golden_test.dart
-```
+### Goldens aktualisieren
 
-  Goldens hängen von Schriften und Betriebssystem ab. Erzeuge und prüfe sie immer auf derselben Plattform wie die CI und bewerte Unterschiede von Hand, bevor du sie übernimmst.
+Referenzbilder hängen von der Rasterung der Plattform ab. Sie gelten deshalb nur dort, wo sie entstanden sind: auf dem CI-Runner des Jobs „Golden-Tests (Windows)“ (`windows-latest`). Die Tests tragen das Tag `golden` (`dart_test.yaml`) und enden auf `_golden_test.dart`; der normale Testjob lässt sie aus.
+
+- **Lokal** laufen sie durch (Layout, keine Ausnahmen), vergleichen aber keine Pixel und werden so nicht fälschlich rot. Die Meldung „Golden-Vergleich uebersprungen“ steht im Log. Mit `GOLDENS=1` (PowerShell: `$env:GOLDENS=1`) erzwingst du den Vergleich auch lokal; auf Windows 11 waren die Bilder bei der Einführung byte-gleich zu denen der CI, auf anderen Systemen sind Abweichungen zu erwarten.
+- **Feste Bedingungen** machen die Bilder reproduzierbar: echte App-Schriften aus dem Font-Manifest (nicht Ahem), Fenstergröße fest bei Pixelverhältnis 1, Lauftext aus, keine Netzbilder (Fakes, Senderlogos ohne Netz), Sender ohne ladbares Logo zeigen das Kürzel.
+- **Nach einer gewollten Änderung der Darstellung:**
+  1. Branch pushen. Der Job „Golden-Tests (Windows)“ wird rot und lädt das Artifact `golden-kandidaten` (alle Bilder, auf dem Runner neu erzeugt) und `golden-failures` (Unterschiede je Bild) hoch.
+  2. Artifact laden: `gh run download <run-id> -n golden-kandidaten -D tmp-goldens`, die PNGs unter `test/**/goldens/` kopieren.
+  3. Die Bilder im Diff ansehen, nur gewollte Änderungen committen, pushen. Der Job wird grün.
+- Alternativ lokal auf Windows 11: `flutter test --update-goldens test/ui/components_golden_test.dart` (je Datei), Bilder prüfen und committen. Die CI bleibt maßgeblich: stimmt sie nicht überein, gilt das Artifact.
+- Ein neuer Golden-Test braucht das Tag (`@Tags(<String>['golden'])` und `library;` ganz oben), den Dateinamen `*_golden_test.dart` und `setUpAll(prepareGoldens)` aus `test/golden_support.dart`.
+
 - Schwere Builds (APK, Windows, Web) laufen nicht parallel zu `flutter test`, das braucht viel Arbeitsspeicher.
 - Eine Live-Probe der laut.fm-Schnittstelle liegt in `tool/dev/now_playing_probe.dart`.
 
@@ -122,7 +175,8 @@ android/ ios/ macos/ windows/ linux/ web/   Plattformprojekte
 packages/linefm_firebase                      optionales Firebase-Paket (nicht in pubspec)
 deploy/  Server-Konfiguration für das Web-Hosting
 packaging/  Installer und Store-Pakete
-tool/    Generatoren: Icons, Rechtstexte, Web-Postbuild, Firebase-Schalter
+tool/    Generatoren und Werkzeuge: Icons, Rechtstexte, Web-Postbuild, Firebase-Schalter,
+         Store-Metadaten (store_metadata.dart), Aufgaben-Starter (task.dart)
 ```
 
 ### Provider (Riverpod)
@@ -190,6 +244,9 @@ Entscheidung: kein eigener Fork des Plugins. Die Datenschutzerklärung (Abschnit
 
 ## Weiterführende Dokumente
 
+- Betrieb: [Betriebshandbuch](betrieb/RUNBOOK.md) (Deploy, Rollback, Wiederherstellung, Uptime-Monitor), [Störungen und Vorfälle](betrieb/INCIDENT.md), [Bedrohungsmodell](betrieb/BEDROHUNGSMODELL.md)
+- Architekturentscheidungen: [adr/](adr/README.md)
+- Wettbewerbsabgleich: [WETTBEWERB.md](WETTBEWERB.md)
 - Web-Hosting: [hosting-uebersicht.md](hosting-uebersicht.md) mit [nginx](hosting-nginx.md), [Traefik](hosting-traefik.md), [Cloudflare](hosting-cloudflare.md), [Plesk](hosting-plesk.md)
 - Telemetrie und Selbsthosting von Umami und GlitchTip: [telemetry.md](telemetry.md)
 - Verpackung und Signierung: [packaging/README.md](../packaging/README.md)

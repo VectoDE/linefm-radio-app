@@ -413,9 +413,29 @@ int CloseRunningApps(const std::vector<std::wstring>& files,
     std::vector<RM_PROCESS_INFO> info(needed + 4);
     count = static_cast<UINT>(info.size());
     rc = ::RmGetList(session, &needed, &count, info.data(), &reasons);
-    if (rc != ERROR_SUCCESS) return false;
+    if (rc != ERROR_SUCCESS) {
+      Log::Line(L"RmGetList: Fehler " + std::to_wstring(rc));
+      return false;
+    }
     for (UINT i = 0; i < count; ++i) {
       if (info[i].Process.dwProcessId == ::GetCurrentProcessId()) continue;
+      // Der Restart Manager meldet beendete Prozesse teils noch eine Weile.
+      // Nur zaehlen, was mit gleicher Startzeit wirklich noch laeuft.
+      HANDLE h = ::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE,
+                               info[i].Process.dwProcessId);
+      if (h != nullptr) {
+        FILETIME created{}, exited{}, kernel{}, user{};
+        DWORD code = 0;
+        const bool alive =
+            ::GetProcessTimes(h, &created, &exited, &kernel, &user) &&
+            ::CompareFileTime(&created, &info[i].Process.ProcessStartTime) ==
+                0 &&
+            ::GetExitCodeProcess(h, &code) && code == STILL_ACTIVE;
+        ::CloseHandle(h);
+        if (!alive) continue;
+      } else if (::GetLastError() == ERROR_INVALID_PARAMETER) {
+        continue;  // PID existiert nicht mehr
+      }
       apps->push_back(info[i].strAppName);
       procs.push_back(info[i].Process);
     }

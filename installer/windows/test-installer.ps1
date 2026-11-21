@@ -171,13 +171,36 @@ if ($window) {
   try {
     Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
     $root = [System.Windows.Automation.AutomationElement]::FromHandle($window.MainWindowHandle)
+    # Flutter haengt seine Knoten unter FLUTTERVIEW; die ControlView zeigt sie
+    # nicht immer, der Raw-View-Baum schon.
+    $walker = [System.Windows.Automation.TreeWalker]::RawViewWalker
+    function RawFind($el, [string]$name, [int]$depth) {
+      if ($depth -gt 40) { return $null }
+      $child = $walker.GetFirstChild($el)
+      while ($child) {
+        if ($child.Current.Name -eq $name) { return $child }
+        $hit = RawFind $child $name ($depth + 1)
+        if ($hit) { return $hit }
+        $child = $walker.GetNextSibling($child)
+      }
+      return $null
+    }
+    function RawDump($el, [int]$depth) {
+      if ($depth -gt 40) { return }
+      $child = $walker.GetFirstChild($el)
+      while ($child) {
+        $c = $child.Current
+        Write-Host ("UIA: {0}{1} | {2}" -f (' ' * $depth), $c.ControlType.ProgrammaticName, $c.Name)
+        RawDump $child ($depth + 1)
+        $child = $walker.GetNextSibling($child)
+      }
+    }
     function FindButton([string[]]$names) {
       for ($t = 0; $t -lt 20; $t++) {
         foreach ($n in $names) {
           # Flutter meldet Knoepfe mit dem Beschriftungstext als Name; der
           # Steuerelementtyp schwankt je nach Version, deshalb nur der Name.
-          $cond = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $n)
-          $el = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cond)
+          $el = RawFind $root $n 0
           if ($el) { return $el }
         }
         Start-Sleep -Milliseconds 500
@@ -190,12 +213,7 @@ if ($window) {
     $next = FindButton @('Next', 'Weiter')
     if (-not $next) {
       # Diagnose: alle benannten Elemente der Oberflaeche ausgeben.
-      $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
-      foreach ($e in $all) {
-        $c = $e.Current
-        if ($c.Name) { Write-Host ("UIA: {0} | {1}" -f $c.ControlType.ProgrammaticName, $c.Name) }
-      }
-      Write-Host "UIA: $($all.Count) Elemente gesamt"
+      RawDump $root 0
     }
     Check 'Screenreader/UIA: Knopf "Weiter" auffindbar' ($null -ne $next)
     if ($next) {

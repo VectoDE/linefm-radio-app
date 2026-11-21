@@ -1,0 +1,158 @@
+name: Snyk
+
+# Snyk nur dort, wo es hier echten Nutzen bringt (Recherche November 2026,
+# Begruendung in docs/EINRICHTUNG.md 12.5):
+# - Snyk Code (SAST) fuer Kotlin, Swift, JavaScript und Python. Dart kann Snyk
+#   Code nur im Enterprise-Plan (Early Access), deshalb nicht enthalten.
+# - Snyk Container fuer das per Digest gepinnte Basisimage (deploy/traefik/Dockerfile).
+# - Snyk Open Source fuer tool/a11y/package-lock.json (npm).
+# Nicht enthalten: pub/Dart (Snyk liest pubspec.lock nicht direkt, nur ueber einen
+# experimentellen SBOM-Umweg), Gradle (braucht einen kompletten Android-Build) und
+# Snyk IaC (docker-compose wird nicht unterstuetzt). Diese Bereiche decken OSV,
+# Trivy, CodeQL und Dependabot ab.
+# - Laeuft nur, wenn das Secret SNYK_TOKEN gesetzt ist, sonst gruen mit Hinweis.
+# - Kein pull_request-Ausloeser: keine Secrets in PR-Laeufen, und der Free-Plan hat
+#   begrenzte Tests pro Monat (Code 100, Container 100, Open Source 200).
+# - Snyk-CLI aus dem offiziellen Download mit fester Version und SHA-256 aus
+#   https://downloads.snyk.io/cli/v<version>/sha256sums.txt.asc.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "11 5 * * 5"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: snyk-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: Token vorhanden?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      ready: ${{ steps.gate.outputs.ready }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Gate Snyk
+        id: gate
+        env:
+          HAS_TOKEN: ${{ secrets.SNYK_TOKEN != '' }}
+        run: |
+          set -euo pipefail
+          if [ "$HAS_TOKEN" = "true" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "- Snyk: aktiv" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "- Snyk: übersprungen, fehlt: SNYK_TOKEN (siehe docs/EINRICHTUNG.md 12.5)" >> "$GITHUB_STEP_SUMMARY"
+            echo "::notice title=Snyk übersprungen::fehlt: SNYK_TOKEN"
+          fi
+
+  scan:
+    name: Snyk Code, Container, Open Source
+    needs: gate
+    if: needs.gate.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write # SARIF an Code Scanning
+    env:
+      SNYK_VERSION: 1.1309.0
+      SNYK_SHA256: 4802579c2818938a2f4849d270df1139f310104286a8a5c6305328a3c2eb9e1c
+      SNYK_DISABLE_ANALYTICS: "1"
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Snyk-CLI laden und Pruefsumme pruefen
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/snyk" \
+            "https://downloads.snyk.io/cli/v${SNYK_VERSION}/snyk-linux"
+          echo "${SNYK_SHA256}  $RUNNER_TEMP/snyk" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/snyk"
+          "$RUNNER_TEMP/snyk" --version
+
+      # Exit-Codes der CLI: 0 ohne Funde, 1 Funde ab Schwelle, 2/3 Fehler. Alle
+      # drei Pruefungen laufen durch; das Ergebnis bewertet der letzte Schritt.
+      - name: Snyk ausfuehren
+        id: snyk
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          set -uo pipefail
+          snyk="$RUNNER_TEMP/snyk"
+          image="$(sed -n 's/^FROM[[:space:]]\+\([^[:space:]]*\).*/\1/p' deploy/traefik/Dockerfile | head -n 1)"
+          "$snyk" code test --severity-threshold=high --sarif-file-output=snyk-code.sarif .
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          "$snyk" container test "$image" --file=deploy/traefik/Dockerfile \
+            --severity-threshold=high --sarif-file-output=snyk-container.sarif
+          echo "container=$?" >> "$GITHUB_OUTPUT"
+          "$snyk" test --file=tool/a11y/package-lock.json --package-manager=npm --dev \
+            --severity-threshold=high --sarif-file-output=snyk-npm.sarif
+          echo "npm=$?" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: SARIF an Code Scanning (Code)
+        if: always() && hashFiles('snyk-code.sarif') != ''
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: snyk-code.sarif
+          category: snyk-code
+
+      - name: SARIF an Code Scanning (Container)
+        if: always() && hashFiles('snyk-container.sarif') != ''
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: snyk-container.sarif
+          category: snyk-container
+
+      - name: SARIF an Code Scanning (npm)
+        if: always() && hashFiles('snyk-npm.sarif') != ''
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: snyk-npm.sarif
+          category: snyk-npm
+
+      - name: Ergebnis
+        if: always()
+        env:
+          RC_CODE: ${{ steps.snyk.outputs.code }}
+          RC_CONTAINER: ${{ steps.snyk.outputs.container }}
+          RC_NPM: ${{ steps.snyk.outputs.npm }}
+        run: |
+          set -euo pipefail
+          status=0
+          {
+            echo "### Snyk ${SNYK_VERSION} (Schwelle: high)"
+            echo "| Pruefung | Exit-Code | Bedeutung |"
+            echo "|---|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          for pair in "Code:${RC_CODE:-?}" "Container:${RC_CONTAINER:-?}" "npm:${RC_NPM:-?}"; do
+            name="${pair%%:*}"; rc="${pair#*:}"
+            case "$rc" in
+              0) text="keine Funde" ;;
+              1) text="Funde ab high"; status=1 ;;
+              *) text="Fehler"; status=1 ;;
+            esac
+            echo "| ${name} | ${rc} | ${text} |" >> "$GITHUB_STEP_SUMMARY"
+          done
+          exit "$status"

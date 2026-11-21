@@ -1,0 +1,94 @@
+name: SonarQube Cloud
+
+# CI-Analyse fuer SonarQube Cloud (Dart mit Coverage, Kotlin, Swift, JavaScript,
+# Python, Dockerfile). Einstellungen in sonar-project.properties.
+# - Laeuft nur, wenn das Secret SONAR_TOKEN gesetzt ist. Ohne Token endet der Lauf
+#   gruen mit einem Hinweis in der Zusammenfassung (Einrichtung: docs/EINRICHTUNG.md 12.4).
+# - Nie mit Secrets fuer PRs aus Forks: Der Job laeuft dort nicht (Empfehlung von
+#   Sonar fuer Forks waere ein getrennter workflow_run-Ablauf; bei einem Projekt
+#   ohne fremde Beitraege bewusst weggelassen). Dependabot-PRs bekommen keine
+#   Actions-Secrets und werden ebenfalls uebersprungen.
+# - In SonarQube Cloud muss "Automatic Analysis" aus sein, sonst scheitert die
+#   CI-Analyse (Dart kann Sonar ohnehin nur per CI-Analyse).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: sonar-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  gate:
+    name: Token vorhanden?
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      ready: ${{ steps.gate.outputs.ready }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      # Ohne Checkout: Flag direkt auswerten, gleiche Ausgabe wie .github/actions/secret-gate.
+      - name: Gate SonarQube Cloud
+        id: gate
+        env:
+          HAS_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
+        run: |
+          set -euo pipefail
+          if [ "$HAS_TOKEN" = "true" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "- SonarQube Cloud: aktiv" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "- SonarQube Cloud: übersprungen, fehlt: SONAR_TOKEN (siehe docs/EINRICHTUNG.md 12.4)" >> "$GITHUB_STEP_SUMMARY"
+            echo "::notice title=SonarQube Cloud übersprungen::fehlt: SONAR_TOKEN"
+          fi
+
+  analysis:
+    name: Analyse mit Coverage
+    needs: gate
+    if: needs.gate.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      pull-requests: read # PR-Angaben fuer die Sonar-PR-Analyse
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      # Volle Historie fuer Blame-Informationen und neuen Code (Sonar-Empfehlung).
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Systempakete (Native-Asset-Hooks)
+        uses: ./.github/actions/linux-deps
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      # Wie ci.yml: Goldens laufen nur unter Windows und fehlen in der Coverage.
+      - name: Tests mit Coverage (ohne Goldens)
+        run: |
+          mapfile -t files < <(find test -name '*_test.dart' ! -name '*_golden_test.dart' | sort)
+          flutter test --coverage "${files[@]}"
+
+      - name: SonarQube-Cloud-Scan
+        uses: SonarSource/sonarqube-scan-action@59202af334b4ba7b5db01b701b8e79f8b3bef0f4 # v8.5.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

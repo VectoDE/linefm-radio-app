@@ -40,7 +40,7 @@ Haken setzen, sobald ein Schritt erledigt und geprüft ist.
 | 9 | Statistik und Absturzberichte (optional) | 2 (AVV) | 1 Tag |
 | 10 | Search Console, GA4 und GTM | 5 | 1 Tag |
 | 11 | Vertrauens-Badges | 5 | je nach Anbieter |
-| 12 | Signierte Releases (GPG optional) | 1 | 1 Stunde |
+| 12 | Signierte Releases (GPG optional), Scanner-Konten (optional) | 1 | 1 bis 2 Stunden |
 | 13 | Datenschutzangaben je Store | 3, 6 bis 9 | 1 Tag |
 | 14 | Bilder und Screenshots | 6 bis 8 | Tage |
 | 15 | Apple (später) | 1 | Wochen |
@@ -60,6 +60,8 @@ Abschnitt 2 zuerst anstoßen, weil Antworten von Dritten am längsten dauern. Di
 | Cloudflare Pages | kostenlos | Web, falls gewählt |
 | eigener Server oder Plesk | vorhanden | Web, falls gewählt |
 | Sigstore, GitHub-Attestierung | kostenlos | Signatur der Releases (Abschnitt 12) |
+| SonarQube Cloud | kostenlos nur für OSI-Open-Source oder bis 50k LOC (Tarif vorher prüfen) | Code-Qualität (12.4, optional) |
+| Snyk | Free-Tarif mit Testkontingent | Zusatz-Scanner (12.5, optional) |
 | Google Analytics 4, Tag Manager, Search Console | kostenlos | Reichweitenmessung Web (Abschnitt 10) |
 
 ---
@@ -533,7 +535,7 @@ Das gilt nur für die Web-Version. Alles ist aus, solange du keine Werte einträ
 
 ---
 
-## 12. Signierte Releases
+## 12. Signierte Releases und Sicherheits-Scanner
 
 ### 12.1 Automatische Signatur (nichts zu tun)
 
@@ -560,6 +562,40 @@ Das gilt nur für die Web-Version. Alles ist aus, solange du keine Werte einträ
 - **Wo eintragen:** Secret `SCORECARD_TOKEN`, Variable `CODE_SCANNING_ENABLED`.
 - **Woher:** GitHub > Settings > Developer settings > Fine-grained tokens. Code Scanning in privaten Repos braucht GitHub Code Security.
 - **Prüfschritt:** Der Scorecard-Lauf ist grün, das Badge in der README zeigt einen Wert.
+- [ ] erledigt
+
+### 12.4 SonarQube Cloud (optional)
+
+- **Was:** Code-Qualität und Sicherheitsregeln für Dart (mit Testabdeckung), Kotlin, Swift, JavaScript, Python und das Dockerfile. Der Workflow `sonar.yml` und die Datei `sonar-project.properties` liegen bereit. Ohne Token läuft der Workflow grün durch und meldet "übersprungen, fehlt: SONAR_TOKEN".
+- **Wozu:** Ein zweites Paar Augen neben CodeQL, Semgrep und `flutter analyze`, mit Quality Gate, Abdeckung je Datei und Kommentaren am Pull Request. Ohne den Schritt fehlt nur diese Zusatzprüfung.
+- **Kosten, bitte vorher prüfen:** Laut Preisseite ist SonarQube Cloud für öffentliche Repos mit **OSI-Open-Source-Lizenz** kostenlos ("SonarQube for OSS"). LINEFM Radio ist öffentlich, aber proprietär, fällt also nicht sicher darunter. Daneben gibt es laut Preisseite einen kostenlosen Team-Tarif "for your private projects up to 50k LOC". Ob ein öffentliches, proprietäres Repo darin erlaubt ist, steht nirgends eindeutig. Vor dem Einrichten im Konto prüfen, welcher Tarif angeboten wird. Nur weitermachen, wenn er 0 Euro kostet. Quelle: <https://www.sonarsource.com/plans-and-pricing/sonarcloud/>
+- **Wo eintragen:** Secret `SONAR_TOKEN` (Schritt 1.3). Sonst nichts.
+- **Woher, Schritt für Schritt:**
+  1. <https://sonarcloud.io> öffnen und mit "Log in with GitHub" anmelden (Konto legt der Inhaber an).
+  2. "+" > "Analyze new project" > Organisation **VectoDE** importieren. Der vorgeschlagene Organisationsschlüssel ist meist `vectode`.
+  3. Repository `linefm-radio-app` auswählen und "Set up". Der Projektschlüssel heißt dann meist `VectoDE_linefm-radio-app`.
+  4. Weichen die beiden Schlüssel ab, `sonar.organization` und `sonar.projectKey` in `sonar-project.properties` anpassen (kleiner Pull Request).
+  5. Im Projekt: Administration > Analysis Method > **Automatic Analysis ausschalten** und "GitHub Actions" wählen. Wichtig: Läuft beides, scheitert die CI-Analyse. Dart geht ohnehin nur per CI.
+  6. Den angezeigten Token kopieren, alternativ unter My Account > Security einen Token erzeugen (Typ "Project Analysis Token", nur dieses Projekt).
+  7. Im Repo: Settings > Secrets and variables > Actions > New repository secret, Name `SONAR_TOKEN`, Wert einfügen.
+- **Sicherheit:** Der Token wird nie in Pull Requests aus Forks verwendet; der Workflow läuft dort nicht. Dependabot-PRs werden ebenfalls übersprungen.
+- **Prüfschritt:** Actions > "SonarQube Cloud" > "Run workflow" auf `main`. Der Job "Analyse mit Coverage" ist grün, in SonarQube Cloud erscheint das Projekt mit Abdeckung (Coverage) größer 0 %. Danach kann die Badge-Zeile in die README (der Entwickler setzt sie).
+- Doku: <https://docs.sonarsource.com/sonarqube-cloud/analyzing-source-code/languages/dart.md>, <https://docs.sonarsource.com/sonarqube-cloud/analyzing-source-code/test-coverage/dart-test-coverage.md>, <https://docs.sonarsource.com/sonarqube-cloud/analyzing-source-code/automatic-analysis.md>
+- [ ] erledigt
+
+### 12.5 Snyk (optional)
+
+- **Was:** Der Workflow `snyk.yml` prüft mit Snyk Code den Kotlin-, Swift-, JavaScript- und Python-Code, mit Snyk Container das Basisimage des Web-Containers und mit Snyk Open Source das npm-Prüfwerkzeug in `tool/a11y`. Ohne Token läuft er grün durch und meldet "übersprungen, fehlt: SNYK_TOKEN".
+- **Wozu:** Zusätzliche Schwachstellen-Datenbank und SAST neben OSV, Trivy und CodeQL. Den Dart-Code (den größten Teil der App) prüft Snyk hier **nicht**: Snyk Code kann Dart nur im Enterprise-Tarif, und `pubspec.lock` liest Snyk Open Source nur über einen experimentellen SBOM-Umweg. Gradle braucht einen kompletten Android-Build, docker-compose unterstützt Snyk IaC nicht. Der Nutzen ist also begrenzt; der Schritt ist echt optional.
+- **Kosten:** Free-Tarif, laut Snyk-FAQ pro Monat 100 Tests Snyk Code, 100 Container, 200 Open Source, 300 IaC. Der Workflow läuft deshalb nur bei Push auf `main`, wöchentlich und von Hand, nicht bei jedem Pull Request (drei Tests pro Lauf). Quelle: <https://snyk.io/plans/>
+- **Wo eintragen:** Secret `SNYK_TOKEN` (Schritt 1.3).
+- **Woher, Schritt für Schritt:**
+  1. <https://app.snyk.io> öffnen, mit GitHub anmelden (Konto legt der Inhaber an), Free-Tarif.
+  2. Settings > Snyk Code > "Enable Snyk Code" einschalten (sonst scheitert `snyk code test`).
+  3. Account Settings > "Auth Token" bzw. "API Token": Token anzeigen und kopieren. Für Organisationen besser ein Service-Account-Token der Organisation (falls im Free-Tarif angeboten).
+  4. Im Repo: Settings > Secrets and variables > Actions > New repository secret, Name `SNYK_TOKEN`, Wert einfügen.
+- **Prüfschritt:** Actions > "Snyk" > "Run workflow". Die Zusammenfassung zeigt eine Tabelle mit Code, Container und npm, jeweils Exit-Code 0. Funde erscheinen unter Security > Code scanning (Kategorien `snyk-code`, `snyk-container`, `snyk-npm`).
+- Doku: <https://docs.snyk.io/supported-languages/supported-languages-package-managers-and-frameworks.md>, <https://docs.snyk.io/supported-languages/supported-languages-list/dart-and-flutter.md>, <https://docs.snyk.io/developer-tools/snyk-cli/install-the-snyk-cli/verifying-cli-standalone-binaries.md>
 - [ ] erledigt
 
 ---
@@ -790,6 +826,8 @@ Art: S = Secret, V = Variable. "Pflicht" heißt: ohne den Wert fehlt die Funktio
 | `GPG_PASSPHRASE` | S | Signierte Releases (optional) | beim Erzeugen vergeben | 12.2 |
 | `SCORECARD_TOKEN` | S | OpenSSF Scorecard (optional) | GitHub, Fine-grained token | 12.3 |
 | `CODE_SCANNING_ENABLED` | V | CodeQL (optional) | `true` | 12.3 |
+| `SONAR_TOKEN` | S | SonarQube Cloud (optional) | sonarcloud.io, Analysis Token | 12.4 |
+| `SNYK_TOKEN` | S | Snyk (optional) | app.snyk.io, Auth Token | 12.5 |
 
 ## Anhang B: Alle Platzhalter
 

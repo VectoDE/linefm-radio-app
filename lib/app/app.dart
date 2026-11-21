@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/document_lang.dart';
 import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/app/stations_provider.dart';
 import 'package:linefm_radio/app/shell.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/features/alarm/alarm_bootstrap.dart';
@@ -15,6 +16,7 @@ import 'package:linefm_radio/platform/desktop/desktop_host.dart';
 import 'package:linefm_radio/platform/web_routes.dart';
 import 'package:linefm_radio/services/share/share_feedback.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
+import 'package:linefm_radio/features/stations/station_unavailable_notice.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Sprache aus `?lang=de|en` (Web, hreflang-Varianten), sonst `null`
@@ -84,6 +86,17 @@ class _LinefmAppState extends ConsumerState<LinefmApp> {
             .rescheduleAll(ref.read(alarmProvider)),
       );
     });
+    // Nachgeladene Senderliste (Issue #91): Wecker neu planen, damit
+    // Mitteilungstext und Link einen entfernten Sender durch den Ersatz
+    // ersetzen, den der Wecker beim Klingeln spielt.
+    ref.listen(stationsCatalogProvider, (previous, next) {
+      if (previous == null) return;
+      unawaited(
+        ref
+            .read(alarmCoordinatorProvider)
+            .rescheduleAll(ref.read(alarmProvider)),
+      );
+    });
     final forced = chooseLocale(urlLocale: _urlLocale, language: language);
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
@@ -109,7 +122,9 @@ class _LinefmAppState extends ConsumerState<LinefmApp> {
       builder: (context, child) => DesktopHost(
         child: AlarmBootstrap(
           child: ShareFeedbackListener(
-            child: LoaderGate(child: child ?? const SizedBox.shrink()),
+            child: StationUnavailableNotice(
+              child: LoaderGate(child: child ?? const SizedBox.shrink()),
+            ),
           ),
         ),
       ),

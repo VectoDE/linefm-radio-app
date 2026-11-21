@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/app/stations_provider.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/alarm/alarm_schedule.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
@@ -499,18 +500,22 @@ class _DayChips extends StatelessWidget {
   }
 }
 
-class _StationPicker extends StatelessWidget {
+class _StationPicker extends ConsumerWidget {
   const _StationPicker({required this.slug, required this.onChanged});
 
   final String slug;
   final ValueChanged<String> onChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final c = context.linefm;
-    final value = stationBySlug(slug)?.slug ?? stationsCatalog.first.slug;
-    return _LabeledRow(
+    final stations = ref.watch(stationsCatalogProvider);
+    // Sender entfernt oder ausgeblendet (Issue #91): Auswahl zeigt den
+    // Ersatz, den der Wecker spielt, und ein Hinweis sagt es offen.
+    final fallback = alarmStationFor(slug);
+    final unavailable = fallback.slug != slug;
+    final picker = _LabeledRow(
       label: l10n.alarmStation,
       child: LayoutBuilder(
         builder: (context, box) => SizedBox(
@@ -527,7 +532,7 @@ class _StationPicker extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
-                    value: value,
+                    value: fallback.slug,
                     isExpanded: true,
                     itemHeight: LinefmMetrics.minTarget,
                     dropdownColor: c.surfaceRaised,
@@ -540,7 +545,7 @@ class _StationPicker extends StatelessWidget {
                       if (s != null) onChanged(s);
                     },
                     items: <DropdownMenuItem<String>>[
-                      for (final s in stationsCatalog)
+                      for (final s in stations)
                         DropdownMenuItem<String>(
                           value: s.slug,
                           child: Text(
@@ -556,6 +561,18 @@ class _StationPicker extends StatelessWidget {
           ),
         ),
       ),
+    );
+    if (!unavailable) return picker;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        picker,
+        const SizedBox(height: 6),
+        Text(
+          l10n.alarmStationUnavailable(fallback.displayName),
+          style: LinefmText.listMeta.copyWith(color: c.muted),
+        ),
+      ],
     );
   }
 }

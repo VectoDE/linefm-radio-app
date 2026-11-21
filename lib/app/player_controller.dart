@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/core/logging.dart';
@@ -135,6 +136,8 @@ class PlayerController {
   Future<void> shuffleStation([Random? random]) async {
     final current = _ref.read(activeStationProvider);
     final others = stationsCatalog.where((s) => s != current).toList();
+    // Nur ein Sender in der Liste (Issue #91): nichts zu mischen.
+    if (others.isEmpty) return;
     final next = others[(random ?? Random()).nextInt(others.length)];
     await startStation(next);
   }
@@ -283,6 +286,13 @@ class PlayerController {
         .ignore();
   }
 
+  /// laut.fm selbst oder eine Subdomain davon.
+  @visibleForTesting
+  static bool isLautFmHost(String host) {
+    final h = host.toLowerCase();
+    return h == 'laut.fm' || h.endsWith('.laut.fm');
+  }
+
   Future<Uri> _resolveStreamUrl(Station station) async {
     final known = _streamUrls[station.slug];
     if (known != null) return known;
@@ -293,7 +303,9 @@ class PlayerController {
           .streamUrl(station.slug)
           .timeout(const Duration(seconds: 4));
       final uri = url == null ? null : Uri.tryParse(url);
-      if (uri != null && uri.scheme == 'https' && uri.host.isNotEmpty) {
+      // Nur Streams von laut.fm (Issue #91: keine fremden Stream-Hosts,
+      // auch nicht ueber eine veraenderte API-Antwort).
+      if (uri != null && uri.scheme == 'https' && isLautFmHost(uri.host)) {
         _streamUrls[station.slug] = uri;
         return uri;
       }

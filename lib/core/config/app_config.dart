@@ -19,6 +19,7 @@ class AppConfig {
     this.ga4MeasurementId = '',
     this.trustGridinsoftUrl = '',
     this.trustTrustpilotUrl = '',
+    this.stationsUrl = '',
   });
 
   /// Liest die per --dart-define gesetzten Werte.
@@ -40,6 +41,7 @@ class AppConfig {
     ga4MeasurementId: String.fromEnvironment('GA4_MEASUREMENT_ID'),
     trustGridinsoftUrl: String.fromEnvironment('TRUST_GRIDINSOFT_URL'),
     trustTrustpilotUrl: String.fromEnvironment('TRUST_TRUSTPILOT_URL'),
+    stationsUrl: String.fromEnvironment('STATIONS_URL'),
   );
 
   final String appEnv;
@@ -66,6 +68,11 @@ class AppConfig {
   final String ga4MeasurementId;
   final String trustGridinsoftUrl;
   final String trustTrustpilotUrl;
+
+  /// Feste Adresse der nachladbaren Senderliste (Issue #91), z. B.
+  /// `https://app.linefm.de/stations.json`. Leer = nur die mitgelieferte
+  /// Liste, kein Netzabruf. Nur https (siehe StationsUpdater.parseUrl).
+  final String stationsUrl;
 
   bool get umamiConfigured => umamiUrl.isNotEmpty && umamiWebsiteId.isNotEmpty;
   bool get sentryConfigured => sentryDsn.isNotEmpty;
@@ -119,6 +126,7 @@ class AppConfig {
     String? ga4MeasurementId,
     String? trustGridinsoftUrl,
     String? trustTrustpilotUrl,
+    String? stationsUrl,
   }) => AppConfig(
     appEnv: appEnv ?? this.appEnv,
     appVersion: appVersion ?? this.appVersion,
@@ -134,5 +142,6 @@ class AppConfig {
     ga4MeasurementId: ga4MeasurementId ?? this.ga4MeasurementId,
     trustGridinsoftUrl: trustGridinsoftUrl ?? this.trustGridinsoftUrl,
     trustTrustpilotUrl: trustTrustpilotUrl ?? this.trustTrustpilotUrl,
+    stationsUrl: stationsUrl ?? this.stationsUrl,
   );
 }

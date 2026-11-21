@@ -27,6 +27,7 @@ import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/sleep_timer/sleep_timer_logic.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
+import 'package:linefm_radio/app/stations_provider.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
 import 'package:linefm_radio/services/alarm/alarm_wiring.dart';
@@ -223,6 +224,14 @@ final stationsProvider = StreamProvider<List<StationLive>>(
 class ActiveStationNotifier extends Notifier<Station> {
   @override
   Station build() {
+    // Nachgeladene Senderliste (Issue #91): geaenderte Angaben des aktiven
+    // Senders (Name, Farbe, Logo) uebernehmen. Wurde er entfernt, bleibt er
+    // aktiv, bis der Nutzer wechselt; eine laufende Wiedergabe reisst nicht
+    // ab.
+    ref.listen(stationsCatalogProvider, (_, next) {
+      final updated = stationBySlug(state.slug);
+      if (updated != null && !updated.sameAs(state)) state = updated;
+    });
     final slug = ref.read(prefsProvider).readLastStation();
     return (slug == null ? null : stationBySlug(slug)) ?? stationsCatalog.first;
   }
@@ -493,6 +502,7 @@ List<Override> productionOverrides({
       activeStation: ref.read(activeStationProvider),
       socket: config.wsEnabled ? WebSocketSongChangeSocket() : null,
     );
+    ref.listen(stationsCatalogProvider, (_, _) => repo.stationsChanged());
     bindNowPlayingRepository(ref, repo);
     return repo;
   }),

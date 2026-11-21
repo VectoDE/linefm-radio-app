@@ -19,6 +19,7 @@ import 'package:linefm_radio/data/api/song_change_socket.dart';
 import 'package:linefm_radio/data/artwork/itunes_artwork.dart';
 import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
+import 'package:linefm_radio/domain/stations_config.dart';
 import 'package:linefm_radio/domain/track.dart';
 
 void _log(String message) =>
@@ -36,6 +37,11 @@ void main() {
       int.tryParse(Platform.environment['PROBE_MINUTES'] ?? '') ?? 5;
 
   test('NowPlayingRepository live $minutes min', () async {
+    installBundledStations(
+      parseStationsConfig(
+        File('assets/config/stations.json').readAsStringSync(),
+      ),
+    );
     final cache = HttpCache();
     final api = HttpLautApi(cache: cache);
     final socket = Platform.environment['PROBE_WS'] == '1'

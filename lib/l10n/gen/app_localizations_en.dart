@@ -824,7 +824,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingShortcutsBody =>
-      'F saves the song, S plays a random station, 1 to 6 pick a station.';
+      'F saves the song, S plays a random station, 1 to 6 pick the first six stations in the list.';
 
   @override
   String get playerSleepTimer => 'Set sleep timer';
@@ -837,5 +837,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String alarmDeleteAt(String time) {
     return 'Delete alarm $time';
+  }
+
+  @override
+  String get stationUnavailable =>
+      'This station is no longer available in the app.';
+
+  @override
+  String alarmStationUnavailable(String station) {
+    return 'The selected station is no longer available. The alarm will play $station.';
   }
 }

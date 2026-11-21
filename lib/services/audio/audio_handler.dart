@@ -40,6 +40,7 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   }) : _player = player ?? JustAudioRadioPlayer(),
        streamUrlResolver = streamUrlResolver ?? _fallbackStreamUrl {
     _signalSub = _player.signals.listen(_onSignal);
+    stationsCatalogListenable.addListener(stationsChanged);
     _publishPlaybackState();
   }
 
@@ -112,9 +113,28 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   /// Favoriten-Sender fuer das Auto-Menue (Reihenfolge der Senderliste).
   List<Station> get favoriteStations => _favoriteStations;
 
+  /// Zuletzt gemeldete Favoriten-Slugs (auch fuer gerade nicht gelistete
+  /// Sender, Issue #91).
+  Set<String> _favoriteSlugs = const <String>{};
+
+  /// Die Senderliste hat sich geaendert (nachgeladene Fassung, Issue #91):
+  /// Auto-Menue (Android Auto, CarPlay) neu laden, Favoriten neu zuordnen.
+  /// Eine laufende Wiedergabe bleibt unberuehrt, auch wenn ihr Sender
+  /// entfernt wurde.
+  void stationsChanged() {
+    final next = FavoriteStationsLogic.stations(_favoriteSlugs);
+    if (!_sameStations(next, _favoriteStations)) {
+      _favoriteStations = List<Station>.unmodifiable(next);
+      _notifyBrowseChanged(BrowseTree.favoriteStationsId);
+    }
+    _notifyBrowseChanged(BrowseTree.stationsId);
+    _notifyBrowseChanged(BrowseTree.rootId);
+  }
+
   /// Die App meldet die gemerkten Sender (Slugs); Android Auto zeigt sie im
   /// Ordner "Favoriten-Sender". Das Menue wird neu geladen.
   set favoriteStationSlugs(Set<String> slugs) {
+    _favoriteSlugs = slugs;
     final next = FavoriteStationsLogic.stations(slugs);
     if (_sameStations(next, _favoriteStations)) return;
     _favoriteStations = List<Station>.unmodifiable(next);
@@ -178,6 +198,7 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
     for (final s in _sessionSubs) {
       await s.cancel();
     }
+    stationsCatalogListenable.removeListener(stationsChanged);
     await _signalSub.cancel();
     await _controller.close();
     for (final subject in _childrenSubjects.values) {

@@ -5,7 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/domain/now_playing.dart';
 import 'package:linefm_radio/domain/station.dart';
-import 'package:linefm_radio/domain/stations_catalog.dart';
+import 'package:linefm_radio/app/stations_provider.dart';
 import 'package:linefm_radio/features/stations/favorite_stations.dart';
 import 'package:linefm_radio/features/stations/station_actions.dart';
 import 'package:linefm_radio/features/stations/station_card.dart';
@@ -183,7 +183,7 @@ class StationsScreen extends ConsumerWidget {
                 SliverSemantics(
                   container: true,
                   label: l10n.stationsListLabel,
-                  sliver: section(stationsCatalog),
+                  sliver: section(ref.watch(stationsCatalogProvider)),
                 ),
               ],
             ),

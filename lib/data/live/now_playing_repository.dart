@@ -115,7 +115,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     this._socket,
     this._artwork = const NoopArtworkService(),
     this._clock = const SystemClock(),
-    List<Station> stations = stationsCatalog,
+    List<Station>? stations,
     Station? activeStation,
     this._foreground = true,
     this._playing = false,
@@ -128,8 +128,8 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     this.minRefetchGap = const Duration(seconds: 5),
     this.timer = Timer.new,
     this.periodicTimer = Timer.periodic,
-  }) : _stations = stations,
-       _active = activeStation ?? stations.first;
+  }) : _fixedStations = stations,
+       _active = activeStation ?? (stations ?? stationsCatalog).first;
 
   final Duration pollInterval;
   final Duration endsAtLead;
@@ -153,7 +153,10 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   final SongChangeSocket? _socket;
   final ArtworkService _artwork;
   final Clock _clock;
-  final List<Station> _stations;
+  /// Feste Liste (Tests); sonst die aktuelle Senderliste (Issue #91).
+  final List<Station>? _fixedStations;
+
+  List<Station> get _stations => _fixedStations ?? stationsCatalog;
 
   Station _active;
   bool _foreground;
@@ -199,6 +202,14 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
       onCancel: () => sub?.cancel(),
     );
     return controller.stream;
+  }
+
+  /// Die Senderliste hat sich geaendert (Issue #91): Liste neu melden und
+  /// neue Sender beim naechsten Abruf mitnehmen.
+  void stationsChanged() {
+    if (_disposed) return;
+    _changed.add(null);
+    if (_started) unawaited(_pollOnce());
   }
 
   @override

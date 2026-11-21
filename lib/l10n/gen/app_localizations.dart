@@ -1475,7 +1475,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingShortcutsBody.
   ///
   /// In de, this message translates to:
-  /// **'F merkt den Song, S spielt einen zufälligen Sender, 1 bis 6 wählen einen Sender.'**
+  /// **'F merkt den Song, S spielt einen zufälligen Sender, 1 bis 6 wählen die ersten sechs Sender der Liste.'**
   String get settingShortcutsBody;
 
   /// No description provided for @playerSleepTimer.
@@ -1495,6 +1495,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Wecker {time} löschen'**
   String alarmDeleteAt(String time);
+
+  /// Hinweis, wenn ein Link einen Sender öffnen will, der aus der Senderliste entfernt oder ausgeblendet wurde
+  ///
+  /// In de, this message translates to:
+  /// **'Dieser Sender ist in der App nicht mehr verfügbar.'**
+  String get stationUnavailable;
+
+  /// Hinweis im Wecker, wenn dessen Sender entfernt wurde; der Wecker weckt mit dem ersten Sender der Liste
+  ///
+  /// In de, this message translates to:
+  /// **'Der gewählte Sender ist nicht mehr verfügbar. Der Wecker spielt {station}.'**
+  String alarmStationUnavailable(String station);
 }
 
 class _AppLocalizationsDelegate

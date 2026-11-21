@@ -10,11 +10,15 @@ import 'src/engine.dart';
 
 /// Einstieg der Setup-Oberfläche. Wird nur vom Setup-Stub gestartet:
 ///   `linefm_setup.exe --context PFAD` (PFAD = context.json)
+/// Bleibt für die Laufzeit bestehen, damit der Semantikbaum aktiv bleibt.
+// ignore: unused_element
+SemanticsHandle? _semantics;
+
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   // Semantikbaum immer aufbauen: Windows meldet Screenreader und
   // UI-Automation nicht zuverlässig an, ohne das sähen sie nur eine Fläche.
-  SemanticsBinding.instance.ensureSemantics();
+  _semantics = SemanticsBinding.instance.ensureSemantics();
   final contextPath = _argValue(args, '--context');
   SetupContext? setup;
   if (contextPath != null) {

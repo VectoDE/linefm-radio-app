@@ -226,7 +226,9 @@ if ($window) {
     $next = FindButton @('Next', 'Weiter')
     if (-not $next) {
       # Diagnose: alle benannten Elemente der Oberflaeche ausgeben.
+      Write-Host "UIA: FLUTTERVIEW-HWND $viewHwnd, Wurzel $($root.Current.ClassName)"
       RawDump $root 0
+      RawDump ([System.Windows.Automation.AutomationElement]::FromHandle($window.MainWindowHandle)) 0
     }
     Check 'Screenreader/UIA: Knopf "Weiter" auffindbar' ($null -ne $next)
     if ($next) {

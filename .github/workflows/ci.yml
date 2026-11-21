@@ -49,6 +49,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+      actions: read
     steps:
       - name: Runner haerten
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
@@ -72,30 +73,100 @@ jobs:
       - name: Tests mit Coverage (ohne Goldens)
         run: |
           mapfile -t files < <(find test -name '*_test.dart' ! -name '*_golden_test.dart' | sort)
-          flutter test --coverage --reporter=expanded "${files[@]}"
+          flutter test --coverage --branch-coverage --reporter=expanded "${files[@]}"
 
-      - name: Coverage-Zusammenfassung
+      - name: lcov installieren (HTML-Bericht)
+        if: always()
+        run: sudo apt-get install -y -q --no-install-recommends lcov
+
+      # "flutter test --coverage" meldet nur Dateien, die ein Test laedt. Ungeladene Dateien
+      # fehlten sonst im Wert und der Prozentsatz waere zu hoch. Dieser Lauf importiert jede
+      # lib-Datei einmal, damit sie mit ihren (ungetroffenen) Zeilen in die Messung kommt.
+      # Ausgenommen: generierter Code, part-Dateien und Dateien mit Web-Bibliotheken (nur im
+      # Browser kompilierbar). Fehler hier bremsen den Job nicht, der Bericht nennt dann die
+      # Dateien ohne Messdaten.
+      - name: Ungeladene lib-Dateien einmessen
+        if: always()
+        continue-on-error: true
+        run: |
+          pkg=$(sed -n 's/^name:[[:space:]]*//p' pubspec.yaml | tr -d '\r')
+          out=test/zz_coverage_all_test.dart
+          {
+            echo "// ignore_for_file: unused_import, directives_ordering"
+            i=0
+            while IFS= read -r f; do
+              grep -q '^part of' "$f" && continue
+              grep -qE "package:web/|dart:js_interop|dart:js_util|dart:html|dart:ui_web" "$f" && continue
+              i=$((i + 1))
+              echo "import 'package:${pkg}/${f#lib/}' as a${i};"
+            done < <(find lib -name '*.dart' ! -path 'lib/l10n/gen/*' | sort)
+            echo "void main() {}"
+          } > "$out"
+          flutter test --coverage --branch-coverage --coverage-path coverage/lcov.all.info "$out"
+          rm -f "$out"
+
+      - name: Coverage auswerten (gefiltert, je Datei, HTML)
         if: always()
         run: |
-          if [ -f coverage/lcov.info ]; then
-            lf=$(grep -c '^DA:' coverage/lcov.info || true)
-            lh=$(grep -E '^DA:[0-9]+,[1-9]' coverage/lcov.info | wc -l || true)
-            if [ "${lf:-0}" -gt 0 ]; then
-              pct=$(awk -v h="$lh" -v f="$lf" 'BEGIN { printf "%.1f", h * 100 / f }')
-              echo "**Zeilenabdeckung:** ${pct} % (${lh}/${lf} Zeilen)" >> "$GITHUB_STEP_SUMMARY"
-            fi
-          else
+          if [ ! -f coverage/lcov.info ]; then
             echo "Keine Coverage-Datei erzeugt." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          bash tool/coverage_report.sh coverage/lcov.info coverage/lcov.all.info coverage/report
+          cat coverage/report/summary.md >> "$GITHUB_STEP_SUMMARY"
+          genhtml --quiet --branch-coverage --output-directory coverage/html coverage/report/lcov.filtered.info \
+            || genhtml --quiet --output-directory coverage/html coverage/report/lcov.filtered.info \
+            || echo "genhtml fehlgeschlagen, HTML-Bericht fehlt." >> "$GITHUB_STEP_SUMMARY"
+
+      # Coverage darf nicht sinken: Vergleich der Zeilenabdeckung mit dem letzten erfolgreichen
+      # Lauf auf main (Artefakt coverage-lcov, Datei report/total.txt). Toleranz 0,10 Prozentpunkte
+      # gegen Messrauschen. Solange main noch keinen Vergleichswert hat, nur Hinweis.
+      - name: Coverage darf nicht sinken
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -f coverage/report/total.txt ] || { echo "::error::Keine Coverage-Auswertung vorhanden."; exit 1; }
+          cur=$(sed -n 's/^lines=//p' coverage/report/total.txt)
+          found=""
+          for id in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --branch main --event push \
+                        --status success --limit 10 --json databaseId --jq '.[].databaseId'); do
+            if gh run download "$id" --repo "$GITHUB_REPOSITORY" -n coverage-lcov -D coverage/base >/dev/null 2>&1 \
+               && [ -f coverage/base/report/total.txt ]; then found="$id"; break; fi
+          done
+          if [ -z "$found" ]; then
+            echo "::notice::Kein Coverage-Vergleichswert auf main gefunden (erst nach dem ersten main-Lauf mit dieser Auswertung)."
+            echo "**Coverage-Vergleich:** kein Wert auf main, uebersprungen. Aktuell ${cur} %." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          base=$(sed -n 's/^lines=//p' coverage/base/report/total.txt)
+          echo "main (Lauf ${found}): ${base} %, dieser Lauf: ${cur} %"
+          echo "**Coverage-Vergleich:** main ${base} %, dieser PR ${cur} %." >> "$GITHUB_STEP_SUMMARY"
+          if awk -v c="$cur" -v b="$base" 'BEGIN { exit !(c + 0.10 < b) }'; then
+            echo "::error::Coverage gesunken: ${base} % auf main, ${cur} % hier. Tests fuer neuen Code ergaenzen."
+            exit 1
           fi
 
-      - name: Coverage hochladen
+      - name: Coverage hochladen (lcov, Zusammenfassung)
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-lcov
-          path: coverage/lcov.info
+          path: |
+            coverage/lcov.info
+            coverage/lcov.all.info
+            coverage/report/
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: 30
+
+      - name: Coverage-HTML hochladen
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-html
+          path: coverage/html/
+          if-no-files-found: ignore
+          retention-days: 30
 
   goldens:
     name: Golden-Tests (Windows)

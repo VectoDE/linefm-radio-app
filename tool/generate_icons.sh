@@ -197,6 +197,6 @@ F=assets/fonts
 mkdir -p docs/assets
 magick -size 420x420 xc:black -fill white -draw "roundrectangle 0,0 419,419 94,94" "$W/pm.png"
 magick "$SRC" -filter Lanczos -resize 420x420 "$W/pm.png" -alpha off -compose CopyOpacity -composite "$W/tile.png"
-magick -size 1280x640 "xc:#0F1221" "$W/tile.png" -geometry +90+110 -composite   -font $F/Syncopate-Bold.ttf -fill white -pointsize 58 -annotate +560+270 'LINEFM'   -font $F/Syncopate-Bold.ttf -fill '#A4A7B6' -pointsize 58 -annotate +560+350 'RADIO'   -font $F/Poppins-Regular.ttf -fill '#A4A7B6' -pointsize 26 -annotate +562+430 'LineFM +MAIN, +RAP, +GAMING, +LOFI live hören'   -font $F/Poppins-SemiBold.ttf -fill white -pointsize 22 -annotate +562+480 'Android · iOS · Windows · macOS · Linux · Web'   -depth 8 -strip -define png:color-type=2 docs/assets/social-preview.png
+magick -size 1280x640 "xc:#0F1221" "$W/tile.png" -geometry +90+110 -composite   -font "$F/Syncopate-Bold.ttf" -fill white -pointsize 58 -annotate +560+270 'LINEFM'   -font "$F/Syncopate-Bold.ttf" -fill '#A4A7B6' -pointsize 58 -annotate +560+350 'RADIO'   -font "$F/Poppins-Regular.ttf" -fill '#A4A7B6' -pointsize 26 -annotate +562+430 'LineFM +MAIN, +RAP, +GAMING, +LOFI live hören'   -font "$F/Poppins-SemiBold.ttf" -fill white -pointsize 22 -annotate +562+480 'Android · iOS · Windows · macOS · Linux · Web'   -depth 8 -strip -define png:color-type=2 docs/assets/social-preview.png
 
 echo "Icons erzeugt."

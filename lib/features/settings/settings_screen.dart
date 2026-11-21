@@ -90,9 +90,50 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: (v) =>
                 notifier.update((s) => s.copyWith(keyboardShortcuts: v)),
           ),
-        _ThemeRow(
-          mode: settings.themeMode,
+        _ChoiceRow<AppThemeMode>(
+          title: l10n.settingThemeTitle,
+          selected: settings.themeMode,
           onChanged: (m) => notifier.update((s) => s.copyWith(themeMode: m)),
+          segments: <ButtonSegment<AppThemeMode>>[
+            ButtonSegment<AppThemeMode>(
+              value: AppThemeMode.system,
+              label: Text(l10n.themeSystem),
+              icon: const Icon(Icons.brightness_auto_outlined, size: 18),
+            ),
+            ButtonSegment<AppThemeMode>(
+              value: AppThemeMode.light,
+              label: Text(l10n.themeLight),
+              icon: const Icon(Icons.light_mode_outlined, size: 18),
+            ),
+            ButtonSegment<AppThemeMode>(
+              value: AppThemeMode.dark,
+              label: Text(l10n.themeDark),
+              icon: const Icon(Icons.dark_mode_outlined, size: 18),
+            ),
+          ],
+        ),
+        // Sprachnamen in ihrer eigenen Sprache (Endonyme, in beiden ARB-
+        // Dateien gleich).
+        _ChoiceRow<AppLanguage>(
+          title: l10n.settingLanguageTitle,
+          body: l10n.settingLanguageBody,
+          selected: settings.language,
+          onChanged: (l) => notifier.update((s) => s.copyWith(language: l)),
+          segments: <ButtonSegment<AppLanguage>>[
+            ButtonSegment<AppLanguage>(
+              value: AppLanguage.system,
+              label: Text(l10n.languageSystem),
+              icon: const Icon(Icons.language, size: 18),
+            ),
+            ButtonSegment<AppLanguage>(
+              value: AppLanguage.de,
+              label: Text(l10n.languageGerman),
+            ),
+            ButtonSegment<AppLanguage>(
+              value: AppLanguage.en,
+              label: Text(l10n.languageEnglish),
+            ),
+          ],
         ),
         const SleepTimerRow(),
         const _AlarmRow(),
@@ -140,16 +181,26 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-/// Darstellung: System / Hell / Dunkel.
-class _ThemeRow extends StatelessWidget {
-  const _ThemeRow({required this.mode, required this.onChanged});
+/// Auswahlzeile mit Segmenten (Darstellung, Sprache): Titel als Ueberschrift,
+/// optional eine Erklaerung, darunter die Segmente. Der Screenreader meldet
+/// je Segment Schaltflaeche und gewaehlten Zustand.
+class _ChoiceRow<T> extends StatelessWidget {
+  const _ChoiceRow({
+    required this.title,
+    required this.segments,
+    required this.selected,
+    required this.onChanged,
+    this.body,
+  });
 
-  final AppThemeMode mode;
-  final ValueChanged<AppThemeMode> onChanged;
+  final String title;
+  final String? body;
+  final List<ButtonSegment<T>> segments;
+  final T selected;
+  final ValueChanged<T> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final c = context.linefm;
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -165,17 +216,24 @@ class _ThemeRow extends StatelessWidget {
               headingLevel: 2,
               container: true,
               child: Text(
-                l10n.settingThemeTitle,
+                title,
                 style: LinefmText.settingTitle.copyWith(color: c.text),
               ),
             ),
+            if (body != null) ...<Widget>[
+              const SizedBox(height: 5),
+              Text(
+                body!,
+                style: LinefmText.settingCopy.copyWith(color: c.muted),
+              ),
+            ],
             const SizedBox(height: 12),
             LayoutBuilder(
               // Zu schmal fuer drei Segmente nebeneinander (320 dp, grosse
               // Schrift): untereinander statt Buchstabe fuer Buchstabe.
               builder: (context, box) => SizedBox(
                 width: double.infinity,
-                child: SegmentedButton<AppThemeMode>(
+                child: SegmentedButton<T>(
                   direction:
                       box.maxWidth <
                           330 * MediaQuery.textScalerOf(context).scale(1)
@@ -196,27 +254,22 @@ class _ThemeRow extends StatelessWidget {
                       ),
                     ),
                   ),
-                  segments: <ButtonSegment<AppThemeMode>>[
-                    ButtonSegment<AppThemeMode>(
-                      value: AppThemeMode.system,
-                      label: Text(l10n.themeSystem),
-                      icon: const Icon(
-                        Icons.brightness_auto_outlined,
-                        size: 18,
+                  // Der Zustand "ausgewaehlt" steht im Label-Teil, damit er mit
+                  // in den Schaltflaechen-Knoten des Screenreaders faellt.
+                  segments: <ButtonSegment<T>>[
+                    for (final s in segments)
+                      ButtonSegment<T>(
+                        value: s.value,
+                        icon: s.icon,
+                        enabled: s.enabled,
+                        label: Semantics(
+                          selected: s.value == selected,
+                          inMutuallyExclusiveGroup: true,
+                          child: s.label,
+                        ),
                       ),
-                    ),
-                    ButtonSegment<AppThemeMode>(
-                      value: AppThemeMode.light,
-                      label: Text(l10n.themeLight),
-                      icon: const Icon(Icons.light_mode_outlined, size: 18),
-                    ),
-                    ButtonSegment<AppThemeMode>(
-                      value: AppThemeMode.dark,
-                      label: Text(l10n.themeDark),
-                      icon: const Icon(Icons.dark_mode_outlined, size: 18),
-                    ),
                   ],
-                  selected: <AppThemeMode>{mode},
+                  selected: <T>{selected},
                   onSelectionChanged: (s) => onChanged(s.first),
                 ),
               ),

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
-import 'dart:ui' show Locale, PlatformDispatcher;
+import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb, visibleForTesting;
@@ -10,6 +10,7 @@ import 'package:linefm_radio/core/logging.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/l10n/system_l10n.dart';
 
 /// Schreibt Widget-Daten (home_widget). Android: P16, iOS: P17.
 abstract interface class HomeWidgetSync {
@@ -105,7 +106,7 @@ class AndroidHomeWidgetSync implements HomeWidgetSync {
     Locale Function()? locale,
   }) : _backend = backend ?? const _PluginBackend(),
        _fetchCover = fetchCover ?? _httpFetchCover,
-       _locale = locale ?? (() => PlatformDispatcher.instance.locale);
+       _locale = locale ?? effectiveSystemLocale;
 
   final HomeWidgetBackend _backend;
   final CoverFetcher _fetchCover;

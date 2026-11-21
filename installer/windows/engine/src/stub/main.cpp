@@ -10,6 +10,9 @@
 //   --phase2             intern: Kopie im Temp-Ordner, damit der
 //                        Installationsordner vollstaendig geloescht werden kann
 //   --engine uninstall   intern: von der Oberflaeche gesteuert
+// base.h zuerst: bindet <windows.h> vor den Shell-Headern ein.
+#include "../common/base.h"
+
 #include <shellapi.h>
 #include <shlobj.h>
 

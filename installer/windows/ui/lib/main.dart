@@ -11,6 +11,9 @@ import 'src/engine.dart';
 ///   `linefm_setup.exe --context PFAD` (PFAD = context.json)
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Semantikbaum immer aufbauen: Windows meldet Screenreader und
+  // UI-Automation nicht zuverlässig an, ohne das sähen sie nur eine Fläche.
+  SemanticsBinding.instance.ensureSemantics();
   final contextPath = _argValue(args, '--context');
   SetupContext? setup;
   if (contextPath != null) {

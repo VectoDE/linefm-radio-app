@@ -1,0 +1,106 @@
+name: Bau-Skripte
+
+# Beweist, dass die Start-Skripte tool/bauen.ps1 (Windows PowerShell 5.1) und tool/bauen.sh
+# (bash) die Web-Version wirklich bauen. Läuft nur, wenn sich die Skripte oder dieser
+# Workflow ändern, sowie auf Knopfdruck.
+
+on:
+  pull_request:
+    paths:
+      - tool/bauen.*
+      - .github/workflows/bauen-skripte.yml
+  push:
+    branches: [main]
+    paths:
+      - tool/bauen.*
+      - .github/workflows/bauen-skripte.yml
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: bauen-skripte-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: bauen.ps1 (Windows, Web)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Ungueltiges Ziel wird mit Exit-Code 2 abgelehnt
+        shell: powershell
+        run: |
+          powershell -NoProfile -File tool\bauen.ps1 -Ziel unsinn
+          if ($LASTEXITCODE -ne 2) { throw "Exit-Code $LASTEXITCODE statt 2" }
+          exit 0
+
+      - name: Web bauen (nur bauen)
+        shell: powershell
+        run: |
+          powershell -NoProfile -File tool\bauen.ps1 -Ziel web
+          if ($LASTEXITCODE -ne 0) { throw "bauen.ps1 meldet Exit-Code $LASTEXITCODE" }
+          exit 0
+
+      - name: Ergebnis pruefen
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f build/web/index.html
+          test -f build/web/flutter_bootstrap.js
+          echo "build/web/index.html vorhanden"
+
+  linux:
+    name: bauen.sh (Linux, Web)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Syntax pruefen
+        run: bash -n tool/bauen.sh
+
+      - name: Ungueltiges Ziel wird mit Exit-Code 2 abgelehnt
+        run: |
+          set +e
+          tool/bauen.sh unsinn
+          code=$?
+          [ "$code" -eq 2 ] || { echo "Exit-Code $code statt 2"; exit 1; }
+
+      - name: Web bauen (nur bauen)
+        run: tool/bauen.sh web
+
+      - name: Ergebnis pruefen
+        run: |
+          set -euo pipefail
+          test -f build/web/index.html
+          test -f build/web/flutter_bootstrap.js
+          echo "build/web/index.html vorhanden"

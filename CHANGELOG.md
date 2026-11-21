@@ -21,6 +21,7 @@ Erste Version. Noch in keinem Store veröffentlicht, das Datum wird beim Release
 - Optionale, selbst gehostete Telemetrie (Umami, GlitchTip) nach Einwilligung.
 - Rechtstexte (Entwurf) und Erklärung zur Barrierefreiheit (Entwurf).
 - Pipelines für Build, Release und Store-Upload (GitHub Actions).
+- Anleitung [Bauen und Starten](docs/BAUEN-UND-STARTEN.md) für Betreiber: Bau über GitHub Actions, lokal bauen, Ergebnisse öffnen. Start-Skripte `tool/bauen.ps1` und `tool/bauen.sh`.
 
 ### Geändert
 

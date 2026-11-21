@@ -1,0 +1,16 @@
+Listen to LineFM +MAIN, +RAP, +GAMING and +LOFI live, plus the partner stations Radio3FM and FobFM. No account, no ads, free.
+
+What the app does:
+
+• Live radio with station name, current track and cover art. Playback continues in the background, also with the screen locked.
+• Lock screen and headset button control playback.
+• Favorites: save songs and stations, share and export them.
+• History of recently played tracks.
+• Sleep timer with 15, 30, 45 or 60 minutes.
+• German and English, light and dark mode.
+
+Privacy in short: favorites, history and settings stay on your device. The app needs no account. Usage statistics and crash reports are only sent if you explicitly agree.
+
+Note: The programme comes from laut.fm. Depending on the station, songs may contain strong language. Station names and logos belong to their respective operators.
+
+An offering of RadioGruppe Deutschland. Developed by Tim Hauke (VectoDE) for jaybelife.

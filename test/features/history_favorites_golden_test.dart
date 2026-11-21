@@ -1,7 +1,9 @@
+@Tags(<String>['golden'])
+library;
+
 // Visueller Abgleich gegen die Web-App (Referenz: Screenshots in `_input/`,
-// Handy 390 dp, Tablet 800 dp). Aktualisieren mit
-// `flutter test --update-goldens test/features/history_favorites_golden_test.dart`.
-import 'package:flutter/services.dart' show FontLoader, rootBundle;
+// Handy 390 dp, Tablet 800 dp) in Dark und Hell. Referenzbilder entstehen auf
+// dem CI-Runner, siehe docs/ENTWICKLUNG.md ("Goldens aktualisieren").
 import 'package:flutter_localizations/flutter_localizations.dart'
     hide GlobalMaterialLocalizations;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +23,8 @@ import 'package:linefm_radio/features/history/history_screen.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
+
+import '../golden_support.dart';
 
 class _Repo extends FakeNowPlayingRepository {
   @override
@@ -60,6 +64,7 @@ Future<void> _show(
   WidgetTester tester,
   Widget screen, {
   required Size size,
+  required Brightness brightness,
   List<Favorite> favorites = const <Favorite>[],
 }) async {
   // material_ui und Cupertino-Delegate kollidieren (P01-Bericht 2); die reine
@@ -86,7 +91,7 @@ Future<void> _show(
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: buildLinefmTheme(Brightness.dark),
+        theme: buildLinefmTheme(brightness),
         locale: const Locale('de'),
         localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
           AppLocalizations.delegate,
@@ -114,80 +119,69 @@ Future<void> _show(
   await tester.pump(const Duration(seconds: 1));
 }
 
-/// `flutter test` zeichnet sonst Platzhalterbloecke: Schriften und Icons fuer
-/// die Goldens selbst laden.
-Future<void> _loadFonts() async {
-  Future<void> load(String family, List<String> assets) async {
-    final loader = FontLoader(family);
-    for (final asset in assets) {
-      loader.addFont(rootBundle.load(asset));
-    }
-    await loader.load();
-  }
-
-  await load('Poppins', <String>[
-    'assets/fonts/Poppins-Regular.ttf',
-    'assets/fonts/Poppins-SemiBold.ttf',
-  ]);
-  await load('Syncopate', <String>['assets/fonts/Syncopate-Bold.ttf']);
-  const fa = 'packages/font_awesome_flutter';
-  await load('$fa/FontAwesomeSolid', <String>[
-    '$fa/lib/fonts/Font-Awesome-7-Free-Solid-900.otf',
-  ]);
-  await load('$fa/FontAwesomeRegular', <String>[
-    '$fa/lib/fonts/Font-Awesome-7-Free-Regular-400.otf',
-  ]);
-}
+Future<void> _matches(String name, Brightness brightness) => expectLater(
+  find.byType(MaterialApp),
+  matchesGoldenFile('goldens/${name}_${variant(brightness)}.png'),
+);
 
 void main() {
-  setUpAll(_loadFonts);
+  setUpAll(prepareGoldens);
 
   const phone = Size(390, 844);
   const tablet = Size(800, 1000);
 
-  testWidgets('Verlauf Handy 390', (tester) async {
-    await _show(tester, const HistoryScreen(), size: phone);
-    await expectLater(
-      find.byType(MaterialApp),
-      matchesGoldenFile('goldens/history_390.png'),
-    );
-  });
+  for (final brightness in Brightness.values) {
+    group('Golden ${variant(brightness)}', () {
+      testWidgets('Verlauf Handy 390', (tester) async {
+        await _show(
+          tester,
+          const HistoryScreen(),
+          size: phone,
+          brightness: brightness,
+        );
+        await _matches('history_390', brightness);
+      });
 
-  testWidgets('Verlauf Tablet 800', (tester) async {
-    await _show(tester, const HistoryScreen(), size: tablet);
-    await expectLater(
-      find.byType(MaterialApp),
-      matchesGoldenFile('goldens/history_800.png'),
-    );
-  });
+      testWidgets('Verlauf Tablet 800', (tester) async {
+        await _show(
+          tester,
+          const HistoryScreen(),
+          size: tablet,
+          brightness: brightness,
+        );
+        await _matches('history_800', brightness);
+      });
 
-  testWidgets('Favoriten leer Handy 390', (tester) async {
-    await _show(tester, const FavoritesScreen(), size: phone);
-    await expectLater(
-      find.byType(MaterialApp),
-      matchesGoldenFile('goldens/favorites_empty_390.png'),
-    );
-  });
+      testWidgets('Favoriten leer Handy 390', (tester) async {
+        await _show(
+          tester,
+          const FavoritesScreen(),
+          size: phone,
+          brightness: brightness,
+        );
+        await _matches('favorites_empty_390', brightness);
+      });
 
-  testWidgets('Favoriten gefuellt Handy 390', (tester) async {
-    await _show(
-      tester,
-      const FavoritesScreen(),
-      size: phone,
-      favorites: <Favorite>[
-        _f('Waterfall', 'Michael Calfan & Ofenbach', 'linefm'),
-        _f('Last Night', 'Bruno Mars', 'linefmrap'),
-        _f(
-          'Ein sehr langer Songtitel der garantiert nicht in die Zeile passt',
-          'Interpretin mit ebenfalls langem Namen',
-          'linefmlofi',
-        ),
-        _f('Smooth My Heart', 'Anne-Marie', 'fobfm'),
-      ],
-    );
-    await expectLater(
-      find.byType(MaterialApp),
-      matchesGoldenFile('goldens/favorites_390.png'),
-    );
-  });
+      testWidgets('Favoriten gefuellt Handy 390', (tester) async {
+        await _show(
+          tester,
+          const FavoritesScreen(),
+          size: phone,
+          brightness: brightness,
+          favorites: <Favorite>[
+            _f('Waterfall', 'Michael Calfan & Ofenbach', 'linefm'),
+            _f('Last Night', 'Bruno Mars', 'linefmrap'),
+            _f(
+              'Ein sehr langer Songtitel der garantiert nicht in die Zeile '
+                  'passt',
+              'Interpretin mit ebenfalls langem Namen',
+              'linefmlofi',
+            ),
+            _f('Smooth My Heart', 'Anne-Marie', 'fobfm'),
+          ],
+        );
+        await _matches('favorites_390', brightness);
+      });
+    });
+  }
 }

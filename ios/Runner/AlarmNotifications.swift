@@ -199,11 +199,7 @@ final class AlarmNotifications: NSObject, UNUserNotificationCenterDelegate {
       return
     }
     // Wecker auch bei offener App mit Ton anzeigen.
-    if #available(iOS 14.0, *) {
-      completionHandler([.banner, .list, .sound])
-    } else {
-      completionHandler([.alert, .sound])
-    }
+    completionHandler([.banner, .list, .sound])
   }
 
   func userNotificationCenter(

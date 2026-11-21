@@ -9,7 +9,6 @@ import UIKit
 /// Laeuft erst mit dem Entitlement `com.apple.developer.carplay-audio`
 /// (Build-Schalter `CARPLAY_ENABLED`, siehe `ios/README.md`). Ohne
 /// Entitlement verbindet iOS diese Szene nie; der Code ist dann inaktiv.
-@available(iOS 14.0, *)
 final class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   private var interfaceController: CPInterfaceController?
   private var tabBar: CPTabBarTemplate?
@@ -178,7 +177,6 @@ final class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegat
   }
 }
 
-@available(iOS 14.0, *)
 extension CarPlaySceneDelegate: CarPlayChannelListener {
   func carPlayMenuDidChange() {
     reloadLists()

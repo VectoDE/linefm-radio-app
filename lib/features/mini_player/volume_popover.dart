@@ -14,7 +14,7 @@ import 'package:material_ui/material_ui.dart';
 /// Esc schliesst sie wieder. Die Lautstaerke kommt aus `playerStateProvider`
 /// und wird ueber `playerControllerProvider` gesetzt.
 class VolumeButton extends ConsumerStatefulWidget {
-  const VolumeButton({super.key, this.color = Colors.white});
+  const VolumeButton({super.key, this.color = LinefmPalette.paper});
 
   /// Farbe von Icon und gefuellten Stufen.
   final Color color;
@@ -108,7 +108,10 @@ class _Popover extends ConsumerWidget {
     final reduce = MediaQuery.disableAnimationsOf(context);
 
     final bar = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+      padding: const EdgeInsets.symmetric(
+        horizontal: LinefmSpace.sm,
+        vertical: LinefmSpace.sm,
+      ),
       decoration: BoxDecoration(
         color: const Color.fromRGBO(15, 18, 33, 0.95),
         borderRadius: BorderRadius.circular(LinefmMetrics.radiusPopover),

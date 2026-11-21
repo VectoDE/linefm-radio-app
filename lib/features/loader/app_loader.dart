@@ -4,11 +4,12 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:linefm_radio/features/loader/made_by_credit.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Hintergrund des Ladebildschirms, identisch zum nativen Splash.
-const Color loaderBackground = Color(0xFF0F1221);
+const Color loaderBackground = LinefmPalette.ink;
 
 /// Ladebildschirm der Web-App: Wortmarke auf weisser Kachel, um -7 Grad
 /// geneigt, drei pulsierende Punkte und die Zeile "Made by .jaybelife with ♥".
@@ -18,7 +19,7 @@ const Color loaderBackground = Color(0xFF0F1221);
 class AppLoader extends StatelessWidget {
   const AppLoader({super.key});
 
-  static const Color _heart = Color(0xFFFF4B6E);
+  static const Color _heart = LinefmPalette.heart;
 
   @override
   Widget build(BuildContext context) {
@@ -30,11 +31,11 @@ class AppLoader extends StatelessWidget {
     const credit = MadeByCredit(
       style: TextStyle(
         fontFamily: LinefmFonts.body,
-        fontSize: 12,
+        fontSize: LinefmType.caption,
         height: 1.5,
-        color: Color(0x8CFFFFFF),
+        color: LinefmPalette.loaderCaption,
       ),
-      authorColor: Color(0xFFFFFFFF),
+      authorColor: LinefmPalette.paper,
       heartColor: _heart,
       textAlign: TextAlign.center,
     );
@@ -60,7 +61,9 @@ class AppLoader extends StatelessWidget {
                       height: 1.4 * box.maxHeight,
                       child: Transform.rotate(
                         angle: -7 * math.pi / 180,
-                        child: const ColoredBox(color: Color(0x0D000000)),
+                        child: const ColoredBox(
+                          color: LinefmPalette.loaderStripe,
+                        ),
                       ),
                     ),
                   ],
@@ -74,9 +77,11 @@ class AppLoader extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       ColoredBox(
-                        color: const Color(0xFFFFFFFF),
+                        color: LinefmPalette.paper,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: LinefmSpace.md,
+                          ),
                           child: Text(
                             l10n.brandName.toUpperCase(),
                             style: LinefmText.loaderBrand(compact: compact)
@@ -158,7 +163,7 @@ class _DotsState extends State<_Dots> with SingleTickerProviderStateMixin {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             for (var i = 0; i < 3; i++) ...<Widget>[
-              if (i > 0) const SizedBox(width: 7),
+              if (i > 0) const SizedBox(width: LinefmSpace.sm),
               _dot(
                 widget.animate ? _phase(_controller.value - i * 0.125) : 0.5,
               ),
@@ -180,7 +185,7 @@ class _DotsState extends State<_Dots> with SingleTickerProviderStateMixin {
           child: DecoratedBox(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Color(0xFFFFFFFF),
+              color: LinefmPalette.paper,
             ),
           ),
         ),

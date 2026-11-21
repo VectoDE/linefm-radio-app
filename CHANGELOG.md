@@ -14,6 +14,7 @@ Erste Version. Noch in keinem Store veröffentlicht, das Datum wird beim Release
 - Sleeptimer (15, 30, 45, 60 Minuten) und Radiowecker mit Sender und Ersatz-Alarmton.
 - Android: Homescreen-Widget, Android Auto, Chromecast.
 - Desktop: Tray-Symbol, Mini-Fenster, Tastenkürzel.
+- Desktop: eigene Fenster-Titelleiste im App-Design (Logo, Name, Farben aus Dunkel und Hell). Windows und Linux mit eigenen Knöpfen für Minimieren, Maximieren und Schließen, Snap-Layouts von Windows 11 inklusive; macOS behält die Ampeln links.
 - Deep Links `https://app.linefm.de/?station=<sender>` und `linefm://play?station=<sender>`.
 - Deutsch und Englisch, heller und dunkler Modus. In den Einstellungen wählbar: Systemsprache, Deutsch oder English, sofort wirksam und gespeichert. Wecker-Benachrichtigungen, Tray-Menü, Auto-Menü, Widget und Favoriten-Export folgen der gewählten Sprache. Alle sichtbaren Texte stehen in den ARB-Dateien, auch die Spaltenköpfe des Favoriten-Exports und die Ordnernamen des Auto-Menüs.
 - Web-Version mit Service Worker, Sicherheits-Headern und Hosting-Konfigurationen für nginx, Traefik, Cloudflare Pages und Plesk.

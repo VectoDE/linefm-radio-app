@@ -267,5 +267,10 @@
   "settingShortcutsBody": "F saves the song, S plays a random station, 1 to 6 pick a station.",
   "playerSleepTimer": "Set sleep timer",
   "alarmEnabledAt": "Alarm {time} on",
-  "alarmDeleteAt": "Delete alarm {time}"
+  "alarmDeleteAt": "Delete alarm {time}",
+  "windowTitleProduct": "Radio",
+  "windowMinimize": "Minimize",
+  "windowMaximize": "Maximize",
+  "windowRestore": "Restore",
+  "windowClose": "Close"
 }

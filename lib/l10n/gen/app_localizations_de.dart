@@ -842,4 +842,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String alarmDeleteAt(String time) {
     return 'Wecker $time löschen';
   }
+
+  @override
+  String get windowTitleProduct => 'Radio';
+
+  @override
+  String get windowMinimize => 'Minimieren';
+
+  @override
+  String get windowMaximize => 'Maximieren';
+
+  @override
+  String get windowRestore => 'Wiederherstellen';
+
+  @override
+  String get windowClose => 'Schließen';
 }

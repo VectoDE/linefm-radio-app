@@ -115,17 +115,20 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 - [ ] Tastenkürzel funktionieren.
 - [ ] **Deep Link:** `linefm://play?station=linefmrap` im Browser oder Terminal öffnet die App beim richtigen Sender, auch wenn sie schon läuft.
 - [ ] Hohe Skalierung (150 und 200 Prozent), mehrere Monitore.
+- [ ] **Eigene Titelleiste:** Logo und Name scharf, Farbe wie der Header (Dunkel und Hell); Hover, Druck und rotes Schließen; inaktives Fenster gedämpft. Ziehen, Doppelklick, Andocken an Ränder, Snap-Layouts beim Überfahren von Maximieren, Größenänderung an allen Kanten, Schatten und runde Ecken (Windows 11), maximiert kein abgeschnittener Rand, Rechtsklick und Alt+Leertaste öffnen das Systemmenü. Schließen verhält sich wie vorher (Tray bzw. Beenden).
 
 ### B5. Linux
 
 - [ ] Start aus Flatpak und Snap (wenn veröffentlicht), sonst aus dem Tarball.
 - [ ] Wiedergabe, Medientasten (MPRIS, der Linux-Standard dafür), Tray-Symbol (Symbol im Infobereich, je nach Desktop), Mini-Fenster.
 - [ ] Deep Link `linefm://play?station=...` über die Desktop-Datei.
+- [ ] Eigene Titelleiste ohne zweite Systemleiste, Verschieben und Größenänderung an allen Kanten unter X11 und Wayland (GNOME, KDE).
 
 ### B6. macOS
 
 - [ ] DMG öffnen, App starten laut [Anleitung](../packaging/macos/LIES-MICH-ZUERST.txt) (macOS 15 verlangt den Weg über Systemeinstellungen).
 - [ ] Wiedergabe, Medientasten, Tray-Symbol in der Menüleiste, Mini-Fenster.
+- [ ] Titelleiste in App-Farbe, Ampeln links mittig, Logo und Name überlappen sie nicht; Ziehen und Doppelklick (laut Systemeinstellung), Vollbild über die grüne Ampel.
 
 ### B7. Web
 

@@ -534,5 +534,13 @@
         "type": "String"
       }
     }
-  }
+  },
+  "windowTitleProduct": "Radio",
+  "@windowTitleProduct": {
+    "description": "Zweiter Teil des Namens in der eigenen Fenster-Titelleiste (Desktop), nach der Wortmarke brandName."
+  },
+  "windowMinimize": "Minimieren",
+  "windowMaximize": "Maximieren",
+  "windowRestore": "Wiederherstellen",
+  "windowClose": "Schließen"
 }

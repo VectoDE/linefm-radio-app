@@ -6,6 +6,7 @@ import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/platform/desktop/hotkeys.dart';
 import 'package:linefm_radio/platform/desktop/tray.dart';
 import 'package:linefm_radio/platform/desktop/window.dart';
+import 'package:linefm_radio/platform/desktop/window_caption.dart';
 
 /// Was Tray, Tastenkuerzel und Mini-Fenster von der App brauchen. Die
 /// Umsetzung auf Riverpod-Basis liegt in `desktop_host.dart`.
@@ -41,6 +42,10 @@ class DesktopController {
   DesktopWindow window = const NoopDesktopWindow();
   TrayController tray = const NoopTrayController();
   DesktopHotkeys hotkeys = const NoopDesktopHotkeys();
+
+  /// Eigene Titelleiste (Issue #87). Bleibt [CaptionStyle.none], solange die
+  /// Systemleiste steht (Web, Mobil, Fehler beim Ausblenden).
+  WindowCaptionControls caption = NoopWindowCaptionControls();
 
   /// Macht ein Widget zur Fenster-Zieh-Flaeche (Mini-Fenster ist rahmenlos).
   Widget Function(Widget child) dragArea = (child) => child;

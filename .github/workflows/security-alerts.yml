@@ -1,0 +1,155 @@
+name: Sicherheitsfunde
+
+# Haelt fuer jeden offenen Sicherheits-Alert genau ein Issue mit dem Label
+# typ:sicherheit offen und schliesst es, sobald der Alert zu ist (#115).
+# Quellen: Code Scanning (CodeQL, Semgrep, Trivy, zizmor, Scorecard), Dependabot,
+# Secret Scanning.
+#
+# Ausloeser: nach jedem Lauf von CodeQL, Semgrep, Scorecard und Supply Chain auf
+# main, dazu woechentlich und von Hand. Es wird kein fremder Code ausgecheckt und
+# kein Artefakt gelesen; der Job liest nur die Alert-APIs und pflegt Issues.
+#
+# Das Repo ist oeffentlich: Die Issues enthalten absichtlich nur Quelle, Nummer,
+# Schweregrad und den Link zum Alert (sichtbar nur fuer Betreuer), keine Dateipfade,
+# Meldungstexte oder Geheimnistypen.
+#
+# Rechte: GITHUB_TOKEN liest Code Scanning (security-events: read) und pflegt Issues.
+# Dependabot- und Secret-Scanning-Alerts sowie das Project 26 erreicht GITHUB_TOKEN
+# nicht. Dafuer ist das optionale Secret SECURITY_ALERTS_TOKEN vorgesehen
+# (Fine-grained PAT, nur dieses Repo: Dependabot alerts read, Secret scanning
+# alerts read, Issues read/write; fuer das Project zusaetzlich Konto-Recht
+# Projects read/write). Fehlt es, werden diese Quellen mit Warnung uebersprungen.
+
+on:
+  # Ausnahme dangerous-triggers in .github/zizmor.yml begruendet.
+  workflow_run: # zizmor: ignore[dangerous-triggers]
+    workflows: [CodeQL, Semgrep, OpenSSF Scorecard, Supply Chain]
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: "47 5 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: security-alerts
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Alerts mit Issues abgleichen
+    # Nur Laeufe aus Pushes auf main (nicht aus PR-Laeufen mit Kopfzweig main aus Forks).
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'schedule') &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write
+      security-events: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Alerts abgleichen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXTRA_TOKEN: ${{ secrets.SECURITY_ALERTS_TOKEN }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          PROJECT_NUMBER: "26"
+          LABEL: typ:sicherheit
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/alerts"
+          mkdir -p "$work"
+
+          # Label anlegen, falls es fehlt.
+          gh label create "$LABEL" --repo "$REPO" --color B60205 \
+            --description "Sicherheitsfund (automatisch aus Code Scanning, Dependabot, Secret Scanning)" 2>/dev/null || true
+
+          # Offene Alerts als Zeilen "quelle<TAB>nummer<TAB>schweregrad<TAB>werkzeug<TAB>url".
+          : > "$work/open.tsv"
+          gh api --paginate "repos/$REPO/code-scanning/alerts?state=open&per_page=100" \
+            --jq '.[] | ["code-scanning", (.number|tostring), (.rule.security_severity_level // .rule.severity // "unbekannt"), .tool.name, .html_url] | @tsv' \
+            >> "$work/open.tsv"
+
+          extra_ok=false
+          if [ -n "$EXTRA_TOKEN" ]; then
+            if GH_TOKEN="$EXTRA_TOKEN" gh api --paginate "repos/$REPO/dependabot/alerts?state=open&per_page=100" \
+                 --jq '.[] | ["dependabot", (.number|tostring), (.security_advisory.severity // "unbekannt"), "Dependabot", .html_url] | @tsv' \
+                 > "$work/dep.tsv" \
+               && GH_TOKEN="$EXTRA_TOKEN" gh api --paginate "repos/$REPO/secret-scanning/alerts?state=open&per_page=100" \
+                 --jq '.[] | ["secret-scanning", (.number|tostring), "hoch", "Secret Scanning", .html_url] | @tsv' \
+                 > "$work/sec.tsv"; then
+              cat "$work/dep.tsv" "$work/sec.tsv" >> "$work/open.tsv"
+              extra_ok=true
+            else
+              echo "::warning::SECURITY_ALERTS_TOKEN vorhanden, aber Dependabot/Secret Scanning nicht lesbar. Rechte pruefen."
+            fi
+          else
+            echo "::warning::SECURITY_ALERTS_TOKEN fehlt: Dependabot- und Secret-Scanning-Alerts werden nicht abgeglichen (siehe SECURITY.md)."
+          fi
+
+          # Vorhandene Issues mit Marker "<!-- sicherheitsfund:quelle:nummer -->".
+          gh issue list --repo "$REPO" --label "$LABEL" --state all --limit 1000 \
+            --json number,state,body \
+            --jq '.[] | (.body | capture("<!-- sicherheitsfund:(?<k>[a-z-]+):(?<n>[0-9]+) -->")?) as $m
+                  | select($m != null) | [$m.k + ":" + $m.n, (.number|tostring), .state] | @tsv' \
+            > "$work/issues.tsv"
+
+          created=0; reopened=0; closed=0
+          while IFS=$'\t' read -r kind num sev tool url; do
+            key="$kind:$num"
+            line="$(awk -F'\t' -v k="$key" '$1==k' "$work/issues.tsv" | sort -t$'\t' -k2,2n | tail -n 1)"
+            if [ -z "$line" ]; then
+              body="$(printf '%s\n\n%s\n\n%s\n%s\n%s\n%s\n\n%s\n%s\n%s\n%s\n' \
+                "<!-- sicherheitsfund:$key -->" \
+                "Automatisch angelegt vom Workflow Sicherheitsfunde (security-alerts.yml)." \
+                "- Quelle: $tool" \
+                "- Alert: $kind #$num" \
+                "- Schweregrad: $sev" \
+                "- Details (nur fuer Betreuer sichtbar): $url" \
+                "## Aufgaben" \
+                "- [ ] Fund pruefen (erreichbar? echte Eingabequelle?)" \
+                "- [ ] Beheben oder mit Begruendung als False Positive/Won't fix schliessen" \
+                "- [ ] Alert ist geschlossen (dieses Issue schliesst sich dann automatisch)")"
+              issue_url="$(gh issue create --repo "$REPO" --label "$LABEL" \
+                --title "Sicherheitsfund: $tool, $kind #$num ($sev)" --body "$body")"
+              created=$((created + 1))
+              if [ "$extra_ok" = true ]; then
+                GH_TOKEN="$EXTRA_TOKEN" gh project item-add "$PROJECT_NUMBER" --owner "$OWNER" --url "$issue_url" \
+                  || echo "::warning::Issue nicht ins Project $PROJECT_NUMBER uebernommen (Rechte des Tokens?)."
+              fi
+            else
+              inum="$(cut -f2 <<<"$line")"; istate="$(cut -f3 <<<"$line")"
+              if [ "$istate" = "CLOSED" ]; then
+                gh issue reopen "$inum" --repo "$REPO" --comment "Der Alert $kind #$num ist wieder offen."
+                reopened=$((reopened + 1))
+              fi
+            fi
+          done < "$work/open.tsv"
+
+          # Offene Issues schliessen, deren Alert nicht mehr offen ist. Quellen, die
+          # nicht gelesen werden konnten, bleiben unangetastet.
+          while IFS=$'\t' read -r key inum istate; do
+            [ "$istate" = "OPEN" ] || continue
+            kind="${key%%:*}"
+            if [ "$kind" != "code-scanning" ] && [ "$extra_ok" != true ]; then continue; fi
+            if ! awk -F'\t' -v k="$key" '$1":"$2==k {f=1} END {exit !f}' "$work/open.tsv"; then
+              gh issue close "$inum" --repo "$REPO" --reason completed \
+                --comment "Der Alert $key ist geschlossen (behoben oder begruendet verworfen)."
+              closed=$((closed + 1))
+            fi
+          done < "$work/issues.tsv"
+
+          {
+            echo "### Sicherheitsfunde"
+            echo "- Offene Alerts: $(wc -l < "$work/open.tsv")"
+            echo "- Dependabot/Secret Scanning abgeglichen: $extra_ok"
+            echo "- Issues angelegt: $created, wieder geoeffnet: $reopened, geschlossen: $closed"
+          } >> "$GITHUB_STEP_SUMMARY"

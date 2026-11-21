@@ -19,6 +19,9 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Woechentlich, damit neue Fehler auch ohne Commit auffallen (#115).
+  schedule:
+    - cron: "29 4 * * 5"
   workflow_dispatch:
 
 permissions: {}

@@ -138,7 +138,7 @@ class TelemetryConsentDialog extends ConsumerWidget {
                   height: 1.55,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: LinefmSpace.sm),
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton(
@@ -149,12 +149,17 @@ class TelemetryConsentDialog extends ConsumerWidget {
             ],
           ),
         ),
-        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+        actionsPadding: const EdgeInsets.fromLTRB(
+          LinefmSpace.xl,
+          0,
+          LinefmSpace.xl,
+          LinefmSpace.gutter,
+        ),
         actions: <Widget>[
           Row(
             children: <Widget>[
               Expanded(child: decline),
-              const SizedBox(width: 12),
+              const SizedBox(width: LinefmSpace.md),
               Expanded(child: allow),
             ],
           ),

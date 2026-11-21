@@ -72,7 +72,7 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     muted: Color(0xFF898DA1),
     line: Color.fromRGBO(255, 255, 255, 0.09),
     accent: Color(0xFFFFFFFF),
-    heart: Color(0xFFFF4B6E),
+    heart: LinefmPalette.heart,
     switchTrackOff: Color(0xFF414354),
     miniPlayerBg: Color.fromRGBO(15, 18, 33, 0.86),
     navBg: Color.fromRGBO(15, 18, 33, 0.96),
@@ -208,6 +208,83 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
 
 extension LinefmColorsContext on BuildContext {
   LinefmColors get linefm => Theme.of(this).extension<LinefmColors>()!;
+}
+
+/// Abstandsskala im 4-dp-Raster, Standardschritte 4/8/12/16/24/32 (Spec 4.4).
+/// `gutter` (20) ist der Seitenrand der Inhaltsseiten. Kein Wert ausserhalb
+/// der Skala: Abstaende nur ueber diese Namen setzen.
+abstract final class LinefmSpace {
+  static const double xs = 4;
+  static const double sm = 8;
+  static const double md = 12;
+  static const double lg = 16;
+  static const double gutter = 20;
+  static const double xl = 24;
+  static const double xxl = 32;
+}
+
+/// Schriftgroessenskala (modular, Faktor etwa 1,25): 12/14/16/20/25/32.
+/// Untergrenze 12 sp (D7, A11Y-17). `hero` gilt nur fuer die Wortmarke im
+/// Ladebildschirm auf breiten Geraeten.
+abstract final class LinefmType {
+  static const double caption = 12;
+  static const double body = 14;
+  static const double bodyLarge = 16;
+  static const double title = 20;
+  static const double heading = 25;
+  static const double display = 32;
+  static const double hero = 40;
+}
+
+/// Feste Farben ausserhalb der Themes (Marken- und Hilfsfarben). Alles, was
+/// nicht von Dunkel/Hell abhaengt, steht hier statt als Literal im Code.
+abstract final class LinefmPalette {
+  /// Tinte, identisch zu `LinefmColors.dark.background`; Splash, Logo-Kachel,
+  /// Benachrichtigungsfarbe.
+  static const Color ink = Color(0xFF0F1221);
+
+  /// Reines Weiss fuer Schalterknopf, Logo-Kachel und Schrift auf Senderfarbe.
+  static const Color paper = Color(0xFFFFFFFF);
+
+  /// Herzfarbe im Dunkelmodus; auch der Ladebildschirm (immer dunkel) nutzt sie.
+  static const Color heart = Color(0xFFFF4B6E);
+
+  /// Reines Schwarz nur als Zielwert beim Abdunkeln von Senderfarben.
+  static const Color black = Color(0xFF000000);
+
+  /// Unterlage des Mini-Players unter der Senderfarbe.
+  static const Color miniPlayerBase = Color(0xFF1B1D2B);
+
+  /// Endfarbe des Verlaufs hinter dem Senderlogo.
+  static const Color artGradientEnd = Color(0xFF171929);
+
+  /// Markenfarbe der Senderfarbe +MAIN, zugleich Seed des Material-Schemas.
+  static const Color seed = Color(0xFF4B4B7D);
+
+  /// Voll transparentes Weiss/Schwarz fuer Verlaeufe und Masken (Farbton
+  /// bleibt erhalten, damit der Verlauf nicht grau ueberblendet).
+  static const Color clearWhite = Color(0x00FFFFFF);
+  static const Color clearBlack = Color(0x00000000);
+
+  /// Schlagschatten des Schalterknopfs (20 % Schwarz).
+  static const Color knobShadow = Color(0x33000000);
+
+  /// Ladebildschirm: Nebenzeile (55 % Weiss) und Lichtkante (5 % Schwarz).
+  static const Color loaderCaption = Color(0x8CFFFFFF);
+  static const Color loaderStripe = Color(0x0D000000);
+
+  /// Abdunkelung hinter Dialogen und Sheets (54 % Schwarz).
+  static const Color scrim = Color(0x8A000000);
+}
+
+/// Senderfarben des Katalogs (Quelle: streams.json).
+abstract final class LinefmStationColors {
+  static const Color main = Color(0xFF4B4B7D);
+  static const Color rap = Color(0xFFFF0084);
+  static const Color gaming = Color(0xFF4BBD71);
+  static const Color lofi = Color(0xFF546E7A);
+  static const Color radio3fm = Color(0xFF177D29);
+  static const Color fobfm = Color(0xFF04FFF7);
 }
 
 /// Masse, Radien und Zeiten der Web-App (Spec 4.4) und der nativen

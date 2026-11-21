@@ -53,7 +53,7 @@ class _NoticeCard extends ConsumerWidget {
         Size(0, LinefmMetrics.minTarget),
       ),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
-        EdgeInsets.symmetric(horizontal: 12),
+        EdgeInsets.symmetric(horizontal: LinefmSpace.md),
       ),
       visualDensity: VisualDensity.compact,
       tapTargetSize: MaterialTapTargetSize.padded,
@@ -88,7 +88,12 @@ class _NoticeCard extends ConsumerWidget {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 6, 6, 6),
+            padding: const EdgeInsets.fromLTRB(
+              LinefmSpace.lg,
+              LinefmSpace.sm,
+              LinefmSpace.sm,
+              LinefmSpace.sm,
+            ),
             child: LayoutBuilder(
               builder: (context, box) {
                 // Live-Region nur um den Text, nicht um die Knoepfe.
@@ -108,11 +113,13 @@ class _NoticeCard extends ConsumerWidget {
                     children: <Widget>[
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: LinefmSpace.sm,
+                          ),
                           child: copy,
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: LinefmSpace.sm),
                       IntrinsicWidth(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -126,9 +133,9 @@ class _NoticeCard extends ConsumerWidget {
                 return Row(
                   children: <Widget>[
                     Expanded(child: copy),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: LinefmSpace.lg),
                     privacy,
-                    const SizedBox(width: 8),
+                    const SizedBox(width: LinefmSpace.sm),
                     dismiss,
                   ],
                 );

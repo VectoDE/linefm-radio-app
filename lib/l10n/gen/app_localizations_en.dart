@@ -88,6 +88,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storageNoticeDismiss => 'Got it';
 
   @override
+  String get storageNoticeTitle => 'Storage on this device';
+
+  @override
   String get favoritesButton => 'Favorites';
 
   @override

@@ -88,6 +88,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get storageNoticeDismiss => 'Verstanden';
 
   @override
+  String get storageNoticeTitle => 'Speicher auf diesem Gerät';
+
+  @override
   String get favoritesButton => 'Favoriten';
 
   @override

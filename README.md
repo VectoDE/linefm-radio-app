@@ -21,6 +21,7 @@ Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI so
 | Entscheider | Stand, Kosten, Risiken auf einen Blick | [Für Entscheider](#für-entscheider) |
 | Betreiber (jaybelife) | Konten einrichten und freigeben | [Für Betreiber](#für-betreiber) |
 | Neu im Code | zum ersten Mal bauen | [Erste Schritte](#erste-schritte) |
+| Betreiber oder Tester | die App selbst bauen lassen, herunterladen, öffnen und nutzen | [Bauen und Starten](docs/BAUEN-UND-STARTEN.md) |
 | Entwickler | bauen, testen, erweitern | [Für Entwickler](#für-entwickler) |
 | Unsicher, wohin mit der Frage | Hilfe finden | [SUPPORT.md](SUPPORT.md) |
 

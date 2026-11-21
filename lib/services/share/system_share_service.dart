@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:ui' show Locale, PlatformDispatcher;
+import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb;
@@ -12,6 +12,7 @@ import 'package:linefm_radio/domain/favorites/favorites_export.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/l10n/system_l10n.dart';
 import 'package:linefm_radio/services/share/file_delivery.dart' as delivery;
 import 'package:linefm_radio/services/share/share_feedback.dart';
 import 'package:linefm_radio/services/share/share_links.dart';
@@ -140,7 +141,7 @@ class SystemShareService implements ShareService {
     Locale? Function()? locale,
     this._backend = const PluginShareBackend(),
     void Function(ShareFeedback feedback)? feedback,
-  }) : _locale = locale ?? (() => PlatformDispatcher.instance.locale),
+  }) : _locale = locale ?? effectiveSystemLocale,
        _feedback = feedback ?? ShareFeedbackBus.emit;
 
   final String webBaseUrl;

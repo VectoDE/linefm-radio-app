@@ -1,6 +1,7 @@
-import 'dart:ui' show Locale, PlatformDispatcher;
+import 'dart:ui' show Locale;
 
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/l10n/system_l10n.dart';
 
 /// Texte fuer Tray-Menue und Mini-Fenster. Das Tray-Menue entsteht vor dem
 /// ersten Widget, deshalb ohne BuildContext: Sprache wie in der App (Deutsch
@@ -17,7 +18,7 @@ class DesktopStrings {
   }
 
   factory DesktopStrings.system() =>
-      DesktopStrings.forLocale(PlatformDispatcher.instance.locale);
+      DesktopStrings.forLocale(effectiveSystemLocale());
 
   final AppLocalizations l10n;
   final bool german;

@@ -1,6 +1,20 @@
 /// Darstellungsmodus (Spec 4.2 Nr. 11).
 enum AppThemeMode { system, light, dark }
 
+/// App-Sprache: Systemsprache (Rueckfall Englisch) oder fest Deutsch bzw.
+/// Englisch. Die App hat genau diese zwei Sprachen (dokumentierte Ausnahme
+/// vom 31-Locales-Hausstandard, Entscheidung des Inhabers).
+enum AppLanguage {
+  system(null),
+  de('de'),
+  en('en');
+
+  const AppLanguage(this.code);
+
+  /// Sprachcode (`de`, `en`); `null` bei [system].
+  final String? code;
+}
+
 /// Persistierte Einstellungen (Spec 3.4 settingsProvider).
 class AppSettings {
   const AppSettings({
@@ -11,6 +25,7 @@ class AppSettings {
     this.themeMode = AppThemeMode.system,
     this.loadArtwork = true,
     this.keyboardShortcuts = true,
+    this.language = AppLanguage.system,
   });
 
   /// Tolerant: fehlende oder falsch typisierte Felder erhalten den Standard.
@@ -23,6 +38,7 @@ class AppSettings {
     }
 
     final theme = json['themeMode'];
+    final language = json['language'];
     return AppSettings(
       marquee: flag('marquee', defaults.marquee),
       rememberVolume: flag('rememberVolume', defaults.rememberVolume),
@@ -34,6 +50,10 @@ class AppSettings {
       ),
       loadArtwork: flag('loadArtwork', defaults.loadArtwork),
       keyboardShortcuts: flag('keyboardShortcuts', defaults.keyboardShortcuts),
+      language: AppLanguage.values.firstWhere(
+        (l) => l.name == language,
+        orElse: () => defaults.language,
+      ),
     );
   }
 
@@ -57,6 +77,9 @@ class AppSettings {
   /// Ein-Zeichen-Tastenkuerzel (F, S, 1-6) aktiv (WCAG 2.1.4, A11Y-08).
   final bool keyboardShortcuts;
 
+  /// Gewaehlte App-Sprache; [AppLanguage.system] folgt dem Geraet.
+  final AppLanguage language;
+
   AppSettings copyWith({
     bool? marquee,
     bool? rememberVolume,
@@ -65,6 +88,7 @@ class AppSettings {
     AppThemeMode? themeMode,
     bool? loadArtwork,
     bool? keyboardShortcuts,
+    AppLanguage? language,
   }) => AppSettings(
     marquee: marquee ?? this.marquee,
     rememberVolume: rememberVolume ?? this.rememberVolume,
@@ -73,6 +97,7 @@ class AppSettings {
     themeMode: themeMode ?? this.themeMode,
     loadArtwork: loadArtwork ?? this.loadArtwork,
     keyboardShortcuts: keyboardShortcuts ?? this.keyboardShortcuts,
+    language: language ?? this.language,
   );
 
   Map<String, Object?> toJson() => <String, Object?>{
@@ -83,6 +108,7 @@ class AppSettings {
     'themeMode': themeMode.name,
     'loadArtwork': loadArtwork,
     'keyboardShortcuts': keyboardShortcuts,
+    'language': language.name,
   };
 
   @override
@@ -94,7 +120,8 @@ class AppSettings {
       other.closeToTray == closeToTray &&
       other.themeMode == themeMode &&
       other.loadArtwork == loadArtwork &&
-      other.keyboardShortcuts == keyboardShortcuts;
+      other.keyboardShortcuts == keyboardShortcuts &&
+      other.language == language;
 
   @override
   int get hashCode => Object.hash(
@@ -105,5 +132,6 @@ class AppSettings {
     themeMode,
     loadArtwork,
     keyboardShortcuts,
+    language,
   );
 }

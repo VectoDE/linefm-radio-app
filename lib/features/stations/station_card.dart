@@ -117,7 +117,11 @@ class _StationCardState extends State<StationCard> {
       crossAxisAlignment: grid
           ? CrossAxisAlignment.center
           : CrossAxisAlignment.start,
-      children: <Widget>[name, const SizedBox(height: 7), ticker],
+      children: <Widget>[
+        name,
+        const SizedBox(height: LinefmSpace.sm),
+        ticker,
+      ],
     );
 
     final Widget content = grid
@@ -125,7 +129,7 @@ class _StationCardState extends State<StationCard> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               StationArt(station: station, size: artSize),
-              const SizedBox(height: 14),
+              const SizedBox(height: LinefmSpace.lg),
               copy,
             ],
           )
@@ -187,11 +191,13 @@ class _StationCardState extends State<StationCard> {
                     constraints: BoxConstraints(minHeight: grid ? 192 : 86),
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(
-                        grid ? 16 : 10,
-                        grid ? 16 : 10,
+                        grid ? LinefmSpace.lg : LinefmSpace.md,
+                        grid ? LinefmSpace.lg : LinefmSpace.md,
                         // Platz fuer den Stern neben dem Lauftext.
-                        hasStar && !grid ? 50 : (grid ? 16 : 10),
-                        grid ? 16 : 10,
+                        hasStar && !grid
+                            ? 50
+                            : (grid ? LinefmSpace.lg : LinefmSpace.md),
+                        grid ? LinefmSpace.lg : LinefmSpace.md,
                       ),
                       child: Align(
                         alignment: grid

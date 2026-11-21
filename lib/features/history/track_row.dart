@@ -53,7 +53,7 @@ class TrackRow extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 72),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: LinefmSpace.sm),
           child: Row(
             children: <Widget>[
               Expanded(
@@ -64,7 +64,7 @@ class TrackRow extends StatelessWidget {
                   child: Row(
                     children: <Widget>[
                       CoverImage(station: station, url: coverUrl, size: 40),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: LinefmSpace.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,14 +89,17 @@ class TrackRow extends StatelessWidget {
                         ),
                       ),
                       if (meta != null) ...<Widget>[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: LinefmSpace.sm),
                         meta!,
                       ],
                     ],
                   ),
                 ),
               ),
-              if (trailing != null) trailing! else const SizedBox(width: 4),
+              if (trailing != null)
+                trailing!
+              else
+                const SizedBox(width: LinefmSpace.xs),
             ],
           ),
         ),

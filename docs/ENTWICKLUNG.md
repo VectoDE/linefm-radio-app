@@ -135,13 +135,21 @@ flutter test
 - `test/` spiegelt die Struktur von `lib/`: `domain`, `data`, `services`, `features`, `platform`, `ui`, `app`, `tool`. Netzwerk-Fixtures liegen in `test/fixtures/`.
 - Getestet wird, was absichert: Logik, Parser, Regeln, Wecker-Berechnung, Sleeptimer, Deep Links, Persistenz, Verdrahtung. Reine Optik nur über Goldens.
 - Dienste werden über Provider mit Fakes ersetzt (siehe `test/app/app_host.dart` und `test/features/feature_host.dart`). Echtes Netzwerk gibt es in Tests nicht.
-- **Goldens** (Bildvergleich) liegen in `test/features/goldens/` und werden von `test/features/history_favorites_golden_test.dart` geprüft. Nach einer **gewollten** Änderung der Darstellung neu erzeugen und die Bilder im Diff ansehen:
+- **Goldens** (Bildvergleich) prüfen die Kernkomponenten in Dark und Hell: Stationskarte, Play-Knopf, Mini-Player, Player, Favoriten-Herz mit Badge, Einstellungs-Schalter, Knöpfe, Abschnittsüberschrift, Dialog, Sheet, App-Rahmen (Header, Navigation) und Einstellungen sowie Verlauf und Favoriten. Dateien: `test/ui/components_golden_test.dart`, `test/app/shell_golden_test.dart`, `test/features/history_favorites_golden_test.dart`; Bilder je Test in `goldens/<name>_dark.png` und `goldens/<name>_light.png` daneben.
 
-```bash
-flutter test --update-goldens test/features/history_favorites_golden_test.dart
-```
+### Goldens aktualisieren
 
-  Goldens hängen von Schriften und Betriebssystem ab. Erzeuge und prüfe sie immer auf derselben Plattform wie die CI und bewerte Unterschiede von Hand, bevor du sie übernimmst.
+Referenzbilder hängen von der Rasterung der Plattform ab. Sie gelten deshalb nur dort, wo sie entstanden sind: auf dem CI-Runner des Jobs „Golden-Tests (Windows)“ (`windows-latest`). Die Tests tragen das Tag `golden` (`dart_test.yaml`) und enden auf `_golden_test.dart`; der normale Testjob lässt sie aus.
+
+- **Lokal** laufen sie durch (Layout, keine Ausnahmen), vergleichen aber keine Pixel und werden so nicht fälschlich rot. Die Meldung „Golden-Vergleich uebersprungen“ steht im Log. Mit `GOLDENS=1` (PowerShell: `$env:GOLDENS=1`) erzwingst du den Vergleich auch lokal; auf Windows 11 waren die Bilder bei der Einführung byte-gleich zu denen der CI, auf anderen Systemen sind Abweichungen zu erwarten.
+- **Feste Bedingungen** machen die Bilder reproduzierbar: echte App-Schriften aus dem Font-Manifest (nicht Ahem), Fenstergröße fest bei Pixelverhältnis 1, Lauftext aus, keine Netzbilder (Fakes, Senderlogos ohne Netz), Sender ohne ladbares Logo zeigen das Kürzel.
+- **Nach einer gewollten Änderung der Darstellung:**
+  1. Branch pushen. Der Job „Golden-Tests (Windows)“ wird rot und lädt das Artifact `golden-kandidaten` (alle Bilder, auf dem Runner neu erzeugt) und `golden-failures` (Unterschiede je Bild) hoch.
+  2. Artifact laden: `gh run download <run-id> -n golden-kandidaten -D tmp-goldens`, die PNGs unter `test/**/goldens/` kopieren.
+  3. Die Bilder im Diff ansehen, nur gewollte Änderungen committen, pushen. Der Job wird grün.
+- Alternativ lokal auf Windows 11: `flutter test --update-goldens test/ui/components_golden_test.dart` (je Datei), Bilder prüfen und committen. Die CI bleibt maßgeblich: stimmt sie nicht überein, gilt das Artifact.
+- Ein neuer Golden-Test braucht das Tag (`@Tags(<String>['golden'])` und `library;` ganz oben), den Dateinamen `*_golden_test.dart` und `setUpAll(prepareGoldens)` aus `test/golden_support.dart`.
+
 - Schwere Builds (APK, Windows, Web) laufen nicht parallel zu `flutter test`, das braucht viel Arbeitsspeicher.
 - Eine Live-Probe der laut.fm-Schnittstelle liegt in `tool/dev/now_playing_probe.dart`.
 

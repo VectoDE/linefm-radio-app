@@ -142,8 +142,6 @@ Beide Workflows laufen ohne Secret grün durch und melden in der Zusammenfassung
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|
-| `SONAR_TOKEN` | Secret, optional | SonarQube Cloud, Projekt-Analyse-Token (sonarcloud.io > My Account > Security). Für `sonar.yml`. Automatic Analysis im Sonar-Projekt ausschalten. Tarif vorher prüfen (kostenlos nur für OSI-Lizenz oder Team-Tarif bis 50k LOC) | Inhaber |
-| `SNYK_TOKEN` | Secret, optional | Snyk Auth Token (app.snyk.io > Account Settings). Für `snyk.yml` (Snyk Code, Container, npm; Dart nicht unterstützt). Snyk Code in den Org-Einstellungen einschalten | Inhaber |
 
 Semgrep (`semgrep.yml`), Trivy, zizmor und actionlint (`supply-chain.yml`) brauchen kein Secret.
 

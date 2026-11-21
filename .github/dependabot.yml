@@ -57,9 +57,12 @@ updates:
       gradle-minor-patch:
         update-types: [minor, patch]
 
-  # Basisimage des Web-Containers (deploy/traefik/Dockerfile, per Digest gepinnt).
+  # Basisimages des Web-Containers (deploy/traefik/Dockerfile) und des Dev-Containers
+  # (.devcontainer/Dockerfile), jeweils per Digest gepinnt.
   - package-ecosystem: docker
-    directory: /deploy/traefik
+    directories:
+      - /deploy/traefik
+      - /.devcontainer
     schedule:
       interval: weekly
       day: monday

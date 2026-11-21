@@ -29,10 +29,10 @@ Der Release-Workflow legt für jede Datei aus `SHA256SUMS.txt` eine Build-Proven
 
 ```sh
 gh attestation verify linefm-radio-1.2.3-android.apk -R VectoDE/linefm-radio-app
-# strenger: nur Builds aus dem Release-Workflow und von einem Tag
+# strenger: nur Builds aus dem Release-Workflow auf main
 gh attestation verify linefm-radio-1.2.3-android.apk -R VectoDE/linefm-radio-app \
   --signer-workflow VectoDE/linefm-radio-app/.github/workflows/release.yml \
-  --source-ref refs/tags/v1.2.3
+  --source-ref refs/heads/main
 ```
 
 ## 3. Signatur mit cosign (keyless, Sigstore)
@@ -44,18 +44,14 @@ Prüfen mit [cosign](https://docs.sigstore.dev/cosign/system_config/installation
 ```sh
 cosign verify-blob \
   --bundle linefm-radio-1.2.3-android.apk.sigstore.json \
-  --certificate-identity-regexp '^https://github\.com/VectoDE/linefm-radio-app/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-identity 'https://github.com/VectoDE/linefm-radio-app/.github/workflows/release.yml@refs/heads/main' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   linefm-radio-1.2.3-android.apk
 ```
 
 Erwartete Ausgabe: `Verified OK`. Am sichersten prüfst du zuerst `SHA256SUMS.txt` mit seinem Bundle und danach die Downloads mit `sha256sum -c` (Schritt 1).
 
-Für genau eine Version statt des regulären Ausdrucks:
-
-```sh
---certificate-identity https://github.com/VectoDE/linefm-radio-app/.github/workflows/release.yml@refs/tags/v1.2.3
-```
+Seit #104 entsteht jedes Release beim Merge auf `main`. Die Identität ist deshalb für alle Versionen gleich. Welche Version eine Datei ist, belegen ihr Name und `SHA256SUMS.txt`; aus welchem Commit sie stammt, zeigt die Attestierung (Schritt 2).
 
 ## 4. GPG-Signatur (optional)
 

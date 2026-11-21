@@ -11,7 +11,7 @@ Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI so
 [![Lizenz: proprietär](https://img.shields.io/badge/Lizenz-propriet%C3%A4r-lightgrey)](LICENSE)
 
 
-**Stand:** in Entwicklung, Version 1.0.0. Noch in keinem Store veröffentlicht. Die Web-Version ist für `https://app.linefm.de` vorgesehen.
+**Stand:** in Entwicklung. Jeder Merge auf `main` erzeugt eine signierte Vorabversion unter [Releases](https://github.com/VectoDE/linefm-radio-app/releases), zuerst `0.1.0-alpha.N` (Ablauf: [Bauen und Starten, A4](docs/BAUEN-UND-STARTEN.md#a4-der-weg-über-ein-release)). Noch in keinem Store veröffentlicht. Die Web-Version ist für `https://app.linefm.de` vorgesehen.
 
 ## Wer liest was?
 
@@ -49,7 +49,7 @@ Die App lässt sich mit Tastatur bedienen, alle Bereiche sind für Screenreader 
 
 ## Für Entscheider
 
-- **Stand:** Version 1.0.0 fertig gebaut, noch in keinem Store. Was vor dem Start fehlt, sind Konten, Zugangsdaten und schriftliche Freigaben des Betreibers, keine Programmierarbeit: [Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md).
+- **Stand:** Vorabversionen erscheinen bei jedem Merge automatisch unter Releases, noch in keinem Store. Was vor dem Start fehlt, sind Konten, Zugangsdaten und schriftliche Freigaben des Betreibers, keine Programmierarbeit: [Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md).
 - **Laufende Kosten:** kein eigenes Backend, keine Nutzerkonten. Es fallen nur Store-Gebühren (Google Play einmalig, Apple jährlich, falls später gewünscht) und das Web-Hosting an. Die Sender kommen über die öffentliche laut.fm-API.
 - **Daten:** Ohne aktivierte Statistik schickt die App von sich aus nur Anfragen an laut.fm (API und Streams), an Apple (iTunes-Cover-Suche, abschaltbar), an cdn.linefm.de (Sender-Icons) und an radiogruppe.de (Logo). Statistik und Absturzberichte nur nach Einwilligung, siehe [Telemetrie](docs/telemetry.md). Im Web optional Google Analytics, nur nach eigener Einwilligung (siehe [Einrichtung](docs/EINRICHTUNG.md)).
 - **Prüfbarkeit:** Jedes Release hat Prüfsummen, eine SBOM, eine Herkunfts-Attestierung von GitHub und eine cosign-Signatur je Datei, auf Wunsch zusätzlich eine GPG-Signatur: [Release-Dateien prüfen](docs/RELEASE-VERIFIZIEREN.md).

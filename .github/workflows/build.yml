@@ -158,8 +158,9 @@ jobs:
           # laedt auch Vorabversionen (vX.Y.Z-rc.N) zu Google Play und Snap hoch, also
           # gilt dieselbe Bedingung wie fuer die Store-Uploads. Dev-Builds melden
           # offene Platzhalter nur.
+          # #104: alpha und beta gehen nur als GitHub-Vorabversion raus, nicht in Stores.
           legal_strict=false
-          if [ "$app_env" = "prod" ]; then legal_strict=true; fi
+          if [ "$app_env" = "prod" ] && ! [[ "$label" =~ -(alpha|beta)\. ]]; then legal_strict=true; fi
 
           {
             echo "legal_strict=$legal_strict"

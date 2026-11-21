@@ -6,7 +6,8 @@ import 'package:flutter/foundation.dart'
 class AppConfig {
   const AppConfig({
     this.appEnv = 'dev',
-    this.appVersion = '1.0.0',
+    this.appVersion = '',
+    this.appCommit = '',
     this.webBaseUrl = 'https://app.linefm.de',
     this.umamiUrl = '',
     this.umamiWebsiteId = '',
@@ -24,7 +25,8 @@ class AppConfig {
   /// Liest die per --dart-define gesetzten Werte.
   factory AppConfig.fromEnvironment() => const AppConfig(
     appEnv: String.fromEnvironment('APP_ENV', defaultValue: 'dev'),
-    appVersion: String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0'),
+    appVersion: String.fromEnvironment('APP_VERSION'),
+    appCommit: String.fromEnvironment('APP_COMMIT'),
     webBaseUrl: String.fromEnvironment(
       'WEB_BASE_URL',
       defaultValue: 'https://app.linefm.de',
@@ -44,8 +46,18 @@ class AppConfig {
 
   final String appEnv;
 
-  /// Wird von Telemetrie (Release, User-Agent) genutzt; CI setzt APP_VERSION.
+  /// Version aus dem Release (#104); der Release-Workflow setzt APP_VERSION.
+  /// Leer bei lokalen Builds: die App zeigt dann "Entwicklungsversion".
   final String appVersion;
+
+  /// Commit-Kurz-ID lokaler Builds (APP_COMMIT, von tool/bauen.*).
+  final String appCommit;
+
+  /// Kein Release-Build: keine Version gesetzt.
+  bool get isDevBuild => appVersion.isEmpty;
+
+  /// Version fuer Telemetrie und User-Agent; lokal `0.0.0-dev`.
+  String get versionLabel => isDevBuild ? '0.0.0-dev' : appVersion;
   final String webBaseUrl;
   final String umamiUrl;
   final String umamiWebsiteId;
@@ -107,6 +119,7 @@ class AppConfig {
   AppConfig copyWith({
     String? appEnv,
     String? appVersion,
+    String? appCommit,
     String? webBaseUrl,
     String? umamiUrl,
     String? umamiWebsiteId,
@@ -122,6 +135,7 @@ class AppConfig {
   }) => AppConfig(
     appEnv: appEnv ?? this.appEnv,
     appVersion: appVersion ?? this.appVersion,
+    appCommit: appCommit ?? this.appCommit,
     webBaseUrl: webBaseUrl ?? this.webBaseUrl,
     umamiUrl: umamiUrl ?? this.umamiUrl,
     umamiWebsiteId: umamiWebsiteId ?? this.umamiWebsiteId,

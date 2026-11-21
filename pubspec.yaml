@@ -1,7 +1,9 @@
 name: linefm_radio
 description: "LINEFM Radio - Live-Radio der LINEFM-Sender (LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM, FobFM)."
 publish_to: 'none'
-version: 1.0.0+1
+# Platzhalter fuer lokale Entwicklung. Die echte Version kommt aus dem Release
+# (release.yml, #104) per --build-name/--build-number; CI prueft den Platzhalter.
+version: 0.0.0-dev+1
 
 environment:
   sdk: ^3.14.0

@@ -49,7 +49,7 @@ Gut zu wissen:
 - Die Dateien sind nur für angemeldete GitHub-Nutzer abrufbar. Es gibt keinen öffentlichen Link zum Weitergeben.
 - GitHub bewahrt sie **14 Tage** auf (`retention-days: 14` in `build.yml`). Danach sind sie gelöscht und du startest einen neuen Bau.
 - Ein Artefakt ist immer eine ZIP-Datei mit den eigentlichen Dateien darin, auch wenn die Datei darin selbst schon ein ZIP oder eine EXE ist.
-- Die Version in den Dateinamen sieht bei einem manuellen Bau so aus: `1.0.0-dev.17`. Die letzte Zahl ist die Nummer des Laufs.
+- Die Version in den Dateinamen sieht bei einem manuellen Bau so aus: `0.0.0-dev.17`. Die letzte Zahl ist die Nummer des Laufs. Echte Versionsnummern gibt es nur über Releases (A4).
 
 Was in welchem Artefakt liegt, abgeglichen mit dem Lauf vom 21.11.2026 ([Lauf 44909292173](https://github.com/VectoDE/linefm-radio-app/actions/runs/44909292173), Branch `main`):
 
@@ -80,9 +80,23 @@ Ersetze `apple=true` durch `apple=false`, wenn du keinen Mac-Bau brauchst. `gh r
 
 ### A4 Der Weg über ein Release
 
-Für Versionen, die du weitergibst, gibt es den Release-Weg. Ein Tag der Form `vX.Y.Z` (zum Beispiel `v1.0.0`) startet `release.yml`. Der Ablauf baut alles, legt Installer, Prüfsummen und Signaturen in ein GitHub-Release und startet die Store-Abläufe, soweit sie eingerichtet sind. Wie du Release-Dateien auf Echtheit prüfst, steht in [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).
+Jeder Merge auf `main` erzeugt automatisch ein Release (`release.yml`). Du setzt dafür keinen Tag. Der Ablauf baut alle Plattformen und legt die Dateien mit Prüfsummen (`SHA256SUMS.txt`), cosign-Signaturen (`*.sigstore.json`), Herkunftsnachweis und SBOM (SPDX und CycloneDX) in ein GitHub-Release. Die Release Notes entstehen aus den Titeln der gemergten Pull Requests. Wie du Release-Dateien auf Echtheit prüfst, steht in [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).
 
-Stand 21.11.2026: Es gibt noch kein Release. Alle Downloads kommen deshalb aus Artefakten (A2). Bevor du ein Release anstößt, geh die [Freigabe-Checkliste](FREIGABE-CHECKLISTE.md) durch.
+Die Versionsnummer steht in keiner Datei, `pubspec.yaml` trägt nur den Platzhalter `0.0.0-dev`. Der Ablauf berechnet sie aus dem letzten Release und den offenen Issues:
+
+| Stand der offenen Issues | Stufe | Beispiel |
+| --- | --- | --- |
+| noch kein Release | Start | `0.1.0-alpha.1` |
+| mindestens ein Issue mit `typ:feature` offen | Alpha | `0.1.0-alpha.2`, `0.1.0-alpha.3` |
+| kein `typ:feature` mehr offen | Beta | `0.1.0-beta.1` |
+| nur noch Issues mit `nur-noch:jaybelife` offen | Release-Kandidat | `1.0.0-rc.1` |
+| kein Issue mehr offen | Stabil | `1.0.0` |
+
+Jeder Merge zählt die letzte Zahl hoch. Eine Stufe fällt nie zurück, auch wenn ein Issue wieder aufgeht. Nach `1.0.0` richtet sich die nächste Nummer nach den Commit-Titeln (`fix:` ergibt 1.0.1, `feat:` 1.1.0, `feat!:` 2.0.0). Die Build-Nummer für die Stores steigt mit jedem Lauf.
+
+Alpha- und Beta-Versionen sind GitHub-Vorabversionen und gehen in keinen Store. Ab dem Release-Kandidaten laden die Store-Abläufe zu Google Play und Snap hoch, ab `1.0.0` auch zu Microsoft, Apple, Flathub und ins Web, soweit sie eingerichtet sind. Der Windows-Installer kommt mit #110 dazu.
+
+Eine selbst gebaute App (A2, A6) zeigt unter „Über“ statt einer Nummer „Entwicklungsversion“ mit der Kurz-ID des Commits.
 
 ### A5 Die Ergebnisse öffnen und nutzen
 

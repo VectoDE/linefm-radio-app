@@ -5,8 +5,15 @@ wird für Apple vorerst nicht (Entscheidung 21); alles ist so vorbereitet, dass
 später nur Konto, Profile und Freigaben eingetragen werden müssen.
 
 Hinweis: Entwickelt wurde ohne Mac. iOS und macOS sind nicht lokal gebaut
-worden; Abnahme über den macOS-Job in CI (`build.yml`, `apple=true`) bzw.
-einen Mac.
+worden; Abnahme über den macOS-Job in CI (`build.yml`, `apple=true` bzw.
+PR-Label `ci:apple`) oder einen Mac. Der iOS-Job prüft nach dem Build das
+fertige Bundle (Widget eingebettet, Info.plist-Schlüssel, Privacy-Manifeste,
+native Kanäle im Binary).
+
+Mindestversion: iOS 16.0 (Entscheidung des Inhabers vom 21.11.2026). Grund:
+Chromecast läuft über `flutter_chrome_cast`, das das Google Cast SDK per
+Swift Package Manager zieht (`SRGSSR/google-cast-sdk`); ab SDK 4.8.6 verlangt
+Google iOS 16. macOS: Flutter hebt das Ziel beim Build selbst auf 12.0.
 
 ## Überblick iOS (`ios/Runner`)
 
@@ -22,7 +29,7 @@ einen Mac.
 | `Runner.entitlements` / `Runner-CarPlay.entitlements` | App Group; CarPlay nur in der zweiten Datei |
 | `de.lproj`, `en.lproj` | Systemtexte (`InfoPlist.strings`) |
 
-Widget: `ios/LinefmWidget` (WidgetKit, iOS 14+, Ziel `LinefmWidgetExtension`,
+Widget: `ios/LinefmWidget` (WidgetKit, Ziel `LinefmWidgetExtension`,
 Bundle-ID `de.linefm.app.widget`). Senderlogos für Widget und CarPlay liegen
 in `ios/Shared/StationLogos.xcassets` (`station_<slug>`).
 
@@ -107,6 +114,6 @@ Manifest und App-Store-Angaben anpassen.
 
 ## Offen (braucht Apple-Konto oder Mac)
 
-- iOS-/macOS-Build und Simulator-Tests (CI-Job `build.yml` mit `apple=true`).
+- Simulator- und Gerätetests (der CI-Job baut nur unsigniert für Geräte).
 - App Group `group.de.linefm.app` im Konto anlegen, beiden App-IDs zuordnen.
 - CarPlay-Entitlement (siehe oben), Universal Links (Team-ID, AASA).

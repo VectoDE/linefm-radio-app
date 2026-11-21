@@ -434,8 +434,23 @@ int CloseRunningApps(const std::vector<std::wstring>& files,
           Log::Line(L"Freundliches Beenden fehlgeschlagen, erzwinge");
           rc = ::RmShutdown(session, RmForceShutdown, nullptr);
         }
-        std::vector<std::wstring> still;
-        if (rc != ERROR_SUCCESS || (list(&still) && !still.empty())) {
+        // RmShutdown kehrt zurueck, bevor der Prozess seine Dateien
+        // freigegeben hat. Bis zu 10 s warten, dann einmal erzwingen.
+        auto still_running = [&]() -> bool {
+          for (int i = 0; i < 20; ++i) {
+            std::vector<std::wstring> still;
+            if (list(&still) && still.empty()) return false;
+            ::Sleep(500);
+          }
+          return true;
+        };
+        bool running = rc != ERROR_SUCCESS || still_running();
+        if (running) {
+          Log::Line(L"App reagiert nicht, erzwinge Beenden");
+          rc = ::RmShutdown(session, RmForceShutdown, nullptr);
+          running = rc != ERROR_SUCCESS || still_running();
+        }
+        if (running) {
           Log::Line(L"App laesst sich nicht beenden");
           result = kExitAppRunning;
         } else {

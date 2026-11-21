@@ -174,10 +174,10 @@ if ($window) {
     function FindButton([string[]]$names) {
       for ($t = 0; $t -lt 20; $t++) {
         foreach ($n in $names) {
-          $cond = New-Object System.Windows.Automation.AndCondition(
-            (New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $n)),
-            (New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button)))
-          $el = [System.Windows.Automation.AutomationElement]::RootElement.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cond)
+          # Flutter meldet Knoepfe mit dem Beschriftungstext als Name; der
+          # Steuerelementtyp schwankt je nach Version, deshalb nur der Name.
+          $cond = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $n)
+          $el = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cond)
           if ($el) { return $el }
         }
         Start-Sleep -Milliseconds 500
@@ -188,6 +188,15 @@ if ($window) {
       $el.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
     }
     $next = FindButton @('Next', 'Weiter')
+    if (-not $next) {
+      # Diagnose: alle benannten Elemente der Oberflaeche ausgeben.
+      $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+      foreach ($e in $all) {
+        $c = $e.Current
+        if ($c.Name) { Write-Host ("UIA: {0} | {1}" -f $c.ControlType.ProgrammaticName, $c.Name) }
+      }
+      Write-Host "UIA: $($all.Count) Elemente gesamt"
+    }
     Check 'Screenreader/UIA: Knopf "Weiter" auffindbar' ($null -ne $next)
     if ($next) {
       Invoke-El $next

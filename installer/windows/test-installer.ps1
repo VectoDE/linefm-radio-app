@@ -17,6 +17,8 @@ param(
   [Parameter(Mandatory = $true)][string]$Setup,
   [Parameter(Mandatory = $true)][string]$OldSetup,
   [Parameter(Mandatory = $true)][string]$Version,
+  # Version der aelteren Test-setup.exe (vom Workflow erzeugt, kleiner als $Version).
+  [string]$OldVersion = '0.0.1',
   [string]$ArtifactDir = 'build/installer-test'
 )
 
@@ -101,12 +103,12 @@ Remove-Item $corrupt -Force
 
 # --- 2. Erstinstallation (alte Version, nur fuer mich) ----------------------
 $code = Run $OldSetup @('/S') 'install-old.log'
-Check 'Installation 0.0.1 still, pro Benutzer -> Exit 0' ($code -eq 0) "Exit $code"
+Check "Installation $OldVersion still, pro Benutzer -> Exit 0" ($code -eq 0) "Exit $code"
 $exe = Join-Path $userDir $exeName
 Check 'Programmdatei vorhanden' (Test-Path $exe) $exe
 Check 'uninstall.exe vorhanden' (Test-Path (Join-Path $userDir 'uninstall.exe'))
 Check 'Kein Admin-Eintrag (HKLM)' (-not (Test-Path $machineKey))
-Check 'Apps & Features: Version' ((RegValue $userKey 'DisplayVersion') -eq '0.0.1')
+Check 'Apps & Features: Version' ((RegValue $userKey 'DisplayVersion') -eq $OldVersion)
 Check 'Apps & Features: Herausgeber LineFM Studios' ((RegValue $userKey 'Publisher') -eq 'LineFM Studios')
 $uninstallString = RegValue $userKey 'UninstallString'
 Check 'UninstallString in Anfuehrungszeichen' ($uninstallString -like '"*uninstall.exe"') $uninstallString
@@ -170,9 +172,20 @@ $guiExit = $null
 if ($window) {
   try {
     Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
-    $root = [System.Windows.Automation.AutomationElement]::FromHandle($window.MainWindowHandle)
-    # Flutter haengt seine Knoten unter FLUTTERVIEW; die ControlView zeigt sie
-    # nicht immer, der Raw-View-Baum schon.
+    Add-Type -Namespace LfTest -Name Win -MemberDefinition @'
+[DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+[DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindowExW(IntPtr p, IntPtr a, string c, string w);
+'@
+    [void][LfTest.Win]::SetForegroundWindow($window.MainWindowHandle)
+    # Flutter haengt seine Knoten an das Kindfenster FLUTTERVIEW. Die Anfrage
+    # direkt an dieses Fenster schaltet die Semantik im Embedder ein.
+    $viewHwnd = [LfTest.Win]::FindWindowExW($window.MainWindowHandle, [IntPtr]::Zero, 'FLUTTERVIEW', $null)
+    $root = if ($viewHwnd -ne [IntPtr]::Zero) {
+      [System.Windows.Automation.AutomationElement]::FromHandle($viewHwnd)
+    } else {
+      [System.Windows.Automation.AutomationElement]::FromHandle($window.MainWindowHandle)
+    }
+    Start-Sleep -Seconds 2
     $walker = [System.Windows.Automation.TreeWalker]::RawViewWalker
     function RawFind($el, [string]$name, [int]$depth) {
       if ($depth -gt 40) { return $null }
@@ -232,6 +245,20 @@ if ($window) {
     if ($gui.WaitForExit(20000)) { $guiExit = $gui.ExitCode }
   } catch {
     Write-Host "::warning::UI-Automation: $($_.Exception.Message)"
+  }
+  if ($null -eq $guiExit -and -not $gui.HasExited) {
+    # Tastaturweg: Fenster schliessen (wie Alt+F4) oeffnet die Rueckfrage,
+    # Fokus liegt auf "Nein", Tab wechselt zu "Ja, abbrechen", Enter bestaetigt.
+    Write-Host 'Abbrechen ueber die Tastatur'
+    [void]$window.CloseMainWindow()
+    Start-Sleep -Seconds 2
+    Shot '22-setup-abbrechen-frage'
+    $shell = New-Object -ComObject WScript.Shell
+    [void][LfTest.Win]::SetForegroundWindow($window.MainWindowHandle)
+    $shell.SendKeys('{TAB}')
+    Start-Sleep -Milliseconds 500
+    $shell.SendKeys('{ENTER}')
+    if ($gui.WaitForExit(20000)) { $guiExit = $gui.ExitCode }
   }
 }
 Check 'Oberflaeche: Abbrechen beendet mit Exit 2' ($guiExit -eq 2) "Exit $guiExit"

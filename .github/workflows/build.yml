@@ -685,13 +685,14 @@ jobs:
       # Installation, Start, Update (laufende App, Einstellungen bleiben),
       # Downgrade-Sperre, Oberflaeche per UI-Automation, Deinstallation und
       # "alle Benutzer" auf dem Runner. Fuer das Update entsteht eine zweite
-      # setup.exe mit Version 0.0.1 aus denselben Dateien (nur fuer den Test).
+      # setup.exe mit einer kleineren Version aus denselben Dateien (nur fuer den Test).
       - name: Installer testen (Installation, Start, Update, Deinstallation)
         shell: pwsh
         run: |
-          ./installer/windows/build.ps1 -Stage pack -Version 0.0.1 -Out build/installer/setup-old.exe
+          $old = '0.0.1'  # kleiner als jede erzeugte Version (Start 0.1.0-alpha.1, #113)
+          ./installer/windows/build.ps1 -Stage pack -Version $old -Out build/installer/setup-old.exe
           ./installer/windows/test-installer.ps1 -Setup "dist/linefm-radio-$env:LABEL-windows-x64-setup.exe" `
-            -OldSetup build/installer/setup-old.exe -Version $env:LABEL -ArtifactDir build/installer-test
+            -OldSetup build/installer/setup-old.exe -OldVersion $old -Version $env:LABEL -ArtifactDir build/installer-test
 
       - name: Installer-Bildschirmfotos und Protokolle hochladen
         if: always()

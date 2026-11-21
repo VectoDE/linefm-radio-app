@@ -1,5 +1,8 @@
+import 'dart:ui' show Locale;
+
 import 'package:linefm_radio/domain/favorite.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
+import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 
 enum ExportFormat { csv, text }
 
@@ -12,19 +15,24 @@ class FavoritesExportLabels {
     required this.savedAt,
   });
 
-  static const FavoritesExportLabels de = FavoritesExportLabels(
-    title: 'Titel',
-    artist: 'Künstler',
-    station: 'Sender',
-    savedAt: 'Gemerkt am',
-  );
+  /// Spaltenkoepfe aus den ARB-Dateien.
+  factory FavoritesExportLabels.fromLocalizations(AppLocalizations l10n) =>
+      FavoritesExportLabels(
+        title: l10n.exportColumnTitle,
+        artist: l10n.exportColumnArtist,
+        station: l10n.exportColumnStation,
+        savedAt: l10n.exportColumnSavedAt,
+      );
 
-  static const FavoritesExportLabels en = FavoritesExportLabels(
-    title: 'Title',
-    artist: 'Artist',
-    station: 'Station',
-    savedAt: 'Saved on',
-  );
+  static final FavoritesExportLabels de =
+      FavoritesExportLabels.fromLocalizations(
+        lookupAppLocalizations(const Locale('de')),
+      );
+
+  static final FavoritesExportLabels en =
+      FavoritesExportLabels.fromLocalizations(
+        lookupAppLocalizations(const Locale('en')),
+      );
 
   final String title;
   final String artist;
@@ -43,9 +51,9 @@ class FavoritesExport {
   static String build(
     List<Favorite> favorites,
     ExportFormat format, {
-    FavoritesExportLabels labels = FavoritesExportLabels.de,
+    FavoritesExportLabels? labels,
   }) => switch (format) {
-    ExportFormat.csv => _csv(favorites, labels),
+    ExportFormat.csv => _csv(favorites, labels ?? FavoritesExportLabels.de),
     ExportFormat.text => _text(favorites),
   };
 

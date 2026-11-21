@@ -368,6 +368,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeDark => 'Dark';
 
   @override
+  String get settingLanguageTitle => 'Language';
+
+  @override
+  String get settingLanguageBody =>
+      'System language, or fixed to German or English. The change applies right away.';
+
+  @override
+  String get languageSystem => 'System language';
+
+  @override
+  String get languageGerman => 'Deutsch';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get exportColumnTitle => 'Title';
+
+  @override
+  String get exportColumnArtist => 'Artist';
+
+  @override
+  String get exportColumnStation => 'Station';
+
+  @override
+  String get exportColumnSavedAt => 'Saved on';
+
+  @override
   String get settingAutoplayTitle => 'Play on launch';
 
   @override

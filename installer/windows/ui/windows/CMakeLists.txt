@@ -10,6 +10,10 @@ set(BINARY_NAME "linefm_setup")
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
 
+# Statische C-Laufzeit: die Setup-Oberflaeche startet aus dem Temp-Ordner und
+# darf nicht vom Visual-C++-Redistributable abhaengen.
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTICONFIG)

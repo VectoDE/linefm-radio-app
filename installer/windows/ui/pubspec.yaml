@@ -1,11 +1,15 @@
 name: linefm_setup
-description: "A new Flutter project."
+description: Eigene Setup-Oberfläche (Installer und Deinstaller) von LINEFM Radio für Windows.
 publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0+1
 
 environment:
   sdk: ^3.14.0
+  flutter: ">=3.50.0"
 
+# Bewusst nur die Abhängigkeiten der App selbst (keine neuen Pakete): die
+# Kommunikation mit der Setup-Engine läuft über einen MethodChannel im
+# Windows-Runner (windows/runner/engine_bridge.cpp).
 dependencies:
   flutter:
     sdk: flutter
@@ -18,3 +22,19 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/logo.png
+  # Gleiche Schriften wie die App (assets/fonts im Hauptprojekt). Lizenzen:
+  # assets/fonts/OFL.txt und assets/fonts/LICENSE-Syncopate-Apache2.txt,
+  # werden als Dateien neben der Oberfläche ausgeliefert (packaging).
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+    - family: Syncopate
+      fonts:
+        - asset: assets/fonts/Syncopate-Bold.ttf
+          weight: 700

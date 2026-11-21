@@ -5,6 +5,8 @@
 //          --app <Release-Ordner der App> --ui <Release-Ordner der Oberflaeche>
 //          --ui-file <Archivpfad>=<Datei> (mehrfach, z. B. LICENSE.txt, fonts/...)
 //          --product <installer.ini> --version <x.y.z[-suffix]> --out <setup.exe>
+#include <algorithm>
+#include <atomic>
 #include <cstdio>
 #include <cstring>
 #include <future>

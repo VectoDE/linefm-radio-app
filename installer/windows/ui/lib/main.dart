@@ -1,16 +1,52 @@
+import 'dart:io';
+
 import 'package:material_ui/material_ui.dart';
 
-void main() {
-  runApp(const MainApp());
+import 'src/app.dart';
+import 'src/context.dart';
+import 'src/controller.dart';
+import 'src/engine.dart';
+
+/// Einstieg der Setup-Oberfläche. Wird nur vom Setup-Stub gestartet:
+///   `linefm_setup.exe --context PFAD` (PFAD = context.json)
+Future<void> main(List<String> args) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final contextPath = _argValue(args, '--context');
+  SetupContext? setup;
+  if (contextPath != null) {
+    try {
+      setup = SetupContext.parse(await File(contextPath).readAsString());
+    } on Object {
+      setup = null;
+    }
+  }
+  if (setup == null) {
+    // Direkt gestartet oder Kontext beschädigt: der Stub zeigt dann einen
+    // Hinweis auf die stille Installation (Exit-Code 1 = Parameter).
+    exit(ExitCode.badArgs);
+  }
+  final controller = SetupController(
+    context: setup,
+    platform: NativeSetupPlatform(),
+    exit: exit,
+    licenseText: await _readLicense(),
+  );
+  runApp(SetupApp(controller: controller));
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+String? _argValue(List<String> args, String name) {
+  final i = args.indexOf(name);
+  return i >= 0 && i + 1 < args.length ? args[i + 1] : null;
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(body: Center(child: Text('Hello World!'))),
-    );
+/// LICENSE.txt liegt neben der Oberfläche (der Packer legt sie dort ab).
+Future<String?> _readLicense() async {
+  try {
+    final dir = File(Platform.resolvedExecutable).parent.path;
+    final text = await File('$dir${Platform.pathSeparator}LICENSE.txt')
+        .readAsString();
+    return text.trim().isEmpty ? null : text;
+  } on Object {
+    return null;
   }
 }

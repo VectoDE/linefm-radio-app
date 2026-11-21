@@ -3,6 +3,8 @@
 #include <dwmapi.h>
 #include <flutter_windows.h>
 
+#include <algorithm>
+
 #include "resource.h"
 
 namespace {
@@ -128,17 +130,31 @@ bool Win32Window::Create(const std::wstring& title,
   const wchar_t* window_class =
       WindowClassRegistrar::GetInstance()->GetWindowClass();
 
-  const POINT target_point = {static_cast<LONG>(origin.x),
-                              static_cast<LONG>(origin.y)};
+  // Setup-Fenster: feste Groesse, mittig auf dem Monitor mit dem Mauszeiger
+  // (dort startet der Nutzer das Setup). origin wird nur als Rueckfall genutzt.
+  POINT target_point = {static_cast<LONG>(origin.x),
+                        static_cast<LONG>(origin.y)};
+  GetCursorPos(&target_point);
   HMONITOR monitor = MonitorFromPoint(target_point, MONITOR_DEFAULTTONEAREST);
   UINT dpi = FlutterDesktopGetDpiForMonitor(monitor);
   double scale_factor = dpi / 96.0;
+  int width = Scale(size.width, scale_factor);
+  int height = Scale(size.height, scale_factor);
+  int x = Scale(origin.x, scale_factor);
+  int y = Scale(origin.y, scale_factor);
+  MONITORINFO info = {sizeof(info)};
+  if (GetMonitorInfo(monitor, &info)) {
+    const RECT& work = info.rcWork;
+    width = (std::min)(width, static_cast<int>(work.right - work.left));
+    height = (std::min)(height, static_cast<int>(work.bottom - work.top));
+    x = work.left + ((work.right - work.left) - width) / 2;
+    y = work.top + ((work.bottom - work.top) - height) / 2;
+  }
 
   HWND window = CreateWindow(
-      window_class, title.c_str(), WS_OVERLAPPEDWINDOW,
-      Scale(origin.x, scale_factor), Scale(origin.y, scale_factor),
-      Scale(size.width, scale_factor), Scale(size.height, scale_factor),
-      nullptr, nullptr, GetModuleHandle(nullptr), this);
+      window_class, title.c_str(),
+      WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, x, y, width,
+      height, nullptr, nullptr, GetModuleHandle(nullptr), this);
 
   if (!window) {
     return false;

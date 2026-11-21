@@ -120,11 +120,13 @@ class AlarmScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(),
         body: ListView(
-          padding: EdgeInsets.fromLTRB(side, 8, side, 48),
+          padding: EdgeInsets.fromLTRB(side, LinefmSpace.sm, side, 48),
           children: <Widget>[
             SectionHeading(
               l10n.alarmTitle,
-              style: TextStyle(fontSize: width < 600 ? 18 : 25),
+              style: TextStyle(
+                fontSize: width < 600 ? LinefmType.title : LinefmType.heading,
+              ),
             ),
             Text(
               next == null
@@ -132,10 +134,10 @@ class AlarmScreen extends ConsumerWidget {
                   : l10n.alarmNext(formatAlarmTime(context, l10n, next, now)),
               style: LinefmText.listTitle.copyWith(color: c.muted),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: LinefmSpace.lg),
             _Note(text: note),
             if (!permission.exactOk) ...<Widget>[
-              const SizedBox(height: 12),
+              const SizedBox(height: LinefmSpace.md),
               _PermissionNote(
                 text: l10n.alarmExactMissingNote,
                 action: l10n.alarmOpenSettings,
@@ -143,17 +145,17 @@ class AlarmScreen extends ConsumerWidget {
               ),
             ],
             if (!permission.fullScreenOk) ...<Widget>[
-              const SizedBox(height: 12),
+              const SizedBox(height: LinefmSpace.md),
               _PermissionNote(
                 text: l10n.alarmFullScreenMissingNote,
                 action: l10n.alarmOpenFullScreenSettings,
                 onAction: () => ref.read(alarmOpenFullScreenSettingsProvider)(),
               ),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: LinefmSpace.gutter),
             for (final rule in rules)
               Padding(
-                padding: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.only(bottom: LinefmSpace.lg),
                 child: _AlarmCard(
                   key: ValueKey<String>(rule.id),
                   rule: rule,
@@ -251,14 +253,14 @@ class _Note extends StatelessWidget {
         borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(LinefmSpace.lg),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             ExcludeSemantics(
               child: Icon(Icons.info_outline, size: 18, color: c.muted),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: LinefmSpace.md),
             Expanded(
               child: Text(
                 text,
@@ -295,12 +297,12 @@ class _PermissionNote extends StatelessWidget {
         borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(LinefmSpace.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(text, style: LinefmText.settingCopy.copyWith(color: c.text)),
-            const SizedBox(height: 10),
+            const SizedBox(height: LinefmSpace.md),
             FilledButton(onPressed: onAction, child: Text(action)),
           ],
         ),
@@ -352,7 +354,12 @@ class _AlarmCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+        padding: const EdgeInsets.fromLTRB(
+          LinefmSpace.lg,
+          LinefmSpace.md,
+          LinefmSpace.sm,
+          LinefmSpace.md,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -384,8 +391,10 @@ class _AlarmCard extends StatelessWidget {
                           alignment: Alignment.centerLeft,
                           child: Text(
                             time,
-                            style: LinefmText.playerTitle(600)
-                                .copyWith(color: timeColor, fontSize: 30),
+                            style: LinefmText.playerTitle(600).copyWith(
+                              color: timeColor,
+                              fontSize: LinefmType.display,
+                            ),
                           ),
                         ),
                       ),
@@ -412,7 +421,7 @@ class _AlarmCard extends StatelessWidget {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: LinefmSpace.sm),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -420,17 +429,17 @@ class _AlarmCard extends StatelessWidget {
                     alarmRepeatSummary(l10n, rule.weekdays),
                     style: LinefmText.settingCopy.copyWith(color: c.muted),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: LinefmSpace.sm),
                   _DayChips(
                     selected: rule.weekdays,
                     onChanged: (d) => onChanged(rule.copyWith(weekdays: d)),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: LinefmSpace.lg),
                   _StationPicker(
                     slug: rule.stationSlug,
                     onChanged: (s) => onChanged(rule.copyWith(stationSlug: s)),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: LinefmSpace.md),
                   _LabeledRow(
                     label: l10n.alarmVolume,
                     child: VolumeSteps(
@@ -441,7 +450,7 @@ class _AlarmCard extends StatelessWidget {
                       onChanged: (v) => onChanged(rule.copyWith(volume: v)),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: LinefmSpace.sm),
                   Text(
                     '${l10n.alarmSnooze}: '
                     '${l10n.alarmSnoozeMinutes(AlarmSchedule.snooze.inMinutes)}',
@@ -472,8 +481,8 @@ class _DayChips extends StatelessWidget {
       container: true,
       label: l10n.alarmDays,
       child: Wrap(
-        spacing: 6,
-        runSpacing: 6,
+        spacing: LinefmSpace.sm,
+        runSpacing: LinefmSpace.sm,
         children: <Widget>[
           for (var d = 1; d <= 7; d++)
             FilterChip(
@@ -524,7 +533,7 @@ class _StationPicker extends StatelessWidget {
                 borderRadius: BorderRadius.circular(LinefmMetrics.radiusLogo),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: LinefmSpace.md),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: value,
@@ -574,8 +583,8 @@ class _LabeledRow extends StatelessWidget {
     return Wrap(
       alignment: WrapAlignment.spaceBetween,
       crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 16,
-      runSpacing: 8,
+      spacing: LinefmSpace.lg,
+      runSpacing: LinefmSpace.sm,
       children: <Widget>[
         Text(label, style: LinefmText.settingTitle.copyWith(color: c.text)),
         child,

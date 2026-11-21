@@ -8,12 +8,14 @@ import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Speicher-Hinweis wie in der Web-App, auf allen Plattformen (Entscheidung
-/// 39), mit sachlichem Wortlaut (L13/C16): was gespeichert wird und wozu.
+/// Speicher-Hinweis als Banner, nur im Browser (Entscheidung vom 21.11.2026
+/// ersetzt Entscheidung 39). In der App und auf dem Desktop zeigt stattdessen
+/// ein Popup den Hinweis (`StorageNoticeDialog`), das Banner bleibt dort leer.
+/// Sachlicher Wortlaut (L13/C16): was gespeichert wird und wozu.
 ///
-/// Erscheint, solange die Speicher-Bestaetigung fehlt. "Verstanden" setzt sie,
-/// "Speicher loeschen" in den Einstellungen setzt sie zurueck. Die Shell
-/// platziert das Widget am unteren Rand ueber der Navigation (Web: 69 dp +
+/// Erscheint im Browser, solange die Speicher-Bestaetigung fehlt. "Verstanden"
+/// setzt sie, "Speicher loeschen" in den Einstellungen setzt sie zurueck. Die
+/// Shell platziert das Widget am unteren Rand ueber der Navigation (69 dp +
 /// 12 dp Abstand, max. 760 dp breit).
 class StorageNotice extends ConsumerWidget {
   const StorageNotice({super.key});
@@ -21,6 +23,7 @@ class StorageNotice extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final confirmed = ref.watch(storageConsentProvider);
+    final isWeb = ref.watch(platformInfoProvider).isWeb;
     final reduce = MediaQuery.disableAnimationsOf(context);
     return AnimatedSwitcher(
       duration: reduce ? Duration.zero : LinefmMetrics.medium,
@@ -29,7 +32,7 @@ class StorageNotice extends ConsumerWidget {
         opacity: animation,
         child: SizeTransition(sizeFactor: animation, child: child),
       ),
-      child: confirmed
+      child: confirmed || !isWeb
           ? const SizedBox.shrink(key: ValueKey<String>('storage-notice-off'))
           : const _NoticeCard(key: ValueKey<String>('storage-notice-on')),
     );
@@ -43,17 +46,14 @@ class _NoticeCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final c = context.linefm;
-    final platform = ref.watch(platformInfoProvider);
-    final text = platform.isWeb
-        ? l10n.storageNoticeBodyWeb
-        : l10n.storageNoticeBodyDevice;
+    final text = l10n.storageNoticeBodyWeb;
 
     const compactButton = ButtonStyle(
       minimumSize: WidgetStatePropertyAll<Size>(
         Size(0, LinefmMetrics.minTarget),
       ),
       padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
-        EdgeInsets.symmetric(horizontal: 12),
+        EdgeInsets.symmetric(horizontal: LinefmSpace.md),
       ),
       visualDensity: VisualDensity.compact,
       tapTargetSize: MaterialTapTargetSize.padded,
@@ -88,7 +88,12 @@ class _NoticeCard extends ConsumerWidget {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 6, 6, 6),
+            padding: const EdgeInsets.fromLTRB(
+              LinefmSpace.lg,
+              LinefmSpace.sm,
+              LinefmSpace.sm,
+              LinefmSpace.sm,
+            ),
             child: LayoutBuilder(
               builder: (context, box) {
                 // Live-Region nur um den Text, nicht um die Knoepfe.
@@ -108,11 +113,13 @@ class _NoticeCard extends ConsumerWidget {
                     children: <Widget>[
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: LinefmSpace.sm,
+                          ),
                           child: copy,
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: LinefmSpace.sm),
                       IntrinsicWidth(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -126,9 +133,9 @@ class _NoticeCard extends ConsumerWidget {
                 return Row(
                   children: <Widget>[
                     Expanded(child: copy),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: LinefmSpace.lg),
                     privacy,
-                    const SizedBox(width: 8),
+                    const SizedBox(width: LinefmSpace.sm),
                     dismiss,
                   ],
                 );

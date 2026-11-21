@@ -288,4 +288,45 @@ void main() {
       <int?>[2, 4, 8, 16, 30, null],
     );
   });
+
+  test('Issue #99: gestoppt, neuer Sender gewaehlt -> Benachrichtigung zeigt '
+      'dessen Titel', () async {
+    final player = FakeRadioPlayer();
+    final h = _handler(player);
+    final soon = DateTime.now().add(const Duration(minutes: 3));
+    await h.playStation(main);
+    await _settle();
+    await h.updateNowPlaying(
+      main,
+      Track(artist: 'Alt', title: 'Alter Sender', endsAt: soon),
+    );
+    await h.stopPlayback();
+    // Die App meldet zuerst die Auswahl, dann deren Titel.
+    h.recentStation = rap;
+    await h.updateNowPlaying(
+      rap,
+      Track(artist: 'Neu', title: 'Neuer Sender', endsAt: soon),
+    );
+    expect(h.mediaItem.value?.title, 'Neuer Sender');
+  });
+
+  test(
+    'Issue #99: Wechsel per Medientaste zeigt keinen abgelaufenen Titel',
+    () async {
+      final player = FakeRadioPlayer();
+      final h = _handler(player);
+      await h.updateNowPlaying(
+        rap,
+        Track(
+          artist: 'Alt',
+          title: 'Laengst vorbei',
+          endsAt: DateTime.now().subtract(const Duration(minutes: 30)),
+        ),
+      );
+      await h.playStation(main);
+      await h.skipToNext();
+      expect(h.state.station, rap);
+      expect(h.mediaItem.value?.title, isNot('Laengst vorbei'));
+    },
+  );
 }

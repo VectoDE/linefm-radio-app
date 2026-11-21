@@ -21,6 +21,7 @@ import 'package:linefm_radio/features/legal/legal_screen.dart';
 import 'package:linefm_radio/features/mini_player/mini_player.dart';
 import 'package:linefm_radio/features/player/player_actions.dart';
 import 'package:linefm_radio/features/player/player_screen.dart';
+import 'package:linefm_radio/features/settings/platform_info.dart';
 import 'package:linefm_radio/features/settings/settings_screen.dart';
 import 'package:linefm_radio/features/stations/favorite_stations.dart';
 import 'package:linefm_radio/features/stations/stations_screen.dart';
@@ -346,7 +347,9 @@ class _NoticesRegion extends ConsumerWidget {
     final blocked = ref.watch(autoplayBlockedProvider);
     final player = ref.watch(navigationProvider) == AppScreen.player;
     final storage =
-        !ref.watch(storageConsentProvider) && !(compact && blocked && !player);
+        ref.watch(platformInfoProvider).isWeb &&
+        !ref.watch(storageConsentProvider) &&
+        !(compact && blocked && !player);
     final visible = offline || storage || (!compact && blocked);
     if (!visible) return child;
     return Semantics(
@@ -901,8 +904,8 @@ class _NavItem extends StatelessWidget {
 
 // ------------------------------------------------------- Hinweisleisten
 
-/// Speicher-Hinweis unten ueber Mini-Player und Navigation (Web: 16 dp
-/// Rand, max. 760 dp breit).
+/// Speicher-Hinweis-Banner (nur Web) unten ueber Mini-Player und Navigation
+/// (16 dp Rand, max. 760 dp breit).
 class _StorageNoticeSlot extends ConsumerWidget {
   const _StorageNoticeSlot({this.yieldToAutoplay = false});
 
@@ -912,7 +915,10 @@ class _StorageNoticeSlot extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final confirmed = ref.watch(storageConsentProvider);
-    if (confirmed) return const SizedBox.shrink();
+    // Banner nur im Browser; App und Desktop zeigen ein Popup (Gate).
+    if (confirmed || !ref.watch(platformInfoProvider).isWeb) {
+      return const SizedBox.shrink();
+    }
     if (yieldToAutoplay &&
         ref.watch(autoplayBlockedProvider) &&
         ref.watch(navigationProvider) != AppScreen.player) {

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/platform/deep_links.dart';
 import 'package:material_ui/material_ui.dart';

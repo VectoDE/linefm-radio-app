@@ -55,7 +55,7 @@ enum StationsUpdateOutcome {
 /// - Nur JSON (Content-Type), strenges Schema ([parseStationsConfig]).
 /// - Ungueltige oder leere Listen werden nie uebernommen; die bisherige
 ///   Liste bleibt.
-/// - Streams laufen immer ueber stream.laut.fm/<kuerzel>; die Datei kann
+/// - Streams laufen immer ueber `stream.laut.fm/<kuerzel>`; die Datei kann
 ///   keine Stream-Adressen setzen.
 ///
 /// Speichern: die zuletzt gueltige Fassung (mit ETag) nur nach bestaetigtem
@@ -63,14 +63,12 @@ enum StationsUpdateOutcome {
 class StationsUpdater {
   StationsUpdater({
     required this.url,
-    required PrefsStore prefs,
+    required this._prefs,
     required this.appVersion,
-    http.Client? client,
+    this._client,
     bool? conditionalHeaders,
     this.timeout = const Duration(seconds: 10),
-  }) : _prefs = prefs,
-       _client = client,
-       _conditional = conditionalHeaders ?? !kIsWeb;
+  }) : _conditional = conditionalHeaders ?? !kIsWeb;
 
   /// Feste Adresse oder null (dann kein Netzabruf).
   final Uri? url;

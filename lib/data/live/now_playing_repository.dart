@@ -153,6 +153,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   final SongChangeSocket? _socket;
   final ArtworkService _artwork;
   final Clock _clock;
+
   /// Feste Liste (Tests); sonst die aktuelle Senderliste (Issue #91).
   final List<Station>? _fixedStations;
 

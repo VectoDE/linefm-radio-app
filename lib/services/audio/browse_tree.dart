@@ -116,9 +116,8 @@ class BrowseTree {
   /// Sender ohne mitgeliefertes Logo (erst nachgeladen, Issue #91) zeigen
   /// das LINEFM-Logo wie das Homescreen-Widget; Android Auto kann keine
   /// Bilder aus dem Netz anzeigen.
-  static String androidDrawableName(Station station) => hasNativeStationLogo(
-        station,
-      )
+  static String androidDrawableName(Station station) =>
+      hasNativeStationLogo(station)
       ? 'auto_station_${station.slug.toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '')}'
       : fallbackDrawableName;
 

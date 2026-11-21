@@ -58,6 +58,7 @@ flutter:
   uses-material-design: true
   generate: true
   assets:
+    - assets/config/
     - assets/images/stations/
     - assets/images/brand/
     - assets/audio/

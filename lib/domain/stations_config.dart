@@ -55,7 +55,7 @@ final RegExp _colorPattern = RegExp(r'^#[0-9A-Fa-f]{6}$');
 /// Steuerzeichen und Richtungs-Steuerzeichen (Bidi), die in einem
 /// Anzeigenamen nichts verloren haben.
 final RegExp _unsafeChars = RegExp(
-  '[\u0000-\u001F\u007F-\u009F​-‏‪-‮⁠-⁯﻿]',
+  '[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]',
 );
 
 /// Prueft das Format eines Kuerzels (ohne Abgleich mit der Liste).
@@ -131,7 +131,7 @@ StationsConfigResult parseStationsConfigBytes(
   Set<String>? knownLogoAssets,
 }) {
   if (bytes.length > stationsConfigMaxBytes) {
-    return StationsConfigResult(
+    return const StationsConfigResult(
       errors: <StationsConfigIssue>[
         StationsConfigIssue(
           'Die Datei ist größer als ${stationsConfigMaxBytes ~/ 1024} KB.',
@@ -165,7 +165,7 @@ StationsConfigResult parseStationsConfig(
   Set<String>? knownLogoAssets,
 }) {
   if (utf8.encode(text).length > stationsConfigMaxBytes) {
-    return StationsConfigResult(
+    return const StationsConfigResult(
       errors: <StationsConfigIssue>[
         StationsConfigIssue(
           'Die Datei ist größer als ${stationsConfigMaxBytes ~/ 1024} KB.',
@@ -200,6 +200,52 @@ class _Validator {
   void _error(String message, int line) =>
       _errors.add(StationsConfigIssue(message, line: line));
 
+  static const Set<String> _topKeys = <String>{
+    'hinweis',
+    'schemaVersion',
+    'sender',
+  };
+  static const Set<String> _entryKeys = <String>{
+    'kuerzel',
+    'name',
+    'farbe',
+    'logo',
+    'logoDatei',
+    'aktiv',
+  };
+
+  /// Unbekannte Felder sind fast immer Tippfehler ("nmae" statt "name").
+  void _unknownKeys(Map<String, _Node> map, Set<String> allowed, String where) {
+    for (final entry in map.entries) {
+      if (allowed.contains(entry.key)) continue;
+      final lower = entry.key.toLowerCase();
+      final guess = allowed.firstWhere(
+        (k) => _close(k.toLowerCase(), lower),
+        orElse: () => '',
+      );
+      _error(
+        '$where: Das Feld "${entry.key}" kennt die App nicht.'
+        '${guess.isEmpty ? '' : ' Meintest du "$guess"?'}'
+        ' Erlaubt sind: ${allowed.join(', ')}.',
+        entry.value.line,
+      );
+    }
+  }
+
+  /// Gleiche Buchstaben in anderer Reihenfolge oder gleich lang mit
+  /// hoechstens zwei abweichenden Zeichen.
+  static bool _close(String a, String b) {
+    if ((a.split('')..sort()).join() == (b.split('')..sort()).join()) {
+      return true;
+    }
+    if (a.length != b.length) return false;
+    var diff = 0;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) diff++;
+    }
+    return diff <= 2;
+  }
+
   StationsConfigResult run(_Node root) {
     final top = root.object;
     if (top == null) {
@@ -209,6 +255,7 @@ class _Validator {
       );
       return _result(const <StationConfigEntry>[]);
     }
+    _unknownKeys(top, _topKeys, 'Die Datei');
     final version = top['schemaVersion'];
     if (version == null) {
       _error('"schemaVersion" fehlt. Trage "schemaVersion": 1 ein.', root.line);
@@ -286,6 +333,7 @@ class _Validator {
       return null;
     }
     final before = _errors.length;
+    _unknownKeys(map, _entryKeys, 'Sender $number');
 
     final slug = _string(map, 'kuerzel', node, number);
     if (slug != null && !stationSlugPattern.hasMatch(slug.value as String)) {
@@ -393,10 +441,7 @@ class _Validator {
   _Node? _string(Map<String, _Node> map, String key, _Node owner, int number) {
     final node = map[key];
     if (node == null) {
-      _error(
-        'Bei Sender $number fehlt "$key".${_example(key)}',
-        owner.line,
-      );
+      _error('Bei Sender $number fehlt "$key".${_example(key)}', owner.line);
       return null;
     }
     if (node.value is! String) {
@@ -420,10 +465,8 @@ class _Validator {
 
 /// Anzeigename als reiner Text: Steuer- und Richtungszeichen raus, Leerraum
 /// zusammengefasst, Raender abgeschnitten.
-String cleanStationName(String raw) => raw
-    .replaceAll(_unsafeChars, ' ')
-    .replaceAll(RegExp(r'\s+'), ' ')
-    .trim();
+String cleanStationName(String raw) =>
+    raw.replaceAll(_unsafeChars, ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
 
 /// null, wenn die Logo-Adresse erlaubt ist, sonst die Meldung.
 String? logoUrlProblem(String value) {
@@ -589,18 +632,12 @@ class _JsonReader {
       final key = _string();
       _skip();
       if (!_peek(':')) {
-        throw _JsonError(
-          'Nach "$key" fehlt der Doppelpunkt :.',
-          _line,
-        );
+        throw _JsonError('Nach "$key" fehlt der Doppelpunkt :.', _line);
       }
       _i++;
       final value = _value(depth + 1);
       if (map.containsKey(key)) {
-        throw _JsonError(
-          '"$key" steht in diesem Block doppelt.',
-          keyLine,
-        );
+        throw _JsonError('"$key" steht in diesem Block doppelt.', keyLine);
       }
       map[key] = value;
       _skip();
@@ -690,9 +727,8 @@ class _JsonReader {
       _i++;
     }
     final raw = _s.substring(start, _i);
-    final valid = RegExp(
-      r'^-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?$',
-    ).hasMatch(raw);
+    final valid = RegExp(r'^-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?$')
+        .hasMatch(raw);
     if (!valid) throw _JsonError('Ungültige Zahl "$raw".', _line);
     return num.parse(raw);
   }

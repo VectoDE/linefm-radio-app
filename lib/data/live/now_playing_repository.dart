@@ -156,6 +156,10 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   final List<Station> _stations;
 
   Station _active;
+
+  /// Zaehlt Stationswechsel; Antworten, die fuer eine fruehere aktive
+  /// Station angefordert wurden, planen keinen Timer mehr (Issue #99).
+  int _activeGeneration = 0;
   bool _foreground;
   bool _playing;
   bool _started = false;
@@ -241,6 +245,16 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   void setActiveStation(Station station) {
     if (_disposed || station == _active) return;
     _active = station;
+    _activeGeneration++;
+    // Issue #99: Ein gemerkter Titel, dessen Ende schon vorbei ist, stammt
+    // aus einem frueheren Abruf (im Hintergrund werden nur die aktive
+    // Station und im Vordergrund alle 60 s abgefragt). Statt ihn bis zur
+    // Antwort stehen zu lassen, sofort neutral (Sendername) anzeigen.
+    final known = _current[station.slug];
+    final endsAt = known?.endsAt;
+    if (endsAt != null && endsAt.add(endsAtLead).isBefore(_clock.now())) {
+      _current[station.slug] = null;
+    }
     _emit();
     if (!_started) return;
     unawaited(_fetchActive(includeHistory: true));
@@ -340,11 +354,16 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     bool bypassGap = false,
   }) async {
     final slug = _active.slug;
+    final generation = _activeGeneration;
     await Future.wait(<Future<void>>[
       _fetchCurrent(slug, bypassGap: bypassGap),
       if (includeHistory) _fetchHistory(slug, bypassGap: bypassGap),
       if (includeHistory) _fetchListeners(slug, bypassGap: bypassGap),
     ]);
+    // Verspaetete Antwort fuer eine inzwischen abgewaehlte Station: Die
+    // Daten bleiben beim eigenen Sender (Slug), den ends_at-Timer plant der
+    // Abruf der neuen Station.
+    if (generation != _activeGeneration) return;
     _scheduleEndsAt();
   }
 

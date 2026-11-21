@@ -8,6 +8,8 @@ import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/platform/desktop/desktop_controller.dart';
 import 'package:linefm_radio/platform/desktop/mini_window.dart';
+import 'package:linefm_radio/platform/desktop/title_bar.dart';
+import 'package:linefm_radio/platform/desktop/window_caption.dart';
 
 /// [DesktopActions] auf Basis der Riverpod-Provider.
 class ProviderDesktopActions implements DesktopActions {
@@ -130,24 +132,62 @@ class _DesktopHostState extends ConsumerState<DesktopHost> {
               offstage: mini,
               child: TickerMode(
                 enabled: !mini,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    if (!mini) _normalSize = constraints.biggest;
-                    final fixed = mini && !_normalSize.isEmpty;
-                    return OverflowBox(
-                      alignment: Alignment.topLeft,
-                      minWidth: fixed ? _normalSize.width : null,
-                      maxWidth: fixed ? _normalSize.width : null,
-                      minHeight: fixed ? _normalSize.height : null,
-                      maxHeight: fixed ? _normalSize.height : null,
-                      child: widget.child,
-                    );
-                  },
+                child: _framed(
+                  mini: mini,
+                  app: LayoutBuilder(
+                    builder: (context, constraints) {
+                      if (!mini) _normalSize = constraints.biggest;
+                      final fixed = mini && !_normalSize.isEmpty;
+                      return OverflowBox(
+                        alignment: Alignment.topLeft,
+                        minWidth: fixed ? _normalSize.width : null,
+                        maxWidth: fixed ? _normalSize.width : null,
+                        minHeight: fixed ? _normalSize.height : null,
+                        maxHeight: fixed ? _normalSize.height : null,
+                        child: widget.child,
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
             if (mini) const MiniPlayerWindow(),
           ],
+        );
+      },
+    );
+  }
+
+  /// Eigene Titelleiste ueber der App (Issue #87). Der Baum um [app] bleibt
+  /// in jedem Zustand gleich (Leiste nur ein-/ausgeblendet, Griffe nur
+  /// abgeschaltet), damit Navigator und App-Zustand nie neu entstehen.
+  ///
+  /// Tastatur: Tab bleibt wie bei nativen Titelleisten im Inhalt (der
+  /// Navigator haelt den Fokus in seinem Bereich), die Leiste steht also nie
+  /// vor dem Hauptinhalt. Fenster-Aktionen per Tastatur laufen wie bisher
+  /// ueber das System: Alt+Leertaste (Windows, auch Linux-Fenstermanager),
+  /// Win+Pfeil, Alt+F4. Screenreader erreichen die Schaltflaechen ueber ihre
+  /// Semantik.
+  Widget _framed({required bool mini, required Widget app}) {
+    final caption = _desktop.caption;
+    if (caption.style == CaptionStyle.none) return app;
+    return ValueListenableBuilder<WindowFrameState>(
+      valueListenable: caption.frameState,
+      builder: (context, state, _) {
+        final normal = !state.maximized && !state.fullScreen && !mini;
+        return caption.resizeArea(
+          enabled: normal,
+          // Eigenes Overlay fuer die Hinweisblasen der Leiste (sie liegt
+          // ueber dem Navigator der App).
+          Overlay.wrap(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                DesktopTitleBar(controls: caption, state: state),
+                Expanded(child: app),
+              ],
+            ),
+          ),
         );
       },
     );

@@ -433,4 +433,136 @@ void main() {
     await sched.advance(const Duration(minutes: 15));
     expect(api.calls, isEmpty);
   });
+
+  group('Issue #99: schneller Senderwechsel', () {
+    test(
+      'verspaetete Antwort des alten Senders aendert den neuen nicht',
+      () async {
+        final api = _GatedApi()
+          ..current.addAll(<String, Track?>{
+            for (final s in stationsCatalog) s.slug: _song('${s.slug}-1'),
+          });
+        final r = LiveNowPlayingRepository(
+          api: api,
+          clock: clock,
+          timer: sched.one,
+          periodicTimer: sched.periodic,
+        );
+        final third = stationsCatalog[2];
+        final seen = <String, Track?>{};
+        final subs = <StreamSubscription<Object?>>[
+          for (final s in [main, rap, third])
+            r.watchTrack(s).listen((t) => seen[s.slug] = t),
+        ];
+        await _settle();
+        expect(seen[third.slug]?.title, '${third.slug}-1');
+
+        // Ab jetzt haengen alle Antworten, bis der Test sie freigibt.
+        api.gated = true;
+        clock.setTo(_t0.add(const Duration(minutes: 1)));
+        r
+          ..setActiveStation(rap)
+          ..setActiveStation(third)
+          ..setActiveStation(rap)
+          ..setActiveStation(third);
+        await _settle();
+        expect(api.pending.keys, containsAll(<String>['current:${rap.slug}']));
+
+        // Neuer Sender antwortet zuerst, der alte erst danach.
+        api.release(
+          'current:${third.slug}',
+          _song('${third.slug}-2', startMin: 1),
+        );
+        await _settle();
+        api.release(
+          'current:${rap.slug}',
+          _song('${rap.slug}-2', startMin: 1, lengthSec: 600),
+        );
+        await _settle();
+        // Restliche Antworten (Verlauf, Hoerer) freigeben.
+        for (final key in api.pending.keys.toList()) {
+          api.release(key, null);
+        }
+        await _settle();
+
+        expect(seen[third.slug]?.title, '${third.slug}-2');
+        expect(seen[rap.slug]?.title, '${rap.slug}-2');
+        // ends_at-Timer gilt dem aktiven Sender (third-2, 180 s), nicht der
+        // verspaeteten Antwort von rap (600 s).
+        final thirdEnd = seen[third.slug]!.endsAt!;
+        expect(
+          r.lastEndsAtDelay,
+          thirdEnd.add(const Duration(seconds: 3)).difference(clock.now()),
+        );
+
+        for (final s in subs) {
+          await s.cancel();
+        }
+        r.dispose();
+      },
+    );
+
+    test('abgelaufener Titel des neuen Senders wird sofort neutral', () async {
+      final api = _GatedApi()
+        ..current.addAll(<String, Track?>{
+          for (final s in stationsCatalog) s.slug: _song('${s.slug}-1'),
+        });
+      final r = LiveNowPlayingRepository(
+        api: api,
+        clock: clock,
+        timer: sched.one,
+        periodicTimer: sched.periodic,
+      );
+      Track? rapTrack;
+      final sub = r.watchTrack(rap).listen((t) => rapTrack = t);
+      await _settle();
+      expect(rapTrack?.title, '${rap.slug}-1');
+
+      // rap-1 endete um Minute 3; die App war lange auf einem anderen Sender.
+      api.gated = true;
+      clock.setTo(_t0.add(const Duration(minutes: 20)));
+      r.setActiveStation(rap);
+      await _settle();
+      expect(rapTrack, isNull, reason: 'kein Titel vom Stand vor 17 Minuten');
+
+      api.release('current:${rap.slug}', _song('${rap.slug}-9', startMin: 19));
+      await _settle();
+      expect(rapTrack?.title, '${rap.slug}-9');
+
+      await sub.cancel();
+      r.dispose();
+    });
+  });
+}
+
+/// API, deren Antworten der Test einzeln freigibt (verspaetete Antworten).
+class _GatedApi implements LautApi {
+  final Map<String, Track?> current = <String, Track?>{};
+  final Map<String, Completer<Object?>> pending =
+      <String, Completer<Object?>>{};
+  bool gated = false;
+
+  Future<T> _call<T>(String key, T value) async {
+    if (!gated) return value;
+    final c = pending.putIfAbsent(key, Completer<Object?>.new);
+    final result = await c.future;
+    return result is T ? result : value;
+  }
+
+  void release(String key, Object? value) =>
+      pending.remove(key)!.complete(value);
+
+  @override
+  Future<Track?> currentSong(String slug) =>
+      _call('current:$slug', current[slug]);
+
+  @override
+  Future<List<Track>> lastSongs(String slug) =>
+      _call('last:$slug', const <Track>[]);
+
+  @override
+  Future<int?> listeners(String slug) => _call('listeners:$slug', null);
+
+  @override
+  Future<String?> streamUrl(String slug) async => null;
 }

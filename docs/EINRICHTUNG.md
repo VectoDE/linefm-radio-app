@@ -2,6 +2,8 @@
 
 Diese Liste enthält alles, was du als Betreiber wissen, besorgen und eintragen musst, damit LINEFM Radio in den Stores und im Web erscheint und einwandfrei läuft. Alles andere ist vorbereitet. Du brauchst kein Programmierwissen. Wo ein Entwickler etwas tun muss, steht es dabei.
 
+Die App selbst bauen, herunterladen und öffnen, ohne den Entwickler zu fragen: [BAUEN-UND-STARTEN.md](BAUEN-UND-STARTEN.md).
+
 ## So liest du diese Liste
 
 Jeder Schritt hat eine Nummer (zum Beispiel 6.4) und diese fünf Angaben:

@@ -1,6 +1,8 @@
 # Store-Texte
 
-Fertige Texte für die Store-Einträge von LINEFM Radio, jeweils Deutsch und Englisch. Sie nennen nur, was die App heute kann. Apple (iOS, macOS-Store, CarPlay, AirPlay) ist noch nicht veröffentlicht und kommt deshalb in keinem Text vor.
+Fertige Texte für die Store-Einträge von LINEFM Radio, jeweils Deutsch und Englisch. Sie nennen nur, was die App heute kann. Apple (iOS, macOS-Store, CarPlay, AirPlay) ist noch nicht veröffentlicht und kommt deshalb in den Texten für Google Play, Microsoft Store und Snap nicht vor. Der Abschnitt "App Store (Apple)" ist ein Entwurf für später.
+
+**Diese Datei ist die Quelle der Wahrheit** für Google Play und den App Store. Die maschinenlesbaren Dateien unter `fastlane/metadata/` werden daraus erzeugt (`dart tool/store_metadata.dart --write`) und nie von Hand bearbeitet. Ein Test (`test/tool/store_metadata_test.dart`) und die CI prüfen Zeichenlimits, Vollständigkeit in beiden Sprachen und dass beide Seiten übereinstimmen. Wer einen Text ändert, ändert ihn hier und führt den Befehl aus. Die Limits stehen im Kopf von `tool/store_metadata.dart` mit Quelle und Abrufdatum. Felder in Textblöcken mit `>` werden übernommen, die Zahl in Klammern hinter der Bezeichnung prüft der Test mit.
 
 Vor dem Einfügen: Die Freigabe in [FREIGABE-CHECKLISTE.md](FREIGABE-CHECKLISTE.md), Abschnitt C, abhaken. Die Zeichenzahlen stehen in Klammern und wurden mit einem Skript gezählt (Leerzeichen und Zeilenumbrüche zählen mit).
 
@@ -47,6 +49,10 @@ Regeln, an die sich die Texte halten:
 >
 > Ein Angebot von RadioGruppe Deutschland. Entwickelt von Tim Hauke (VectoDE) für jaybelife.
 
+**Neuerungen** (14 von 500 Zeichen)
+
+> Erste Version.
+
 ### English
 
 **Title** (12 of 30 characters)
@@ -78,6 +84,114 @@ Regeln, an die sich die Texte halten:
 > Note: The programme comes from laut.fm. Depending on the station, songs may contain strong language. Station names and logos belong to their respective operators.
 >
 > An offering of RadioGruppe Deutschland. Developed by Tim Hauke (VectoDE) for jaybelife.
+
+**What's new** (14 of 500 characters)
+
+> First release.
+
+---
+
+## App Store (Apple, Entwurf, noch nicht veröffentlicht)
+
+Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf iOS laufen und die oben schon für Android beschrieben sind. Android Auto, Chromecast und das Android-Widget fehlen deshalb. CarPlay, AirPlay, Widget und Wecker fehlen ebenfalls, bis ihre Wirkung auf iOS auf einem echten Gerät geprüft ist (siehe [FREIGABE-CHECKLISTE.md](FREIGABE-CHECKLISTE.md)). Die Schlüsselwörter sind ein Vorschlag von uns und kommen nicht aus den Play-Texten: Sie wiederholen den App-Namen nicht und nennen keine fremden Marken. Die Support-URL zeigt vorläufig auf die Support-Seite im Repository. jaybelife kann sie vor der Abgabe durch eine eigene Adresse ersetzen.
+
+### Deutsch
+
+**Name** (12 von 30 Zeichen)
+
+> LINEFM Radio
+
+**Untertitel** (28 von 30 Zeichen)
+
+> Live-Radio der LINEFM-Sender
+
+**Beschreibung** (989 von 4000 Zeichen)
+
+> Hör LineFM +MAIN, +RAP, +GAMING und +LOFI live, dazu die Partnersender Radio3FM und FobFM. Ohne Konto, ohne Werbung, kostenlos.
+>
+> Was die App kann:
+>
+> • Live-Radio mit Sendername, aktuellem Titel und Cover. Die Wiedergabe läuft im Hintergrund weiter, auch bei gesperrtem Bildschirm.
+> • Sperrbildschirm und Kopfhörertaste steuern die Wiedergabe.
+> • Favoriten: Songs und Sender merken, teilen und exportieren.
+> • Verlauf der zuletzt gespielten Titel.
+> • Sleeptimer mit 15, 30, 45 oder 60 Minuten.
+> • Deutsch und Englisch, heller und dunkler Modus.
+>
+> Datenschutz in Kürze: Favoriten, Verlauf und Einstellungen bleiben auf deinem Gerät. Die App braucht kein Konto. Statistik und Absturzberichte werden nur gesendet, wenn du ausdrücklich zustimmst.
+>
+> Hinweis: Das Programm kommt von laut.fm. Je nach Sender können Lieder Kraftausdrücke enthalten. Die Namen und Logos der Sender gehören den jeweiligen Betreibern.
+>
+> Ein Angebot von RadioGruppe Deutschland. Entwickelt von Tim Hauke (VectoDE) für jaybelife.
+
+**Schlüsselwörter** (Bytes, höchstens 100)
+
+> Radio,Webradio,Livestream,Sleeptimer,Favoriten,Rap,Lofi,Gaming,Musik
+
+**Neu in dieser Version** (14 von 4000 Zeichen)
+
+> Erste Version.
+
+**Datenschutz-URL**
+
+> https://app.linefm.de/datenschutz/
+
+**Support-URL**
+
+> https://github.com/VectoDE/linefm-radio-app/blob/main/SUPPORT.md
+
+**Marketing-URL**
+
+> https://app.linefm.de/
+
+### English
+
+**Name** (12 of 30 characters)
+
+> LINEFM Radio
+
+**Subtitle** (29 of 30 characters)
+
+> Live radio of LINEFM stations
+
+**Description** (936 of 4000 characters)
+
+> Listen to LineFM +MAIN, +RAP, +GAMING and +LOFI live, plus the partner stations Radio3FM and FobFM. No account, no ads, free.
+>
+> What the app does:
+>
+> • Live radio with station name, current track and cover art. Playback continues in the background, also with the screen locked.
+> • Lock screen and headset button control playback.
+> • Favorites: save songs and stations, share and export them.
+> • History of recently played tracks.
+> • Sleep timer with 15, 30, 45 or 60 minutes.
+> • German and English, light and dark mode.
+>
+> Privacy in short: favorites, history and settings stay on your device. The app needs no account. Usage statistics and crash reports are only sent if you explicitly agree.
+>
+> Note: The programme comes from laut.fm. Depending on the station, songs may contain strong language. Station names and logos belong to their respective operators.
+>
+> An offering of RadioGruppe Deutschland. Developed by Tim Hauke (VectoDE) for jaybelife.
+
+**Keywords** (bytes, at most 100)
+
+> Radio,Webradio,Livestream,Sleeptimer,Favoriten,Rap,Lofi,Gaming,Musik
+
+**What's new** (14 of 4000 characters)
+
+> First release.
+
+**Privacy URL**
+
+> https://app.linefm.de/datenschutz/en/
+
+**Support URL**
+
+> https://github.com/VectoDE/linefm-radio-app/blob/main/SUPPORT.md
+
+**Marketing URL**
+
+> https://app.linefm.de/
 
 ---
 

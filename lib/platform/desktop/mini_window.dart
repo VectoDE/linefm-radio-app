@@ -40,11 +40,11 @@ class MiniPlayerWindow extends ConsumerWidget {
         border: Border.all(color: colors.line),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(LinefmSpace.md),
         child: Row(
           children: <Widget>[
             CoverImage(station: station, url: track?.artworkUrl, size: 96),
-            const SizedBox(width: 12),
+            const SizedBox(width: LinefmSpace.md),
             Expanded(
               child: _Info(
                 station: station,

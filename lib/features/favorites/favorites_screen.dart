@@ -51,7 +51,12 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.fromLTRB(16, 0, 16, bottom),
+          margin: EdgeInsets.fromLTRB(
+            LinefmSpace.lg,
+            0,
+            LinefmSpace.lg,
+            bottom,
+          ),
           duration: const Duration(seconds: 5),
           content: Text(l10n.favoritesRemoved(favorite.title)),
           action: SnackBarAction(
@@ -89,12 +94,12 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
       ),
       itemCount: favorites.length,
       emptyState: Padding(
-        padding: const EdgeInsets.only(top: 4),
+        padding: const EdgeInsets.only(top: LinefmSpace.xs),
         child: Text(
           l10n.favoritesEmpty,
           style: LinefmText.listTitle.copyWith(
             color: context.linefm.muted,
-            fontSize: 14,
+            fontSize: LinefmType.body,
           ),
         ),
       ),

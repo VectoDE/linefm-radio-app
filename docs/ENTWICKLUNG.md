@@ -151,6 +151,16 @@ Referenzbilder hängen von der Rasterung der Plattform ab. Sie gelten deshalb nu
 - Alternativ lokal auf Windows 11: `flutter test --update-goldens test/ui/components_golden_test.dart` (je Datei), Bilder prüfen und committen. Die CI bleibt maßgeblich: stimmt sie nicht überein, gilt das Artifact.
 - Ein neuer Golden-Test braucht das Tag (`@Tags(<String>['golden'])` und `library;` ganz oben), den Dateinamen `*_golden_test.dart` und `setUpAll(prepareGoldens)` aus `test/golden_support.dart`.
 
+### Coverage
+
+Der Job „Tests“ der CI misst Zeilen- und Zweigabdeckung (`flutter test --coverage --branch-coverage`). Lokal nicht nötig; nur in der CI ausführen.
+
+- **Gefiltert:** `lib/l10n/gen/*` zählt nicht mit. Der Code kommt aus `flutter gen-l10n` und wird im Job „Uebersetzungen pruefen“ auf Aktualität geprüft; Tests dafür testen den Generator, nicht die App.
+- **Ungeladene Dateien** meldet `flutter test` von sich aus nicht. Ein Import-Lauf (`test/zz_coverage_all_test.dart`, wird nur in der CI erzeugt) holt sie mit 0 % in den Wert. Dateien mit Web-Bibliotheken (`*_web.dart`) lassen sich auf der VM nicht laden; sie stehen im Bericht unter „Ohne Messdaten“ und brauchen Browser-Tests.
+- **Bericht:** Tabelle je Datei in der Job-Zusammenfassung, HTML-Bericht im Artifact `coverage-html`, Rohdaten und Zusammenfassung in `coverage-lcov` (`report/summary.md`, `report/total.txt`).
+- **Check „Coverage darf nicht sinken“:** Auf Pull Requests vergleicht der Job die Zeilenabdeckung mit dem letzten erfolgreichen main-Lauf (Toleranz 0,10 Prozentpunkte). Ein Pflicht-Check mit 100 % folgt, sobald das erreicht ist (Issue #106).
+- Auswertung lokal nachstellen (mit einer vorhandenen `lcov.info`): `bash tool/coverage_report.sh coverage/lcov.info "" coverage/report`.
+
 - Schwere Builds (APK, Windows, Web) laufen nicht parallel zu `flutter test`, das braucht viel Arbeitsspeicher.
 - Eine Live-Probe der laut.fm-Schnittstelle liegt in `tool/dev/now_playing_probe.dart`.
 

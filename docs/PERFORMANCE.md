@@ -61,9 +61,16 @@ Größen des Web-Builds: `main.dart.wasm` 3,82 MB roh, `skwasm.wasm` 8,97 MB roh
 | Scrollen Senderliste: Bilder über 33 ms in 1,5 s | 37 von 39 | 52 von 52 | – |
 | Scrollen Senderliste: längstes Bild | 117 ms | 50 ms | 39 / 17 ms |
 | Scrollen Einstellungen: längstes Bild | 117 ms | 67 ms | 39 / 22 ms |
-| Seitenwechsel (Klick bis nächstes Bild) | im ersten Lauf nicht gemessen, siehe unten | | |
+Seitenwechsel aus dem Folgelauf [44952902695](https://github.com/VectoDE/linefm-radio-app/actions/runs/44952902695) (gleiche Bedingungen, n=5; im ersten Lauf fehlten sie, weil der Browser im Runner auf Englisch lief und die Suche deutsche Namen erwartete. Behoben mit Locale `de-DE` und englischen Namen als Rückfall):
 
-Die Seitenwechsel fehlen im ersten Lauf: Der Browser im Runner lief auf Englisch, die Suche nach den Schaltflächen erwartete deutsche Namen. Behoben in diesem PR (Locale `de-DE`, englische Namen als Rückfall); Werte aus dem Folgelauf stehen im PR.
+| Seitenwechsel | Klick bis nächstes Bild mobil | Desktop | längstes Bild mobil / Desktop | Ziel Klick mobil / Desktop |
+|---|---|---|---|---|
+| Verlauf | 208 ms (200 – 232) | 152 ms (144 – 152) | 317 / 183 ms | 69 / 51 ms |
+| Favoriten | 128 ms (128 – 144) | 56 ms (48 – 56) | 100 / 67 ms | 43 / 19 ms |
+| Einstellungen | 104 ms (96 – 112) | 96 ms (88 – 104) | 133 / 83 ms | 35 / 32 ms |
+| Sender | 104 ms (88 – 144) | 64 ms (64 – 72) | 133 / 100 ms | 35 / 21 ms |
+
+Der Verlauf ist der trägste Wechsel (mobil 18 Bilder über 33 ms, längstes 317 ms); Kandidat ist die gestaffelte Einblendung in `lib/features/history/stagger_in.dart`. Folgelauf Ton: Web 4,12 s (4,07 – 4,28), Windows Senderwechsel 1,17 s (1,00 – 1,57, 5 von 5).
 
 ### Ton nach Klick
 
@@ -87,7 +94,7 @@ Nach erwarteter Wirkung sortiert. Belegt heißt: Messwert aus dem Lauf oben und 
 | P92-03 | `lib/services/audio/audio_handler.dart:37` (`minConnectDuration` 1 s), `:425-427` | High | Ton-Marke `player-playing` frühestens nach 1 s, auch wenn der Stream schneller ist | Mindestdauer nur für die Anzeige, nicht für den Zustand; oder auf 0 setzen. Spart bis 1 s bei schnellem Stream |
 | P92-04 | Ton nach Klick, Stream-Puffer von laut.fm | High | Web: URL nach ca. 60 ms bekannt, `playing` erst nach 4,3 s; der Rest ist Puffern des Icecast-Streams im Browser bzw. in media_kit | Nur teilweise beeinflussbar: Verbindung vorwärmen (`preconnect` zu `*.stream.laut.fm`), Stream-URLs beim Start vorab holen (`lib/app/player_controller.dart:291`), media_kit-Puffergröße prüfen. Faktor 3 hier unsicher |
 | P92-05 | Windows `runApp` bis erstes Bild, `lib/main.dart:62-78` | High | 139 ms bis `runApp`, dann ca. 0,93 s bis zum ersten gerasterten Bild | Erstes Bild schlanker (Loader ohne Blur/Netzbilder), Schriften und Shader vorwärmen; Trace im Folgelauf |
-| P92-06 | `lib/features/loader/app_loader.dart:213-215` | Medium | Fester Ladebildschirm 400 ms (Web) bzw. 300 ms (nativ) plus 350 ms Ausblenden nach dem ersten Bild | Mindestdauer streichen oder an „Daten da“ koppeln, Ausblenden kürzen. Bis 0,75 s schneller bedienbar. Design in #80 abstimmen |
+| P92-06 | `lib/features/loader/app_loader.dart:213-215` | Medium | Fester Ladebildschirm 400 ms (Web) bzw. 300 ms (nativ) plus 350 ms Ausblenden nach dem ersten Bild | Entscheidung des Inhabers (21.11.2026): Splash ohne feste Mindestzeit, nur kurz einblenden. Mindestdauer entfällt, Ausblenden kürzen. Bis 0,75 s schneller bedienbar. Design in #80 |
 | P92-07 | `deploy/nginx/snippets/linefm-headers.conf:26-31` | Medium | Nur gzip 5; Startdateien 3,03 MB statt 2,33 MB mit Brotli 11 | Vorkomprimierte `.br`-Dateien im Build und `brotli_static`, bzw. Brotli bei Cloudflare. Mobil ca. 0,7 MB weniger, bei Slow-4G rund 3,5 s |
 | P92-08 | `web/index.html:189-190` | Medium | `main.dart.wasm` und `skwasm.wasm` werden erst nach `flutter_bootstrap.js` und `main.dart.mjs` angefordert (Kaskade); `analytics.js` blockiert den Parser vor dem Bootstrap | `<link rel="preload">` bzw. `modulepreload` für die gehashten Startdateien (Postbuild kennt die Namen), `analytics.js` mit `defer`. Spart mindestens eine Runde Netzlatenz |
 | P92-09 | `pubspec.yaml:72-81` | Low | Schriften als TTF, 0,39 MB roh, 0,29 MB übertragen | Untermengen bilden; Flutter Web lädt nur TTF/OTF, daher kein WOFF2. Ca. 0,2 MB weniger |

@@ -97,7 +97,7 @@ class _CountBadge extends StatelessWidget {
           borderRadius: BorderRadius.circular(LinefmMetrics.radiusPill),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(horizontal: LinefmSpace.xs),
           child: Center(
             widthFactor: 1,
             child: Text(
@@ -105,7 +105,7 @@ class _CountBadge extends StatelessWidget {
               maxLines: 1,
               style: TextStyle(
                 color: c.onAccent,
-                fontSize: 12,
+                fontSize: LinefmType.caption,
                 height: 1.2,
                 fontWeight: FontWeight.w600,
               ),

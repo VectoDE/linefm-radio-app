@@ -70,12 +70,12 @@ class LegalScreen extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, stack) => Center(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(LinefmSpace.xl),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Text(l10n.legalLoadError, textAlign: TextAlign.center),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: LinefmSpace.lg),
                     OutlinedButton(
                       onPressed: () => ref.invalidate(
                         legalDocumentProvider((kind: kind, lang: lang)),
@@ -118,12 +118,12 @@ class LegalBody extends ConsumerWidget {
 
     return SelectionArea(
       child: ListView(
-        padding: EdgeInsets.fromLTRB(side, 8, side, 48),
+        padding: EdgeInsets.fromLTRB(side, LinefmSpace.sm, side, 48),
         children: <Widget>[
           for (final b in blocks) _block(context, ref, b, compact: compact),
           if (document.updated.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 24),
+              padding: const EdgeInsets.only(top: LinefmSpace.xl),
               child: Text(
                 l10n.legalUpdated(
                   formatLegalDate(document.updated, l10n.localeName),
@@ -145,49 +145,57 @@ class LegalBody extends ConsumerWidget {
     final c = context.linefm;
     final body = LinefmText.listTitle.copyWith(
       color: c.text,
-      fontSize: 15,
+      fontSize: LinefmType.bodyLarge,
       height: 1.65,
     );
     switch (b.type) {
       case LegalBlockType.h1:
         return SectionHeading(
           b.text,
-          padding: const EdgeInsets.only(top: 8, bottom: 16),
-          style: TextStyle(fontSize: compact ? 16 : 25),
+          padding: const EdgeInsets.only(
+            top: LinefmSpace.sm,
+            bottom: LinefmSpace.lg,
+          ),
+          style: TextStyle(
+            fontSize: compact ? LinefmType.bodyLarge : LinefmType.heading,
+          ),
         );
       case LegalBlockType.h2:
         return Semantics(
           header: true,
           child: Padding(
-            padding: const EdgeInsets.only(top: 28, bottom: 8),
+            padding: const EdgeInsets.only(top: 28, bottom: LinefmSpace.sm),
             child: Text(
               b.text,
               style: LinefmText.settingTitle.copyWith(
                 color: c.text,
-                fontSize: 17,
+                fontSize: LinefmType.bodyLarge,
               ),
             ),
           ),
         );
       case LegalBlockType.p:
         return Padding(
-          padding: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.only(bottom: LinefmSpace.lg),
           child: Text.rich(legalSpans(b.text, body, context)),
         );
       case LegalBlockType.ul:
         return Padding(
-          padding: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.only(bottom: LinefmSpace.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               for (final item in b.items)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.only(bottom: LinefmSpace.sm),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Padding(
-                        padding: const EdgeInsets.only(left: 4, right: 10),
+                        padding: const EdgeInsets.only(
+                          left: LinefmSpace.xs,
+                          right: LinefmSpace.md,
+                        ),
                         child: Text('•', style: body),
                       ),
                       Expanded(
@@ -259,13 +267,13 @@ class _LinkBlock extends ConsumerWidget {
     // Mit offenem Platzhalter kein Link, nur hervorgehobener Text.
     if (_placeholder.hasMatch(target) || _placeholder.hasMatch(text)) {
       return Padding(
-        padding: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.only(bottom: LinefmSpace.lg),
         child: Text.rich(legalSpans(text, style, context)),
       );
     }
     final uri = mail ? 'mailto:$target' : target;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: LinefmSpace.lg),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Semantics(

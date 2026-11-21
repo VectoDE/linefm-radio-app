@@ -135,13 +135,31 @@ flutter test
 - `test/` spiegelt die Struktur von `lib/`: `domain`, `data`, `services`, `features`, `platform`, `ui`, `app`, `tool`. Netzwerk-Fixtures liegen in `test/fixtures/`.
 - Getestet wird, was absichert: Logik, Parser, Regeln, Wecker-Berechnung, Sleeptimer, Deep Links, Persistenz, Verdrahtung. Reine Optik nur über Goldens.
 - Dienste werden über Provider mit Fakes ersetzt (siehe `test/app/app_host.dart` und `test/features/feature_host.dart`). Echtes Netzwerk gibt es in Tests nicht.
-- **Goldens** (Bildvergleich) liegen in `test/features/goldens/` und werden von `test/features/history_favorites_golden_test.dart` geprüft. Nach einer **gewollten** Änderung der Darstellung neu erzeugen und die Bilder im Diff ansehen:
+- **Goldens** (Bildvergleich) prüfen die Kernkomponenten in Dark und Hell: Stationskarte, Play-Knopf, Mini-Player, Player, Favoriten-Herz mit Badge, Einstellungs-Schalter, Knöpfe, Abschnittsüberschrift, Dialog, Sheet, App-Rahmen (Header, Navigation) und Einstellungen sowie Verlauf und Favoriten. Dateien: `test/ui/components_golden_test.dart`, `test/app/shell_golden_test.dart`, `test/features/history_favorites_golden_test.dart`; Bilder je Test in `goldens/<name>_dark.png` und `goldens/<name>_light.png` daneben.
 
-```bash
-flutter test --update-goldens test/features/history_favorites_golden_test.dart
-```
+### Goldens aktualisieren
 
-  Goldens hängen von Schriften und Betriebssystem ab. Erzeuge und prüfe sie immer auf derselben Plattform wie die CI und bewerte Unterschiede von Hand, bevor du sie übernimmst.
+Referenzbilder hängen von der Rasterung der Plattform ab. Sie gelten deshalb nur dort, wo sie entstanden sind: auf dem CI-Runner des Jobs „Golden-Tests (Windows)“ (`windows-latest`). Die Tests tragen das Tag `golden` (`dart_test.yaml`) und enden auf `_golden_test.dart`; der normale Testjob lässt sie aus.
+
+- **Lokal** laufen sie durch (Layout, keine Ausnahmen), vergleichen aber keine Pixel und werden so nicht fälschlich rot. Die Meldung „Golden-Vergleich uebersprungen“ steht im Log. Mit `GOLDENS=1` (PowerShell: `$env:GOLDENS=1`) erzwingst du den Vergleich auch lokal; auf Windows 11 waren die Bilder bei der Einführung byte-gleich zu denen der CI, auf anderen Systemen sind Abweichungen zu erwarten.
+- **Feste Bedingungen** machen die Bilder reproduzierbar: echte App-Schriften aus dem Font-Manifest (nicht Ahem), Fenstergröße fest bei Pixelverhältnis 1, Lauftext aus, keine Netzbilder (Fakes, Senderlogos ohne Netz), Sender ohne ladbares Logo zeigen das Kürzel.
+- **Nach einer gewollten Änderung der Darstellung:**
+  1. Branch pushen. Der Job „Golden-Tests (Windows)“ wird rot und lädt das Artifact `golden-kandidaten` (alle Bilder, auf dem Runner neu erzeugt) und `golden-failures` (Unterschiede je Bild) hoch.
+  2. Artifact laden: `gh run download <run-id> -n golden-kandidaten -D tmp-goldens`, die PNGs unter `test/**/goldens/` kopieren.
+  3. Die Bilder im Diff ansehen, nur gewollte Änderungen committen, pushen. Der Job wird grün.
+- Alternativ lokal auf Windows 11: `flutter test --update-goldens test/ui/components_golden_test.dart` (je Datei), Bilder prüfen und committen. Die CI bleibt maßgeblich: stimmt sie nicht überein, gilt das Artifact.
+- Ein neuer Golden-Test braucht das Tag (`@Tags(<String>['golden'])` und `library;` ganz oben), den Dateinamen `*_golden_test.dart` und `setUpAll(prepareGoldens)` aus `test/golden_support.dart`.
+
+### Coverage
+
+Der Job „Tests“ der CI misst Zeilen- und Zweigabdeckung (`flutter test --coverage --branch-coverage`). Lokal nicht nötig; nur in der CI ausführen.
+
+- **Gefiltert:** `lib/l10n/gen/*` zählt nicht mit. Der Code kommt aus `flutter gen-l10n` und wird im Job „Uebersetzungen pruefen“ auf Aktualität geprüft; Tests dafür testen den Generator, nicht die App.
+- **Ungeladene Dateien** meldet `flutter test` von sich aus nicht. Ein Import-Lauf (`test/zz_coverage_all_test.dart`, wird nur in der CI erzeugt) holt sie mit 0 % in den Wert. Dateien mit Web-Bibliotheken (`*_web.dart`) lassen sich auf der VM nicht laden; sie stehen im Bericht unter „Ohne Messdaten“ und brauchen Browser-Tests.
+- **Bericht:** Tabelle je Datei in der Job-Zusammenfassung, HTML-Bericht im Artifact `coverage-html`, Rohdaten und Zusammenfassung in `coverage-lcov` (`report/summary.md`, `report/total.txt`).
+- **Check „Coverage darf nicht sinken“:** Auf Pull Requests vergleicht der Job die Zeilenabdeckung mit dem letzten erfolgreichen main-Lauf (Toleranz 0,10 Prozentpunkte). Ein Pflicht-Check mit 100 % folgt, sobald das erreicht ist (Issue #106).
+- Auswertung lokal nachstellen (mit einer vorhandenen `lcov.info`): `bash tool/coverage_report.sh coverage/lcov.info "" coverage/report`.
+
 - Schwere Builds (APK, Windows, Web) laufen nicht parallel zu `flutter test`, das braucht viel Arbeitsspeicher.
 - Eine Live-Probe der laut.fm-Schnittstelle liegt in `tool/dev/now_playing_probe.dart`.
 
@@ -189,6 +207,20 @@ State-Management ist `flutter_riverpod` 3. Alle Provider stehen in `lib/app/prov
 3. Provider mit Stub in `providers.dart`, echter Dienst in `productionOverrides`.
 4. Bildschirm in `features/`, Texte in beide ARB-Dateien.
 5. `dart format`, `flutter analyze --fatal-infos`, `flutter test`.
+
+## Eigene Fenster-Titelleiste (Desktop)
+
+Windows, Linux und macOS zeigen statt der Systemleiste eine eigene Leiste im App-Design (Issue #87): Logo (Motiv des App-Symbols), Name „LINEFM RADIO“ in Syncopate, Hintergrund `background` wie der Header darunter, Dunkel und Hell. Web und Mobil sind nicht betroffen.
+
+- **Aufbau:** `lib/platform/desktop/title_bar.dart` (Widget), `window_caption.dart` (plattformneutrale Schnittstelle `WindowCaptionControls`, Fakes in Tests), `window_caption_impl.dart` (Umsetzung mit window_manager 0.7 / nativeapi). `DesktopHost` setzt die Leiste über die App; der Baum um die App bleibt in jedem Zustand gleich.
+- **Ausblenden der Systemleiste:** `WindowManagerDesktopWindow.init` ruft `setTitleBarStyle(TitleBarStyle.hidden)`. Schlägt das fehl, bleibt die Systemleiste und die App zeichnet keine eigene (`CaptionStyle.none`). Der native Fenstertitel („LINEFM | Radio“, Taskleiste, Alt+Tab, Einzelinstanz-Suche im Runner) bleibt unverändert.
+- **Windows:** Eigene Schaltflächen Minimieren, Maximieren/Wiederherstellen, Schließen (46 × 40, Hover 8 %, gedrückt 12 %, Schließen rot `#C42B1C`, inaktives Fenster gedämpft). nativeapi lässt `WS_CAPTION`/`WS_SYSMENU` stehen und gibt nur das obere Band dem Inhalt: Rahmen, Schatten und runde Ecken von Windows 11, Größenänderung an allen Kanten (oben per Hit-Test), Andocken und Alt+Leertaste bleiben. Maximiert passt der Inhalt auf den Arbeitsbereich (kein 8-px-Überhang). `MaximizeButtonArea` meldet den Maximieren-Knopf als `HTMAXBUTTON`, damit die Snap-Layouts von Windows 11 beim Überfahren erscheinen. Ziehen, Doppelklick (maximieren/wiederherstellen) und Rechtsklick (Systemmenü) kommen von `DragToMoveArea`. Kein eigener Code im Runner nötig.
+- **Schließen:** Der Knopf löst dieselbe Schließen-Anfrage aus wie die Systemleiste (`windowManager.close()` → `onWindowClose`): je nach Einstellung in den Tray oder Beenden.
+- **Linux:** Die GTK-Dekoration entfällt (nativeapi blendet die Header-Bar aus bzw. schaltet die Dekoration ab, `linux/runner` bleibt unverändert). Weil der Fensterrahmen unter X11 dann fehlt, liefert `DragToResizeArea` 6 dp breite Griffe an Kanten und Ecken (aus bei maximiert, Vollbild, Mini-Fenster). Unter Wayland bewegt und skaliert der Compositor das Fenster über dieselben Aufrufe; einen Schatten zeichnet die App dort nicht.
+- **macOS:** Titelzeile transparent und ausgeblendet, die Ampeln bleiben nativ links. Die Leiste ist 28 pt hoch (Systemhöhe, damit die Ampeln mittig stehen), Logo und Name beginnen bei 78 pt. Doppelklick folgt der Systemeinstellung (Zoomen/Minimieren).
+- **Vollbild und Mini-Fenster:** Im Vollbild entfällt die Leiste. Das Mini-Fenster (rahmenlos) zeigt keine Leiste; beim Zurückwechseln stellt `exitMini` den versteckten Stil wieder her.
+- **Tastatur und Screenreader:** Tab läuft wie bei nativen Titelleisten nur durch die App (der Navigator hält den Fokus in seinem Bereich), die Leiste steht also nie vor dem Hauptinhalt. Fenster-Aktionen per Tastatur gehen über das System: Alt+Leertaste (Systemmenü), Win+Pfeiltasten, Alt+F4. Screenreader erreichen die Schaltflächen über ihre Semantik (Knopf mit Namen), die Schaltflächen reagieren auch auf Enter und Leertaste, wenn sie den Fokus haben. Namen und Hinweisblasen kommen aus den ARB-Schlüsseln `windowMinimize`, `windowMaximize`, `windowRestore`, `windowClose` und folgen der gewählten App-Sprache. Logo und Name sind für Screenreader ausgeblendet, den Fenstertitel liest das System vor.
+- **Tests:** `test/platform/desktop/title_bar_test.dart`.
 
 ## Deep Links: Wege pro Plattform
 

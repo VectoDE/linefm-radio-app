@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
 import 'package:linefm_radio/features/consent/google_consent.dart';
 import 'package:linefm_radio/features/legal/legal_document.dart';
 import 'package:linefm_radio/features/legal/legal_screen.dart';
+import 'package:linefm_radio/features/settings/platform_info.dart';
+import 'package:linefm_radio/features/storage_notice/storage_notice_dialog.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
@@ -35,9 +39,19 @@ String telemetryConsentText(AppLocalizations l10n, AppConfig config) {
   ].join('\n\n');
 }
 
-/// Rahmen um die App: zeigt den Einwilligungsdialog "Statistik und
-/// Fehlerberichte" einmalig, sobald der erste Frame steht, danach getrennt
-/// "Reichweitenmessung mit Google" (nur Web mit GTM_ID/GA4_MEASUREMENT_ID).
+/// Rahmen um die App: steuert die Dialoge beim Start der Reihe nach, nie zwei
+/// zugleich. Sobald der erste Frame steht (der Ladebildschirm liegt noch
+/// darueber und blendet sich danach aus):
+///
+/// 1. App und Desktop: Speicher-Hinweis als Popup ([showStorageNoticeDialog]),
+///    bis er bestaetigt ist. Im Browser entfaellt der Schritt, dort steht der
+///    Banner der Shell.
+/// 2. Einwilligungsdialog "Statistik und Fehlerberichte".
+/// 3. Getrennt davon "Reichweitenmessung mit Google" (nur Web mit
+///    GTM_ID/GA4_MEASUREMENT_ID).
+///
+/// Setzt "Speicher loeschen" die Bestaetigung zurueck, erscheint das Popup
+/// (App und Desktop) sofort wieder.
 ///
 /// Ohne konfigurierte Telemetrie passiert nichts (kein Dialog, kein Aufruf).
 /// Schliesst der Nutzer den Dialog ohne Wahl (Zurueck/Esc), gilt das als
@@ -55,20 +69,46 @@ class TelemetryConsentGate extends ConsumerStatefulWidget {
 
 class _TelemetryConsentGateState extends ConsumerState<TelemetryConsentGate> {
   bool _asked = false;
+  bool _noticeOpen = false;
 
   @override
   void initState() {
     super.initState();
+    ref.listenManual<bool>(storageConsentProvider, (previous, next) {
+      // Nach "Speicher loeschen" den Hinweis erneut verlangen.
+      if (_asked && !next) unawaited(_askStorageNotice());
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeAsk());
+  }
+
+  /// Speicher-Hinweis als Popup (nur App und Desktop). Schliesst nur mit
+  /// "Verstanden"; erst dann wird die Bestaetigung gemerkt.
+  Future<void> _askStorageNotice() async {
+    if (!mounted || _noticeOpen) return;
+    final show = shouldShowStorageNoticeDialog(
+      platform: ref.read(platformInfoProvider),
+      confirmed: ref.read(storageConsentProvider),
+    );
+    if (!show) return;
+    _noticeOpen = true;
+    try {
+      final confirmed = await showStorageNoticeDialog(context);
+      if (!mounted || confirmed != true) return;
+      await ref.read(storageConsentProvider.notifier).set(value: true);
+    } finally {
+      _noticeOpen = false;
+    }
   }
 
   Future<void> _maybeAsk() async {
     if (!mounted || _asked) return;
+    _asked = true;
+    await _askStorageNotice();
+    if (!mounted) return;
     final ask = shouldAskTelemetryConsent(
       consentRequired: ref.read(telemetryProvider).consentRequired,
       decision: ref.read(telemetryConsentProvider),
     );
-    _asked = true;
     if (ask) {
       final answer = await showTelemetryConsentDialog(context);
       if (!mounted) return;
@@ -138,7 +178,7 @@ class TelemetryConsentDialog extends ConsumerWidget {
                   height: 1.55,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: LinefmSpace.sm),
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton(
@@ -149,12 +189,17 @@ class TelemetryConsentDialog extends ConsumerWidget {
             ],
           ),
         ),
-        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+        actionsPadding: const EdgeInsets.fromLTRB(
+          LinefmSpace.xl,
+          0,
+          LinefmSpace.xl,
+          LinefmSpace.gutter,
+        ),
         actions: <Widget>[
           Row(
             children: <Widget>[
               Expanded(child: decline),
-              const SizedBox(width: 12),
+              const SizedBox(width: LinefmSpace.md),
               Expanded(child: allow),
             ],
           ),

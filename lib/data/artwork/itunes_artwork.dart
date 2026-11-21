@@ -145,6 +145,9 @@ class ItunesArtworkService implements ArtworkService {
   /// Version 1 werden verworfen.
   static const int _cacheVersion = 2;
 
+  /// Groesster Betrag, den `DateTime.fromMillisecondsSinceEpoch` annimmt.
+  static const int _maxEpochMs = 8640000000000000;
+
   static String keyFor(Track track) =>
       '${track.artist} ${track.title}'.trim().toLowerCase();
 
@@ -427,7 +430,10 @@ class ItunesArtworkService implements ArtworkService {
       for (final MapEntry(:key, :value) in entries.entries) {
         if (key is! String || value is! Map) continue;
         final x = value['x'];
-        if (x is! int) continue;
+        // Ausserhalb des DateTime-Bereichs (+-8.64e15 ms) wuerde der
+        // Konstruktor einen RangeError werfen: Eintrag verwerfen.
+        // (Kein abs(): beim kleinsten int laeuft es ueber.)
+        if (x is! int || x > _maxEpochMs || x < -_maxEpochMs) continue;
         final expiresAt = DateTime.fromMillisecondsSinceEpoch(x);
         if (!now.isBefore(expiresAt)) continue;
         loaded.add((

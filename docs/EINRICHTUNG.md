@@ -198,7 +198,7 @@ dart run tool/gen_legal_html.dart --values=legal_values.json --fill-assets --str
 ### 3.4 Texte lesen und abstimmen
 
 - **Was:** Impressum und Datenschutzerklärung lesen und mit einem Anwalt abstimmen.
-- **Wozu:** Die Texte sind ein Entwurf nach Stand November 2026. Offen sind Rundfunkrecht (MStV, Bagatellrundfunk), Speicher-Hinweis in den nativen Apps und der Wortlaut des Einwilligungsdialogs (Abschnitt A4 der Freigabe-Checkliste).
+- **Wozu:** Die Texte sind ein Entwurf nach Stand November 2026. Offen sind Rundfunkrecht (MStV, Bagatellrundfunk), Speicher-Hinweis in den nativen Apps (Popup statt Banner) und der Wortlaut des Einwilligungsdialogs (Abschnitt A4 der Freigabe-Checkliste).
 - **Wo eintragen:** Abschnitt A4 und C der Freigabe-Checkliste.
 - **Woher:** Anwalt.
 - **Prüfschritt:** `/impressum/` und `/datenschutz/` sind erreichbar, ohne offene Platzhalter und ohne `noindex`.

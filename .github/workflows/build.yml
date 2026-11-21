@@ -883,6 +883,38 @@ jobs:
       - name: iOS bauen (no-codesign)
         run: flutter build ios $FLUTTER_BUILD_FLAGS --no-codesign --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
+      # Belegt, dass die von Hand gepflegten Teile des Xcode-Projekts wirklich im
+      # Bundle landen (Issue #25): Widget-Erweiterung eingebettet, Info.plist-
+      # Schluessel gesetzt, Privacy-Manifeste kopiert, native Kanaele gelinkt.
+      - name: App-Bundle pruefen
+        shell: bash
+        run: |
+          set -euo pipefail
+          app=build/ios/iphoneos/Runner.app
+          appex="$app/PlugIns/LinefmWidgetExtension.appex"
+          fail=0
+          check() { if eval "$2"; then echo "ok    $1"; else echo "FEHLT $1"; fail=1; fi; }
+          val() { /usr/libexec/PlistBuddy -c "Print :$2" "$1" 2>/dev/null || true; }
+          check "Widget-Erweiterung eingebettet" '[ -x "$appex/LinefmWidgetExtension" ]'
+          check "Widget: Bundle-ID de.linefm.app.widget" '[ "$(val "$appex/Info.plist" CFBundleIdentifier)" = "de.linefm.app.widget" ]'
+          check "Widget: WidgetKit-Erweiterungspunkt" '[ "$(val "$appex/Info.plist" NSExtension:NSExtensionPointIdentifier)" = "com.apple.widgetkit-extension" ]'
+          check "Widget: Privacy-Manifest" '[ -f "$appex/PrivacyInfo.xcprivacy" ]'
+          check "App: Privacy-Manifest" '[ -f "$app/PrivacyInfo.xcprivacy" ]'
+          check "App: MinimumOSVersion 16.0" '[ "$(val "$app/Info.plist" MinimumOSVersion)" = "16.0" ]'
+          check "App: UIBackgroundModes audio" 'val "$app/Info.plist" UIBackgroundModes | grep -qx "[[:space:]]*audio"'
+          check "App: CarPlay-Szene im Manifest" '[ -n "$(val "$app/Info.plist" UIApplicationSceneManifest:UISceneConfigurations:CPTemplateApplicationSceneSessionRoleApplication:0:UISceneDelegateClassName)" ]'
+          check "App: NSLocalNetworkUsageDescription" '[ -n "$(val "$app/Info.plist" NSLocalNetworkUsageDescription)" ]'
+          check "App: AppIcon als Primaersymbol" '[ "$(val "$app/Info.plist" CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName)" = "AppIcon" ]'
+          check "App: Asset-Katalog kompiliert" '[ -f "$app/Assets.car" ]'
+          strings -a "$app/Runner" > "$RUNNER_TEMP/runner.strings" || true
+          strings -a "$appex/LinefmWidgetExtension" > "$RUNNER_TEMP/widget.strings" || true
+          for s in CarPlaySceneDelegate SceneDelegate AlarmNotifications AirPlayRoutePickerFactory \
+                   de.linefm.app/carplay de.linefm.app/alarm_ios de.linefm.app/airplay_route_picker; do
+            check "Binaerdatei enthaelt $s" 'grep -qF "$s" "$RUNNER_TEMP/runner.strings"'
+          done
+          check "Widget-Binaerdatei enthaelt group.de.linefm.app" 'grep -qF "group.de.linefm.app" "$RUNNER_TEMP/widget.strings"'
+          exit "$fail"
+
       - name: Ergebnis
         run: |
           echo "- iOS: Kompilierpruefung erfolgreich (unsigniert, kein Release-Artefakt; Store-Upload ueber store-apple.yml)" >> "$GITHUB_STEP_SUMMARY"

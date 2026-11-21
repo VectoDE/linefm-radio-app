@@ -1,0 +1,123 @@
+name: Semgrep
+
+# Semgrep Community Edition (CE) ohne Konto und ohne Token, als Ergaenzung zu
+# CodeQL. Dart deckt Semgrep nicht ab (kein Ruleset in der Registry); dafuer
+# flutter analyze in ci.yml. Gezielt geprueft werden Kotlin (android/), Swift
+# (ios/, macos/), JavaScript (web/, tool/a11y), Python (tool/), Bash (tool/*.sh),
+# Dockerfile und Compose (deploy/) sowie die GitHub-Actions-Workflows.
+# - Offizielles Image semgrep/semgrep, per Digest gepinnt (Index-Digest von
+#   Docker Hub). Update: neuen Versions-Tag mindestens 7 Tage alt waehlen, Digest
+#   ueber https://hub.docker.com/v2/repositories/semgrep/semgrep/tags/<version>
+#   (Feld "digest") holen und unten eintragen.
+# - --metrics=off: keine Nutzungsdaten an Semgrep.
+# - CE analysiert nur innerhalb einer Funktion (keine Cross-File-Analyse, die
+#   gibt es nur im kostenpflichtigen Semgrep Code).
+# SARIF geht an Code Scanning (nicht bei PRs aus Forks). Jeder Fund laesst den
+# Job scheitern; begruendete Ausnahmen per "nosemgrep: <regel-id>" mit Kommentar.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "37 4 * * 4"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: semgrep-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  scan:
+    name: Semgrep CE
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write # SARIF an Code Scanning
+    env:
+      SEMGREP_IMAGE: semgrep/semgrep:1.184.0@sha256:cc1b68266f267878b39739373ea9985b9a78e5d64497dd875c8de100b22695ed
+      CAN_UPLOAD: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Ausgeschlossene Regel html.security.audit.missing-integrity: Sie meldet jedes
+      # <link>/<script> ohne integrity, auch canonical/hreflang-Links und eigene
+      # Dateien (legal.css). Subresource Integrity betrifft nur fremde Quellen; die
+      # Web-Seiten laden keine, und die CSP (script-src/style-src 'self') verbietet
+      # sie. Der folgende Schritt stellt sicher, dass das so bleibt.
+      - name: Keine fremden Skripte oder Stylesheets in web/
+        run: |
+          set -euo pipefail
+          if grep -rnE --include='*.html' '<script[^>]+src="(https?:)?//|<link[^>]+rel="(stylesheet|preload|modulepreload)"[^>]+href="(https?:)?//|<link[^>]+href="(https?:)?//[^"]*"[^>]+rel="(stylesheet|preload|modulepreload)"' web; then
+            echo "::error::Fremde Quelle in web/ gefunden: integrity-Attribut und CSP-Freigabe noetig, Semgrep-Ausschluss pruefen"
+            exit 1
+          fi
+
+      - name: Semgrep scannen
+        run: |
+          set -euo pipefail
+          docker run --rm --network host \
+            --user "$(id -u):$(id -g)" -e HOME=/tmp \
+            -v "$PWD:/src" -w /src \
+            -e SEMGREP_SEND_METRICS=off \
+            "$SEMGREP_IMAGE" \
+            semgrep scan --metrics=off --disable-version-check --quiet \
+              --config p/default \
+              --config p/owasp-top-ten \
+              --config p/secrets \
+              --config p/ci \
+              --config p/security-audit \
+              --config p/kotlin --config r/kotlin \
+              --config p/swift --config r/swift \
+              --config p/javascript \
+              --config p/python \
+              --config r/bash \
+              --config p/dockerfile \
+              --config p/docker-compose \
+              --config p/github-actions \
+              --exclude-rule html.security.audit.missing-integrity.missing-integrity \
+              --sarif --output semgrep.sarif .
+
+      - name: SARIF an Code Scanning
+        if: always() && env.CAN_UPLOAD == 'true' && hashFiles('semgrep.sarif') != ''
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+      - name: Gate und Zusammenfassung
+        if: always()
+        run: |
+          set -euo pipefail
+          test -s semgrep.sarif || { echo "::error::semgrep.sarif fehlt"; exit 1; }
+          rules="$(jq '[.runs[].tool.driver.rules[]?] | length' semgrep.sarif)"
+          n="$(jq '[.runs[].results[]] | length' semgrep.sarif)"
+          {
+            echo "### Semgrep CE"
+            echo "- Regeln: ${rules}, Funde: ${n}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$n" != "0" ]; then
+            jq -r '.runs[].results[]
+              | "::error file=\(.locations[0].physicalLocation.artifactLocation.uri),line=\(.locations[0].physicalLocation.region.startLine)::\(.ruleId)"' semgrep.sarif
+            exit 1
+          fi
+
+      - name: Bericht hochladen
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: semgrep-report
+          path: semgrep.sarif
+          if-no-files-found: ignore
+          retention-days: 14

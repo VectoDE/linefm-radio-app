@@ -56,11 +56,19 @@ Nicht dazu gehören Lücken in Diensten Dritter (laut.fm, Apple iTunes Search, G
 
 | Prüfung | Werkzeug | Wo | Wann |
 |---|---|---|---|
-| Bekannte Schwachstellen in Dart-Paketen | OSV-Scanner auf `pubspec.lock` | `supply-chain.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
+| Bekannte Schwachstellen in Dart- und npm-Paketen | OSV-Scanner auf `pubspec.lock` und `tool/a11y/package-lock.json` | `supply-chain.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
 | Secrets in der Git-Historie | gitleaks (CLI, Version und SHA-256 fest im Workflow) | `supply-chain.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
-| Updates für Actions, Pub, Gradle, Docker und Compose | Dependabot | `.github/dependabot.yml` | wöchentlich, mit 7 Tagen Wartezeit |
-| Statische Analyse | CodeQL | `codeql.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
+| Schwachstellen, Secrets und Fehlkonfiguration (Dateisystem, Dockerfile) sowie der gebaute Web-Container (`deploy/traefik/Dockerfile`) | Trivy (CLI, Version und SHA-256 fest), Ergebnisse in Code Scanning, HIGH/CRITICAL brechen ab (im Container nur, wenn es eine Korrektur gibt) | `supply-chain.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
+| Sicherheit der Workflows | zizmor (Ergebnisse in Code Scanning) und actionlint | `supply-chain.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
+| Updates für Actions, Pub, Gradle, Docker, Compose und npm | Dependabot | `.github/dependabot.yml` | wöchentlich, mit 7 Tagen Wartezeit |
+| Statische Analyse | CodeQL (Workflows bei jedem PR, Kotlin wöchentlich, Swift von Hand) | `codeql.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
+| Statische Analyse für Kotlin, Swift, JavaScript, Python, Bash, Dockerfile, Compose und Workflows | Semgrep Community Edition (ohne Konto, Image per Digest), Ergebnisse in Code Scanning | `semgrep.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
+| Dart-Code | `flutter analyze --fatal-infos` (CodeQL und Semgrep kennen Dart nicht) | `ci.yml` | Push auf `main`, jeder Pull Request |
+| Robustheit der Parser (laut.fm, iTunes, Cover-Cache) | zufallsbasierte Tests mit festem Seed, siehe unten | `ci.yml` (`test/data/fuzz/`) | Push auf `main`, jeder Pull Request |
+| Code-Qualität, zusätzliche Prüfungen | SonarQube Cloud und Snyk: vorbereitet, laufen erst mit Token ([docs/EINRICHTUNG.md](docs/EINRICHTUNG.md), 12.4 und 12.5) | `sonar.yml`, `snyk.yml` | sobald eingerichtet |
 | Repo-Hygiene | OpenSSF Scorecard | `scorecard.yml` | Push auf `main`, wöchentlich |
+
+Zum Fuzzing: Die Parser für die Antworten von laut.fm und der iTunes-Suche und das Laden des Cover-Caches bekommen in jedem Testlauf Tausende zufällig erzeugte, auch kaputte Eingaben (eigener Generator, fester Seed, keine zusätzliche Abhängigkeit). Sie dürfen dabei nie abstürzen; erlaubt ist nur der vorgesehene Fehlertyp `LautApiException`. Die Tests haben zwei echte Fehler gefunden, beide sind behoben: Zahlen wie `1e999` (in JSON gültig, in Dart unendlich) und Zeitstempel außerhalb des gültigen Bereichs im gespeicherten Cache. OpenSSF Scorecard wertet das nicht als Fuzzing. Erkannt werden dort nur OSS-Fuzz, ClusterFuzzLite und Fuzzing in einigen anderen Sprachen (Go, Haskell, JavaScript mit fast-check, Erlang, F#), Dart nicht.
 
 Ein Eintrag bei bestpractices.dev ist nicht möglich: Das Badge verlangt eine Open-Source-Lizenz, LINEFM Radio ist proprietär.
 

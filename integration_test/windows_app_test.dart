@@ -19,10 +19,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:linefm_radio/app/app.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/data/api/laut_api.dart';
 import 'package:linefm_radio/data/live/now_playing_repository.dart';
+import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
@@ -35,11 +37,10 @@ import 'package:linefm_radio/platform/desktop/desktop_controller.dart';
 import 'package:linefm_radio/platform/desktop/desktop_init.dart';
 import 'package:linefm_radio/platform/desktop/title_bar.dart';
 import 'package:linefm_radio/platform/desktop/window_caption.dart';
+import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:window_manager/legacy.dart' show DragToMoveArea, WindowManager;
-
-import '../test/app/app_host.dart';
 
 /// Zielordner der Bilder (CI: `--dart-define=ITEST_OUT=...`).
 const String _outDefine = String.fromEnvironment('ITEST_OUT');
@@ -85,7 +86,7 @@ void main() {
     'Issue #99: schneller Wechsel zwischen drei Sendern zeigt Titel und '
     'Sender des zuletzt gewaehlten',
     (tester) async {
-      await _setWindowSize(tester, const Size(1280, 720));
+      await _setWindowSize(tester, const Size(1000, 680));
       final world = _World(settings: _settings(AppLanguage.de));
       await _pumpWorld(tester, world);
       final start = stationsCatalog.first;
@@ -188,7 +189,7 @@ void main() {
     tester,
   ) async {
     expect(LinefmMetrics.railWidth, 104);
-    for (final width in <double>[960, 1280]) {
+    for (final width in <double>[880, 1000]) {
       await _setWindowSize(tester, Size(width, 720));
       final world = _World(settings: _settings(AppLanguage.de));
       await _pumpWorld(tester, world);
@@ -252,7 +253,7 @@ void main() {
       reason: 'Tray auf dem Runner nicht verfuegbar',
     );
 
-    await _setWindowSize(tester, const Size(1280, 720));
+    await _setWindowSize(tester, const Size(1000, 680));
     final world = _World(settings: _settings(AppLanguage.de));
     await _pumpWorld(tester, world);
     final l10n = AppLocalizations.of(tester.element(find.byType(PlayerScreen)));
@@ -266,12 +267,12 @@ void main() {
     expect(find.byType(CaptionButton), findsNWidgets(3));
     expect(await _wm.isMaximized(), isFalse);
     expect(await _wm.isVisible(), isTrue);
-    await _shot(tester, '87-01-normal-1280x720');
+    await _shot(tester, '87-01-normal-1000x680');
 
     // Groesse setzen und zuruecksetzen.
-    await _setWindowSize(tester, const Size(960, 640));
-    await _shot(tester, '87-02-groesse-960x640');
-    await _setWindowSize(tester, const Size(1280, 720));
+    await _setWindowSize(tester, const Size(880, 600));
+    await _shot(tester, '87-02-groesse-880x600');
+    await _setWindowSize(tester, const Size(1000, 680));
     final normalSize = await _wm.getSize();
 
     // Maximieren per Knopf.
@@ -404,6 +405,11 @@ class _GatedApi implements LautApi {
   Future<String?> streamUrl(String slug) async => null;
 }
 
+class _ConsentGiven extends TelemetryConsentNotifier {
+  @override
+  bool? build() => true;
+}
+
 /// App mit Live-Daten-Motor und Fake-API, ohne Audio.
 class _World {
   _World({required AppSettings settings}) {
@@ -417,10 +423,15 @@ class _World {
         endsAt: base.add(const Duration(minutes: 3)),
       );
     }
-    host = AppHost(
-      settings: settings,
-      extra: <Override>[
+    prefs = InMemoryPrefsStore();
+    prefs.writeSettings(settings).ignore();
+    prefs.setStorageConsent(value: true).ignore();
+    container = ProviderContainer(
+      overrides: <Override>[
+        prefsProvider.overrideWithValue(prefs),
+        playbackServiceProvider.overrideWithValue(playback),
         lautApiProvider.overrideWithValue(api),
+        telemetryConsentProvider.overrideWith(_ConsentGiven.new),
         nowPlayingRepositoryProvider.overrideWith((ref) {
           final repo = LiveNowPlayingRepository(
             api: api,
@@ -439,12 +450,13 @@ class _World {
     );
   }
 
+  late final InMemoryPrefsStore prefs;
+  final NoopPlaybackService playback = NoopPlaybackService();
+  late final ProviderContainer container;
+
   final _GatedApi api = _GatedApi();
   late final FakeClock clock;
-  late final AppHost host;
   final GlobalKey shotKey = GlobalKey();
-
-  ProviderContainer get container => host.container;
 
   /// Neuer Titel eines Senders, beginnend zur aktuellen Uhrzeit des Fakes.
   Track next(Station s) => Track(
@@ -461,13 +473,20 @@ Future<void> _pumpWorld(WidgetTester tester, _World world) async {
   _current = world;
   loaderShownThisProcess = true;
   await tester.pumpWidget(
-    RepaintBoundary(key: world.shotKey, child: world.host.app()),
+    RepaintBoundary(
+      key: world.shotKey,
+      child: UncontrolledProviderScope(
+        container: world.container,
+        child: const LinefmApp(),
+      ),
+    ),
   );
   await _pumpFor(tester, const Duration(milliseconds: 1500));
 }
 
 Future<void> _disposeWorld(WidgetTester tester, _World world) async {
-  await disposeApp(tester, world.host);
+  await tester.pumpWidget(const SizedBox.shrink());
+  world.container.dispose();
   _current = null;
 }
 
@@ -601,11 +620,16 @@ Future<void> _waitWindow(
 Future<void> _setWindowSize(WidgetTester tester, Size size) async {
   if (await _wm.isMaximized()) await _wm.unmaximize();
   await _wm.setSize(size);
-  await _waitWindow(() async {
-    final now = await _wm.getSize();
-    return (now.width - size.width).abs() <= 2 &&
-        (now.height - size.height).abs() <= 2;
-  }, 'Fenstergroesse $size');
+  Size now = await _wm.getSize();
+  final until = DateTime.now().add(const Duration(seconds: 5));
+  while ((now.width - size.width).abs() > 2 ||
+      (now.height - size.height).abs() > 2) {
+    if (DateTime.now().isAfter(until)) {
+      fail('Fenstergroesse $size nicht erreicht, aktuell $now');
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    now = await _wm.getSize();
+  }
   final view = tester.view;
   final end = DateTime.now().add(const Duration(seconds: 10));
   // Die Ansicht ist um den unsichtbaren Rahmen kleiner als das Fenster.

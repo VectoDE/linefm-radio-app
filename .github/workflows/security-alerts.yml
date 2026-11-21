@@ -101,8 +101,8 @@ jobs:
                 "- [ ] Fund pruefen (erreichbar? echte Eingabequelle?)" \
                 "- [ ] Beheben oder mit Begruendung als False Positive/Won't fix schliessen" \
                 "- [ ] Alert ist geschlossen (dieses Issue schliesst sich dann automatisch)")"
-              issue_url="$(gh issue create --repo "$REPO" --label "$LABEL" \
-                --title "Sicherheitsfund: $tool, $kind #$num ($sev)" --body "$body")"
+              gh issue create --repo "$REPO" --label "$LABEL" \
+                --title "Sicherheitsfund: $tool, $kind #$num ($sev)" --body "$body"
               created=$((created + 1))
             else
               inum="$(cut -f2 <<<"$line")"; istate="$(cut -f3 <<<"$line")"

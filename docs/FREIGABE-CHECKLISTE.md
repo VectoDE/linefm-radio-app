@@ -42,7 +42,7 @@ Diese Punkte lassen sich nicht als "offen" begründen. Solange einer nicht erfü
 - [ ] Rechtsprüfung durch jaybelife oder einen Anwalt ist erfolgt. Offene Rechtsfragen, die jaybelife selbst klärt:
   - [ ] **Rundfunkrecht (MStV):** Ist für das Webradio eine Zulassung nötig, oder gilt es als zulassungsfrei? Welche Angaben verlangt § 18 MStV im Impressum (verantwortliche Person)? Die Felder `AUFSICHTSBEHOERDE_MEDIEN` und `VERANTWORTLICHER_MSTV` stehen noch offen.
   - [ ] **GEMA und GVL:** Sind die Musikrechte für die Wiedergabe über eine eigene App abgedeckt? Unsere Quelle (laut.fm) belegt das nur in einem Artikel von 2015. Empfehlung: schriftliche Bestätigung von laut.fm (`team@laut.fm`) einholen.
-  - [ ] **Speicher-Hinweis in den nativen Apps:** Der Hinweis "Wir speichern kleine Daten …" erscheint überall wie in der Web-App. Prüfen lassen, ob er in den nativen Apps rechtlich nötig oder ausreichend ist.
+  - [ ] **Speicher-Hinweis in den nativen Apps:** Der Hinweis erscheint im Browser als Banner am unteren Rand, in der App und auf dem Desktop als Popup beim ersten Start, das mit "Verstanden" bestätigt werden muss. Prüfen lassen, ob er in den nativen Apps rechtlich nötig oder ausreichend ist.
   - [ ] **Einwilligung nach DSGVO/TDDDG:** Wortlaut des Einwilligungsdialogs für Statistik und Absturzberichte prüfen, falls Telemetrie aktiv wird.
   - [ ] **Barrierefreiheit (BFSG):** Klären, ob für das Angebot eine Erklärung zur Barrierefreiheit nötig ist.
 

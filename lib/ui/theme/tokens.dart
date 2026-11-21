@@ -230,6 +230,11 @@ abstract final class LinefmMetrics {
   /// Hoehe des Headers.
   static const double headerHeight = 80;
 
+  /// Feste Breite der seitlichen Navigation (NavigationRail) in allen
+  /// Sprachen. Vorher richtete sich die Leiste nach der laengsten
+  /// Beschriftung und sprang beim Sprachwechsel (Issue #101).
+  static const double railWidth = 104;
+
   /// Standarddauern (Web: .18 bis .35 s).
   static const Duration fast = Duration(milliseconds: 180);
   static const Duration medium = Duration(milliseconds: 250);

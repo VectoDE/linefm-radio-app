@@ -12,6 +12,7 @@ import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/features/settings/settings_screen.dart';
 import 'package:linefm_radio/l10n/system_l10n.dart';
+import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'app_host.dart';
@@ -226,5 +227,45 @@ void main() {
       await disposeApp(tester, host);
       handle.dispose();
     });
+  });
+
+  group('Issue #101: Navigation bleibt beim Sprachwechsel gleich breit', () {
+    for (final width in <double>[1280, 1600]) {
+      testWidgets('Seitenleiste bei $width dp: Deutsch = Englisch', (
+        tester,
+      ) async {
+        addTearDown(tester.platformDispatcher.clearAllTestValues);
+        tester.platformDispatcher.localeTestValue = const Locale('en', 'US');
+        final host = AppHost(settings: _noAutoplay);
+        useSize(tester, width, 1000);
+        await pumpApp(tester, host);
+        host.container.read(navigationProvider.notifier).go(AppScreen.settings);
+        await settleApp(tester);
+        final rail = find.byKey(const ValueKey<String>('shell-rail'));
+        expect(rail, findsOneWidget);
+        expect(find.text('Sprache'), findsOneWidget);
+        final de = tester.getSize(rail).width;
+        final railDe = tester.getSize(find.byType(NavigationRail)).width;
+
+        await tester.tap(find.text('English'));
+        await settleApp(tester);
+        expect(find.text('Language'), findsOneWidget);
+        final en = tester.getSize(rail).width;
+        final railEn = tester.getSize(find.byType(NavigationRail)).width;
+
+        expect(en, de);
+        expect(railEn, railDe);
+        expect(de, LinefmMetrics.railWidth);
+        // Lange Beschriftung bleibt fuer den Screenreader vollstaendig.
+        await tester.tap(find.text('Deutsch'));
+        await settleApp(tester);
+        expect(
+          find.descendant(of: rail, matching: find.text('EINSTELLUNGEN')),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+        await disposeApp(tester, host);
+      });
+    }
   });
 }

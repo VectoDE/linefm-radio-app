@@ -248,6 +248,12 @@ abstract class AppLocalizations {
   /// **'Verstanden'**
   String get storageNoticeDismiss;
 
+  /// Titel des Speicher-Hinweises, der in der App und auf dem Desktop als Popup erscheint.
+  ///
+  /// In de, this message translates to:
+  /// **'Speicher auf diesem Gerät'**
+  String get storageNoticeTitle;
+
   /// No description provided for @favoritesButton.
   ///
   /// In de, this message translates to:

@@ -43,6 +43,10 @@
   "storageNoticeBodyDevice": "LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt gehörten Sender auf diesem Gerät, damit die App sie beim nächsten Start kennt.",
   "storageNoticePrivacy": "Datenschutz",
   "storageNoticeDismiss": "Verstanden",
+  "storageNoticeTitle": "Speicher auf diesem Gerät",
+  "@storageNoticeTitle": {
+    "description": "Titel des Speicher-Hinweises, der in der App und auf dem Desktop als Popup erscheint."
+  },
   "favoritesButton": "Favoriten",
   "favoritesButtonCount": "Favoriten, {count, plural, =1{1 Song} other{{count} Songs}}",
   "@favoritesButtonCount": {

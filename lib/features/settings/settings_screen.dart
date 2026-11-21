@@ -175,7 +175,12 @@ class SettingsScreen extends ConsumerWidget {
     return ListView(
       // Oben 20 dp wie die Stationsliste, damit die Ueberschrift auf allen
       // Screens gleich weit unter dem Header sitzt.
-      padding: EdgeInsets.fromLTRB(side, 20, side, 32),
+      padding: EdgeInsets.fromLTRB(
+        side,
+        LinefmSpace.gutter,
+        side,
+        LinefmSpace.xxl,
+      ),
       children: children,
     );
   }
@@ -207,7 +212,7 @@ class _ChoiceRow<T> extends StatelessWidget {
         border: Border(bottom: BorderSide(color: c.line)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: LinefmSpace.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -221,13 +226,13 @@ class _ChoiceRow<T> extends StatelessWidget {
               ),
             ),
             if (body != null) ...<Widget>[
-              const SizedBox(height: 5),
+              const SizedBox(height: LinefmSpace.xs),
               Text(
                 body!,
                 style: LinefmText.settingCopy.copyWith(color: c.muted),
               ),
             ],
-            const SizedBox(height: 12),
+            const SizedBox(height: LinefmSpace.md),
             LayoutBuilder(
               // Zu schmal fuer drei Segmente nebeneinander (320 dp, grosse
               // Schrift): untereinander statt Buchstabe fuer Buchstabe.
@@ -337,7 +342,7 @@ class _NavRow extends StatelessWidget {
               minHeight: LinefmMetrics.minTarget,
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: LinefmSpace.lg),
               child: Row(
                 children: <Widget>[
                   Expanded(
@@ -351,7 +356,7 @@ class _NavRow extends StatelessWidget {
                           ),
                         ),
                         if (subtitle != null) ...<Widget>[
-                          const SizedBox(height: 5),
+                          const SizedBox(height: LinefmSpace.xs),
                           Text(
                             subtitle!,
                             style: LinefmText.settingCopy.copyWith(
@@ -362,7 +367,7 @@ class _NavRow extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 24),
+                  const SizedBox(width: LinefmSpace.xl),
                   Icon(Icons.chevron_right, color: c.muted),
                 ],
               ),
@@ -428,7 +433,7 @@ class _StorageSection extends ConsumerWidget {
             style: LinefmText.settingTitle.copyWith(color: c.text),
           ),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: LinefmSpace.xs),
         Text(
           l10n.settingStorageBody,
           style: LinefmText.settingCopy.copyWith(color: c.muted),
@@ -440,19 +445,23 @@ class _StorageSection extends ConsumerWidget {
         border: Border(bottom: BorderSide(color: c.line)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: LinefmSpace.lg),
         child: LayoutBuilder(
           builder: (context, box) {
             if (box.maxWidth < 480) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[copy, const SizedBox(height: 14), button],
+                children: <Widget>[
+                  copy,
+                  const SizedBox(height: LinefmSpace.lg),
+                  button,
+                ],
               );
             }
             return Row(
               children: <Widget>[
                 Expanded(child: copy),
-                const SizedBox(width: 24),
+                const SizedBox(width: LinefmSpace.xl),
                 button,
               ],
             );
@@ -496,12 +505,12 @@ class _Footer extends ConsumerWidget {
           child: Center(
             widthFactor: 1,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
+              padding: const EdgeInsets.symmetric(horizontal: LinefmSpace.sm),
               child: Text(
                 label,
                 style: LinefmText.listTitle.copyWith(
                   color: c.text,
-                  fontSize: 13,
+                  fontSize: LinefmType.caption,
                 ),
               ),
             ),

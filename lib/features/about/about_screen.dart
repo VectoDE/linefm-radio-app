@@ -70,11 +70,13 @@ class AboutScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(),
         body: ListView(
-          padding: EdgeInsets.fromLTRB(side, 20, side, 48),
+          padding: EdgeInsets.fromLTRB(side, LinefmSpace.gutter, side, 48),
           children: <Widget>[
             SectionHeading(
               l10n.aboutTitle,
-              style: TextStyle(fontSize: width < 600 ? 18 : 25),
+              style: TextStyle(
+                fontSize: width < 600 ? LinefmType.title : LinefmType.heading,
+              ),
             ),
             Text(
               versionText(l10n, config),
@@ -86,7 +88,7 @@ class AboutScreen extends ConsumerWidget {
             const RadioGruppeCredit(),
             const SizedBox(height: 28),
             const _Developer(),
-            const SizedBox(height: 8),
+            const SizedBox(height: LinefmSpace.sm),
             Divider(color: c.line, height: 48),
             _LinkRow(
               label: l10n.footerImprint,
@@ -115,8 +117,8 @@ class AboutScreen extends ConsumerWidget {
             if (trust.isNotEmpty) ...<Widget>[
               Divider(color: c.line, height: 48),
               Wrap(
-                spacing: 12,
-                runSpacing: 12,
+                spacing: LinefmSpace.md,
+                runSpacing: LinefmSpace.md,
                 children: <Widget>[
                   for (final t in trust)
                     OutlinedButton.icon(
@@ -142,7 +144,10 @@ class _MadeBy extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.linefm;
     return MadeByCredit(
-      style: LinefmText.listTitle.copyWith(color: c.muted, fontSize: 15),
+      style: LinefmText.listTitle.copyWith(
+        color: c.muted,
+        fontSize: LinefmType.bodyLarge,
+      ),
       authorColor: c.text,
       heartColor: c.heart,
     );
@@ -187,23 +192,26 @@ class _Developer extends ConsumerWidget {
                       l10n.creditsDevelopedBy,
                       style: LinefmText.listTitle.copyWith(
                         color: c.accent,
-                        fontSize: 15,
+                        fontSize: LinefmType.bodyLarge,
                         decoration: TextDecoration.underline,
                         decorationColor: c.accent,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: LinefmSpace.sm),
                   Icon(Icons.open_in_new, size: 16, color: c.muted),
                 ],
               ),
             ),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: LinefmSpace.xs),
         Text(
           l10n.creditsOwnership,
-          style: LinefmText.listTitle.copyWith(color: c.muted, fontSize: 13),
+          style: LinefmText.listTitle.copyWith(
+            color: c.muted,
+            fontSize: LinefmType.caption,
+          ),
         ),
       ],
     );

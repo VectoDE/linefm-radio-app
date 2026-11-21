@@ -27,7 +27,7 @@ abstract final class StationStyle {
   static LinearGradient artGradient(Color color) => LinearGradient(
     begin: const Alignment(-0.574, -0.819),
     end: const Alignment(0.574, 0.819),
-    colors: <Color>[color, const Color(0xFF171929)],
+    colors: <Color>[color, LinefmPalette.artGradientEnd],
   );
 
   /// Hintergrund des Player-Screens. Dunkel wie die Web-App (84 % -> 38 % bei
@@ -77,7 +77,7 @@ abstract final class StationStyle {
   static Color border(Color color, LinefmColors c) {
     if (Contrast.ratio(color, c.background) >= Contrast.aaLarge) return color;
     final lighten = c.background.computeLuminance() < 0.5;
-    final target = lighten ? const Color(0xFFFFFFFF) : const Color(0xFF000000);
+    final target = lighten ? LinefmPalette.paper : LinefmPalette.black;
     var t = color;
     for (var i = 1; i <= 16; i++) {
       t = mix(target, i * 0.04, color);

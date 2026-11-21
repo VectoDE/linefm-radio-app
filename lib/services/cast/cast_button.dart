@@ -86,7 +86,7 @@ class _CastButtonState extends ConsumerState<CastButton> {
       useSafeArea: false,
       showDragHandle: false,
       backgroundColor: colors.surface,
-      barrierColor: Colors.black54,
+      barrierColor: LinefmPalette.scrim,
       constraints: const BoxConstraints(maxWidth: 520),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
@@ -242,7 +242,12 @@ class CastSheet extends ConsumerWidget {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+        padding: const EdgeInsets.fromLTRB(
+          LinefmSpace.gutter,
+          LinefmSpace.md,
+          LinefmSpace.gutter,
+          LinefmSpace.lg,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,7 +266,7 @@ class CastSheet extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: LinefmSpace.lg),
             Semantics(
               header: true,
               child: Text(
@@ -271,7 +276,7 @@ class CastSheet extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: LinefmSpace.sm),
             ...rows,
           ],
         ),
@@ -293,7 +298,7 @@ class _SheetRow extends StatelessWidget {
     final content = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 56),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: LinefmSpace.sm),
         child: Row(
           children: <Widget>[
             SizedBox(
@@ -306,7 +311,7 @@ class _SheetRow extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: LinefmSpace.lg),
             Expanded(
               child: Text(
                 label,

@@ -37,7 +37,12 @@ String tickerFor(StationLive live) {
 class StationsScreen extends ConsumerWidget {
   const StationsScreen({
     super.key,
-    this.padding = const EdgeInsets.fromLTRB(20, 0, 20, 24),
+    this.padding = const EdgeInsets.fromLTRB(
+      LinefmSpace.gutter,
+      0,
+      LinefmSpace.gutter,
+      LinefmSpace.xl,
+    ),
   });
 
   /// Aussenabstand. Die Shell ergaenzt oben den Header und unten Mini-Player
@@ -114,7 +119,8 @@ class StationsScreen extends ConsumerWidget {
       }
       return SliverList.separated(
         itemCount: list.length,
-        separatorBuilder: (context, i) => const SizedBox(height: 9),
+        separatorBuilder: (context, i) =>
+            const SizedBox(height: LinefmSpace.sm),
         itemBuilder: (context, i) => card(list[i]),
       );
     }
@@ -147,20 +153,25 @@ class StationsScreen extends ConsumerWidget {
                   child: SectionHeading(
                     l10n.stationsTitle,
                     headingLevel: hasFavorites ? 2 : 1,
-                    padding: EdgeInsets.only(bottom: offline ? 10 : 20),
+                    padding: EdgeInsets.only(
+                      bottom: offline ? LinefmSpace.md : LinefmSpace.gutter,
+                    ),
                   ),
                 ),
                 if (offline)
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.only(bottom: LinefmSpace.lg),
                       child: Semantics(
                         liveRegion: true,
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Padding(
-                              padding: const EdgeInsets.only(top: 2, right: 8),
+                              padding: const EdgeInsets.only(
+                                top: 2,
+                                right: LinefmSpace.sm,
+                              ),
                               child: FaIcon(
                                 FontAwesomeIcons.wifi,
                                 size: 12,

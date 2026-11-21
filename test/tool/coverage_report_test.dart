@@ -9,14 +9,17 @@ const String _lcov = '''
 SF:lib/a.dart
 FN:1,f
 DA:1,1
-DA:2,0
+DA:2,1
 BRDA:2,0,0,1
 BRDA:5,0,0,-
 BRDA:5,0,1,1
-BRF:3
+DA:7,3
+BRDA:7,0,0,-
+BRDA:7,0,1,-
+BRF:5
 BRH:2
-LF:2
-LH:1
+LF:3
+LH:2
 end_of_record
 SF:lib/l10n/gen/x.dart
 DA:1,1
@@ -58,7 +61,8 @@ void main() {
       expect(filtered, contains('BRDA:2,0,0,1'));
       expect(filtered, contains('BRF:1'));
       expect(filtered, contains('BRH:1'));
-      expect(filtered, contains('LF:2'));
+      expect(filtered, isNot(contains('BRDA:7,')));
+      expect(filtered, contains('LF:3'));
       expect(filtered, isNot(contains('l10n/gen')));
     },
   );

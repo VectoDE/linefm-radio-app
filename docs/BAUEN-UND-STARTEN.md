@@ -94,7 +94,7 @@ Die Versionsnummer steht in keiner Datei, `pubspec.yaml` trägt nur den Platzhal
 
 Jeder Merge zählt die letzte Zahl hoch. Eine Stufe fällt nie zurück, auch wenn ein Issue wieder aufgeht. Nach `1.0.0` richtet sich die nächste Nummer nach den Commit-Titeln (`fix:` ergibt 1.0.1, `feat:` 1.1.0, `feat!:` 2.0.0). Die Build-Nummer für die Stores steigt mit jedem Lauf.
 
-Alpha- und Beta-Versionen sind GitHub-Vorabversionen und gehen in keinen Store. Ab dem Release-Kandidaten laden die Store-Abläufe zu Google Play und Snap hoch, ab `1.0.0` auch zu Microsoft, Apple, Flathub und ins Web, soweit sie eingerichtet sind. Der Windows-Installer kommt mit #110 dazu.
+Alpha-, Beta- und RC-Versionen sind GitHub-Vorabversionen und gehen in keinen Store. Erst ab `1.0.0` laden die Store-Abläufe zu Google Play, Snap, Microsoft, Apple und Flathub hoch und die Web-Version wird aktualisiert, soweit eingerichtet. Der Windows-Installer kommt mit #110 dazu.
 
 Eine selbst gebaute App (A2, A6) zeigt unter „Über“ statt einer Nummer „Entwicklungsversion“ mit der Kurz-ID des Commits.
 

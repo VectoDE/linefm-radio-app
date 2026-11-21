@@ -11,7 +11,7 @@ Alle Abläufe laden die Dateien aus dem GitHub-Release (gebaut, geprüft und att
 | `store-apple.yml` | TestFlight (iOS), Mac App Store | Endversionen, manuell | `APPLE_PUBLISHING_ENABLED=true` und alle Apple-Secrets |
 | `deploy-web.yml` | Cloudflare Pages, SSH (nginx/Traefik), Plesk | Endversionen, manuell | Ziel in `WEB_DEPLOY_TARGETS` bzw. Eingabe `targets`, Secrets vollständig, Umgebung `production` freigegeben |
 
-`release.yml` ruft diese Workflows nach dem Anlegen des Releases auf. Vorabversionen (`vX.Y.Z-rc.N`) gehen nur an Google Play und Snap `edge`; alpha und beta gehen in keinen Store.
+`release.yml` ruft diese Workflows nach dem Anlegen des Releases auf. Vorabversionen (alpha, beta, rc) gehen in keinen Store und nicht ins Web; das passiert erst ab `1.0.0`.
 
 ## Manuell starten
 

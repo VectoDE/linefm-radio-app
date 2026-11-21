@@ -16,8 +16,8 @@ name: Release
 # auf dem gemergten Commit an. Android (APK/AAB), Windows (EXE) und macOS (DMG)
 # tragen ihre Plattform-Signatur nur mit gesetzten Signier-Secrets.
 # Pruefen: docs/RELEASE-VERIFIZIEREN.md.
-# Danach starten die Store-Workflows; Google Play und Snap ab rc, alle anderen nur
-# fuer Endversionen. alpha und beta gehen nur als GitHub-Vorabversion raus.
+# Danach starten die Store-Workflows und der Web-Deploy, alle erst ab 1.0.0 (keine
+# Vorabversion). alpha, beta und rc gehen nur als GitHub-Vorabversion raus.
 
 on:
   push:
@@ -436,7 +436,7 @@ jobs:
   google-play:
     name: Google Play
     needs: [version, publish]
-    if: needs.version.outputs.stage == 'rc' || needs.version.outputs.stage == 'stable'
+    if: needs.version.outputs.prerelease == 'false'
     uses: ./.github/workflows/store-google.yml
     with:
       tag: ${{ needs.version.outputs.tag }}
@@ -449,7 +449,7 @@ jobs:
   snap-store:
     name: Snap Store
     needs: [version, publish]
-    if: needs.version.outputs.stage == 'rc' || needs.version.outputs.stage == 'stable'
+    if: needs.version.outputs.prerelease == 'false'
     uses: ./.github/workflows/store-snap.yml
     with:
       tag: ${{ needs.version.outputs.tag }}

@@ -179,7 +179,7 @@ if ($window) {
     [void][LfTest.Win]::SetForegroundWindow($window.MainWindowHandle)
     # Flutter haengt seine Knoten an das Kindfenster FLUTTERVIEW. Die Anfrage
     # direkt an dieses Fenster schaltet die Semantik im Embedder ein.
-    $viewHwnd = [LfTest.Win]::FindWindowExW($window.MainWindowHandle, [IntPtr]::Zero, 'FLUTTERVIEW', $null)
+    $viewHwnd = [LfTest.Win]::FindWindowExW($window.MainWindowHandle, [IntPtr]::Zero, 'FLUTTERVIEW', [NullString]::Value)
     $root = if ($viewHwnd -ne [IntPtr]::Zero) {
       [System.Windows.Automation.AutomationElement]::FromHandle($viewHwnd)
     } else {

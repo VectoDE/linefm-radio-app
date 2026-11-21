@@ -136,6 +136,15 @@ Diese Variablen schreibt die CI in `config/app.json`. Sie landen im fertigen Pro
 
 Für die Store-Prüfung der Rechtstexte gilt: Ist Telemetrie aktiv (`UMAMI_*`, `SENTRY_DSN` oder `FIREBASE_CONFIG_JSON` gesetzt), sind in `LEGAL_VALUES_JSON` auch `TELEMETRIE_AUFBEWAHRUNG` und der Betreiber des jeweiligen Dienstes (`UMAMI_BETREIBER`, `SENTRY_BETREIBER`) Pflicht. Leere Werte zählen als offen.
 
+## Sicherheits-Scanner (optional)
+
+Beide Workflows laufen ohne Secret grün durch und melden in der Zusammenfassung "übersprungen, fehlt: …". In Pull Requests aus Forks wird kein Secret verwendet. Einrichtung Schritt für Schritt: [EINRICHTUNG.md](EINRICHTUNG.md), Schritte 12.4 und 12.5.
+
+| Name | Art | Wert / Herkunft | Wer |
+|---|---|---|---|
+
+Semgrep (`semgrep.yml`), Trivy, zizmor und actionlint (`supply-chain.yml`) brauchen kein Secret.
+
 ## Signierte Releases
 
 Attestierung und cosign-Signatur (`release.yml`, Job `sign`) brauchen kein Secret: Sie laufen über das OIDC-Token des Workflows (Sigstore, keyless). Nur die zusätzliche GPG-Signatur ist optional.

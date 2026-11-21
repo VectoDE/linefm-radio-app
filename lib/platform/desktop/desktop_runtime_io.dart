@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:linefm_radio/platform/desktop/desktop_controller.dart';
 import 'package:linefm_radio/platform/desktop/hotkeys_impl.dart';
 import 'package:linefm_radio/platform/desktop/tray_impl.dart';
+import 'package:linefm_radio/platform/desktop/window_caption_impl.dart';
 import 'package:linefm_radio/platform/desktop/window_impl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/legacy.dart' show DragToMoveArea;
@@ -35,6 +36,20 @@ Future<void> initDesktopRuntime() async {
     await window.init(
       closeToTray: WindowManagerDesktopWindow.readCloseToTray(prefs),
     );
+    // Systemleiste ist ausgeblendet: die eigene Leiste muss jetzt stehen,
+    // sonst liesse sich das Fenster weder ziehen noch schliessen.
+    if (window.customTitleBar) {
+      var maximized = false;
+      try {
+        maximized = await window.isMaximized();
+      } on Object catch (e) {
+        debugPrint('Fensterzustand nicht lesbar: $e');
+      }
+      desktop.caption = WindowManagerCaptionControls(
+        style: WindowManagerCaptionControls.platformStyle(),
+        maximized: maximized,
+      );
+    }
     desktop
       ..window = window
       ..dragArea = ((child) => DragToMoveArea(child: child))

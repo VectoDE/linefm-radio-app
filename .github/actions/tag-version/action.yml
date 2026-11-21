@@ -8,7 +8,7 @@ description: >
 
 inputs:
   tag:
-    description: Versions-Tag, z. B. v0.1.0-alpha.3 oder v1.0.0
+    description: Versions-Tag, vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N
     required: true
 
 runs:

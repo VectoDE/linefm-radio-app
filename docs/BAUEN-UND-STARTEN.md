@@ -49,13 +49,13 @@ Gut zu wissen:
 - Die Dateien sind nur für angemeldete GitHub-Nutzer abrufbar. Es gibt keinen öffentlichen Link zum Weitergeben.
 - GitHub bewahrt sie **14 Tage** auf (`retention-days: 14` in `build.yml`). Danach sind sie gelöscht und du startest einen neuen Bau.
 - Ein Artefakt ist immer eine ZIP-Datei mit den eigentlichen Dateien darin, auch wenn die Datei darin selbst schon ein ZIP oder eine EXE ist.
-- Die Version in den Dateinamen sieht bei einem manuellen Bau so aus: `0.0.0-dev.17`. Die letzte Zahl ist die Nummer des Laufs. Echte Versionsnummern gibt es nur über Releases (A4).
+- Die Version in den Dateinamen sieht bei einem manuellen Bau so aus: `0.0.0-dev+1a2b3c4`. Hinter dem Plus steht die Kurz-ID des Commits. Echte Versionsnummern gibt es nur über Releases (A4).
 
 Was in welchem Artefakt liegt, abgeglichen mit dem Lauf vom 21.11.2026 ([Lauf 44909292173](https://github.com/VectoDE/linefm-radio-app/actions/runs/44909292173), Branch `main`):
 
 | Artefakt | Inhalt (Dateinamen mit Beispielversion) | Größe der ZIP im Lauf |
 |---|---|---|
-| `dist-android` | `linefm-radio-1.0.0-dev.17-android.apk` (zum Installieren), `...-android.aab` (nur für den Play Store) | 110 MB |
+| `dist-android` | `linefm-radio-0.0.0-dev+1a2b3c4-android.apk` (zum Installieren), `...-android.aab` (nur für den Play Store) | 110 MB |
 | `dist-web` | `...-web.zip` (die Web-Version), `...-web-hosting.zip` (Server-Einstellungsdateien, 14 KB) | 49 MB |
 | `dist-windows` | `...-windows-x64.zip` (portable App), `...-windows-x64-setup.exe` (Installer) | 42 MB |
 | `dist-linux` | `...-linux-x64.tar.gz` | 14 MB |

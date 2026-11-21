@@ -30,6 +30,10 @@ jobs:
         with:
           persist-credentials: false
 
+      # #104: Die App-Version kommt nur aus dem Release; feste Nummern sind ein Fehler.
+      - name: Keine feste App-Version
+        run: bash tool/check_fixed_versions.sh
+
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 

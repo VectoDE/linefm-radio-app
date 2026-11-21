@@ -33,7 +33,7 @@ on:
   workflow_call:
     inputs:
       version:
-        description: Versions-Tag (z. B. v1.2.3 oder v1.2.3-rc.1)
+        description: Versions-Tag (vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N)
         type: string
         required: false
         default: ""
@@ -140,8 +140,8 @@ jobs:
             label="${version#v}"
             app_env=prod
           else
-            base="$(sed -n 's/^version:[[:space:]]*\([0-9.]*\).*/\1/p' pubspec.yaml | head -n1)"
-            label="${base}-dev.${RUN_NUMBER}"
+            # Ohne Release: eindeutig erkennbare Entwicklungsversion mit Commit (#104).
+            label="0.0.0-dev+${GITHUB_SHA::7}"
             app_env=dev
           fi
           build_name="${label%%-*}"

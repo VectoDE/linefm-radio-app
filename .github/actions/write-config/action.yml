@@ -14,7 +14,7 @@ inputs:
     required: false
     default: prod
   app-version:
-    description: Anzeige-Version (APP_VERSION) aus dem Release, z. B. 0.1.0-alpha.3; leer = Entwicklungsversion
+    description: Anzeige-Version (APP_VERSION) aus dem Release (Form X.Y.Z oder X.Y.Z-stufe.N); leer = Entwicklungsversion
     required: false
     default: ""
   web-base-url:

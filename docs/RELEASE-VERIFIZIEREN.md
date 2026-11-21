@@ -17,7 +17,7 @@ shasum -a 256 -c SHA256SUMS.txt --ignore-missing
 Windows (PowerShell), je Datei:
 
 ```powershell
-(Get-FileHash .\linefm-radio-1.2.3-windows-x64.zip -Algorithm SHA256).Hash
+(Get-FileHash .\linefm-radio-X.Y.Z-windows-x64.zip -Algorithm SHA256).Hash
 # mit der Zeile in SHA256SUMS.txt vergleichen (Gross-/Kleinschreibung egal)
 ```
 
@@ -28,9 +28,9 @@ Die Prüfsummen zeigen, dass die Datei beim Download nicht beschädigt wurde. Si
 Der Release-Workflow legt für jede Datei aus `SHA256SUMS.txt` eine Build-Provenance an (`actions/attest-build-provenance`, über Sigstore). Sie belegt, welcher Workflow aus welchem Commit die Datei gebaut hat. Dazu kommt eine SBOM-Attestierung. Das Repository ist öffentlich, die Attestierung ist deshalb Pflicht: Scheitert sie, bricht das Release ab.
 
 ```sh
-gh attestation verify linefm-radio-1.2.3-android.apk -R VectoDE/linefm-radio-app
+gh attestation verify linefm-radio-X.Y.Z-android.apk -R VectoDE/linefm-radio-app
 # strenger: nur Builds aus dem Release-Workflow auf main
-gh attestation verify linefm-radio-1.2.3-android.apk -R VectoDE/linefm-radio-app \
+gh attestation verify linefm-radio-X.Y.Z-android.apk -R VectoDE/linefm-radio-app \
   --signer-workflow VectoDE/linefm-radio-app/.github/workflows/release.yml \
   --source-ref refs/heads/main
 ```
@@ -43,10 +43,10 @@ Prüfen mit [cosign](https://docs.sigstore.dev/cosign/system_config/installation
 
 ```sh
 cosign verify-blob \
-  --bundle linefm-radio-1.2.3-android.apk.sigstore.json \
+  --bundle linefm-radio-X.Y.Z-android.apk.sigstore.json \
   --certificate-identity 'https://github.com/VectoDE/linefm-radio-app/.github/workflows/release.yml@refs/heads/main' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  linefm-radio-1.2.3-android.apk
+  linefm-radio-X.Y.Z-android.apk
 ```
 
 Erwartete Ausgabe: `Verified OK`. Am sichersten prüfst du zuerst `SHA256SUMS.txt` mit seinem Bundle und danach die Downloads mit `sha256sum -c` (Schritt 1).
@@ -71,7 +71,7 @@ sha256sum -c SHA256SUMS.txt --ignore-missing
 `linefm-radio-<version>-sbom.spdx.json` listet die Abhängigkeiten im SPDX-Format (erzeugt mit Anchore Syft aus dem Quelltext). Sie lässt sich mit üblichen Werkzeugen auf bekannte Schwachstellen prüfen, zum Beispiel:
 
 ```sh
-osv-scanner scan source -L linefm-radio-1.2.3-sbom.spdx.json
+osv-scanner scan source -L linefm-radio-X.Y.Z-sbom.spdx.json
 ```
 
 ## 6. Signaturen der Plattformen
@@ -80,10 +80,10 @@ Diese Signaturen gibt es nur, wenn beim Build die passenden Secrets gesetzt ware
 
 | Datei | Prüfung |
 |---|---|
-| Android `*.apk` | `apksigner verify --print-certs linefm-radio-1.2.3-android.apk` (Android SDK Build-Tools). Die GitHub-Release-APK ist mit dem Upload-Schlüssel signiert, Play-Installationen mit dem App-Signaturschlüssel. Beide SHA-256-Fingerprints stehen in `/.well-known/assetlinks.json` der Web-Version (Variable `ANDROID_CERT_SHA256`), sobald diese live ist. |
-| Android `*.aab` | `jarsigner -verify linefm-radio-1.2.3-android.aab` (der Upload-Schlüssel; Google signiert für die Auslieferung neu). |
+| Android `*.apk` | `apksigner verify --print-certs linefm-radio-X.Y.Z-android.apk` (Android SDK Build-Tools). Die GitHub-Release-APK ist mit dem Upload-Schlüssel signiert, Play-Installationen mit dem App-Signaturschlüssel. Beide SHA-256-Fingerprints stehen in `/.well-known/assetlinks.json` der Web-Version (Variable `ANDROID_CERT_SHA256`), sobald diese live ist. |
+| Android `*.aab` | `jarsigner -verify linefm-radio-X.Y.Z-android.aab` (der Upload-Schlüssel; Google signiert für die Auslieferung neu). |
 | Windows (`*.exe` im ZIP und der Installer `*-windows-x64-setup.exe`) | `signtool verify /pa /v <datei>` oder Eigenschaften > Digitale Signaturen. |
-| macOS `*.dmg` | `spctl -a -t open --context context:primary-signature -v linefm-radio-1.2.3-macos.dmg` und `xcrun stapler validate linefm-radio-1.2.3-macos.dmg` (signiert und notarisiert). |
+| macOS `*.dmg` | `spctl -a -t open --context context:primary-signature -v linefm-radio-X.Y.Z-macos.dmg` und `xcrun stapler validate linefm-radio-X.Y.Z-macos.dmg` (signiert und notarisiert). |
 
 ## Was wir nicht versprechen
 

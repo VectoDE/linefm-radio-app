@@ -160,7 +160,7 @@ jobs:
           # offene Platzhalter nur.
           # #104: Vorabversionen (alpha, beta, rc) gehen in keinen Store.
           legal_strict=false
-          if [ "$app_env" = "prod" ] && ! [[ "$label" =~ -(alpha|beta|rc). ]]; then legal_strict=true; fi
+          if [ "$app_env" = "prod" ] && ! [[ "$label" =~ -(alpha|beta|rc)\. ]]; then legal_strict=true; fi
 
           {
             echo "legal_strict=$legal_strict"

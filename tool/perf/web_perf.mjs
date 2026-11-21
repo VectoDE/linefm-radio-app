@@ -185,6 +185,8 @@ async function newContext(browser, profile, { seed = false } = {}) {
     isMobile: pr.isMobile,
     hasTouch: pr.hasTouch,
     serviceWorkers: 'allow',
+    // Hauptzielgruppe; ohne Angabe startet die App im Runner auf Englisch.
+    locale: 'de-DE',
   });
   await context.addInitScript(INIT);
   if (seed) await context.addInitScript(SEED);
@@ -413,10 +415,10 @@ async function discoverTargets(browser, profile) {
     return {
       nodes: nodes.slice(0, 120),
       targets: {
-        verlauf: find(/^Verlauf$/i),
-        favoriten: find(/^Favoriten/i),
-        einstellungen: find(/^Einstellungen$/i),
-        sender: find(/^Sender$/i),
+        verlauf: find(/^(Verlauf|History)$/i),
+        favoriten: find(/^(Favoriten|Favorites)/i),
+        einstellungen: find(/^(Einstellungen|Settings)$/i),
+        sender: find(/^(Sender|Stations|Alle Sender|All stations)$/i),
         stationA: find(STATION_A.name, ['button']),
         stationB: find(STATION_B.name, ['button']),
       },

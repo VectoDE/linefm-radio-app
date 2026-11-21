@@ -262,7 +262,7 @@ internal class WidgetState(
  * Gebuendelte Senderlogos (auch fuer Android Auto, siehe keep.xml).
  *
  * Keine eigene Senderliste (Issue #91): Die Senderliste steht nur in
- * config/stations.json. Hier wird nur das Format des Kuerzels geprueft
+ * config/stations.yaml. Hier wird nur das Format des Kuerzels geprueft
  * und das Drawable `auto_station_<kuerzel>` per Name gesucht; fehlt es (Sender
  * erst nachgeladen), erscheint das LINEFM-Logo.
  */

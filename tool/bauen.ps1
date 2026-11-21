@@ -172,15 +172,19 @@ if ($Ziel -eq 'web' -and $Oeffnen) {
 }
 
 $defineArgs = @()
+# config\app.yaml und config\features.yaml (YAML mit Kommentaren) werden
+# geprueft und als Bauwerte nach config\app.json geschrieben (Issue #91).
+if ((Test-Path (Join-Path $repo 'config\app.yaml')) -or (Test-Path (Join-Path $repo 'config\features.yaml'))) {
+  Write-Host 'config\app.yaml bzw. features.yaml gefunden, Bauwerte werden erzeugt.'
+  Push-Location $repo
+  try { & dart run tool/check_config.dart --defines config/app.json } finally { Pop-Location }
+  if ($LASTEXITCODE -ne 0) { throw 'Konfiguration in config fehlerhaft, siehe Meldungen oben.' }
+}
 if (Test-Path (Join-Path $repo 'config\app.json')) {
   Write-Host 'config\app.json gefunden, wird beim Bauen verwendet.'
   $defineArgs = @('--dart-define-from-file=config/app.json')
 } else {
   Write-Host 'Keine config\app.json, die App baut mit Standardwerten.'
-}
-if (Test-Path (Join-Path $repo 'config\features.json')) {
-  Write-Host 'config\features.json gefunden, Schalter werden uebernommen.'
-  $defineArgs += '--dart-define-from-file=config/features.json'
 }
 
 $webPort = $Port

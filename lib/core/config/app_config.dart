@@ -72,11 +72,11 @@ class AppConfig {
   final String trustTrustpilotUrl;
 
   /// Feste Adresse der nachladbaren Senderliste (Issue #91), z. B.
-  /// `https://app.linefm.de/stations.json`. Leer = nur die mitgelieferte
+  /// `https://app.linefm.de/stations.yaml`. Leer = nur die mitgelieferte
   /// Liste, kein Netzabruf. Nur https (siehe StationsUpdater.parseUrl).
   final String stationsUrl;
 
-  /// Hoererzahl im Player anzeigen (config/features.json,
+  /// Hoererzahl im Player anzeigen (config/features.yaml,
   /// `showListenerCount`). Standard aus; ohne Datei wird sie nicht abgefragt.
   final bool showListenerCount;
 

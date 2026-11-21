@@ -5,7 +5,7 @@ import 'package:linefm_radio/core/config/app_config.dart';
 import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 
-/// Hoererzahl nur mit `showListenerCount: true` (config/features.json).
+/// Hoererzahl nur mit `showListenerCount: true` (config/features.yaml).
 void main() {
   Future<int?> listeners({required bool enabled}) async {
     final container = ProviderContainer(

@@ -13,7 +13,7 @@ import 'package:linefm_radio/domain/stations_config.dart';
 void main() {
   final fixture = File('test/fixtures/stations/stations_6.json')
       .readAsStringSync();
-  final url = Uri.parse('https://app.linefm.de/stations.json');
+  final url = Uri.parse('https://app.linefm.de/stations.yaml');
 
   setUp(() => installBundledStations(parseStationsConfig(fixture)));
 
@@ -59,7 +59,7 @@ void main() {
       expect(StationsUpdater.parseUrl('https://app.linefm.de/s#x'), isNull);
       expect(StationsUpdater.parseUrl('file:///etc/passwd'), isNull);
       expect(
-        StationsUpdater.parseUrl(' https://app.linefm.de/stations.json '),
+        StationsUpdater.parseUrl(' https://app.linefm.de/stations.yaml '),
         url,
       );
     });

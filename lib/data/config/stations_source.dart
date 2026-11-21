@@ -11,7 +11,7 @@ import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/stations_config.dart';
 
 /// Mitgelieferte Senderliste (einzige Quelle, Issue #91).
-const String stationsAssetPath = 'config/stations.json';
+const String stationsAssetPath = 'config/stations.yaml';
 
 /// Laedt die mitgelieferte Senderliste. main() wartet darauf, bevor Audio,
 /// CarPlay, Wecker und Deep Links starten; die Datei ist wenige KB gross und
@@ -52,7 +52,7 @@ enum StationsUpdateOutcome {
 /// - Nur https, Host exakt der konfigurierte, keine Weiterleitungen (auch
 ///   nicht auf denselben Host; die Datei liegt fest unter der Adresse).
 /// - Groesse vor (Content-Length) und beim Lesen (gestreamt) begrenzt.
-/// - Nur JSON (Content-Type), strenges Schema ([parseStationsConfig]).
+/// - Nur YAML/JSON/Text (Content-Type), strenges Schema ([parseStationsConfig]).
 /// - Ungueltige oder leere Listen werden nie uebernommen; die bisherige
 ///   Liste bleibt.
 /// - Streams laufen immer ueber `stream.laut.fm/<kuerzel>`; die Datei kann
@@ -152,7 +152,8 @@ class StationsUpdater {
   Future<StationsUpdateOutcome> _refresh(http.Client client, Uri target) async {
     final request = http.Request('GET', target)
       ..followRedirects = false
-      ..headers['Accept'] = 'application/json';
+      ..headers['Accept'] =
+          'application/yaml, application/json;q=0.9, text/plain;q=0.5';
     final etag = _etag;
     if (_conditional && etag != null) request.headers['If-None-Match'] = etag;
 
@@ -217,7 +218,9 @@ class StationsUpdater {
     final length = response.contentLength;
     if (length != null && length > stationsConfigMaxBytes) return 'zu gross';
     final type = (response.headers['content-type'] ?? '').toLowerCase();
-    if (!type.contains('json')) return 'kein JSON ($type)';
+    // YAML (oder JSON als Teilmenge); manche Server liefern text/plain.
+    const allowed = <String>['yaml', 'json', 'text/plain'];
+    if (!allowed.any(type.contains)) return 'kein YAML/JSON ($type)';
     return null;
   }
 

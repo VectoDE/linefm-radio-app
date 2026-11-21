@@ -90,10 +90,11 @@ git worktree remove --force C:\lf29
 
 ## Konfiguration: `--dart-define-from-file`
 
-Alle Laufzeiteinstellungen kommen beim Build über `--dart-define-from-file=config/app.json`. Vorlage: `config/app.example.json`. Die Datei `config/app.json` ist in `.gitignore` und wird nicht eingecheckt.
+Alle Laufzeiteinstellungen kommen beim Build über `--dart-define-from-file=config/app.json`. Die Datei entsteht aus `config/app.yaml` und `config/features.yaml` (Vorlagen `*.example.yaml`) mit `dart run tool/check_config.dart --defines config/app.json`. Alle drei sind in `.gitignore`. Siehe [Konfiguration](KONFIGURATION.md).
 
 ```bash
-cp config/app.example.json config/app.json
+cp config/app.example.yaml config/app.yaml
+dart run tool/check_config.dart --defines config/app.json
 flutter run -d windows --dart-define-from-file=config/app.json
 ```
 

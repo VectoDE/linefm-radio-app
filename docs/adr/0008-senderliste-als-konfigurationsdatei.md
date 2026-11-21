@@ -9,12 +9,13 @@ Sender sollen sich ohne Programmierkenntnisse hinzufügen, entfernen, umbenennen
 
 ## Entscheidung
 
-- Die Senderliste steht in einer einzigen Datei, `config/stations.json`. Sie ist die einzige echte Datei in `config/`, die im Repository liegt, und wird mit jeder App ausgeliefert. Damit läuft die App ohne weitere Dateien.
+- Die Senderliste steht in einer einzigen Datei, `config/stations.yaml`. Sie ist die einzige echte Datei in `config/`, die im Repository liegt, und wird mit jeder App ausgeliefert. Damit läuft die App ohne weitere Dateien.
 - Beim Start holt die App nach dem ersten Bild die aktuelle Fassung von einer festen eigenen Adresse (`STATIONS_URL`, zur Bauzeit gesetzt). Ist sie nicht erreichbar oder ungültig, gilt die zuletzt gültige bzw. die mitgelieferte Liste.
-- Schutz gegen eine manipulierte Datei: nur https, Host fest, keine Weiterleitungen, höchstens 64 KB, nur JSON, strenges Schema mit Fehler bei unbekannten Feldern, Kürzel nur `[a-z0-9_-]`, Logo-Hosts fest im Code (nicht in der Datei), Stream-Adressen werden aus dem Kürzel abgeleitet und sind nicht eintragbar. Leere Listen werden nie übernommen.
+- Schutz gegen eine manipulierte Datei: nur https, Host fest, keine Weiterleitungen, höchstens 64 KB, nur YAML/JSON-Inhaltstypen, Tiefe und Knotenzahl begrenzt (keine Alias-Bomben), strenges Schema mit Fehler bei unbekannten Feldern, Kürzel nur `[a-z0-9_-]`, Logo-Hosts fest im Code (nicht in der Datei), Stream-Adressen werden aus dem Kürzel abgeleitet und sind nicht eintragbar. Leere Listen werden nie übernommen.
 - Gespeichert werden nur Kürzel. Ein entfernter Sender verschwindet aus der Anzeige; Favoriten bleiben gespeichert, ein Wecker weckt mit dem ersten Sender, ein Link zeigt einen Hinweis.
 - Native Teile (Android-Widget, Android Auto, CarPlay) führen keine eigene Kopie der Liste.
-- Weitere Konfigurationsteile (`features`, `operator`, `telemetry`, `updater`) liegen im selben Ordner, je als `*.example.json`, und werden vom selben Werkzeug (`tool/check_config.dart`) geprüft. Siehe [Konfiguration](../KONFIGURATION.md).
+- Alle Dateien in `config/` sind YAML mit einem Kommentar über jedem Schlüssel (Bedeutung, Pflicht/optional, Werte, Standard, Beispiel), damit sie ohne Anleitung lesbar sind. Die App liest YAML über das offizielle Paket `yaml`, das vorher schon transitiv im Projekt war.
+- Weitere Konfigurationsteile (`features`, `operator`, `telemetry`, `updater`) liegen im selben Ordner, je als `*.example.yaml`, und werden vom selben Werkzeug (`tool/check_config.dart`) geprüft. Siehe [Konfiguration](../KONFIGURATION.md).
 
 ## Folgen
 

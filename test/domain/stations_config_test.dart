@@ -28,9 +28,9 @@ void main() {
   ];
 
   group('echte Dateien', () {
-    test('config/stations.json ist gueltig', () {
+    test('config/stations.yaml ist gueltig', () {
       final r = parseStationsConfigBytes(
-        File('config/stations.json').readAsBytesSync(),
+        File('config/stations.yaml').readAsBytesSync(),
       );
       expect(r.errors, isEmpty);
       expect(r.active, isNotEmpty);
@@ -228,5 +228,65 @@ void main() {
     );
     expect(r.ok, isTrue);
     expect(r.active.single.logoAsset, isNull);
+  });
+
+  group('YAML', () {
+    test('Kommentare und Anfuehrungszeichen', () {
+      final r = parseStationsConfig(
+        [
+          '# Kopf',
+          'schemaVersion: 1 # Fassung',
+          'sender:',
+          '  # erster Sender',
+          '  - kuerzel: abc',
+          '    name: "A B"',
+          '    farbe: "#AABBCC"',
+          '    logo: https://cdn.linefm.de/x.png',
+          '    aktiv: true',
+        ].join(String.fromCharCode(10)),
+      );
+      expect(r.errors, isEmpty);
+      expect(r.active.single.name, 'A B');
+    });
+
+    test('Farbe ohne Anfuehrungszeichen wird zum Kommentar und gemeldet', () {
+      final r = parseStationsConfig(
+        [
+          'schemaVersion: 1',
+          'sender:',
+          '  - kuerzel: abc',
+          '    name: A',
+          '    farbe: #AABBCC',
+          '    logo: https://cdn.linefm.de/x.png',
+        ].join(String.fromCharCode(10)),
+      );
+      expect(r.ok, isFalse);
+      expect(r.errors.first.line, 5);
+    });
+
+    test('Tabs bzw. kaputte Einrueckung nennen eine Zeile', () {
+      final r = parseStationsConfig(
+        <String>[
+          'schemaVersion: 1',
+          'sender:',
+          '${String.fromCharCode(9)}- kuerzel: a',
+        ].join(String.fromCharCode(10)),
+      );
+      expect(r.ok, isFalse);
+      expect(r.errors.first.line, isNotNull);
+    });
+
+    test('aufgeblaehte Aliase werden abgewiesen', () {
+      final b = StringBuffer('a: &a ["x","x","x","x","x","x","x","x","x"]');
+      final nl = String.fromCharCode(10);
+      for (var i = 0; i < 8; i++) {
+        final prev = String.fromCharCode(97 + i);
+        final next = String.fromCharCode(98 + i);
+        b.write('$nl$next: &$next [*$prev,*$prev,*$prev,*$prev,*$prev,*$prev]');
+      }
+      b.write('${nl}schemaVersion: 1${nl}sender: *i');
+      final r = parseStationsConfig(b.toString());
+      expect(r.ok, isFalse);
+    });
   });
 }

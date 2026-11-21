@@ -69,6 +69,10 @@ class _Harness {
     container = ProviderContainer(
       overrides: [
         prefsProvider.overrideWithValue(InMemoryPrefsStore()),
+        // Hoererzahl eingeschaltet (features.yaml), Standard waere aus.
+        appConfigProvider.overrideWithValue(
+          const AppConfig(showListenerCount: true),
+        ),
         telemetryProvider.overrideWithValue(hub),
         shareServiceProvider.overrideWithValue(share),
         playbackServiceProvider.overrideWithValue(playback),

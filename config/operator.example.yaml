@@ -1,0 +1,53 @@
+# Betreiberangaben für das Impressum (Issue #98).
+# Stand: nur das Schema. Die App liest diese Datei noch nicht.
+# Nutzen (später): kopieren, als operator.yaml speichern, ausfüllen.
+# Anleitung: docs/KONFIGURATION.md. Rechtliche Pflichtangaben bitte
+# anwaltlich prüfen lassen.
+
+# Name des Betreibers bzw. der Firma.
+# Pflicht. Text. Standard: leer. Beispiel: "Muster Medien"
+name: ""
+
+# Rechtsform.
+# Optional. Text. Standard: leer. Beispiel: "Einzelunternehmen"
+rechtsform: ""
+
+# Vertretungsberechtigte Person.
+# Pflicht bei Gesellschaften. Text. Standard: leer.
+# Beispiel: "Max Mustermann"
+vertretenDurch: ""
+
+# Straße und Hausnummer.
+# Pflicht. Text. Standard: leer. Beispiel: "Musterstraße 1"
+strasse: ""
+
+# Postleitzahl.
+# Pflicht. Format: 3 bis 10 Zeichen aus Ziffern, Buchstaben, Leerzeichen, -.
+# Standard: leer. Beispiel: "12345"
+plz: ""
+
+# Ort.
+# Pflicht. Text. Standard: leer. Beispiel: "Musterstadt"
+ort: ""
+
+# Land.
+# Pflicht. Text. Standard: leer. Beispiel: "Deutschland"
+land: ""
+
+# E-Mail-Adresse für Kontakt.
+# Pflicht. Format: name@domain.tld. Standard: leer.
+# Beispiel: "kontakt@example.org"
+email: ""
+
+# Telefonnummer.
+# Optional. Format: Ziffern, Leerzeichen, + ( ) / -. Standard: leer.
+# Beispiel: "+49 30 1234567"
+telefon: ""
+
+# Umsatzsteuer-Identifikationsnummer.
+# Optional. Text. Standard: leer. Beispiel: "DE123456789"
+ustId: ""
+
+# Verantwortlich für den Inhalt (Name und Anschrift).
+# Optional. Text. Standard: leer. Beispiel: "Max Mustermann, Anschrift wie oben"
+verantwortlichInhalt: ""

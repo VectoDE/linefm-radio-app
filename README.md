@@ -72,7 +72,7 @@ Verteilung: Google Play, Microsoft Store, Flathub, Snap Store und GitHub Release
 Du brauchst [Flutter 3.50](https://docs.flutter.dev/get-started/install) und Git. Für Android zusätzlich Android Studio, für Windows Visual Studio mit C++ und Rust.
 
 1. Repository klonen und im Ordner `flutter pub get` ausführen.
-2. `config/app.example.json` nach `config/app.json` kopieren. Die Vorlage reicht zum Starten, Statistik bleibt aus.
+2. Optional: `config/app.example.yaml` nach `config/app.yaml` kopieren, ausfüllen und mit `dart run tool/check_config.dart --defines config/app.json` die Bauwerte erzeugen. Ohne diesen Schritt startet die App mit Standardwerten, Statistik bleibt aus. Siehe [Konfiguration](docs/KONFIGURATION.md).
 3. `flutter run -d chrome --dart-define-from-file=config/app.json` startet die Web-Version im Browser.
 4. Vor einem Pull Request: `dart format .`, `flutter analyze --fatal-infos` und `flutter test` müssen ohne Fehler durchlaufen.
 
@@ -88,7 +88,7 @@ flutter run -d chrome
 ```
 
 - Flutter 3.50 (Dart 3.14), UI mit `material_ui`, State mit Riverpod. Windows-Build braucht Rust und kurze Pfade.
-- Konfiguration über `--dart-define-from-file=config/app.json` (Vorlage `config/app.example.json`).
+- Konfiguration über `--dart-define-from-file=config/app.json` (erzeugt aus `config/app.yaml`, siehe [Konfiguration](docs/KONFIGURATION.md)).
 - Aufbau, Tests und Goldens, Deep Links, Entscheidung zum laut.fm-WebSocket: **[Entwicklung](docs/ENTWICKLUNG.md)**.
 - Datenquelle: öffentliche [laut.fm-API](https://docs.api.laut.fm/api-spec.yaml). Es gibt kein eigenes Backend und keine Konten.
 - Ordner: `lib/` (App), `test/`, `android/ ios/ macos/ windows/ linux/ web/` (Plattformen), `deploy/` (Web-Server-Konfiguration), `packaging/` (Installer und Store-Pakete), `tool/` (Generatoren).

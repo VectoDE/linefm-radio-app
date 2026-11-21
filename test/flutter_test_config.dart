@@ -7,7 +7,7 @@ import 'package:linefm_radio/domain/stations_config.dart';
 /// Laeuft vor jeder Testdatei (Issue #91): Die Tests arbeiten mit einer
 /// festen Senderliste (test/fixtures/stations/stations_6.json, Stand der
 /// sechs Sender bei Einfuehrung der Datei), nicht mit
-/// config/stations.json. So bricht keine Test, wenn der Betreiber in
+/// config/stations.yaml. So bricht keine Test, wenn der Betreiber in
 /// der echten Datei Sender ergaenzt, entfernt oder umsortiert; die echte
 /// Datei prueft test/domain/stations_config_test.dart und die CI.
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {

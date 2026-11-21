@@ -1,22 +1,25 @@
 // Senderliste als Konfigurationsdatei (Issue #91).
 //
-// Nur dart:core und dart:convert: Dieselbe Datei pruefen die App (beim Start
-// und beim Nachladen) und das Werkzeug tool/stations_check.dart (ohne
-// Flutter). So gibt es genau eine Pruefregel.
+// Ohne Flutter (dart:convert und package:yaml): Dieselbe Pruefung nutzen
+// die App (beim Start und beim Nachladen) und tool/check_config.dart. So gibt
+// es genau eine Pruefregel.
 //
-// Format (config/stations.json):
-//   {
-//     "schemaVersion": 1,
-//     "sender": [
-//       { "kuerzel": "linefm", "name": "LineFM +MAIN", "farbe": "#4B4B7D",
-//         "logo": "https://cdn.linefm.de/images/icons/main.png",
-//         "logoDatei": "assets/images/stations/main.png", "aktiv": true }
-//     ]
-//   }
+// Format: YAML mit Kommentaren, siehe config/stations.yaml (JSON wird als
+// Teilmenge von YAML ebenfalls angenommen):
+//   schemaVersion: 1
+//   sender:
+//     - kuerzel: linefm
+//       name: "LineFM +MAIN"
+//       farbe: "#4B4B7D"
+//       logo: https://cdn.linefm.de/images/icons/main.png
+//       logoDatei: assets/images/stations/main.png
+//       aktiv: true
 // Reihenfolge in der Datei = Reihenfolge in der App. Stream- und
 // API-Adressen leitet die App aus dem Kuerzel ab (stream.laut.fm,
 // api.laut.fm); sie stehen bewusst nicht in der Datei.
 import 'dart:convert';
+
+import 'package:yaml/yaml.dart';
 
 /// Einzige unterstuetzte Fassung des Formats.
 const int stationsConfigSchemaVersion = 1;
@@ -175,8 +178,8 @@ StationsConfigResult parseStationsConfig(
   }
   final _Node root;
   try {
-    root = _JsonReader(text).readDocument();
-  } on _JsonError catch (e) {
+    root = _readYaml(text);
+  } on _ParseError catch (e) {
     return StationsConfigResult(
       errors: <StationsConfigIssue>[
         StationsConfigIssue(e.message, line: e.line),
@@ -250,7 +253,7 @@ class _Validator {
     final top = root.object;
     if (top == null) {
       _error(
-        'Die Datei muss mit { beginnen und mit } enden (ein JSON-Objekt).',
+        'Die Datei muss oben die Felder schemaVersion und sender enthalten.',
         root.line,
       );
       return _result(const <StationConfigEntry>[]);
@@ -274,7 +277,7 @@ class _Validator {
     final items = list.array;
     if (items == null) {
       _error(
-        '"sender" muss eine Liste in eckigen Klammern [ ] sein.',
+        '"sender" muss eine Liste sein: jeder Sender beginnt mit "- ".',
         list.line,
       );
       return _result(const <StationConfigEntry>[]);
@@ -327,7 +330,7 @@ class _Validator {
     final map = node.object;
     if (map == null) {
       _error(
-        'Sender $number muss in geschweiften Klammern { } stehen.',
+        'Sender $number muss Felder wie kuerzel und name enthalten.',
         node.line,
       );
       return null;
@@ -495,12 +498,13 @@ String? logoUrlProblem(String value) {
 }
 
 // ---------------------------------------------------------------------------
-// Kleiner JSON-Leser mit Zeilennummern
+// YAML in Knoten mit Zeilennummern
 // ---------------------------------------------------------------------------
 //
-// jsonDecode kennt keine Zeilen und nimmt bei doppelten Schluesseln still den
-// letzten Wert. Fuer verstaendliche Meldungen ("Zeile 12: ...") und strenge
-// Pruefung liest dieser Leser JSON (RFC 8259) selbst, mit Tiefenbegrenzung.
+// Die Datei ist YAML mit Kommentaren (JSON ist gueltiges YAML und wird
+// ebenfalls angenommen). package:yaml liefert Zeilen und meldet doppelte
+// Schluessel. Gegen aufgeblaehte Dateien (Anker/Aliase, "billion laughs")
+// begrenzt die Umwandlung Tiefe und Knotenzahl.
 
 class _Node {
   _Node(this.value, this.line, {this.object, this.array});
@@ -511,296 +515,59 @@ class _Node {
   final List<_Node>? array;
 }
 
-class _JsonError implements Exception {
-  _JsonError(this.message, this.line);
+class _ParseError implements Exception {
+  _ParseError(this.message, this.line);
 
   final String message;
-  final int line;
+  final int? line;
 }
 
-class _JsonReader {
-  _JsonReader(String text)
-    : _s = text.startsWith('﻿') ? text.substring(1) : text;
+const int _maxDepth = 16;
+const int _maxNodes = 5000;
 
-  static const int _maxDepth = 16;
-
-  final String _s;
-  int _i = 0;
-  int _line = 1;
-
-  _Node readDocument() {
-    _skip();
-    if (_i >= _s.length) throw _JsonError('Die Datei ist leer.', 1);
-    final node = _value(0);
-    _skip();
-    if (_i < _s.length) {
-      throw _JsonError(
-        'Nach dem Ende der Liste steht noch Text. Prüfe die letzte '
-        'schließende Klammer }.',
-        _line,
+_Node _readYaml(String text) {
+  final YamlNode doc;
+  try {
+    doc = loadYamlNode(text);
+  } on YamlException catch (e) {
+    final span = e.span;
+    throw _ParseError(
+      'Die Datei ist kein gueltiges YAML: ${e.message}. Haeufige Ursachen: '
+      'falsche Einrueckung (immer zwei Leerzeichen, keine Tabs) oder eine '
+      'Farbe ohne Anfuehrungszeichen ("#4B4B7D").',
+      span == null ? null : span.start.line + 1,
+    );
+  }
+  var count = 0;
+  _Node convert(YamlNode node, int depth) {
+    if (++count > _maxNodes || depth > _maxDepth) {
+      throw _ParseError(
+        'Die Datei ist zu tief verschachtelt oder zu gross.',
+        node.span.start.line + 1,
       );
     }
-    return node;
-  }
-
-  void _skip() {
-    while (_i < _s.length) {
-      final c = _s.codeUnitAt(_i);
-      if (c == 0x0A) {
-        _line++;
-      } else if (c != 0x20 && c != 0x09 && c != 0x0D) {
-        return;
-      }
-      _i++;
-    }
-  }
-
-  _Node _value(int depth) {
-    if (depth > _maxDepth) {
-      throw _JsonError('Zu viele verschachtelte Klammern.', _line);
-    }
-    _skip();
-    if (_i >= _s.length) {
-      throw _JsonError(
-        'Die Datei endet zu früh. Wahrscheinlich fehlt eine schließende '
-        'Klammer } oder ].',
-        _line,
-      );
-    }
-    final c = _s[_i];
-    final line = _line;
-    switch (c) {
-      case '{':
-        return _object(depth, line);
-      case '[':
-        return _array(depth, line);
-      case '"':
-        return _Node(_string(), line);
-      case 't':
-        _literal('true');
-        return _Node(true, line);
-      case 'f':
-        _literal('false');
-        return _Node(false, line);
-      case 'n':
-        _literal('null');
-        return _Node(null, line);
-      default:
-        if (c == '-' || (c.codeUnitAt(0) >= 0x30 && c.codeUnitAt(0) <= 0x39)) {
-          return _Node(_number(), line);
+    final line = node.span.start.line + 1;
+    if (node is YamlMap) {
+      final map = <String, _Node>{};
+      for (final entry in node.nodes.entries) {
+        final key = entry.key;
+        final keyValue = key is YamlNode ? key.value : key;
+        if (keyValue is! String) {
+          throw _ParseError('Feldnamen muessen Text sein.', line);
         }
-        if (c == '„' || c == '“' || c == '”' || c == "'") {
-          throw _JsonError(
-            'Hier steht ein falsches Anführungszeichen ($c). Erlaubt ist nur '
-            'das gerade Zeichen ".',
-            line,
-          );
-        }
-        throw _JsonError(
-          'Unerwartetes Zeichen "$c". Texte müssen in Anführungszeichen " '
-          'stehen.',
-          line,
-        );
+        map[keyValue] = convert(entry.value, depth + 1);
+      }
+      return _Node(null, line, object: map);
     }
-  }
-
-  _Node _object(int depth, int line) {
-    _i++; // {
-    final map = <String, _Node>{};
-    _skip();
-    if (_peek('}')) {
-      _i++;
-      return _Node(map, line, object: map);
-    }
-    while (true) {
-      _skip();
-      if (_peek('}')) {
-        throw _JsonError(
-          'Vor der schließenden Klammer } steht ein überzähliges Komma. '
-          'Lösche das Komma am Ende der vorigen Zeile.',
-          _line,
-        );
-      }
-      if (!_peek('"')) {
-        throw _JsonError(
-          'Hier wird ein Feldname in Anführungszeichen erwartet, z. B. '
-          '"name". Fehlt ein Komma oder steht eines zu viel?',
-          _line,
-        );
-      }
-      final keyLine = _line;
-      final key = _string();
-      _skip();
-      if (!_peek(':')) {
-        throw _JsonError('Nach "$key" fehlt der Doppelpunkt :.', _line);
-      }
-      _i++;
-      final value = _value(depth + 1);
-      if (map.containsKey(key)) {
-        throw _JsonError('"$key" steht in diesem Block doppelt.', keyLine);
-      }
-      map[key] = value;
-      _skip();
-      if (_peek(',')) {
-        _i++;
-        continue;
-      }
-      if (_peek('}')) {
-        _i++;
-        return _Node(map, line, object: map);
-      }
-      throw _JsonError(
-        'Hier fehlt ein Komma am Zeilenende (oder eine schließende Klammer }).',
-        _prevLine(),
+    if (node is YamlList) {
+      return _Node(
+        null,
+        line,
+        array: <_Node>[for (final n in node.nodes) convert(n, depth + 1)],
       );
     }
+    return _Node(node.value, line);
   }
 
-  _Node _array(int depth, int line) {
-    _i++; // [
-    final list = <_Node>[];
-    _skip();
-    if (_peek(']')) {
-      _i++;
-      return _Node(list, line, array: list);
-    }
-    while (true) {
-      _skip();
-      if (_peek(']')) {
-        throw _JsonError(
-          'Nach dem letzten Eintrag darf kein Komma stehen. Lösche das Komma '
-          'hinter der letzten }.',
-          _line,
-        );
-      }
-      list.add(_value(depth + 1));
-      _skip();
-      if (_peek(',')) {
-        _i++;
-        continue;
-      }
-      if (_peek(']')) {
-        _i++;
-        return _Node(list, line, array: list);
-      }
-      throw _JsonError(
-        'Zwischen zwei Einträgen fehlt ein Komma (nach der schließenden '
-        'Klammer }).',
-        _prevLine(),
-      );
-    }
-  }
-
-  /// Zeile des letzten Zeichens vor der aktuellen Position, das kein
-  /// Leerraum ist (dort fehlt meist das Komma).
-  int _prevLine() {
-    var line = _line;
-    var j = _i - 1;
-    while (j >= 0) {
-      final c = _s.codeUnitAt(j);
-      if (c == 0x0A) {
-        line--;
-      } else if (c != 0x20 && c != 0x09 && c != 0x0D) {
-        break;
-      }
-      j--;
-    }
-    return line;
-  }
-
-  bool _peek(String c) => _i < _s.length && _s[_i] == c;
-
-  void _literal(String word) {
-    if (!_s.startsWith(word, _i)) {
-      throw _JsonError(
-        'Unbekanntes Wort. Erlaubt sind true, false oder Text in '
-        'Anführungszeichen.',
-        _line,
-      );
-    }
-    _i += word.length;
-  }
-
-  num _number() {
-    final start = _i;
-    while (_i < _s.length && '+-0123456789.eE'.contains(_s[_i])) {
-      _i++;
-    }
-    final raw = _s.substring(start, _i);
-    final valid = RegExp(r'^-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?$')
-        .hasMatch(raw);
-    if (!valid) throw _JsonError('Ungültige Zahl "$raw".', _line);
-    return num.parse(raw);
-  }
-
-  String _string() {
-    final line = _line;
-    _i++; // "
-    final out = StringBuffer();
-    while (true) {
-      if (_i >= _s.length) {
-        throw _JsonError(
-          'Ein Text ist nicht abgeschlossen: Es fehlt das schließende '
-          'Anführungszeichen ".',
-          line,
-        );
-      }
-      final c = _s.codeUnitAt(_i);
-      if (c == 0x22) {
-        _i++;
-        return out.toString();
-      }
-      if (c == 0x0A || c < 0x20) {
-        throw _JsonError(
-          'Ein Text ist nicht abgeschlossen: Es fehlt das schließende '
-          'Anführungszeichen " am Zeilenende.',
-          line,
-        );
-      }
-      if (c == 0x5C) {
-        _i++;
-        if (_i >= _s.length) break;
-        final e = _s[_i];
-        switch (e) {
-          case '"':
-            out.write('"');
-          case r'\':
-            out.write(r'\');
-          case '/':
-            out.write('/');
-          case 'b':
-            out.write('\b');
-          case 'f':
-            out.write('\f');
-          case 'n':
-            out.write('\n');
-          case 'r':
-            out.write('\r');
-          case 't':
-            out.write('\t');
-          case 'u':
-            final hex = _i + 5 <= _s.length ? _s.substring(_i + 1, _i + 5) : '';
-            final code = RegExp(r'^[0-9A-Fa-f]{4}$').hasMatch(hex)
-                ? int.parse(hex, radix: 16)
-                : null;
-            if (code == null) {
-              throw _JsonError('Ungültige Zeichenfolge \\u im Text.', _line);
-            }
-            out.writeCharCode(code);
-            _i += 4;
-          default:
-            throw _JsonError(
-              r'Ein \ im Text ist nur vor ", \, /, b, f, n, r, t oder u '
-              'erlaubt.',
-              _line,
-            );
-        }
-        _i++;
-        continue;
-      }
-      out.writeCharCode(c);
-      _i++;
-    }
-    throw _JsonError('Ein Text ist nicht abgeschlossen.', line);
-  }
+  return convert(doc, 0);
 }

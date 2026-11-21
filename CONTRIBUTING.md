@@ -29,7 +29,7 @@ Alle drei müssen grün sein. Bei Web-Änderungen zusätzlich `flutter build web
 
 - Bestehende Konventionen übernehmen. Import immer `package:material_ui/material_ui.dart`.
 - Keine neuen Abhängigkeiten ohne Begründung im Pull Request.
-- Keine Zugangsdaten, Schlüssel oder personenbezogenen Daten in Code, Commits oder Issues. Konfiguration liegt in `config/app.json` (nicht im Repo).
+- Keine Zugangsdaten, Schlüssel oder personenbezogenen Daten in Code, Commits oder Issues. Konfiguration liegt in `config/*.yaml` (nur `*.example.yaml` und `stations.yaml` im Repo, siehe [docs/KONFIGURATION.md](docs/KONFIGURATION.md)).
 - Texte für Menschen (App, Doku, Stores) gehen durch eine Sprachprüfung: klingen wie von einem Menschen geschrieben, echte Umlaute, Fachwörter erklärt.
 - Neue sichtbare Texte kommen in beide Sprachen (Deutsch und Englisch).
 

@@ -7,7 +7,7 @@ import 'package:linefm_radio/domain/stations_config.dart';
 
 /// Aktuelle Senderliste (Issue #91).
 ///
-/// Quelle ist allein config/stations.json: main() laedt die
+/// Quelle ist allein config/stations.yaml: main() laedt die
 /// mitgelieferte Fassung vor dem ersten Bild (`loadBundledStations`), danach
 /// ersetzt eine nachgeladene, gepruefte Fassung die Liste zur Laufzeit
 /// ([applyStations]). Wer die Liste anzeigt, hoert auf

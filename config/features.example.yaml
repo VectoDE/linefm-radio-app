@@ -1,0 +1,9 @@
+# Schalter für einzelne Funktionen.
+# Nutzen: Datei kopieren, als features.yaml speichern, Werte setzen.
+# Fehlt features.yaml, ist jede Funktion aus.
+# Anleitung: docs/KONFIGURATION.md
+
+# Hörerzahl im Player anzeigen (wird dafür bei laut.fm abgefragt).
+# Optional. Werte: true oder false. Standard: false.
+# Beispiel: showListenerCount: true
+showListenerCount: false

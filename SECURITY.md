@@ -58,7 +58,7 @@ Nicht dazu gehören Lücken in Diensten Dritter (laut.fm, Apple iTunes Search, G
 |---|---|---|---|
 | Bekannte Schwachstellen in Dart- und npm-Paketen | OSV-Scanner auf `pubspec.lock` und `tool/a11y/package-lock.json` | `supply-chain.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
 | Secrets in der Git-Historie | gitleaks (CLI, Version und SHA-256 fest im Workflow) | `supply-chain.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
-| Schwachstellen, Secrets und Fehlkonfiguration (Dateisystem, Dockerfile) sowie das Basisimage des Web-Containers | Trivy (CLI, Version und SHA-256 fest), Ergebnisse in Code Scanning, HIGH/CRITICAL brechen ab | `supply-chain.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
+| Schwachstellen, Secrets und Fehlkonfiguration (Dateisystem, Dockerfile) sowie der gebaute Web-Container (`deploy/traefik/Dockerfile`) | Trivy (CLI, Version und SHA-256 fest), Ergebnisse in Code Scanning, HIGH/CRITICAL brechen ab (im Container nur, wenn es eine Korrektur gibt) | `supply-chain.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
 | Sicherheit der Workflows | zizmor (Ergebnisse in Code Scanning) und actionlint | `supply-chain.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
 | Updates für Actions, Pub, Gradle, Docker, Compose und npm | Dependabot | `.github/dependabot.yml` | wöchentlich, mit 7 Tagen Wartezeit |
 | Statische Analyse | CodeQL (Workflows bei jedem PR, Kotlin wöchentlich, Swift von Hand) | `codeql.yml` | Push auf `main`, jeder Pull Request, wöchentlich |

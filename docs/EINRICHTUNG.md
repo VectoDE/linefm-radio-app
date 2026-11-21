@@ -585,7 +585,7 @@ Das gilt nur für die Web-Version. Alles ist aus, solange du keine Werte einträ
 
 ### 12.5 Snyk (optional)
 
-- **Was:** Der Workflow `snyk.yml` prüft mit Snyk Code den Kotlin-, Swift-, JavaScript- und Python-Code, mit Snyk Container das Basisimage des Web-Containers und mit Snyk Open Source das npm-Prüfwerkzeug in `tool/a11y`. Ohne Token läuft er grün durch und meldet "übersprungen, fehlt: SNYK_TOKEN".
+- **Was:** Der Workflow `snyk.yml` prüft mit Snyk Code den Kotlin-, Swift-, JavaScript- und Python-Code, mit Snyk Container den gebauten Web-Container und mit Snyk Open Source das npm-Prüfwerkzeug in `tool/a11y`. Ohne Token läuft er grün durch und meldet "übersprungen, fehlt: SNYK_TOKEN".
 - **Wozu:** Zusätzliche Schwachstellen-Datenbank und SAST neben OSV, Trivy und CodeQL. Den Dart-Code (den größten Teil der App) prüft Snyk hier **nicht**: Snyk Code kann Dart nur im Enterprise-Tarif, und `pubspec.lock` liest Snyk Open Source nur über einen experimentellen SBOM-Umweg. Gradle braucht einen kompletten Android-Build, docker-compose unterstützt Snyk IaC nicht. Der Nutzen ist also begrenzt; der Schritt ist echt optional.
 - **Kosten:** Free-Tarif, laut Snyk-FAQ pro Monat 100 Tests Snyk Code, 100 Container, 200 Open Source, 300 IaC. Der Workflow läuft deshalb nur bei Push auf `main`, wöchentlich und von Hand, nicht bei jedem Pull Request (drei Tests pro Lauf). Quelle: <https://snyk.io/plans/>
 - **Wo eintragen:** Secret `SNYK_TOKEN` (Schritt 1.3).

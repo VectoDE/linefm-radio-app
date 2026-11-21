@@ -11,7 +11,7 @@ name: Supply Chain
 #   weil die gitleaks-Action fuer Organisationen eine Lizenz verlangt. Version und
 #   SHA-256 sind hier fest eingetragen; ein Update aendert beide Werte zusammen.
 # - Trivy: Dateisystem (Abhaengigkeiten inkl. Dev, Secrets, Fehlkonfiguration in
-#   Dockerfile und IaC) und das per Digest gepinnte Basisimage des Web-Containers.
+#   Dockerfile und IaC) und der aus deploy/traefik/Dockerfile gebaute Web-Container.
 #   Als CLI aus dem Release mit fester SHA-256 statt trivy-action: Im Maerz 2026
 #   wurden die Tags von trivy-action und setup-trivy kompromittiert
 #   (GHSA-69fq-xp46-6x23). SARIF (alle Schweregrade) geht an Code Scanning,
@@ -155,7 +155,7 @@ jobs:
           retention-days: 14
 
   trivy:
-    name: Trivy (Dateisystem, Konfiguration, Basisimage)
+    name: Trivy (Dateisystem, Konfiguration, Web-Container)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -194,15 +194,24 @@ jobs:
           "$RUNNER_TEMP/trivy" fs --quiet --scanners vuln,secret,misconfig \
             --include-dev-deps --format sarif --output trivy-fs.sarif .
 
-      - name: Basisimage aus dem Dockerfile scannen (SARIF)
+      # Das echte Dockerfile bauen (inkl. apk upgrade), nur mit Platzhaltern statt
+      # Flutter-Build: Die App-Dateien sind statisch und aendern am Betriebssystem
+      # des Images nichts. Gescannt wird damit genau die Paketlage, die ausgeliefert wird.
+      - name: Web-Container bauen und scannen (SARIF)
         id: image
         run: |
           set -euo pipefail
-          image="$(sed -n 's/^FROM[[:space:]]\+\([^[:space:]]*\).*/\1/p' deploy/traefik/Dockerfile | head -n 1)"
-          case "$image" in
+          base="$(sed -n 's/^FROM[[:space:]]\+\([^[:space:]]*\).*/\1/p' deploy/traefik/Dockerfile | head -n 1)"
+          case "$base" in
             *@sha256:*) ;;
-            *) echo "::error file=deploy/traefik/Dockerfile::Basisimage nicht per Digest gepinnt: $image"; exit 1 ;;
+            *) echo "::error file=deploy/traefik/Dockerfile::Basisimage nicht per Digest gepinnt: $base"; exit 1 ;;
           esac
+          mkdir -p build/web build/hosting/nginx build/hosting/traefik
+          cp -r deploy/nginx/snippets build/hosting/nginx/
+          cp deploy/traefik/nginx.conf build/hosting/traefik/nginx.conf
+          echo '<!doctype html><title>scan</title>' > build/web/index.html
+          image="linefm-app-web:scan"
+          docker build --pull -f deploy/traefik/Dockerfile -t "$image" .
           echo "image=$image" >> "$GITHUB_OUTPUT"
           "$RUNNER_TEMP/trivy" image --quiet --skip-db-update --scanners vuln,secret \
             --format sarif --output trivy-image.sarif "$image"
@@ -214,7 +223,7 @@ jobs:
           sarif_file: trivy-fs.sarif
           category: trivy-fs
 
-      - name: SARIF an Code Scanning (Basisimage)
+      - name: SARIF an Code Scanning (Web-Container)
         if: always() && env.CAN_UPLOAD == 'true' && hashFiles('trivy-image.sarif') != ''
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
@@ -228,10 +237,10 @@ jobs:
           "$RUNNER_TEMP/trivy" fs --quiet --skip-db-update --scanners vuln,secret,misconfig \
             --include-dev-deps --severity HIGH,CRITICAL --exit-code 1 --format table .
 
-      # Gate Basisimage: nur Luecken mit verfuegbarer Korrektur. Fuer Pakete ohne Fix
+      # Gate Web-Container: nur Luecken mit verfuegbarer Korrektur. Fuer Pakete ohne Fix
       # gibt es nichts zu aktualisieren; sie stehen trotzdem im SARIF (Code Scanning)
-      # und werden mit dem naechsten Digest-Update (Dependabot) neu bewertet.
-      - name: Gate Basisimage (HIGH, CRITICAL, behebbar)
+      # und werden mit jedem Lauf (apk upgrade, Digest-Updates von Dependabot) neu bewertet.
+      - name: Gate Web-Container (HIGH, CRITICAL, behebbar)
         env:
           IMAGE: ${{ steps.image.outputs.image }}
         run: |
@@ -247,7 +256,7 @@ jobs:
           {
             echo "### Trivy ${TRIVY_VERSION}"
             echo "- Dateisystem (alle Schweregrade): $(count trivy-fs.sarif)"
-            echo "- Basisimage (alle Schweregrade): $(count trivy-image.sarif)"
+            echo "- Web-Container (alle Schweregrade): $(count trivy-image.sarif)"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Trivy-Berichte hochladen
@@ -316,8 +325,12 @@ jobs:
           echo "${ACTIONLINT_SHA256}  $RUNNER_TEMP/$archive" | sha256sum -c -
           tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" actionlint
 
-      # Mit shellcheck (auf dem Runner vorinstalliert) fuer die run-Bloecke.
+      # Mit shellcheck (auf dem Runner vorinstalliert) fuer die run-Bloecke. Gate ab
+      # Schweregrad "warning"; Stil- und Info-Hinweise (z. B. SC2086 bei bewusst
+      # aufgeteilten Build-Flags, SC2012) brechen nicht ab.
       - name: actionlint
+        env:
+          SHELLCHECK_OPTS: --severity=warning
         run: |
           set -euo pipefail
           "$RUNNER_TEMP/actionlint" -version

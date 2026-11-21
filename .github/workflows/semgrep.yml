@@ -51,6 +51,19 @@ jobs:
         with:
           persist-credentials: false
 
+      # Ausgeschlossene Regel html.security.audit.missing-integrity: Sie meldet jedes
+      # <link>/<script> ohne integrity, auch canonical/hreflang-Links und eigene
+      # Dateien (legal.css). Subresource Integrity betrifft nur fremde Quellen; die
+      # Web-Seiten laden keine, und die CSP (script-src/style-src 'self') verbietet
+      # sie. Der folgende Schritt stellt sicher, dass das so bleibt.
+      - name: Keine fremden Skripte oder Stylesheets in web/
+        run: |
+          set -euo pipefail
+          if grep -rnE --include='*.html' '<script[^>]+src="(https?:)?//|<link[^>]+rel="(stylesheet|preload|modulepreload)"[^>]+href="(https?:)?//|<link[^>]+href="(https?:)?//[^"]*"[^>]+rel="(stylesheet|preload|modulepreload)"' web; then
+            echo "::error::Fremde Quelle in web/ gefunden: integrity-Attribut und CSP-Freigabe noetig, Semgrep-Ausschluss pruefen"
+            exit 1
+          fi
+
       - name: Semgrep scannen
         run: |
           set -euo pipefail
@@ -73,6 +86,7 @@ jobs:
               --config p/dockerfile \
               --config p/docker-compose \
               --config p/github-actions \
+              --exclude-rule html.security.audit.missing-integrity.missing-integrity \
               --sarif --output semgrep.sarif .
 
       - name: SARIF an Code Scanning

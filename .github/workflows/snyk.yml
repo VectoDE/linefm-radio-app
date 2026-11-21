@@ -4,7 +4,7 @@ name: Snyk
 # Begruendung in docs/EINRICHTUNG.md 12.5):
 # - Snyk Code (SAST) fuer Kotlin, Swift, JavaScript und Python. Dart kann Snyk
 #   Code nur im Enterprise-Plan (Early Access), deshalb nicht enthalten.
-# - Snyk Container fuer das per Digest gepinnte Basisimage (deploy/traefik/Dockerfile).
+# - Snyk Container fuer den aus deploy/traefik/Dockerfile gebauten Web-Container.
 # - Snyk Open Source fuer tool/a11y/package-lock.json (npm).
 # Nicht enthalten: pub/Dart (Snyk liest pubspec.lock nicht direkt, nur ueber einen
 # experimentellen SBOM-Umweg), Gradle (braucht einen kompletten Android-Build) und
@@ -100,7 +100,14 @@ jobs:
         run: |
           set -uo pipefail
           snyk="$RUNNER_TEMP/snyk"
-          image="$(sed -n 's/^FROM[[:space:]]\+\([^[:space:]]*\).*/\1/p' deploy/traefik/Dockerfile | head -n 1)"
+          # Wie in supply-chain.yml: das echte Dockerfile mit Platzhaltern statt
+          # Flutter-Build bauen, damit Snyk die ausgelieferte Paketlage sieht.
+          mkdir -p build/web build/hosting/nginx build/hosting/traefik
+          cp -r deploy/nginx/snippets build/hosting/nginx/
+          cp deploy/traefik/nginx.conf build/hosting/traefik/nginx.conf
+          echo '<!doctype html><title>scan</title>' > build/web/index.html
+          image="linefm-app-web:scan"
+          docker build --pull -q -f deploy/traefik/Dockerfile -t "$image" . >/dev/null || echo "::warning::Docker-Build fehlgeschlagen"
           "$snyk" code test --severity-threshold=high --sarif-file-output=snyk-code.sarif .
           echo "code=$?" >> "$GITHUB_OUTPUT"
           "$snyk" container test "$image" --file=deploy/traefik/Dockerfile \

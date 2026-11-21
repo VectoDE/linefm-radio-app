@@ -767,6 +767,9 @@ jobs:
           security unlock-keychain -p "$kcpw" "$kc"
           security import "$RUNNER_TEMP/devid.p12" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$kc"
           security set-key-partition-list -S apple-tool:,apple: -k "$kcpw" "$kc" >/dev/null
+          # Bewusst ungequotet: jede vorhandene Keychain wird ein eigenes Argument
+          # (Pfade unter ~/Library/Keychains ohne Leerzeichen).
+          # shellcheck disable=SC2046
           security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
           rm -f "$RUNNER_TEMP/devid.p12"
 

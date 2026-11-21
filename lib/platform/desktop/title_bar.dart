@@ -37,7 +37,7 @@ abstract final class TitleBarMetrics {
   /// Windows 11: Schliessen gedrueckt (90 % Deckkraft).
   static const Color closePressed = Color(0xE6C42B1C);
 
-  /// Vordergrund auf [closeHover] (5,54:1).
+  /// Vordergrund auf [closeHover] (5,66:1).
   static const Color onClose = Color(0xFFFFFFFF);
 
   static double heightFor(CaptionStyle style) => switch (style) {

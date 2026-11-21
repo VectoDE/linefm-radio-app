@@ -1,0 +1,473 @@
+# Bauen und Starten
+
+Diese Anleitung zeigt dir, wie du LINEFM Radio selbst bauen, öffnen und benutzen kannst, ohne den Entwickler zu fragen. Es gibt zwei Wege. Teil A lässt GitHub die App bauen, du lädst nur herunter. Teil B baut auf deinem eigenen Rechner. Teil C ist ein Skript, das Teil B mit einem Befehl erledigt.
+
+Stand der Angaben: 21.11.2026. Wo etwas nicht auf diesem Weg nachgespielt wurde, steht "nicht geprüft".
+
+## Wohin mit meinem Ziel?
+
+| Ich will ... | Gehe zu |
+|---|---|
+| die App ausprobieren, ohne etwas zu installieren | [A1 bis A3](#a1-den-bau-auf-github-starten) |
+| die Windows-App starten | [A5 Windows](#windows) |
+| die App aufs Android-Handy bringen | [A5 Android](#android) |
+| die Web-Version auf meinem Rechner ansehen | [A5 Web](#web) und [B6](#b6-web-bauen-und-ansehen) |
+| alles selbst auf meinem Rechner bauen | [Teil B](#teil-b-lokal-selbst-bauen) |
+| das mit einem einzigen Befehl tun | [Teil C](#teil-c-start-skripte) |
+| wissen, was bei einem Fehler zu tun ist | [Wenn etwas schiefgeht](#wenn-etwas-schiefgeht) |
+| eine geprüfte Version zum Verteilen | [A4 Release](#a4-der-weg-über-ein-release) |
+
+## Teil A: Bauen lassen auf GitHub, ohne Installation
+
+Du brauchst nur einen Browser und ein GitHub-Konto, das im Repository mitarbeiten darf. Wenn du den Knopf "Run workflow" in A1 nicht siehst, fehlt dir das Schreibrecht. Dann bitte den Entwickler, dich als Collaborator einzuladen (Schritt dazu in [EINRICHTUNG.md](EINRICHTUNG.md)).
+
+### A1 Den Bau auf GitHub starten
+
+1. Öffne <https://github.com/VectoDE/linefm-radio-app> und melde dich bei GitHub an.
+2. Klicke oben auf den Reiter **Actions**.
+3. Klicke links in der Liste auf **Build**.
+4. Klicke rechts auf **Run workflow**. Ein kleines Fenster klappt auf.
+5. Bei **Use workflow from** lass `main` stehen.
+6. Beim Schalter **macOS- und iOS-Build einschliessen** setzt du den Haken, wenn du auch die Mac-App und die iOS-Prüfung willst. Ohne Haken baut GitHub Android, Web, Windows und Linux.
+7. Klicke auf den grünen Knopf **Run workflow**.
+
+Du erkennst, dass es geklappt hat, wenn nach ein paar Sekunden oben in der Liste ein neuer Eintrag mit einem gelben Punkt erscheint (nach einem Neuladen der Seite). Der Punkt wird grün, wenn alles fertig ist, und rot, wenn etwas schiefging.
+
+Wie lange es dauert: Der Lauf vom 21.11.2026 brauchte etwa 13 Minuten, der längste Teil war Android mit gut 13 Minuten. Die einzelnen Plattformen laufen gleichzeitig.
+
+Wenn der Knopf fehlt: Du bist nicht angemeldet, oder dir fehlt das Schreibrecht (siehe oben).
+
+### A2 Die Ergebnisse herunterladen
+
+1. Warte, bis der Lauf einen grünen Haken hat. Klicke dann auf seinen Titel (**Build**).
+2. Scrolle auf der Seite ganz nach unten bis zum Abschnitt **Artifacts**.
+3. Klicke auf den Namen, den du brauchst (Tabelle unten). Der Browser lädt eine ZIP-Datei herunter.
+4. Entpacke diese ZIP-Datei. Darin liegen die eigentlichen Dateien.
+
+Gut zu wissen:
+
+- Die Dateien sind nur für angemeldete GitHub-Nutzer abrufbar. Es gibt keinen öffentlichen Link zum Weitergeben.
+- GitHub bewahrt sie **14 Tage** auf (`retention-days: 14` in `build.yml`). Danach sind sie gelöscht und du startest einen neuen Bau.
+- Ein Artefakt ist immer eine ZIP-Datei mit den eigentlichen Dateien darin, auch wenn die Datei darin selbst schon ein ZIP oder eine EXE ist.
+- Die Version in den Dateinamen sieht bei einem manuellen Bau so aus: `1.0.0-dev.17`. Die letzte Zahl ist die Nummer des Laufs.
+
+Was in welchem Artefakt liegt, abgeglichen mit dem Lauf vom 21.11.2026 ([Lauf 44909292173](https://github.com/VectoDE/linefm-radio-app/actions/runs/44909292173), Branch `main`):
+
+| Artefakt | Inhalt (Dateinamen mit Beispielversion) | Größe der ZIP im Lauf |
+|---|---|---|
+| `dist-android` | `linefm-radio-1.0.0-dev.17-android.apk` (zum Installieren), `...-android.aab` (nur für den Play Store) | 110 MB |
+| `dist-web` | `...-web.zip` (die Web-Version), `...-web-hosting.zip` (Server-Einstellungsdateien, 14 KB) | 49 MB |
+| `dist-windows` | `...-windows-x64.zip` (portable App), `...-windows-x64-setup.exe` (Installer) | 42 MB |
+| `dist-linux` | `...-linux-x64.tar.gz` | 14 MB |
+| `dist-macos` | `...-macos.dmg` (nur mit dem Haken bei macOS und iOS) | 29 MB |
+
+Stand dieses Laufs: Android, Web, Windows, Linux und macOS waren grün. Die iOS-Prüfung war rot. Sie ist eine reine Kompilierprüfung und liefert keine Datei (siehe A6). Der Fehler wird in einem eigenen Pull Request behoben, die Version dafür ist iOS 16 als Mindestversion. Ob sie danach grün ist, siehst du in der Lauf-Liste unter Actions.
+
+Windows-MSIX: `build.yml` sieht eine MSIX-Datei vor. Im Lauf vom 21.11.2026 lag keine im Artefakt. Nimm den Installer (`...-setup.exe`) oder die ZIP.
+
+### A3 Dasselbe auf der Kommandozeile
+
+Das geht auch ohne Browser. Du brauchst die [GitHub-CLI](https://cli.github.com/) (`gh`) und musst dich einmal mit `gh auth login` anmelden.
+
+```bash
+gh workflow run build.yml --repo VectoDE/linefm-radio-app --ref main -f apple=true
+gh run list --repo VectoDE/linefm-radio-app --workflow build.yml --limit 3
+gh run watch --repo VectoDE/linefm-radio-app
+gh run download <Lauf-Nummer> --repo VectoDE/linefm-radio-app
+```
+
+Ersetze `apple=true` durch `apple=false`, wenn du keinen Mac-Bau brauchst. `gh run watch` zeigt den Fortschritt und fragt, welchen Lauf du meinst. `gh run download` legt für jedes Artefakt einen Ordner an (`dist-android`, `dist-web` und so weiter), die Dateien liegen schon entpackt darin. Die Lauf-Nummer steht in der Adresse des Laufs und in der Ausgabe von `gh run list`.
+
+### A4 Der Weg über ein Release
+
+Für Versionen, die du weitergibst, gibt es den Release-Weg. Ein Tag der Form `vX.Y.Z` (zum Beispiel `v1.0.0`) startet `release.yml`. Der Ablauf baut alles, legt Installer, Prüfsummen und Signaturen in ein GitHub-Release und startet die Store-Abläufe, soweit sie eingerichtet sind. Wie du Release-Dateien auf Echtheit prüfst, steht in [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).
+
+Stand 21.11.2026: Es gibt noch kein Release. Alle Downloads kommen deshalb aus Artefakten (A2). Bevor du ein Release anstößt, geh die [Freigabe-Checkliste](FREIGABE-CHECKLISTE.md) durch.
+
+### A5 Die Ergebnisse öffnen und nutzen
+
+#### Windows
+
+Es gibt zwei Wege.
+
+**Portable ZIP** (`...-windows-x64.zip`), ohne Installation:
+
+1. Entpacke die ZIP in einen Ordner, zum Beispiel `C:\LINEFM`. Rechtsklick auf die Datei, **Alle extrahieren**.
+2. Öffne den Ordner und starte `linefm_radio.exe` per Doppelklick.
+3. Lass den Ordnerinhalt zusammen. Die EXE läuft nur mit den Dateien daneben, kopiere sie nicht allein weg.
+
+**Installer** (`...-windows-x64-setup.exe`): Doppelklick und den Dialogen folgen. Der Installer braucht keine Administratorrechte und installiert für deinen Benutzer (der Dialog erlaubt auch "für alle").
+
+Woran du erkennst, dass es klappt: Das Fenster "LINEFM Radio" öffnet sich mit der Senderliste.
+
+Windows-Warnung "Der Computer wurde durch Windows geschützt" (SmartScreen): Die Dateien sind nicht mit einem Zertifikat signiert, solange keins eingerichtet ist. Klicke auf **Weitere Informationen** und dann auf **Trotzdem ausführen**. Bei einem Herunterladen aus GitHub ist das normal.
+
+MSIX: Eine MSIX-Datei lässt sich nur installieren, wenn sie signiert ist und Windows dem Zertifikat vertraut. Eine unsignierte MSIX weist Windows ab. Deshalb gibt es sie hier nur im Zusammenhang mit dem Microsoft Store (siehe [packaging/windows/README.md](../packaging/windows/README.md)). Für dich zählen ZIP und Installer.
+
+#### Android
+
+1. Lade `dist-android` herunter und entpacke es auf dem Rechner. Kopiere die Datei `...-android.apk` aufs Handy (USB-Kabel, Cloud-Ordner oder Mail an dich selbst).
+2. Tippe auf dem Handy die APK-Datei an.
+3. Android fragt, ob dieser Quelle das Installieren erlaubt ist. Tippe auf **Einstellungen** und aktiviere **Aus dieser Quelle zulassen** (der Name hängt vom Hersteller ab, oft "Unbekannte Apps installieren").
+4. Gehe zurück und tippe auf **Installieren**.
+
+Woran du erkennst, dass es klappt: Die App "LINEFM Radio" erscheint in der App-Liste.
+
+Die Datei `...-android.aab` ist ein App Bundle. Sie ist nur für den Play Store gedacht und lässt sich nicht aufs Handy installieren. Die APK ist unsigniert, solange kein Upload-Schlüssel eingerichtet ist. Sie installiert sich trotzdem.
+
+#### Web
+
+1. Entpacke `dist-web` und darin `...-web.zip` in einen Ordner, zum Beispiel `C:\LINEFM-web`.
+2. Du musst die Seite über einen kleinen Server laden. Ein Doppelklick auf `index.html` funktioniert **nicht**, weil der Browser die Programmdateien dann blockiert.
+3. Öffne im Ordner ein Terminal (PowerShell) und starte den Server, Python 3 vorausgesetzt:
+
+```powershell
+python -m http.server 8090 --bind 127.0.0.1
+```
+
+4. Öffne im Browser <http://localhost:8090>. Beenden kannst du den Server mit Strg+C.
+
+Beachte: Die Dateien aus dem Artefakt sind für die Adresse `https://app.linefm.de` gebaut. Ob sich die Seite so unter `localhost` vollständig bedienen lässt, wurde nicht geprüft. Der Bau mit lokaler Adresse in B6 ist dafür der geprüfte Weg. Für ein echtes Hosting auf einem Server siehe [hosting-uebersicht.md](hosting-uebersicht.md). Die Server-Einstellungsdateien dafür liegen in `...-web-hosting.zip`.
+
+#### Linux
+
+1. Entpacke das Archiv in einen eigenen Ordner:
+
+```bash
+mkdir -p ~/linefm-radio && tar -xzf linefm-radio-*-linux-x64.tar.gz -C ~/linefm-radio
+cd ~/linefm-radio && ./linefm_radio
+```
+
+2. Das Archiv enthält direkt den Inhalt des Bundles, es gibt keinen Unterordner. Deshalb der eigene Zielordner.
+3. Startet die App nicht und meldet eine fehlende Bibliothek, fehlt ein System-Paket. Auf Debian und Ubuntu hilft meistens `sudo apt install libmpv2 libgtk-3-0 libayatana-appindicator3-1`. Diese Paketnamen sind nicht geprüft, in der CI laufen nur die Entwicklungspakete (siehe B8).
+
+#### macOS
+
+Das DMG ist weder signiert noch von Apple geprüft ("notarisiert"). macOS warnt deshalb beim ersten Start. Das ist erwartet. Die Anleitung dazu steht auch im DMG selbst als `LIES-MICH-ZUERST.txt`.
+
+1. Öffne das DMG per Doppelklick und ziehe **LINEFM Radio** in **Programme**.
+2. Starte die App aus dem Ordner Programme. Es erscheint eine Warnung. Schließe sie mit **Fertig**.
+3. Öffne **Systemeinstellungen > Datenschutz & Sicherheit**.
+4. Scrolle zu **Sicherheit**. Dort steht, dass "LINEFM Radio" blockiert wurde. Klicke auf **Dennoch öffnen** und bestätige mit Passwort oder Touch ID.
+5. Ab jetzt startet die App normal.
+
+Bis macOS 14 reichte Rechtsklick auf die App und **Öffnen**. Ab macOS 15 geht es nur über die Systemeinstellungen. Quelle: [packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt). Auf einem Mac wurde das in diesem Projekt noch nicht nachgespielt.
+
+#### iOS
+
+Es gibt keine installierbare iOS-Datei. Der iOS-Teil im Build ist nur eine Kompilierprüfung ohne Signatur und lädt nichts hoch. Eine installierbare iOS-App braucht ein Apple-Entwicklerkonto. Das ist bewusst zurückgestellt, siehe Abschnitt 15 in [EINRICHTUNG.md](EINRICHTUNG.md).
+
+## Teil B: Lokal selbst bauen
+
+Dieser Teil ist für alle, die auf dem eigenen Rechner bauen wollen. Es hilft, wenn du schon mal ein Terminal geöffnet hast, mehr Vorwissen brauchst du nicht. Plane für die Einrichtung eine bis zwei Stunden ein, hauptsächlich Downloads.
+
+### B1 Voraussetzungen
+
+Wähle dein Betriebssystem. Du brauchst nicht alles, nur das für dein Ziel.
+
+Für alle:
+
+| Was | Version | Woher |
+|---|---|---|
+| Git | aktuell | <https://git-scm.com/downloads> |
+| Flutter | **3.50.0** (stable), mit Dart 3.14 | <https://docs.flutter.dev/install/archive> |
+
+Die Version 3.50.0 steht in `.github/actions/setup-flutter/action.yml` (dort baut die CI damit) und in `pubspec.yaml` (`flutter: ">=3.50.0"`). Entpacke Flutter in einen Ordner ohne Leerzeichen, zum Beispiel `C:\dev\flutter`, und füge den Unterordner `flutter\bin` zum PATH hinzu (Windows: Suche **Umgebungsvariablen bearbeiten**, Variable **Path**, **Neu**).
+
+Zusätzlich je Ziel:
+
+| Ziel | Du brauchst | Woher |
+|---|---|---|
+| Windows | **Visual Studio 2022** oder die "Build Tools" mit dem Workload **Desktopentwicklung mit C++** | <https://visualstudio.microsoft.com/de/downloads/> |
+| Windows | **Rust** über rustup (ohne Rust scheitert der Bau) | <https://rustup.rs> |
+| Android | **JDK 17** und das **Android SDK** (Android Studio bringt beides mit) | <https://developer.android.com/studio> |
+| Linux | clang, cmake, ninja, pkg-config, GTK 3 und weitere Entwicklungspakete (B8) | Paketverwaltung |
+| macOS und iOS | **Xcode** und CocoaPods | App Store, `brew install cocoapods` |
+| Web | Chrome zum Ansehen, Python 3 für den lokalen Server | <https://www.python.org/downloads/> |
+
+Für Android bestätigst du einmalig die Lizenzen:
+
+```bash
+flutter doctor --android-licenses
+```
+
+**Erfolgskontrolle:** Öffne ein neues Terminal und führe aus:
+
+```bash
+flutter doctor
+```
+
+Für dein Ziel muss in der Liste ein grüner Haken stehen (zum Beispiel "Visual Studio" für Windows, "Android toolchain" für Android). Fehlt etwas, zeigt `flutter doctor` in der Zeile, was zu tun ist. Ein fehlender Haken bei einem Ziel, das du nicht baust, ist egal.
+
+### B2 Das Projekt holen
+
+Entweder mit Git:
+
+```bash
+git clone https://github.com/VectoDE/linefm-radio-app.git C:\linefm
+cd C:\linefm
+```
+
+Oder ohne Git: Auf der Repository-Seite auf **Code**, dann **Download ZIP**, entpacken. Das Repository ist öffentlich, du brauchst dafür keine Anmeldung.
+
+Wähle einen **kurzen Ordnerpfad** wie `C:\linefm`. Windows bricht bei Pfaden über 260 Zeichen ab, und ein tief verschachtelter Ordner führt zu Fehlern beim Bauen.
+
+Dann einmal die Pakete holen:
+
+```bash
+flutter pub get
+```
+
+Du erkennst den Erfolg an der letzten Zeile `Got dependencies!` (oder `Changed N dependencies!`).
+
+### B3 Konfiguration (optional)
+
+Die App baut auch ohne Konfigurationsdatei mit Standardwerten. Das wurde am 21.11.2026 so geprüft (Windows-Bau ohne `config/app.json`). Statistik und Absturzberichte bleiben dann aus.
+
+Wenn du eigene Werte brauchst, zum Beispiel eine andere Web-Adresse, kopiere die Vorlage:
+
+```powershell
+copy config\app.example.json config\app.json
+```
+
+```bash
+cp config/app.example.json config/app.json
+```
+
+Trage dann in `config/app.json` die Werte ein. Was die Schlüssel bedeuten, steht in [ENTWICKLUNG.md](ENTWICKLUNG.md), Abschnitt "Konfiguration". Die Datei bleibt auf deinem Rechner und wird nicht ins Repository hochgeladen. Hänge an jeden Bau-Befehl unten ` --dart-define-from-file=config/app.json` an, wenn du sie nutzen willst. Das Skript aus Teil C erkennt die Datei selbst.
+
+### B4 Ziele im Überblick
+
+| Ziel | Befehl | Ergebnis | Geprüft |
+|---|---|---|---|
+| Windows | `flutter build windows --release` | `build\windows\x64\runner\Release\linefm_radio.exe` | lokal am 21.11.2026 |
+| Web | siehe B6 | Ordner `build\web` | lokal am 21.11.2026 |
+| Android APK | `flutter build apk --release` | `build\app\outputs\flutter-apk\app-release.apk` | nur CI ([Lauf](https://github.com/VectoDE/linefm-radio-app/actions/runs/44909292173)) |
+| Android Bundle | `flutter build appbundle --release` | `build\app\outputs\bundle\release\app-release.aab` | nur CI |
+| Linux | `flutter build linux --release` | `build/linux/x64/release/bundle/linefm_radio` | nur CI |
+| macOS | `flutter build macos --release` | `build/macos/Build/Products/Release/LINEFM Radio.app` | nur CI |
+| iOS | `flutter build ios --release --no-codesign` | kein Installationspaket | nur CI, aktuell rot |
+
+"Lokal am 21.11.2026" heißt: auf dem Rechner des Entwicklers unter Windows 11 mit Flutter 3.50.0 gebaut und gestartet. "Nur CI" heißt: die Befehle stammen aus `build.yml` und liefen dort grün (iOS rot), wurden aber lokal nicht nachgespielt. Die Ausgabepfade der CI-Ziele sind aus `build.yml` abgelesen.
+
+### B5 Windows bauen und starten
+
+Voraussetzungen: Visual Studio mit C++ und Rust (B1), kurzer Projektpfad (B2).
+
+```powershell
+cd C:\linefm
+flutter pub get
+flutter build windows --release
+```
+
+Dauer: 282 Sekunden (rund 5 Minuten) am 21.11.2026, ohne `config/app.json`, Windows 11, Flutter 3.50.0. Der erste Bau auf einem neuen Rechner kann länger dauern.
+
+Ergebnis: `build\windows\x64\runner\Release\linefm_radio.exe`. Starte sie per Doppelklick im Explorer oder so:
+
+```powershell
+.\build\windows\x64\runner\Release\linefm_radio.exe
+```
+
+Der **ganze Ordner `Release`** gehört zusammen. Die EXE läuft nur mit den Dateien und Ordnern daneben. Willst du die App woanders hin kopieren, kopiere den ganzen Ordner.
+
+Typische Fehler:
+
+| Meldung oder Symptom | Ursache und Lösung |
+|---|---|
+| `cargo` oder `rustc` nicht gefunden, Bau bricht bei `smtc_windows` ab | Rust fehlt. Installiere es mit <https://rustup.rs>, öffne ein neues Terminal. |
+| "Unable to find suitable Visual Studio toolchain" | C++-Workload fehlt. Im Visual Studio Installer **Ändern**, **Desktopentwicklung mit C++** anhaken. |
+| Fehler mit sehr langen Pfaden, Datei nicht gefunden | Pfad zu lang (MAX_PATH). Projekt in einen kurzen Ordner wie `C:\linefm` legen. |
+
+### B6 Web bauen und ansehen
+
+Auf diesem Weg wurde am 21.11.2026 gebaut und im Browser geöffnet (Windows 11, Flutter 3.50.0). Die Befehle in PowerShell:
+
+```powershell
+flutter build web --release --wasm --no-web-resources-cdn
+dart run tool/fetch_font_fallback.dart build/web
+dart run tool/web_postbuild.dart build/web --targets none --base-url http://localhost:8090
+python -m http.server 8090 --directory build/web
+```
+
+Was die Schritte tun:
+
+1. Der erste Befehl baut die Web-App. Der Schalter `--wasm` nutzt das schnellere Format, `--no-web-resources-cdn` legt alle Schriften und Bausteine in den Ordner statt sie bei Google zu laden.
+2. Der zweite holt Ersatzschriften für seltene Zeichen und legt sie in den Ordner. Er braucht Internet und prüft jede Datei gegen eine Prüfsumme.
+3. Der dritte räumt die Dateien auf (Namen mit Hash, Entfernen von Ballast). `--targets none` lässt die Server-Dateien für Hosting weg, `--base-url` setzt die lokale Adresse.
+4. Der vierte startet den Server. Das Terminal bleibt offen, solange der Server läuft.
+
+Öffne danach <http://localhost:8090> im Browser. Du erkennst den Erfolg an der Senderliste der App. Beende den Server mit Strg+C.
+
+**Ein Doppelklick auf `build\web\index.html` funktioniert nicht.** Der Browser lädt die Programmdateien nur über einen Server. Immer über `http://localhost:...` öffnen.
+
+**Bekannte Falle in Git Bash unter Windows:** Gibst du `--base-href /` an, schreibt Git Bash das `/` zu `C:/Program Files/Git/` um, und der Bau bricht ab. Lass `--base-href` einfach weg (der Standard ist `/`), nutze PowerShell oder setze vorher `MSYS_NO_PATHCONV=1`:
+
+```bash
+MSYS_NO_PATHCONV=1 flutter build web --release --wasm --no-web-resources-cdn --base-href /
+```
+
+Unter Linux und macOS lauten die Schritte genauso. Starte den Server dort mit `python3 -m http.server 8090 --directory build/web`. Startet `dart run tool/...` unter Linux nicht sauber (es baut zusätzlich native Hilfscode und braucht GTK), kopiere die beiden Dateien vorher aus `tool/` in einen Ordner außerhalb des Projekts und starte sie von dort, so macht es die CI. Das Skript in Teil C macht das automatisch.
+
+### B7 Android bauen und installieren
+
+Voraussetzung: JDK 17, Android SDK, bestätigte Lizenzen (B1).
+
+```bash
+flutter build apk --release
+```
+
+Ergebnis: `build\app\outputs\flutter-apk\app-release.apk`. Kopiere sie aufs Handy und installiere sie wie in A5 beschrieben. Alternativ mit einem per USB verbundenen Handy (Entwickleroptionen und USB-Debugging aktiv):
+
+```bash
+flutter devices
+flutter install
+```
+
+Ohne `android/key.properties` wird die APK nicht mit einem eigenen Schlüssel signiert, sie lässt sich aber installieren. Für den Play Store braucht es das Bundle (`flutter build appbundle --release`) und den Upload-Schlüssel, siehe [packaging/android/SIGNING.md](../packaging/android/SIGNING.md). Das ist ein Betreiber-Thema und steht in [EINRICHTUNG.md](EINRICHTUNG.md).
+
+Beim ersten Android-Bau lädt Gradle viel nach (Gradle selbst, NDK, CMake). Plane dafür Zeit und Internet ein. Die CI räumte dafür extra Platz auf dem Runner frei, du brauchst auf der Platte mehrere GB frei.
+
+### B8 Linux, macOS und iOS bauen
+
+Das wurde in diesem Projekt bisher nur in der CI gebaut, nicht auf einem eigenen Linux-Rechner oder Mac.
+
+**Linux.** Auf Debian und Ubuntu installierst du die Pakete, die auch die CI nutzt (`.github/actions/linux-deps/action.yml`):
+
+```bash
+sudo apt-get update
+sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libx11-dev libxi-dev \
+  libmpv-dev libayatana-appindicator3-dev libkeybinder-3.0-dev libcurl4-openssl-dev
+flutter build linux --release
+./build/linux/x64/release/bundle/linefm_radio
+```
+
+**macOS.** Xcode aus dem App Store installieren und einmal starten (Lizenz bestätigen), dann `brew install cocoapods`:
+
+```bash
+flutter build macos --release
+open "build/macos/Build/Products/Release/LINEFM Radio.app"
+```
+
+Die App ist unsigniert. Beim Start gelten die Hinweise aus A5 (macOS).
+
+**iOS.** Nur auf einem Mac mit Xcode. Ohne Apple-Entwicklerkonto entsteht nur eine Kompilierprüfung:
+
+```bash
+flutter build ios --release --no-codesign
+```
+
+Eine installierbare App braucht ein Apple-Konto, siehe Abschnitt 15 in [EINRICHTUNG.md](EINRICHTUNG.md).
+
+### B9 App starten zum Ausprobieren und Entwickeln
+
+Mit `flutter run` startet die App direkt, ohne dass du sie erst fertig baust. Das ist der schnellste Weg beim Entwickeln.
+
+```bash
+flutter devices
+flutter run -d windows
+flutter run -d chrome
+flutter run -d <gerät-aus-der-liste>
+```
+
+`flutter devices` zeigt, welche Ziele bereitstehen. In der laufenden Sitzung lädt `r` den Code neu, `R` startet die App neu, `q` beendet. Für Android schließt du ein Handy per USB an oder startest einen Emulator aus Android Studio.
+
+Mit eigener Konfiguration: `flutter run -d windows --dart-define-from-file=config/app.json`.
+
+Vor einem Pull Request laufen diese drei Prüfungen (Entwickler, siehe [ENTWICKLUNG.md](ENTWICKLUNG.md)):
+
+```bash
+dart format --set-exit-if-changed .
+flutter analyze --fatal-infos
+flutter test
+```
+
+### B10 Weitere Windows-Fallen
+
+- Eine Meldung, dass Dateien in `lib/l10n/gen/` geändert sind, ist harmlos. `flutter build` schreibt sie mit anderen Zeilenenden neu. Nicht committen.
+- Schwere Bauten (APK, Windows, Web) nicht gleichzeitig mit `flutter test` starten. Beides braucht viel Arbeitsspeicher.
+- Der Windows-Bau mit Rust zieht die Version `2.11.1` von `flutter_rust_bridge` fest. Das ist Absicht, siehe [ENTWICKLUNG.md](ENTWICKLUNG.md).
+
+## Teil C: Start-Skripte
+
+Statt der Befehle aus Teil B kannst du ein Skript starten. Es prüft die Voraussetzungen, holt die Pakete, baut, zeigt dir den Ausgabepfad und öffnet das Ergebnis auf Wunsch. Es installiert nichts und braucht keine Administratorrechte.
+
+| Skript | Für | Ziele |
+|---|---|---|
+| `tool\bauen.ps1` | Windows (PowerShell 5.1 oder neuer, ohne Zusatzmodule) | `windows`, `web`, `apk`, `aab` |
+| `tool/bauen.sh` | Linux und macOS (bash) | `linux`, `macos`, `web`, `apk`, `aab` |
+
+Was geprüft wurde: Die Skripte starten in der CI im Workflow `Bau-Skripte` (`bauen-skripte.yml`) und bauen dort die Web-Version auf Windows (mit Windows PowerShell 5.1) und auf Ubuntu. Die anderen Ziele (windows, apk, aab, linux, macos) wurden mit den Skripten nicht gebaut, nur ihre Eingabeprüfung wurde getestet. Die dahinterliegenden Befehle sind dieselben wie in Teil B.
+
+### Windows
+
+Öffne PowerShell im Projektordner (im Explorer in den Ordner gehen, in die Adresszeile `powershell` tippen, Eingabetaste). Dann:
+
+```powershell
+powershell -File tool\bauen.ps1 -Ziel windows
+```
+
+Nur bauen ist die Standardeinstellung. Mit `-Oeffnen` startet das Skript das Ergebnis danach:
+
+```powershell
+powershell -File tool\bauen.ps1 -Ziel windows -Oeffnen
+powershell -File tool\bauen.ps1 -Ziel web -Oeffnen
+powershell -File tool\bauen.ps1 -Ziel apk -Oeffnen
+powershell -File tool\bauen.ps1 -Hilfe
+```
+
+Was `-Oeffnen` tut: bei `windows` startet es die App, bei `web` startet es einen lokalen Server auf einem freien Port (ab 8090) und öffnet den Browser, bei `apk` und `aab` öffnet es den Ordner mit der Datei. Der Web-Server läuft im selben Fenster, beende ihn mit Strg+C.
+
+Du erkennst den Erfolg an der grünen Zeile `FERTIG nach ... Sekunden.` mit dem Pfad zum Ergebnis. Bei einem Fehler steht rot `FEHLER:` mit einer Erklärung, und das Skript endet mit Exit-Code 1 (falsche Eingabe: 2).
+
+**Wenn Windows das Skript blockiert** ("Die Ausführung von Skripts ist auf diesem System deaktiviert" oder "nicht digital signiert"): Das passiert vor allem bei einem ZIP-Download von GitHub, weil Windows die Dateien als "aus dem Internet" markiert. Zwei offizielle Wege:
+
+```powershell
+# Weg 1: nur diese Dateien freigeben, einmalig
+Get-ChildItem -Recurse tool\bauen.ps1 | Unblock-File
+powershell -File tool\bauen.ps1 -Ziel windows
+
+# Weg 2: die Richtlinie nur für diesen einen Aufruf lockern
+powershell -ExecutionPolicy Bypass -File tool\bauen.ps1 -Ziel windows
+```
+
+Weg 2 gilt nur für diesen einen Aufruf und ändert nichts an deinem System. Mit `git clone` (B2) tritt das Problem normalerweise nicht auf. Hintergrund: [Microsoft zu Ausführungsrichtlinien](https://learn.microsoft.com/de-de/powershell/module/microsoft.powershell.core/about/about_execution_policies).
+
+### Linux und macOS
+
+```bash
+tool/bauen.sh linux
+tool/bauen.sh web --oeffnen
+tool/bauen.sh macos --oeffnen
+tool/bauen.sh --hilfe
+```
+
+Ist das Skript nicht ausführbar (nach einem ZIP-Download), starte es mit `bash tool/bauen.sh web` oder setze das Recht mit `chmod +x tool/bauen.sh`.
+
+Das Verhalten ist wie unter Windows. `--oeffnen` startet bei `linux` die App, bei `macos` die `.app`, bei `web` den Server samt Browser und bei `apk` und `aab` den Dateimanager im Ordner. Mit `--port 9000` wählst du eine andere Start-Portnummer für Web.
+
+### Was die Skripte voraussetzen und prüfen
+
+- `flutter` ist im PATH. Sonst bricht das Skript mit einem Hinweis ab, wo du Flutter 3.50.0 bekommst.
+- Windows-Ziel: Rust (`cargo`) und Visual Studio mit C++. Fehlt Rust, bricht es ab. Das Visual Studio findet es über `vswhere`. Fehlt es, warnt es und lässt `flutter` entscheiden.
+- Linux-Ziel: die Entwicklungspakete aus B8. macOS-Ziel: Xcode und CocoaPods.
+- Android-Ziele: nur ein Hinweis, wenn kein Java gefunden wird.
+- Web mit Öffnen: Python.
+- Gibt es `config/app.json`, hängt das Skript `--dart-define-from-file=config/app.json` an. Ohne die Datei baut es mit Standardwerten.
+
+## Wenn etwas schiefgeht
+
+| Symptom | Was tun |
+|---|---|
+| `flutter` wird nicht gefunden | `flutter\bin` in den PATH aufnehmen, ein **neues** Terminal öffnen, `flutter --version` prüfen (soll 3.50.0 zeigen). |
+| `flutter doctor` zeigt ein rotes Kreuz | Die Zeile darunter nennt die Lösung. Meist fehlt Visual Studio mit C++, Rust oder die Android-Lizenz (B1). |
+| Windows-Bau bricht ab, Pfad zu lang | Projekt in einen kurzen Ordner wie `C:\linefm` legen. |
+| `--base-href` wird zu `C:/Program Files/Git/` | Git-Bash-Falle, siehe B6. Argument weglassen oder PowerShell nutzen. |
+| Web-Seite bleibt weiß, wenn du `index.html` doppelklickst | Über `http://localhost:...` mit dem Server öffnen (B6). |
+| Port 8090 ist belegt | Anderen Port wählen, beim Skript `-Port 9000` bzw. `--port 9000`. |
+| Windows-Warnung SmartScreen | **Weitere Informationen**, **Trotzdem ausführen**. |
+| macOS lässt die App nicht öffnen | **Datenschutz & Sicherheit**, **Dennoch öffnen** (A5). |
+| Android: "App nicht installiert" | Eine ältere Version mit anderer Signatur deinstallieren, erneut versuchen. |
+| Der Lauf auf GitHub ist rot | Lauf öffnen, den roten Job anklicken, die Zeile mit dem Fehler kopieren und dem Entwickler schicken. |
+| Die Artefakte sind weg | Sie sind nach 14 Tagen gelöscht. Neuen Bau starten (A1). |
+
+Was hier nicht steht: In den [Discussions](https://github.com/VectoDE/linefm-radio-app/discussions) oder über [SUPPORT.md](../SUPPORT.md) bekommst du Hilfe.

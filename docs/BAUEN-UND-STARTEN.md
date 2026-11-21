@@ -63,7 +63,7 @@ Was in welchem Artefakt liegt, abgeglichen mit dem Lauf vom 21.11.2026 ([Lauf 44
 
 Stand dieses Laufs: Android, Web, Windows, Linux und macOS waren grün. Die iOS-Prüfung war rot. Sie ist eine reine Kompilierprüfung und liefert keine Datei (siehe A6). Der Fehler wird in einem eigenen Pull Request behoben, die Version dafür ist iOS 16 als Mindestversion. Ob sie danach grün ist, siehst du in der Lauf-Liste unter Actions.
 
-Windows-MSIX: `build.yml` sieht eine MSIX-Datei vor. Im Lauf vom 21.11.2026 lag keine im Artefakt. Nimm den Installer (`...-setup.exe`) oder die ZIP.
+Windows-MSIX: `build.yml` legt eine MSIX-Datei ins Artefakt (belegt im [Lauf 44953548872](https://github.com/VectoDE/linefm-radio-app/actions/runs/44953548872)). Fehlt sie, schlägt der Schritt fehl. Ohne Signatur lässt sie sich aber nicht installieren (siehe unten). Nimm den Installer (`...-setup.exe`) oder die ZIP.
 
 ### A3 Dasselbe auf der Kommandozeile
 

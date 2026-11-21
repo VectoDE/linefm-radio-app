@@ -401,7 +401,9 @@ int CloseRunningApps(const std::vector<std::wstring>& files,
   std::vector<LPCWSTR> names;
   for (const auto& f : files) names.push_back(f.c_str());
   int result = kExitOk;
+  std::vector<RM_UNIQUE_PROCESS> procs;
   auto list = [&](std::vector<std::wstring>* apps) -> bool {
+    procs.clear();
     UINT needed = 0;
     UINT count = 0;
     DWORD reasons = 0;
@@ -415,6 +417,7 @@ int CloseRunningApps(const std::vector<std::wstring>& files,
     for (UINT i = 0; i < count; ++i) {
       if (info[i].Process.dwProcessId == ::GetCurrentProcessId()) continue;
       apps->push_back(info[i].strAppName);
+      procs.push_back(info[i].Process);
     }
     return true;
   };
@@ -449,6 +452,27 @@ int CloseRunningApps(const std::vector<std::wstring>& files,
           Log::Line(L"App reagiert nicht, erzwinge Beenden");
           rc = ::RmShutdown(session, RmForceShutdown, nullptr);
           running = rc != ERROR_SUCCESS || still_running();
+        }
+        if (running) {
+          // Letzte Stufe: die gemeldeten Prozesse direkt beenden. Die
+          // Startzeit muss passen, sonst traefe es eine wiederverwendete PID.
+          std::vector<std::wstring> ignored;
+          list(&ignored);
+          for (const auto& p : procs) {
+            HANDLE h = ::OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE |
+                                         PROCESS_QUERY_LIMITED_INFORMATION,
+                                     FALSE, p.dwProcessId);
+            if (h == nullptr) continue;
+            FILETIME created{}, exited{}, kernel{}, user{};
+            if (::GetProcessTimes(h, &created, &exited, &kernel, &user) &&
+                ::CompareFileTime(&created, &p.ProcessStartTime) == 0) {
+              Log::Line(L"Beende Prozess " + std::to_wstring(p.dwProcessId));
+              ::TerminateProcess(h, 1);
+              ::WaitForSingleObject(h, 5000);
+            }
+            ::CloseHandle(h);
+          }
+          running = still_running();
         }
         if (running) {
           Log::Line(L"App laesst sich nicht beenden");

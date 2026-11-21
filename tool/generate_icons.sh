@@ -46,11 +46,11 @@ fg() {
 # rs SIZE OUT : Quadrat aus der 1024er Vollflaeche, Lanczos.
 rs() { magick assets/branding/icon_1024.png -filter Lanczos -resize "${1}x${1}" -strip -define png:color-type=2 "$2"; }
 
-# sm SIZE OUT : Kleinstufe (<= 32 px). Reiner Ausschnitt der Quelle (360x360 px um die
-# Wortmarke) statt Gesamtbild, Lanczos plus leichtes Unsharp. Bei 16 bis 32 px waere die
-# Wortmarke im Gesamtbild nur 8 bis 16 px breit und nicht mehr lesbar; der Ausschnitt
-# aendert weder Farben noch Form, nur den Bildausschnitt.
-sm() { magick "$SRC" -crop 360x360+118+109 +repage -filter Lanczos -resize "${1}x${1}"   -unsharp 0x0.5+0.5+0 -alpha off -strip -define png:color-type=2 "$2"; }
+# sm SIZE OUT : Kleinstufe (<= 32 px), volles Logo. Beste Quelle (600 px statt der
+# hochgerechneten 1024er Flaeche), Lanczos, dezentes Unsharp gegen die Unschaerfe der
+# starken Verkleinerung (Radius 0,5, Staerke 0,8, ohne Schwelle; kein Halo). Optisch
+# unveraendert, nur schaerfer.
+sm() { magick "$SRC" -filter Lanczos -resize "${1}x${1}" -unsharp 0x0.5+0.8+0   -alpha off -strip -define png:color-type=2 "$2"; }
 
 # 3. Vollflaeche 1024 (reine Hochskalierung der Quelle).
 mkdir -p assets/branding
@@ -147,11 +147,18 @@ magick -size 824x824 xc:black -fill white -draw "roundrectangle 0,0 823,823 185,
 magick assets/branding/icon_1024.png -filter Lanczos -resize 824x824 "$W/mmask.png" -alpha off \
   -compose CopyOpacity -composite "$W/mac824.png"
 magick "$W/mac824.png" -background none -gravity center -extent 1024x1024 "$W/mac1024.png"
-for n in 16 32 64 128 256 512 1024; do
+for n in 64 128 256 512 1024; do
   magick "$W/mac1024.png" -filter Lanczos -resize "${n}x${n}" -strip "$MAC/app_icon_$n.png"
 done
+# 16 und 32 px: gleiche Schaerfung wie sm, gleiche Form (824/1024-Rundrechteck, Radius 185/824).
+for n in 16 32; do
+  inner=$(awk -v n=$n 'BEGIN{printf "%d", n*824/1024+0.5}')
+  magick "$SRC" -filter Lanczos -resize "${inner}x${inner}" -unsharp 0x0.5+0.8+0 "$W/macs_img.png"
+  magick "$W/mmask.png" -filter Lanczos -resize "${inner}x${inner}" "$W/macs_mask.png"
+  magick "$W/macs_img.png" \( "$W/macs_mask.png" -colorspace gray \) -alpha off -compose CopyOpacity -composite -compose Over -background none -gravity center -extent "${n}x${n}" -strip -define png:color-type=6 "$MAC/app_icon_$n.png"
+done
 
-# 7. Windows: Stufen 16 bis 256; <= 32 px als Ausschnitt (sm), darueber Gesamtbild (rs).
+# 7. Windows: Stufen 16 bis 256; <= 32 px mit Schaerfung aus der 600er Quelle (sm), darueber rs.
 ICO_LIST=()
 for n in 16 20 24 32 40 48 64 128 256; do
   if [ "$n" -le 32 ]; then sm "$n" "$W/ico_$n.png"; else rs "$n" "$W/ico_$n.png"; fi

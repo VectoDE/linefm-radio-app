@@ -1,6 +1,7 @@
 import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/core/config/app_config.dart';
 import 'package:linefm_radio/features/about/radiogruppe_logo.dart';
 import 'package:linefm_radio/features/legal/external_link.dart';
 import 'package:linefm_radio/features/legal/legal_document.dart';
@@ -18,6 +19,16 @@ const String appBuildNumber = String.fromEnvironment(
   'APP_BUILD',
   defaultValue: '1',
 );
+
+/// Versionszeile: Release-Version mit Build, lokal "Entwicklungsversion"
+/// mit Commit-Kurz-ID (#104).
+String versionText(AppLocalizations l10n, AppConfig config) {
+  if (config.isDevBuild) {
+    final commit = config.appCommit.isEmpty ? '?' : config.appCommit;
+    return l10n.aboutDevVersion(commit);
+  }
+  return l10n.aboutVersion(appBuildNumber, config.appVersion);
+}
 
 const String developerUrl = 'https://github.com/VectoDE';
 const String websiteUrl = 'https://linefm.de';
@@ -68,7 +79,7 @@ class AboutScreen extends ConsumerWidget {
               ),
             ),
             Text(
-              l10n.aboutVersion(appBuildNumber, config.appVersion),
+              versionText(l10n, config),
               style: LinefmText.listTitle.copyWith(color: c.muted),
             ),
             const SizedBox(height: 28),
@@ -94,10 +105,7 @@ class AboutScreen extends ConsumerWidget {
               onTap: () => showLicensePage(
                 context: context,
                 applicationName: l10n.appTitle,
-                applicationVersion: l10n.aboutVersion(
-                  appBuildNumber,
-                  config.appVersion,
-                ),
+                applicationVersion: versionText(l10n, config),
               ),
             ),
             _LinkRow(

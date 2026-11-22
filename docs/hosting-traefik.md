@@ -26,7 +26,7 @@ In `.env` stehen nur Namen, keine Zugangsdaten:
 | `TRAEFIK_NETWORK` | externes Docker-Netzwerk von Traefik | `traefik` |
 | `TRAEFIK_ENTRYPOINT_SECURE` / `_HTTP` | Entrypoints | `websecure` / `web` |
 | `TRAEFIK_CERTRESOLVER` | Name des certresolvers in der Traefik-Konfiguration | `letsencrypt` |
-| `WEB_IMAGE` | Image-Name, z. B. `ghcr.io/vectode/linefm-radio-app-web:1.0.0` | `linefm-app-web:local` |
+| `WEB_IMAGE` | Image-Name, z. B. `ghcr.io/vectode/linefm-radio-app-web:X.Y.Z` | `linefm-app-web:local` |
 
 Traefik darf nur das Netzwerk `TRAEFIK_NETWORK` mit dem Container teilen. Der HTTP-Router leitet per `redirectscheme` auf HTTPS um. Wer das schon global in Traefik macht, löscht die Labels `linefm-app-http` und `linefm-https`.
 

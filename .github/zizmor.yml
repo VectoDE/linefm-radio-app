@@ -9,3 +9,11 @@ rules:
   # (rhysd/actionlint#711, #732). Umstellen, sobald actionlint sie kennt.
   self-repository:
     disable: true
+  # dangerous-triggers: security-alerts.yml nutzt workflow_run, um nach den
+  # Scannern auf main die Alerts abzugleichen. Der Job checkt nichts aus, liest
+  # keine Artefakte und verwendet keine Daten aus dem ausloesenden Lauf (nur
+  # Alert-APIs und Issues). Faellt, wenn GitHub einen Ausloeser "nach Code-Scanning-
+  # Upload" anbietet.
+  dangerous-triggers:
+    ignore:
+      - security-alerts.yml

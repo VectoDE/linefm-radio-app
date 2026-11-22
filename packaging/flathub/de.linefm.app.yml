@@ -125,12 +125,12 @@ modules:
     sources:
       # Platzhalter bis zum ersten Release, setzt flathub-prep.yml.
       - type: archive # release-tarball
-        url: https://github.com/VectoDE/linefm-radio-app/releases/download/v1.0.0/linefm-radio-1.0.0-linux-x64.tar.gz # release-tarball
+        url: https://github.com/VectoDE/linefm-radio-app/releases/download/vX.Y.Z/linefm-radio-X.Y.Z-linux-x64.tar.gz # release-tarball
         sha256: '0000000000000000000000000000000000000000000000000000000000000000' # release-tarball
         strip-components: 0
       # Lizenztext ("Alle Rechte vorbehalten"); Flathub verlangt
       # ihn unter /app/share/licenses/<App-ID>/. Tag mit dem Release-Tarball
       # gleich halten; aendert sich LICENSE, sha256 neu berechnen.
       - type: file
-        url: https://raw.githubusercontent.com/VectoDE/linefm-radio-app/v1.0.0/LICENSE
+        url: https://raw.githubusercontent.com/VectoDE/linefm-radio-app/vX.Y.Z/LICENSE # release-tag
         sha256: 54837bc1544bcfb1ba07fd40ca0550b8528fb1080fabb9759a09b73e4b422d8b

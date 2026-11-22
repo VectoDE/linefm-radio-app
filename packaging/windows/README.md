@@ -71,7 +71,7 @@ msix_config:
   display_name: LINEFM Radio
   publisher_display_name: LineFM Studios
   identity_name: de.linefm.app
-  msix_version: 1.0.0.0
+  # msix_version: kommt aus dem Release (msix:create --version)
   logo_path: assets/branding/icon_1024.png
   capabilities: internetClient
 ```

@@ -532,6 +532,78 @@ void main() {
       await sub.cancel();
       r.dispose();
     });
+
+    test('Socket-Ereignis des alten Senders aendert den Titel des neuen '
+        'nicht', () async {
+      final r = repo();
+      final seen = <String, List<String?>>{
+        main.slug: <String?>[],
+        rap.slug: <String?>[],
+      };
+      final subs = <StreamSubscription<Object?>>[
+        for (final s in [main, rap])
+          r.watchTrack(s).listen((t) => seen[s.slug]!.add(t?.title)),
+      ];
+      await _settle();
+
+      // Wechsel A (linefm) -> B (linefmrap).
+      r.setActiveStation(rap);
+      await _settle();
+      final delayForB = r.lastEndsAtDelay;
+      final shownForB = seen[rap.slug]!.last;
+      expect(shownForB, '${rap.slug}-1');
+      final emissionsForB = seen[rap.slug]!.length;
+
+      // Sofortiges Ereignis fuer A: nur A aendert sich, B bleibt unberuehrt
+      // und der ends_at-Timer gilt weiter B.
+      socket.controller.add(
+        SongChange(
+          stationSlug: main.slug,
+          track: _song('A-neu', lengthSec: 900),
+        ),
+      );
+      await _settle();
+      expect(seen[main.slug]!.last, 'A-neu');
+      expect(seen[rap.slug]!.last, shownForB);
+      expect(seen[rap.slug]!.sublist(emissionsForB - 1).toSet(), <String?>{
+        shownForB,
+      });
+      expect(r.lastEndsAtDelay, delayForB);
+
+      // Angekuendigtes Ereignis fuer A (kommt erst nach Start an): auch dann
+      // bleibt B stehen und der Timer von B unveraendert.
+      socket.controller.add(
+        SongChange(
+          stationSlug: main.slug,
+          track: Track(
+            artist: 'Artist',
+            title: 'A-gleich',
+            startedAt: clock.now().add(const Duration(seconds: 7)),
+            endsAt: clock.now().add(const Duration(minutes: 20)),
+          ),
+        ),
+      );
+      await _settle();
+      await sched.advance(const Duration(seconds: 7));
+      expect(seen[main.slug]!.last, 'A-gleich');
+      expect(seen[rap.slug]!.last, shownForB);
+      expect(seen[rap.slug]!.sublist(emissionsForB - 1).toSet(), <String?>{
+        shownForB,
+      });
+      expect(r.lastEndsAtDelay, delayForB);
+
+      // Gegenprobe: ein Ereignis fuer B wird weiterhin angezeigt.
+      socket.controller.add(
+        SongChange(stationSlug: rap.slug, track: _song('B-neu')),
+      );
+      await _settle();
+      expect(seen[rap.slug]!.last, 'B-neu');
+
+      for (final s in subs) {
+        await s.cancel();
+      }
+      r.dispose();
+    });
   });
 }
 

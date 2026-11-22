@@ -564,7 +564,11 @@ Das gilt nur für die Web-Version. Alles ist aus, solange du keine Werte einträ
 - **Wo eintragen:** Secret `SCORECARD_TOKEN`, Variable `CODE_SCANNING_ENABLED`.
 - **Woher:** GitHub > Settings > Developer settings > Fine-grained tokens. Code Scanning in privaten Repos braucht GitHub Code Security.
 - **Prüfschritt:** Der Scorecard-Lauf ist grün, das Badge in der README zeigt einen Wert.
-- [ ] erledigt
+
+#### Token für Sicherheitsfunde (nicht vorgesehen)
+
+- **Entscheidung des Inhabers (22.11.2026):** Es gibt kein `SECURITY_ALERTS_TOKEN`. Nichts einzurichten.
+- **Folge:** `security-alerts.yml` gleicht regulär nur Code Scanning ab. Dependabot- und Secret-Scanning-Alerts prüft der Betreiber in der Security-Ansicht des Repositories (siehe SECURITY.md).
 
 ---
 

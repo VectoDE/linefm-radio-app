@@ -31,7 +31,7 @@ Der Workflow `.github/workflows/uptime.yml` prüft alle 30 Minuten die Web-Versi
 
 Der Normalweg ist der Workflow `deploy-web.yml`. Er rollt das Web-Artefakt aus einem GitHub-Release auf die Ziele aus der Variable `WEB_DEPLOY_TARGETS` aus (`cloudflare`, `ssh`, `plesk`). Die Einrichtung der Secrets steht in [../secrets.md](../secrets.md), die Server-Einrichtung in den Dokumenten `hosting-*.md`.
 
-Von Hand startet man ihn unter Actions > Deploy Web > Run workflow mit dem Tag (zum Beispiel `v1.0.0`) und optional den Zielen. Das Ziel `production` verlangt einen Genehmiger, sofern er in den Umgebungseinstellungen gesetzt ist.
+Von Hand startet man ihn unter Actions > Deploy Web > Run workflow mit dem Tag (Form `vX.Y.Z`) und optional den Zielen. Das Ziel `production` verlangt einen Genehmiger, sofern er in den Umgebungseinstellungen gesetzt ist.
 
 Nach jedem Deploy prüfen:
 

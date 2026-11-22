@@ -35,7 +35,7 @@ on:
   workflow_call:
     inputs:
       version:
-        description: Versions-Tag (z. B. v1.2.3 oder v1.2.3-rc.1)
+        description: Versions-Tag (vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N)
         type: string
         required: false
         default: ""
@@ -142,8 +142,8 @@ jobs:
             label="${version#v}"
             app_env=prod
           else
-            base="$(sed -n 's/^version:[[:space:]]*\([0-9.]*\).*/\1/p' pubspec.yaml | head -n1)"
-            label="${base}-dev.${RUN_NUMBER}"
+            # Ohne Release: eindeutig erkennbare Entwicklungsversion mit Commit (#104).
+            label="0.0.0-dev+${GITHUB_SHA::7}"
             app_env=dev
           fi
           build_name="${label%%-*}"
@@ -160,8 +160,9 @@ jobs:
           # laedt auch Vorabversionen (vX.Y.Z-rc.N) zu Google Play und Snap hoch, also
           # gilt dieselbe Bedingung wie fuer die Store-Uploads. Dev-Builds melden
           # offene Platzhalter nur.
+          # #104: Vorabversionen (alpha, beta, rc) gehen in keinen Store.
           legal_strict=false
-          if [ "$app_env" = "prod" ]; then legal_strict=true; fi
+          if [ "$app_env" = "prod" ] && ! [[ "$label" =~ -(alpha|beta|rc)\. ]]; then legal_strict=true; fi
 
           {
             echo "legal_strict=$legal_strict"

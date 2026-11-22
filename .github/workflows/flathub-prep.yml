@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Versions-Tag eines vorhandenen Releases (z. B. v1.0.0)
+        description: Versions-Tag eines vorhandenen Releases (Form vX.Y.Z)
         type: string
         required: true
 
@@ -73,7 +73,12 @@ jobs:
           sed -E -i "s|^([[:space:]]*sha256: ).*( # release-tarball)\$|\1'${sha}'\2|" "$out"
           grep -qF "url: ${url} # release-tarball" "$out" || { echo "::error::URL-Zeile nicht ersetzt"; exit 1; }
           grep -qF "sha256: '${sha}' # release-tarball" "$out" || { echo "::error::sha256-Zeile nicht ersetzt"; exit 1; }
-          cp linux/de.linefm.app.metainfo.xml flathub/ 2>/dev/null || true
+          # Version kommt nur aus dem Release (#104): Platzhalter vX.Y.Z bzw. 0.0.0-dev ersetzen.
+          sed -E -i "s|/vX\.Y\.Z/(.*) # release-tag\$|/${TAG}/\1|" "$out"
+          grep -q 'vX\.Y\.Z' "$out" && { echo "::error::Platzhalter vX.Y.Z im Manifest uebrig"; exit 1; }
+          cp linux/de.linefm.app.metainfo.xml flathub/
+          sed -i "s|<release version=\"0.0.0-dev\" date=\"[0-9-]*\">|<release version=\"${LABEL}\" date=\"$(date -u +%F)\">|" flathub/de.linefm.app.metainfo.xml
+          grep -qF "<release version=\"${LABEL}\"" flathub/de.linefm.app.metainfo.xml || { echo "::error::Release-Version in metainfo nicht gesetzt"; exit 1; }
           {
             echo "# PR-Vorlage fuer flathub/flathub (Version ${LABEL})"
             echo ""

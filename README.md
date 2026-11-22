@@ -126,7 +126,7 @@ Stand: 22. November 2026. Status heißt: **erfüllt** = die Prüfung läuft in d
 |---|---|---|---|
 | Barrierefreiheit | WCAG 2.2 AA | teilweise | axe-core bei jedem Pull Request ohne Verstöße ([a11y.yml](.github/workflows/a11y.yml)). Screenreader-Prüfung und Zoom 400 % fehlen, siehe [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) |
 | Barrierefreiheit | EN 301 549 | Ziel | Maßstab, kein Nachweis ([ACCESSIBILITY.md](.github/ACCESSIBILITY.md)) |
-| Barrierefreiheit | BFSG | Ziel | Ob eine Erklärung Pflicht ist, ist ungeklärt; Entwurf in [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md) |
+| Barrierefreiheit | BFSG | Ziel | Ob das BFSG für diese App gilt und eine Erklärung Pflicht ist, wird geprüft; Entwurf in [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md). Falls es gilt, ist die MLBF in Magdeburg zuständig ([mlbf-barrierefrei.de](https://www.mlbf-barrierefrei.de)) |
 | Sicherheit | OpenSSF Scorecard | teilweise | Läuft wöchentlich und bei jedem Push auf `main` ([scorecard.yml](.github/workflows/scorecard.yml)); einige Prüfungen können nicht voll punkten, siehe [OpenSSF und Prüfsiegel](#openssf-und-prüfsiegel) |
 | Sicherheit | Signierte Releases (cosign, Sigstore) | Ziel | Der Ablauf steht in [release.yml](.github/workflows/release.yml), es gibt aber noch kein Release; Prüfanleitung: [docs/RELEASE-VERIFIZIEREN.md](docs/RELEASE-VERIFIZIEREN.md) |
 | Sicherheit | Herkunftsnachweis (GitHub-Attestierung, SLSA Build Provenance) | Ziel | Wie oben: erst mit dem ersten Release belegbar. Eine SLSA-Stufe behaupten wir nicht |
@@ -185,13 +185,13 @@ LINEFM Radio is a Flutter app for listening to the LINEFM radio stations live (A
 
 ### Standards and compliance
 
-As of 22 November 2026. Status: **met** = the check runs in CI and was green, **partly met** = part is proven and the rest is listed as open, **target** = aimed for, not proven yet. Nothing is marked met without proof. This is neither legal advice nor a certification. Most evidence files are in German; the German section has the same rows.
+As of 22 November 2026. Status: **met** = the check runs in CI and was green, **partly met** = part is proven and the rest is listed as open, **target** = aimed for, not proven yet. Nothing is marked met without proof. This is neither legal advice nor a certification. Most evidence files are in German.
 
 | Area | Standard or practice | Status | Evidence and open points |
 |---|---|---|---|
 | Accessibility | WCAG 2.2 AA | partly met | axe-core on every pull request with no violations ([a11y.yml](.github/workflows/a11y.yml)). Screen reader testing and 400 % zoom are missing, see [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) |
 | Accessibility | EN 301 549 | target | Yardstick, no proof ([ACCESSIBILITY.md](.github/ACCESSIBILITY.md)) |
-| Accessibility | BFSG | target | Whether a statement is mandatory is unsettled; draft in [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md) |
+| Accessibility | BFSG | target | Whether the BFSG applies to this app and a statement is mandatory is being reviewed; draft in [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md). If it applies, the MLBF in Magdeburg is the competent body ([mlbf-barrierefrei.de](https://www.mlbf-barrierefrei.de)) |
 | Security | OpenSSF Scorecard | partly met | Runs weekly and on every push to `main` ([scorecard.yml](.github/workflows/scorecard.yml)); some checks cannot score fully, see the German section "OpenSSF und Prüfsiegel" |
 | Security | Signed releases (cosign, Sigstore) | target | The flow is in [release.yml](.github/workflows/release.yml), but no release exists yet; verification guide: [docs/RELEASE-VERIFIZIEREN.md](docs/RELEASE-VERIFIZIEREN.md) |
 | Security | Provenance (GitHub attestation, SLSA build provenance) | target | As above: provable only with the first release. We do not claim a SLSA level |

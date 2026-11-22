@@ -175,17 +175,21 @@ if ($window) {
     Add-Type -Namespace LfTest -Name Win -MemberDefinition @'
 [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
 [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindowExW(IntPtr p, IntPtr a, string c, string w);
+[DllImport("user32.dll")] public static extern IntPtr SendMessageW(IntPtr h, uint m, IntPtr w, IntPtr l);
 '@
     [void][LfTest.Win]::SetForegroundWindow($window.MainWindowHandle)
     # Flutter haengt seine Knoten an das Kindfenster FLUTTERVIEW. Die Anfrage
     # direkt an dieses Fenster schaltet die Semantik im Embedder ein.
     $viewHwnd = [LfTest.Win]::FindWindowExW($window.MainWindowHandle, [IntPtr]::Zero, 'FLUTTERVIEW', [NullString]::Value)
-    $root = if ($viewHwnd -ne [IntPtr]::Zero) {
-      [System.Windows.Automation.AutomationElement]::FromHandle($viewHwnd)
-    } else {
-      [System.Windows.Automation.AutomationElement]::FromHandle($window.MainWindowHandle)
-    }
-    Start-Sleep -Seconds 2
+    $target = if ($viewHwnd -ne [IntPtr]::Zero) { $viewHwnd } else { $window.MainWindowHandle }
+    # The Flutter embedder only enables semantics on the first accessibility
+    # request (WM_GETOBJECT) and answers it with the plain HWND provider. Ask
+    # once, give the framework time to send its tree, then fetch a fresh
+    # element on every attempt instead of reusing the cached first one.
+    [void][LfTest.Win]::SendMessageW($target, 0x003D, [IntPtr]::Zero, [IntPtr](-25))
+    Start-Sleep -Seconds 3
+    function FreshRoot { [System.Windows.Automation.AutomationElement]::FromHandle($target) }
+    $root = FreshRoot
     $walker = [System.Windows.Automation.TreeWalker]::RawViewWalker
     function RawFind($el, [string]$name, [int]$depth) {
       if ($depth -gt 40) { return $null }
@@ -203,13 +207,16 @@ if ($window) {
       $child = $walker.GetFirstChild($el)
       while ($child) {
         $c = $child.Current
-        Write-Host ("UIA: {0}{1} | {2}" -f (' ' * $depth), $c.ControlType.ProgrammaticName, $c.Name)
+        $line = "{0}{1} | {2} | {3}" -f (' ' * $depth), $c.ControlType.ProgrammaticName, $c.Name, $c.ClassName
+        Write-Host "UIA: $line"
+        Add-Content -Path (Join-Path $ArtifactDir 'uia-tree.txt') -Value $line
         RawDump $child ($depth + 1)
         $child = $walker.GetNextSibling($child)
       }
     }
     function FindButton([string[]]$names) {
-      for ($t = 0; $t -lt 20; $t++) {
+      for ($t = 0; $t -lt 30; $t++) {
+        $root = FreshRoot
         foreach ($n in $names) {
           # Flutter meldet Knoepfe mit dem Beschriftungstext als Name; der
           # Steuerelementtyp schwankt je nach Version, deshalb nur der Name.
@@ -227,8 +234,17 @@ if ($window) {
     if (-not $next) {
       # Diagnose: alle benannten Elemente der Oberflaeche ausgeben.
       Write-Host "UIA: FLUTTERVIEW-HWND $viewHwnd, Wurzel $($root.Current.ClassName)"
-      RawDump $root 0
+      RawDump (FreshRoot) 0
       RawDump ([System.Windows.Automation.AutomationElement]::FromHandle($window.MainWindowHandle)) 0
+    }
+    # Independent check with Microsoft's Axe.Windows scanner (result and
+    # UIA snapshot land in the artifact).
+    if ($env:AXE_CLI -and (Test-Path $env:AXE_CLI)) {
+      $axeOut = Join-Path $ArtifactDir 'axe'
+      New-Item -ItemType Directory -Force -Path $axeOut | Out-Null
+      $axeLog = & $env:AXE_CLI --processId $window.Id --outputDirectory $axeOut --verbosity verbose 2>&1
+      $axeLog | Set-Content -Path (Join-Path $axeOut 'axe-cli.txt') -Encoding utf8
+      $axeLog | ForEach-Object { Write-Host "AXE: $_" }
     }
     Check 'Screenreader/UIA: Knopf "Weiter" auffindbar' ($null -ne $next)
     if ($next) {

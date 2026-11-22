@@ -119,7 +119,7 @@ void main() {
         find.text('LINEFM und die App gehören jaybelife.'),
         findsOneWidget,
       );
-      expect(find.text('Version 1.0.0 (1)'), findsOneWidget);
+      expect(find.text('Entwicklungsversion (?)'), findsOneWidget);
     });
 
     testWidgets('Credits englisch im Wortlaut', (tester) async {

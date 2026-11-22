@@ -606,6 +606,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String aboutDevVersion(String commit) {
+    return 'Development version ($commit)';
+  }
+
+  @override
   String get aboutLicenses => 'Open-source licenses';
 
   @override

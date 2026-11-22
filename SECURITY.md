@@ -63,15 +63,40 @@ Nicht dazu gehören Lücken in Diensten Dritter (laut.fm, Apple iTunes Search, G
 | Updates für Actions, Pub, Gradle, Docker, Compose und npm | Dependabot | `.github/dependabot.yml` | wöchentlich, mit 7 Tagen Wartezeit |
 | Statische Analyse | CodeQL (Workflows bei jedem PR, Kotlin wöchentlich, Swift von Hand) | `codeql.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
 | Statische Analyse für Kotlin, Swift, JavaScript, Python, Bash, Dockerfile, Compose und Workflows | Semgrep Community Edition (ohne Konto, Image per Digest), Ergebnisse in Code Scanning | `semgrep.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
-| Dart-Code | `flutter analyze --fatal-infos` (CodeQL und Semgrep kennen Dart nicht) | `ci.yml` | Push auf `main`, jeder Pull Request |
-| Robustheit der Parser (laut.fm, iTunes, Cover-Cache) | zufallsbasierte Tests mit festem Seed, siehe unten | `ci.yml` (`test/data/fuzz/`) | Push auf `main`, jeder Pull Request |
+| Dart-Code | `flutter analyze --fatal-infos` (CodeQL und Semgrep kennen Dart nicht) | `ci.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
+| Robustheit der Parser (laut.fm, iTunes, Cover-Cache) | zufallsbasierte Tests mit festem Seed, siehe unten | `ci.yml` (`test/data/fuzz/`) | Push auf `main`, jeder Pull Request, wöchentlich |
 | Repo-Hygiene | OpenSSF Scorecard | `scorecard.yml` | Push auf `main`, wöchentlich |
+| Barrierefreiheit der Web-Version | axe-core mit Playwright | `a11y.yml` | Push auf `main`, jeder Pull Request, wöchentlich |
+| Offene Alerts als Issues | eigener Abgleich, siehe unten | `security-alerts.yml` | nach jedem Scanner-Lauf auf `main`, wöchentlich |
 
 Zum Fuzzing: Die Parser für die Antworten von laut.fm und der iTunes-Suche und das Laden des Cover-Caches bekommen in jedem Testlauf Tausende zufällig erzeugte, auch kaputte Eingaben (eigener Generator, fester Seed, keine zusätzliche Abhängigkeit). Sie dürfen dabei nie abstürzen; erlaubt ist nur der vorgesehene Fehlertyp `LautApiException`. Die Tests haben zwei echte Fehler gefunden, beide sind behoben: Zahlen wie `1e999` (in JSON gültig, in Dart unendlich) und Zeitstempel außerhalb des gültigen Bereichs im gespeicherten Cache. OpenSSF Scorecard wertet das nicht als Fuzzing. Erkannt werden dort nur OSS-Fuzz, ClusterFuzzLite und Fuzzing in einigen anderen Sprachen (Go, Haskell, JavaScript mit fast-check, Erlang, F#), Dart nicht.
 
 Ein Eintrag bei bestpractices.dev ist nicht möglich: Das Badge verlangt eine Open-Source-Lizenz, LINEFM Radio ist proprietär.
 
 Signierte Releases: Jede Release-Datei trägt eine GitHub-Attestierung und eine cosign-Signatur (`*.sigstore.json`), optional `SHA256SUMS.txt.asc` (GPG). Prüfen: [docs/RELEASE-VERIFIZIEREN.md](docs/RELEASE-VERIFIZIEREN.md).
+
+## Vom Fund bis zur Behebung
+
+1. **Erkennen:** Die Scanner aus der Tabelle laufen bei jedem Push auf `main` (also nach jedem Merge), bei jedem Pull Request und wöchentlich. Ihre Ergebnisse landen in Code Scanning, Dependabot-Alerts oder Secret Scanning.
+2. **Erfassen:** Nach jedem Lauf von CodeQL, Semgrep, Scorecard und Supply Chain auf `main` (und montags) gleicht `security-alerts.yml` die offenen Alerts ab. Für jeden neuen Alert entsteht ein Issue mit dem Label `typ:sicherheit` und einer Aufgabenliste. Weil das Repository öffentlich ist, nennt das Issue nur Quelle, Nummer, Schweregrad und den Link zum Alert; Details sehen nur Betreuer. Ein echter, ausnutzbarer Fund wird zusätzlich als privates Security Advisory geführt, nie in einem öffentlichen Issue beschrieben.
+3. **Bewerten:** Jeder Fund wird gegengeprüft (erreichbarer Pfad, echte Eingabequelle). Critical und High zuerst.
+4. **Beheben:** Korrektur per Pull Request mit `Refs #<Issue>`. Die CI muss grün sein. Dependabot-Sicherheitsupdates sind aktiv; ihre PRs werden nach grüner CI zeitnah gemergt.
+5. **Abschließen:** Nach dem Merge laufen die Scanner auf `main` erneut. Ist der Alert zu, schließt `security-alerts.yml` das Issue automatisch; öffnet er sich wieder, wird das Issue wieder geöffnet.
+6. **Verwerfen nur mit Begründung:** Ein Alert wird nur als „False positive“ oder „Won't fix“ verworfen, wenn das sachlich begründet ist (z. B. strukturell nicht erreichbare Scorecard-Checks, siehe unten). Die Begründung steht im Alert.
+
+Dependabot- und Secret-Scanning-Alerts kann der Standard-Token der Actions nicht lesen. Der Inhaber hat entschieden, dafür kein zusätzliches Token einzurichten. `security-alerts.yml` gleicht deshalb regulär nur Code Scanning ab und weist mit einem Hinweis darauf hin. Dependabot- und Secret-Funde werden über die Security-Ansicht des Repositories geprüft.
+
+### Branch-Schutz und Merge-Ablauf
+
+Der Branch-Schutz von `main` verlangt keine Pflicht-Freigabe durch eine zweite Person. Das ist eine Entscheidung des Inhabers; das Projekt hat einen einzigen Entwickler. Dependabot-PRs werden nach grüner CI zeitnah gemergt (Merge-Wächter). Die Scorecard-Checks Code-Review und Branch-Protection bleiben dadurch teilweise unerreicht (siehe unten).
+
+### Scorecard-Checks, die strukturell nicht voll erreichbar sind
+
+- **Code-Review:** Das Projekt hat einen einzigen Entwickler. Scorecard zählt nur Änderungen, die eine zweite Person freigegeben hat; Selbstfreigaben sind auf GitHub nicht möglich.
+- **Fuzzing:** Die Parser werden mit zufallsbasierten Tests geprüft (siehe oben). Scorecard erkennt für Dart keine Fuzzing-Integration.
+- **CII Best Practices:** Der Eintrag bei bestpractices.dev setzt eine Open-Source-Lizenz voraus; die App ist proprietär.
+- **Maintained:** Scorecard vergibt 0 Punkte, solange das Repository jünger als 90 Tage ist. Das erledigt sich mit der Zeit.
+- **SAST und CI-Tests:** Scorecard bewertet die letzten 30 Commits bzw. Pull Requests. Ältere Merges ohne Prüfung fallen nach und nach aus diesem Fenster; seit #28 laufen CodeQL, Semgrep und die CI bei jedem Pull Request.
 
 ## In English
 

@@ -33,4 +33,9 @@ RUN curl -fsSL -o /tmp/flutter.tar.xz \
 
 ENV PATH="/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:${PATH}"
 
+# Kein Dienst im Container (reine Entwicklungsumgebung, VS Code startet die
+# Prozesse selbst). Ein Gesundheitstest haette nichts zu pruefen; HEALTHCHECK NONE
+# legt das ausdruecklich fest (Trivy DS-0026).
+HEALTHCHECK NONE
+
 USER vscode

@@ -62,8 +62,15 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Flutter einrichten
+      # Nur das Dart-SDK; die Abhaengigkeiten der App (mit nativen Build-Hooks)
+      # werden fuer die Versionsrechnung nicht geholt.
+      - name: Flutter einrichten (ohne pub get)
         uses: ./.github/actions/setup-flutter
+        with:
+          pub-get: "false"
+
+      - name: Versionsrechner vorbereiten
+        run: dart pub get --directory tool/release
 
       - name: Version berechnen
         id: calc
@@ -82,14 +89,14 @@ jobs:
           fi
           git tag --list 'v*' > "$dir/tags.txt"
           gh issue list --repo "$GITHUB_REPOSITORY" --state open --limit 1000             --json labels > "$dir/issues.json"
-          dart run tool/release/next_version.dart --tags "$dir/tags.txt"             --issues "$dir/issues.json" > "$dir/pre.txt"
+          (cd tool/release && dart run next_version.dart --tags "$dir/tags.txt"             --issues "$dir/issues.json") > "$dir/pre.txt"
           last="$(sed -n 's/^last=//p' "$dir/pre.txt")"
           if [ -n "$last" ]; then
             git log --format=%s "$last..HEAD" > "$dir/subjects.txt"
           else
             git log -1 --format=%s > "$dir/subjects.txt"
           fi
-          dart run tool/release/next_version.dart --tags "$dir/tags.txt"             --issues "$dir/issues.json" --subjects "$dir/subjects.txt" > "$dir/out.txt"
+          (cd tool/release && dart run next_version.dart --tags "$dir/tags.txt"             --issues "$dir/issues.json" --subjects "$dir/subjects.txt") > "$dir/out.txt"
           cat "$dir/out.txt"
           { echo "skip=false"; cat "$dir/out.txt"; } >> "$GITHUB_OUTPUT"
           cp "$dir/subjects.txt" subjects.txt

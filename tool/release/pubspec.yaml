@@ -1,0 +1,7 @@
+# Standalone version calculator for release.yml (#104). Pure Dart, no
+# dependencies and no link to the Flutter app package, so computing a version
+# never runs the app's native build hooks.
+name: linefm_release_tool
+publish_to: none
+environment:
+  sdk: ^3.14.0

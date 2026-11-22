@@ -1,0 +1,92 @@
+name: Windows-Integrationstest
+
+# Integrationstest der echten App auf Windows (integration_test/windows_app_test.dart):
+# - #99: schneller Senderwechsel mit verspaeteten laut.fm-Antworten (Netzwerk-Fakes),
+# - #101: Sprache de/en, Rail-Breite bleibt 104,
+# - #87: eigene Titelleiste (Maximieren, Doppelklick, Minimieren, Schliessen in den
+#   Tray, Groesse setzen) im echten Fenster.
+# Bilder je Schritt als Artefakt "windows-itest-screens" (Flutter-Ansicht und
+# Bildschirmaufnahme mit Fensterrahmen). Nicht pruefbar: Ziehen, Andocken,
+# Snap-Layouts (echte Mauseingaben des Betriebssystems).
+# Nur bei Pull Request und manuell, kein Zugriff auf Secrets.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: itest-windows-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  windows-integration:
+    name: Windows-Integrationstest
+    runs-on: windows-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Rust-Toolchain (fuer smtc_windows)
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install stable --profile minimal --no-self-update
+          rustup default stable
+
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Bildschirmaufloesung melden
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms
+          $b = [System.Windows.Forms.SystemInformation]::VirtualScreen
+          "Bildschirm: $($b.Width) x $($b.Height)"
+
+      - name: Integrationstest
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$(cygpath -m "$GITHUB_WORKSPACE")/itest-screens"
+          mkdir -p "$out"
+          flutter test integration_test/windows_app_test.dart -d windows \
+            --reporter=expanded --dart-define="ITEST_OUT=$out" 2>&1 | tee "$out/flutter-test.log"
+
+      - name: Zusammenfassung
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          out="itest-screens"
+          {
+            echo "### Windows-Integrationstest"
+            if [ -d "$out" ]; then
+              echo "Bilder: $(ls "$out"/*.png 2>/dev/null | wc -l) (davon Bildschirmaufnahmen: $(ls "$out"/*-bildschirm.png 2>/dev/null | wc -l))"
+              echo
+              echo '```'
+              grep -E '^(Bilderordner|Titelleiste|[0-9:+ -]*(All tests passed|Some tests failed))|\[E\]|✓|✗' "$out/flutter-test.log" | tail -n 40 || true
+              echo '```'
+            else
+              echo "Kein Bilderordner erzeugt."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Bilder hochladen
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-itest-screens
+          path: itest-screens/
+          retention-days: 14
+          if-no-files-found: warn

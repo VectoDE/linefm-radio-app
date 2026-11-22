@@ -1,0 +1,18 @@
+{
+  "name": "linefm-perf",
+  "private": true,
+  "description": "Performance-Messung der Web-Version (Lighthouse + Playwright), siehe tool/perf/README.md und .github/workflows/performance.yml",
+  "type": "module",
+  "engines": {
+    "node": ">=22.19"
+  },
+  "scripts": {
+    "lighthouse": "node lighthouse.mjs",
+    "web": "node web_perf.mjs",
+    "summary": "node summarize.mjs"
+  },
+  "devDependencies": {
+    "lighthouse": "13.6.0",
+    "playwright": "1.65.0"
+  }
+}

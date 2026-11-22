@@ -1,0 +1,66 @@
+name: Barriere melden / Accessibility barrier
+description: Etwas in der App lässt sich mit Tastatur, Screenreader, Vergrößerung oder bei eingeschränktem Sehen nicht benutzen. / Something in the app cannot be used with a keyboard, screen reader, magnification or low vision.
+title: "Barriere: "
+labels: ["accessibility"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke für den Hinweis. Deutsch oder Englisch ist beides in Ordnung. Antworten kommen meist innerhalb einer Woche, ohne feste Zusage. Der Stand steht in [ACCESSIBILITY.md](https://github.com/VectoDE/linefm-radio-app/blob/main/.github/ACCESSIBILITY.md).
+
+        Thanks for the report. German or English is fine. Replies usually come within a week, with no fixed commitment. The current state is in ACCESSIBILITY.md.
+
+        Sicherheitslücken bitte nicht hier melden, sondern wie in SECURITY.md beschrieben. / Please do not report security issues here; see SECURITY.md.
+  - type: textarea
+    id: barrier
+    attributes:
+      label: Was funktioniert nicht? / What does not work?
+      description: Welche Stelle der App, was wolltest du tun, was ist stattdessen passiert? / Which part of the app, what did you want to do, what happened instead?
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Plattform / Platform
+      multiple: true
+      options:
+        - Web (Browser)
+        - Android
+        - Android Auto
+        - iOS
+        - macOS
+        - Windows
+        - Linux
+        - Windows-Installer
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App-Version, Gerät, Betriebssystem / App version, device, operating system
+      description: Die Version steht in den Einstellungen. Bei Web den Browser nennen. / The version is in Settings. For web, name the browser.
+      placeholder: "X.Y.Z (build), Windows 11, Firefox"
+    validations:
+      required: true
+  - type: input
+    id: assistive
+    attributes:
+      label: Hilfstechnik / Assistive technology
+      description: Zum Beispiel NVDA, TalkBack, VoiceOver, Bildschirmlupe, nur Tastatur, Sprachsteuerung. / For example NVDA, TalkBack, VoiceOver, screen magnifier, keyboard only, voice control.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Schritte zum Nachstellen / Steps to reproduce
+      placeholder: |
+        1.
+        2.
+  - type: textarea
+    id: expected
+    attributes:
+      label: Was hättest du erwartet? / What did you expect?
+      description: Optional. Zum Beispiel, was der Screenreader hätte vorlesen sollen. / Optional. For example, what the screen reader should have announced.
+  - type: textarea
+    id: attachment
+    attributes:
+      label: Screenshots oder Aufnahme / Screenshots or recording
+      description: Optional. Bitte keine persönlichen Daten. / Optional. Please no personal data.

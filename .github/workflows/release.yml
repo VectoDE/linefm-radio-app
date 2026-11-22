@@ -1,37 +1,54 @@
 name: Release
 
-# Ausloeser: Tag vX.Y.Z oder vX.Y.Z-rc.N (der Trigger nimmt jedes v*.*.*, der Job
-# "version" laesst aber nur diese beiden Formen zu; rc-Tags werden Vorabversionen).
+# #104: Jeder Merge auf main erzeugt ein Release. Der Job "version" berechnet die
+# Version aus dem hoechsten bisherigen Release-Tag und den offenen Issues
+# (tool/release/next_version.dart, Logik in lib/core/update/app_version.dart):
+# Start 0.1.0-alpha.1, jeder Merge zaehlt die Vorabnummer hoch; beta, sobald kein
+# Issue mit typ:feature mehr offen ist; rc (1.0.0-rc.N), sobald nur noch Issues mit
+# nur-noch:jaybelife offen sind; 1.0.0, wenn nichts mehr offen ist. Die Version steht
+# nirgends fest; pubspec.yaml traegt nur den Platzhalter 0.0.0-dev.
 # Baut alle Plattformen ueber build.yml. Der Job "sign" erzeugt SHA256SUMS.txt und
-# eine SBOM (SPDX), legt GitHub-Attestierungen (Build-Provenance, SBOM) an und
-# signiert jede Release-Datei plus SHA256SUMS.txt keyless mit cosign (Sigstore,
-# Bundles *.sigstore.json). "publish" signiert SHA256SUMS.txt optional mit GPG
-# (Secrets GPG_PRIVATE_KEY, GPG_PASSPHRASE; ohne sie uebersprungen) und legt das
-# GitHub-Release an. Android (APK/AAB), Windows (EXE) und macOS (DMG) tragen ihre
-# Plattform-Signatur nur mit gesetzten Signier-Secrets. Pruefen: docs/RELEASE-VERIFIZIEREN.md.
-# Danach starten die Store-Workflows; Google Play und Snap auch fuer rc-Tags, alle
-# anderen nur fuer Endversionen.
+# eine SBOM (SPDX und CycloneDX, syft), legt GitHub-Attestierungen (Build-Provenance,
+# SBOM) an und signiert jede Release-Datei plus SHA256SUMS.txt keyless mit cosign
+# (Sigstore, Bundles *.sigstore.json). "publish" signiert SHA256SUMS.txt optional mit
+# GPG (Secrets GPG_PRIVATE_KEY, GPG_PASSPHRASE; ohne sie uebersprungen), schreibt die
+# Release Notes aus den Commit- bzw. PR-Titeln und legt das GitHub-Release samt Tag
+# auf dem gemergten Commit an. Android (APK/AAB), Windows (EXE) und macOS (DMG)
+# tragen ihre Plattform-Signatur nur mit gesetzten Signier-Secrets.
+# Pruefen: docs/RELEASE-VERIFIZIEREN.md.
+# Danach starten die Store-Workflows und der Web-Deploy, alle erst ab 1.0.0 (keine
+# Vorabversion). alpha, beta und rc gehen nur als GitHub-Vorabversion raus.
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions: {}
 
+# Releases laufen nacheinander: jedes braucht den Tag des vorigen.
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-main
   cancel-in-progress: false
 
 jobs:
   version:
-    name: Tag und pubspec-Version pruefen
+    name: Version berechnen
+    # Releases nur aus main, auch bei manuellem Start.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     permissions:
       contents: read
-    env:
-      TAG: ${{ github.ref_name }}
+      issues: read
+    outputs:
+      skip: ${{ steps.calc.outputs.skip }}
+      tag: ${{ steps.calc.outputs.tag }}
+      version: ${{ steps.calc.outputs.version }}
+      stage: ${{ steps.calc.outputs.stage }}
+      prerelease: ${{ steps.calc.outputs.prerelease }}
+      last: ${{ steps.calc.outputs.last }}
     steps:
       - name: Runner haerten
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
@@ -42,18 +59,68 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
+          fetch-tags: true
 
-      - name: Tag und pubspec-Version vergleichen
+      - name: Flutter einrichten
+        uses: ./.github/actions/setup-flutter
+
+      - name: Version berechnen
+        id: calc
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/version"
+          mkdir -p "$dir"
+          # Schon ein Release auf diesem Commit (erneuter Lauf): nichts tun.
+          existing="$(git tag --points-at HEAD --list 'v*' | head -n1)"
+          if [ -n "$existing" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Commit hat schon das Release $existing, uebersprungen." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git tag --list 'v*' > "$dir/tags.txt"
+          gh issue list --repo "$GITHUB_REPOSITORY" --state open --limit 1000             --json labels > "$dir/issues.json"
+          dart run tool/release/next_version.dart --tags "$dir/tags.txt"             --issues "$dir/issues.json" > "$dir/pre.txt"
+          last="$(sed -n 's/^last=//p' "$dir/pre.txt")"
+          if [ -n "$last" ]; then
+            git log --format=%s "$last..HEAD" > "$dir/subjects.txt"
+          else
+            git log -1 --format=%s > "$dir/subjects.txt"
+          fi
+          dart run tool/release/next_version.dart --tags "$dir/tags.txt"             --issues "$dir/issues.json" --subjects "$dir/subjects.txt" > "$dir/out.txt"
+          cat "$dir/out.txt"
+          { echo "skip=false"; cat "$dir/out.txt"; } >> "$GITHUB_OUTPUT"
+          cp "$dir/subjects.txt" subjects.txt
+          {
+            echo "### Release $(sed -n 's/^tag=//p' "$dir/out.txt")"
+            echo "- Stufe: $(sed -n 's/^stage=//p' "$dir/out.txt"), vorher: ${last:-keins}"
+            echo "- offene Issues: $(jq length "$dir/issues.json")"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Tag und pubspec-Platzhalter pruefen
+        if: steps.calc.outputs.skip != 'true'
         uses: ./.github/actions/tag-version
         with:
-          tag: ${{ github.ref_name }}
+          tag: ${{ steps.calc.outputs.tag }}
+
+      - name: Commit-Titel weitergeben
+        if: steps.calc.outputs.skip != 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-subjects
+          path: subjects.txt
+          retention-days: 7
+          if-no-files-found: error
 
   build:
     name: Build
     needs: version
+    if: needs.version.outputs.skip != 'true'
     uses: ./.github/workflows/build.yml
     with:
-      version: ${{ github.ref_name }}
+      version: ${{ needs.version.outputs.tag }}
       apple: true
     secrets:
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -79,7 +146,7 @@ jobs:
   # Release-Assets am Release. Pruefen: docs/RELEASE-VERIFIZIEREN.md.
   sign:
     name: Pruefsummen, Attestierung und Signatur
-    needs: build
+    needs: [version, build]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -87,7 +154,7 @@ jobs:
       id-token: write
       attestations: write
     env:
-      TAG: ${{ github.ref_name }}
+      TAG: ${{ needs.version.outputs.tag }}
     steps:
       - name: Runner haerten
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
@@ -118,6 +185,29 @@ jobs:
           output-file: dist/linefm-radio-${{ env.LABEL }}-sbom.spdx.json
           upload-artifact: false
           upload-release-assets: false
+
+      - name: SBOM erzeugen (CycloneDX)
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: dist/linefm-radio-${{ env.LABEL }}-sbom.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      # Herausgeber LineFM Studios, Hersteller Tim Hauke (VectoDE), Entscheidung
+      # des Inhabers vom 21.11.2026; in beide SBOMs eintragen.
+      - name: SBOM-Herausgeber und -Hersteller setzen
+        run: |
+          set -euo pipefail
+          cdx="dist/linefm-radio-${LABEL}-sbom.cdx.json"
+          spdx="dist/linefm-radio-${LABEL}-sbom.spdx.json"
+          jq '.metadata.supplier = {"name": "LineFM Studios"}
+              | .metadata.manufacturer = {"name": "Tim Hauke (VectoDE)", "url": ["https://github.com/VectoDE"]}
+              | .metadata.authors = [{"name": "Tim Hauke (VectoDE)"}]' "$cdx" > "$cdx.tmp"
+          mv "$cdx.tmp" "$cdx"
+          jq '.creationInfo.creators += ["Organization: LineFM Studios", "Person: Tim Hauke (VectoDE)"]' "$spdx" > "$spdx.tmp"
+          mv "$spdx.tmp" "$spdx"
 
       - name: Artefakte holen
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -215,13 +305,13 @@ jobs:
 
   publish:
     name: Release veroeffentlichen
-    needs: sign
+    needs: [version, sign]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: write
     env:
-      TAG: ${{ github.ref_name }}
+      TAG: ${{ needs.version.outputs.tag }}
     steps:
       - name: Runner haerten
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
@@ -277,22 +367,44 @@ jobs:
           fpr="$(gpg --batch --with-colons --list-secret-keys | awk -F: '/^fpr:/ { print $10; exit }')"
           echo "- GPG: SHA256SUMS.txt.asc, Schluessel $fpr" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Release-Notizen aus CHANGELOG.md
+      - name: Commit-Titel holen
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-subjects
+          path: ${{ runner.temp }}/subjects
+
+      # Deutsche Release Notes aus den Commit- bzw. PR-Titeln seit dem letzten
+      # Release (Squash-Merges tragen den PR-Titel mit "(#Nummer)").
+      - name: Release Notes schreiben
+        env:
+          STAGE: ${{ needs.version.outputs.stage }}
+          LAST: ${{ needs.version.outputs.last }}
         run: |
           set -euo pipefail
           notes="$RUNNER_TEMP/notes.md"
-          if [ -f CHANGELOG.md ]; then
-            awk -v ver="$LABEL" '
-              /^## / { if (found) exit; if (index($0, "[" ver "]") || index($0, " " ver)) { found = 1; next } }
-              found { print }
-            ' CHANGELOG.md > "$notes"
-          fi
-          if [ ! -s "$notes" ]; then
-            echo "LINEFM Radio $LABEL" > "$notes"
-            echo "" >> "$notes"
-            echo "Kein Abschnitt fuer $LABEL in CHANGELOG.md gefunden." >> "$notes"
-          fi
+          case "$STAGE" in
+            alpha) stufe="Alpha-Vorabversion: frueher Stand, Funktionen fehlen noch." ;;
+            beta) stufe="Beta-Vorabversion: alle Funktionen sind drin, es wird noch getestet." ;;
+            rc) stufe="Release-Kandidat: offen ist nur noch die Freigabe durch den Betreiber." ;;
+            *) stufe="Stabile Version." ;;
+          esac
           {
+            echo "LINEFM Radio $LABEL. $stufe"
+            echo ""
+            echo "Herausgeber: LineFM Studios. Hersteller: Tim Hauke (VectoDE)."
+            echo ""
+            echo "### Aenderungen"
+            echo ""
+            grep -v '^[[:space:]]*$' "$RUNNER_TEMP/subjects/subjects.txt" | sed 's/^/- /'
+            echo ""
+            if [ -n "$LAST" ]; then
+              echo "Alle Aenderungen: https://github.com/${GITHUB_REPOSITORY}/compare/${LAST}...${TAG}"
+              echo ""
+            fi
+            echo "### Installieren und aktualisieren"
+            echo ""
+            echo "- Android, Linux, macOS und Web: Dateien unten. Der Windows-Installer folgt mit #110."
+            echo "- Vorabversionen sind fuer Tester gedacht und erscheinen nicht in den Stores."
             echo ""
             echo "### Pruefen der Downloads"
             echo ""
@@ -300,37 +412,34 @@ jobs:
             echo "sha256sum -c SHA256SUMS.txt --ignore-missing"
             echo "gh attestation verify <datei> -R ${GITHUB_REPOSITORY}"
             echo "cosign verify-blob --bundle <datei>.sigstore.json \\"
-            echo "  --certificate-identity-regexp '^https://github\\.com/${GITHUB_REPOSITORY}/\\.github/workflows/release\\.yml@refs/tags/v' \\"
+            echo "  --certificate-identity 'https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/heads/main' \\"
             echo "  --certificate-oidc-issuer https://token.actions.githubusercontent.com <datei>"
             echo '```'
             echo ""
-            echo "Alle Wege (auch GPG, SBOM, Plattform-Signaturen): docs/RELEASE-VERIFIZIEREN.md im Repository."
-          } >> "$notes"
+            echo "SBOM: *-sbom.spdx.json und *-sbom.cdx.json. Alle Pruefwege: docs/RELEASE-VERIFIZIEREN.md im Repository."
+          } > "$notes"
           echo "NOTES_FILE=$notes" >> "$GITHUB_ENV"
 
       - name: GitHub-Release anlegen
         env:
           GH_TOKEN: ${{ github.token }}
+          PRERELEASE: ${{ needs.version.outputs.prerelease }}
         run: |
           set -euo pipefail
           flags=()
-          if [[ "$TAG" == *-* ]]; then flags+=(--prerelease); fi
-          gh release create "$TAG" dist/* \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "LINEFM Radio $LABEL" \
-            --notes-file "$NOTES_FILE" \
-            --verify-tag \
-            "${flags[@]}"
+          if [ "$PRERELEASE" = "true" ]; then flags+=(--prerelease --latest=false); fi
+          gh release create "$TAG" dist/*             --repo "$GITHUB_REPOSITORY"             --target "$GITHUB_SHA"             --title "LINEFM Radio $LABEL"             --notes-file "$NOTES_FILE"             "${flags[@]}"
 
   # Store- und Deploy-Pipelines (P27). Jede ruft nur das auf, wofuer Secrets/Variablen
   # gesetzt sind; sonst wird sauber uebersprungen. Die Release-Dateien stammen aus dem
   # eben angelegten GitHub-Release.
   google-play:
     name: Google Play
-    needs: publish
+    needs: [version, publish]
+    if: needs.version.outputs.prerelease == 'false'
     uses: ./.github/workflows/store-google.yml
     with:
-      tag: ${{ github.ref_name }}
+      tag: ${{ needs.version.outputs.tag }}
     secrets:
       PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
       FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
@@ -339,10 +448,11 @@ jobs:
 
   snap-store:
     name: Snap Store
-    needs: publish
+    needs: [version, publish]
+    if: needs.version.outputs.prerelease == 'false'
     uses: ./.github/workflows/store-snap.yml
     with:
-      tag: ${{ github.ref_name }}
+      tag: ${{ needs.version.outputs.tag }}
     secrets:
       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
     permissions:
@@ -350,11 +460,11 @@ jobs:
 
   microsoft-store:
     name: Microsoft Store
-    needs: publish
-    if: ${{ !contains(github.ref_name, '-') }}
+    needs: [version, publish]
+    if: needs.version.outputs.prerelease == 'false'
     uses: ./.github/workflows/store-microsoft.yml
     with:
-      tag: ${{ github.ref_name }}
+      tag: ${{ needs.version.outputs.tag }}
     secrets:
       MS_STORE_TENANT_ID: ${{ secrets.MS_STORE_TENANT_ID }}
       MS_STORE_SELLER_ID: ${{ secrets.MS_STORE_SELLER_ID }}
@@ -366,21 +476,21 @@ jobs:
 
   flathub-prep:
     name: Flathub-Vorbereitung
-    needs: publish
-    if: ${{ !contains(github.ref_name, '-') }}
+    needs: [version, publish]
+    if: needs.version.outputs.prerelease == 'false'
     uses: ./.github/workflows/flathub-prep.yml
     with:
-      tag: ${{ github.ref_name }}
+      tag: ${{ needs.version.outputs.tag }}
     permissions:
       contents: read
 
   apple-stores:
     name: Apple (TestFlight, Mac App Store)
-    needs: publish
-    if: ${{ !contains(github.ref_name, '-') }}
+    needs: [version, publish]
+    if: needs.version.outputs.prerelease == 'false'
     uses: ./.github/workflows/store-apple.yml
     with:
-      tag: ${{ github.ref_name }}
+      tag: ${{ needs.version.outputs.tag }}
     secrets:
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       APPLE_DISTRIBUTION_CERT_P12_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERT_P12_BASE64 }}
@@ -398,11 +508,11 @@ jobs:
 
   deploy-web:
     name: Web-Deploy
-    needs: publish
-    if: ${{ !contains(github.ref_name, '-') }}
+    needs: [version, publish]
+    if: needs.version.outputs.prerelease == 'false'
     uses: ./.github/workflows/deploy-web.yml
     with:
-      tag: ${{ github.ref_name }}
+      tag: ${{ needs.version.outputs.tag }}
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

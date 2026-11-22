@@ -7,7 +7,7 @@ description: >
 
 inputs:
   tag:
-    description: Versions-Tag, z. B. v1.2.3 oder v1.2.3-rc.1
+    description: Versions-Tag, vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N
     required: true
   pattern:
     description: Glob fuer die Asset-Namen (gh release download --pattern)

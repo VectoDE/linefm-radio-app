@@ -37,6 +37,10 @@ jobs:
       - name: Keine feste App-Version
         run: bash tool/check_fixed_versions.sh
 
+      # #129: dependency_overrides only with a documented reason.
+      - name: Dependency overrides documented
+        run: bash tool/check_dependency_overrides.sh
+
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 

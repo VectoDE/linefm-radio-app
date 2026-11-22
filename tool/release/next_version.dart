@@ -1,6 +1,6 @@
 // Berechnet die nächste Release-Version (#104). Aufruf aus release.yml:
 //
-//   dart run tool/release/next_version.dart \
+//   cd tool/release && dart pub get && dart run next_version.dart \
 //     --tags tags.txt --issues issues.json --subjects subjects.txt
 //
 // --tags      bisherige Release-Tags, einer je Zeile (leer: noch kein Release);
@@ -12,7 +12,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:linefm_radio/core/update/app_version.dart';
+// Relative import on purpose: no package dependency on the Flutter app.
+// ignore: avoid_relative_lib_imports
+import '../../lib/core/update/app_version.dart';
 
 void main(List<String> args) {
   final opts = <String, String>{};

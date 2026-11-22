@@ -18,7 +18,7 @@ param(
   [Parameter(Mandatory = $true)][string]$OldSetup,
   [Parameter(Mandatory = $true)][string]$Version,
   # Version der aelteren Test-setup.exe (vom Workflow erzeugt, kleiner als $Version).
-  [string]$OldVersion = '0.0.1',
+  [string]$OldVersion = '0.0.0-0',
   [string]$ArtifactDir = 'build/installer-test'
 )
 

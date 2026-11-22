@@ -33,10 +33,10 @@ Set-StrictMode -Version Latest
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 Push-Location $repo
 try {
-  if ($Version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
-    throw "Ungueltige Version '$Version' (erwartet x.y.z oder x.y.z-suffix)"
+  if ($Version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$') {
+    throw "Ungueltige Version '$Version' (expected SemVer x.y.z[-pre][+build])"
   }
-  $numeric = ($Version -split '-')[0]
+  $numeric = ($Version -split '[-+]')[0]
   $engineBuild = Join-Path $WorkDir 'engine'
   $uiProject = 'installer/windows/ui'
   $uiRelease = Join-Path $uiProject 'build/windows/x64/runner/Release'

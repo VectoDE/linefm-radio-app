@@ -706,7 +706,7 @@ jobs:
       - name: Installer testen (Installation, Start, Update, Deinstallation)
         shell: pwsh
         run: |
-          $old = '0.0.1'  # kleiner als jede erzeugte Version (Start 0.1.0-alpha.1, #113)
+          $old = '0.0.0-0'  # lowest valid SemVer, below every generated version (#113)
           ./installer/windows/build.ps1 -Stage pack -Version $old -Out build/installer/setup-old.exe
           ./installer/windows/test-installer.ps1 -Setup "dist/linefm-radio-$env:LABEL-windows-x64-setup.exe" `
             -OldSetup build/installer/setup-old.exe -OldVersion $old -Version $env:LABEL -ArtifactDir build/installer-test

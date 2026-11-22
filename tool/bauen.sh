@@ -132,12 +132,15 @@ case "$ziel" in
 esac
 
 define_args=()
+commit="$(git -C "$repo" rev-parse --short HEAD 2>/dev/null || true)"
 if [ -f "$repo/config/app.json" ]; then
   echo "config/app.json gefunden, wird beim Bauen verwendet."
   define_args=(--dart-define-from-file=config/app.json)
 else
   echo "Keine config/app.json, die App baut mit Standardwerten."
 fi
+# Lokale Builds zeigen "Entwicklungsversion" mit Commit-Kurz-ID (#104).
+if [ -n "$commit" ]; then define_args+=(--dart-define=APP_COMMIT="$commit"); fi
 
 port_frei() {
   # Frei, wenn sich nichts mit dem Port verbinden laesst.

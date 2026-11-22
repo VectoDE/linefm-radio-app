@@ -89,7 +89,7 @@ void main() {
 
       expect(host.container.read(navigationProvider), AppScreen.player);
       expect(find.byType(PlayerScreen), findsOneWidget);
-      expect(find.text('Erfolg ist kein Glück'), findsWidgets);
+      expect(find.text('ERFOLG IST KEIN GLÜCK'), findsWidgets);
       expect(find.byType(MiniPlayer), findsNothing);
       expect(host.playback.state.isPlaying, isTrue);
       expect(host.active.slug, 'linefmrap');

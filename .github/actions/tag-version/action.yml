@@ -1,41 +1,32 @@
-name: Tag und pubspec-Version pruefen
+name: Release-Tag und pubspec-Platzhalter pruefen
 description: >
-  REL-05: Der Tag vX.Y.Z oder vX.Y.Z-rc.N muss zur Version in pubspec.yaml passen
-  (ohne +Build). Ein rc-Tag passt zur Version X.Y.Z ohne Suffix; steht in
-  pubspec.yaml selbst ein Suffix, muss der Tag genau gleich sein. Erwartet den
-  Checkout des Tags im Arbeitsverzeichnis. Genutzt von release.yml und, fuer
-  manuelle Starts, von den store-*.yml.
+  #104: Die Version kommt aus dem Release, nicht aus pubspec.yaml. Prueft, dass
+  der Tag eine SemVer-Version vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N ist und dass
+  pubspec.yaml nur den Entwicklungs-Platzhalter 0.0.0-dev traegt (er gelangt nie
+  in ein Release; --build-name/--build-number setzt der Workflow). Genutzt von
+  release.yml und, fuer manuelle Starts, von den store-*.yml.
 
 inputs:
   tag:
-    description: Versions-Tag, z. B. v1.2.3 oder v1.2.3-rc.1
+    description: Versions-Tag, vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N
     required: true
 
 runs:
   using: composite
   steps:
-    - name: Vergleichen
+    - name: Pruefen
       shell: bash
       env:
         TAG: ${{ inputs.tag }}
       run: |
         set -euo pipefail
-        if ! [[ "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)(-rc\.[0-9]+)?$ ]]; then
-          echo "::error::Tag $TAG hat nicht das Format vX.Y.Z oder vX.Y.Z-rc.N"
+        if ! [[ "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-(alpha|beta|rc)\.[1-9][0-9]*)?$ ]]; then
+          echo "::error::Tag $TAG hat nicht das Format vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N"
           exit 1
         fi
-        tag_base="${BASH_REMATCH[1]}"
-        tag_full="${TAG#v}"
         pub="$(sed -n 's/^version:[[:space:]]*\([^[:space:]#]*\).*/\1/p' pubspec.yaml | head -n1)"
-        pub="${pub%%+*}"
-        if [ -z "$pub" ]; then
-          echo "::error::Keine Version in pubspec.yaml gefunden"
+        if [ "${pub%%+*}" != "0.0.0-dev" ]; then
+          echo "::error::pubspec.yaml muss version: 0.0.0-dev+<n> tragen (gefunden: $pub). Die Version kommt aus dem Release (#104)."
           exit 1
         fi
-        if [[ "$pub" == *-* ]]; then ok=$([ "$tag_full" = "$pub" ] && echo yes || echo no)
-        else ok=$([ "$tag_base" = "$pub" ] && echo yes || echo no); fi
-        if [ "$ok" != "yes" ]; then
-          echo "::error::Tag $TAG passt nicht zu pubspec.yaml (version: $pub). Erst pubspec.yaml anheben, dann taggen."
-          exit 1
-        fi
-        echo "Tag $TAG passt zu pubspec.yaml ($pub)." >> "$GITHUB_STEP_SUMMARY"
+        echo "Tag $TAG gueltig, pubspec.yaml traegt den Platzhalter ($pub)." >> "$GITHUB_STEP_SUMMARY"

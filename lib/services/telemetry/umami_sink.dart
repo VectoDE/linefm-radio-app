@@ -134,7 +134,7 @@ class UmamiSink implements AnalyticsSink {
   }
 
   static String _defaultUserAgent(AppConfig config) =>
-      'LINEFM-Radio/${config.appVersion} (${defaultTargetPlatform.name})';
+      'LINEFM-Radio/${config.versionLabel} (${defaultTargetPlatform.name})';
 
   static String _defaultScreenSize() {
     final views = ui.PlatformDispatcher.instance.views;

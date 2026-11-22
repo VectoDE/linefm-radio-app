@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/gestures.dart' show PointerEnterEvent, PointerExitEvent;
 import 'package:flutter/services.dart'
     show HardwareKeyboard, KeyDownEvent, KeyEvent, LogicalKeyboardKey;
+import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Hinweisblase fuer Maus (Hover) und Touch (Langdruck), ganz ohne
@@ -153,8 +154,8 @@ class _QuietTooltipState extends State<QuietTooltip> {
                   decoration: theme.decoration ?? const BoxDecoration(),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                      horizontal: LinefmSpace.sm,
+                      vertical: LinefmSpace.xs,
                     ),
                     // Overlay ohne Material: eigener Textstil, sonst zeichnet
                     // Flutter die gelbe Unterstreichung fuer fehlende Stile.

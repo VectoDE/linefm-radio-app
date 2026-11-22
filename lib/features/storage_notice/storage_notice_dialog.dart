@@ -54,7 +54,12 @@ class StorageNoticeDialog extends StatelessWidget {
             l10n.storageNoticeBodyDevice,
             style: LinefmText.listTitle.copyWith(color: c.text, height: 1.55),
           ),
-          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+          actionsPadding: const EdgeInsets.fromLTRB(
+            LinefmSpace.xl,
+            0,
+            LinefmSpace.xl,
+            LinefmSpace.gutter,
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () => openLegal(context, LegalKind.privacy),

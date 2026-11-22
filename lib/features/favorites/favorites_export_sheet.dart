@@ -67,7 +67,12 @@ class _ExportSheet extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(22, 0, 22, 16),
+        padding: const EdgeInsets.fromLTRB(
+          LinefmSpace.xl,
+          0,
+          LinefmSpace.xl,
+          LinefmSpace.lg,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,12 +80,12 @@ class _ExportSheet extends StatelessWidget {
             Semantics(
               header: true,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: LinefmSpace.sm),
                 child: Text(
                   l10n.favoritesExport,
                   style: LinefmText.settingTitle.copyWith(
                     color: c.text,
-                    fontSize: 16,
+                    fontSize: LinefmType.bodyLarge,
                   ),
                 ),
               ),

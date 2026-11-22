@@ -53,7 +53,7 @@ class SentrySink implements CrashSink {
       ..environment = config.sentryEnvironment.isNotEmpty
           ? config.sentryEnvironment
           : config.appEnv
-      ..release = 'linefm-radio@${config.appVersion}'
+      ..release = 'linefm-radio@${config.versionLabel}'
       ..sendDefaultPii = false
       ..tracesSampleRate = 0
       ..attachScreenshot = false

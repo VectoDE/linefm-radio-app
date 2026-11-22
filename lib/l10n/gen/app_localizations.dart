@@ -1088,6 +1088,12 @@ abstract class AppLocalizations {
   /// **'Version {version} ({build})'**
   String aboutVersion(String build, String version);
 
+  /// No description provided for @aboutDevVersion.
+  ///
+  /// In de, this message translates to:
+  /// **'Entwicklungsversion ({commit})'**
+  String aboutDevVersion(String commit);
+
   /// No description provided for @aboutLicenses.
   ///
   /// In de, this message translates to:

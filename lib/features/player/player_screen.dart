@@ -67,7 +67,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         label: AppLocalizations.of(context).sleepTimerTitle,
         child: const SafeArea(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
+            padding: EdgeInsets.fromLTRB(
+              LinefmSpace.gutter,
+              0,
+              LinefmSpace.gutter,
+              LinefmSpace.md,
+            ),
             child: SleepTimerRow(showDivider: false),
           ),
         ),

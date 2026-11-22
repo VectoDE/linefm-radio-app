@@ -121,9 +121,8 @@ jobs:
           fi
           bash tool/coverage_report.sh coverage/lcov.info coverage/lcov.all.info coverage/report
           cat coverage/report/summary.md >> "$GITHUB_STEP_SUMMARY"
-          genhtml --quiet --branch-coverage --output-directory coverage/html coverage/report/lcov.filtered.info \
-            || genhtml --quiet --output-directory coverage/html coverage/report/lcov.filtered.info \
-            || echo "genhtml fehlgeschlagen, HTML-Bericht fehlt." >> "$GITHUB_STEP_SUMMARY"
+          # Kein Rueckfall und kein --ignore-errors: ein inkonsistenter Bericht macht den Job rot.
+          genhtml --quiet --branch-coverage --output-directory coverage/html coverage/report/lcov.filtered.info
 
       # Coverage darf nicht sinken: Vergleich der Zeilenabdeckung mit dem letzten erfolgreichen
       # Lauf auf main (Artefakt coverage-lcov, Datei report/total.txt). Toleranz 0,10 Prozentpunkte

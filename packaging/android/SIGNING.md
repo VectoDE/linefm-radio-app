@@ -44,7 +44,7 @@ Der Upload nach Google Play (`PLAY_SERVICE_ACCOUNT_JSON`) macht `.github/workflo
 `versionName` und `versionCode` kommen aus Flutter (`flutter.versionName` / `flutter.versionCode`), also aus `pubspec.yaml`:
 
 ```yaml
-version: 1.0.0+1   # <versionName>+<versionCode>
+version: 0.0.0-dev+1   # Platzhalter; versionName/versionCode setzt der Release-Workflow (#104)
 ```
 
 In der CI setzen `--build-name` und `--build-number` die Werte: `versionName` ist die Release-Version ohne Suffix, `versionCode` ist `github.run_number + BUILD_NUMBER_OFFSET` (Variable, Standard 100). Der `versionCode` wächst dadurch mit jedem Lauf. Google Play verlangt pro Upload einen höheren Wert als der bisher veröffentlichte und maximal 2100000000.

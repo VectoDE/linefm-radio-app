@@ -31,7 +31,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Versions-Tag eines vorhandenen Releases (z. B. v1.0.0)
+        description: Versions-Tag eines vorhandenen Releases (Form vX.Y.Z)
         type: string
         required: true
       track:

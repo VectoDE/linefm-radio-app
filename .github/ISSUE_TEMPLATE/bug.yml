@@ -44,7 +44,7 @@ body:
     attributes:
       label: App-Version und Gerät
       description: Steht unter Einstellungen > Über LINEFM Radio. Dazu Gerät, Betriebssystem und bei Web den Browser.
-      placeholder: "1.0.0 (12), Pixel 7, Android 15"
+      placeholder: "X.Y.Z (Build), Pixel 7, Android 15"
     validations:
       required: true
   - type: textarea

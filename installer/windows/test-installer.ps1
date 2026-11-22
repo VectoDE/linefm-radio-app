@@ -130,12 +130,39 @@ $marker = Join-Path $dataDir 'installer-test-marker.json'
 '{"favorites":["main"]}' | Set-Content -Path $marker -Encoding utf8
 Write-Host "Datenordner der App: $dataDir"
 
+# Screen reader flag (SPI_SETSCREENREADER), as Narrator sets it. Flutter
+# checks it to decide whether to build its accessibility tree.
+Add-Type -Namespace LfTest -Name Spi -MemberDefinition @'
+[DllImport("user32.dll", SetLastError = true)] public static extern bool SystemParametersInfoW(uint a, uint u, IntPtr p, uint f);
+'@
+function Set-ScreenReaderFlag([bool]$on) {
+  [void][LfTest.Spi]::SystemParametersInfoW(0x0047, [uint32]$(if ($on) { 1 } else { 0 }), [IntPtr]::Zero, 0x3)
+}
+function Dump-Uia([IntPtr]$hwnd, [string]$label) {
+  try {
+    Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+    $w = [System.Windows.Automation.TreeWalker]::RawViewWalker
+    $stack = New-Object System.Collections.Stack
+    $stack.Push(@([System.Windows.Automation.AutomationElement]::FromHandle($hwnd), 0))
+    $n = 0
+    while ($stack.Count -gt 0 -and $n -lt 400) {
+      $item = $stack.Pop(); $el = $item[0]; $d = $item[1]; $n++
+      $c = $el.Current
+      Add-Content -Path (Join-Path $ArtifactDir "uia-$label.txt") -Value ("{0}{1} | {2} | {3}" -f (' ' * $d), $c.ControlType.ProgrammaticName, $c.Name, $c.ClassName)
+      $ch = $w.GetFirstChild($el)
+      while ($ch) { $stack.Push(@($ch, $d + 1)); $ch = $w.GetNextSibling($ch) }
+    }
+    Write-Host "UIA ${label}: $n Elemente"
+  } catch { Write-Host "::warning::UIA-Dump ${label}: $($_.Exception.Message)" }
+}
+
 # --- 3. Start der App --------------------------------------------------------
 $app = Start-Process -FilePath $exe -PassThru
 Start-Sleep -Seconds 15
 $alive = -not $app.HasExited
 Check 'App startet und laeuft nach 15 s' ($alive -or $app.ExitCode -eq 0) ($(if ($alive) { 'laeuft' } else { "beendet mit $($app.ExitCode)" }))
 Shot '10-app-gestartet'
+if ($alive) { $app.Refresh(); Dump-Uia $app.MainWindowHandle 'app' }
 
 # --- 4. Update mit laufender App --------------------------------------------
 $code = Run $Setup @('/S') 'update.log'
@@ -157,6 +184,7 @@ $code = Run $Setup @('/S', '/ALLUSERS') 'otherscope.log'
 Check 'Alle Benutzer bei vorhandener Benutzer-Installation -> Exit 12' ($code -eq 12) "Exit $code"
 
 # --- 7. Oberflaeche ----------------------------------------------------------
+Set-ScreenReaderFlag $true
 $gui = Start-Process -FilePath $Setup -PassThru
 $window = $null
 for ($i = 0; $i -lt 60 -and -not $window; $i++) {
@@ -279,6 +307,7 @@ if ($window) {
     if ($gui.WaitForExit(20000)) { $guiExit = $gui.ExitCode }
   }
 }
+Set-ScreenReaderFlag $false
 Check 'Oberflaeche: Abbrechen beendet mit Exit 2' ($guiExit -eq 2) "Exit $guiExit"
 if (-not $gui.HasExited) {
   Stop-Process -Id $gui.Id -Force -ErrorAction SilentlyContinue

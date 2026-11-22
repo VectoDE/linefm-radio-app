@@ -7,6 +7,11 @@ import 'dart:io';
 void writeMark(String name) {
   final path = Platform.environment['LINEFM_PERF_FILE'];
   if (path == null || path.isEmpty) return;
+  writeMarkTo(path, name);
+}
+
+/// Schreibt eine Messzeile nach [path] (getrennt fuer Tests).
+void writeMarkTo(String path, String name) {
   final micros = DateTime.now().toUtc().microsecondsSinceEpoch;
   try {
     File(

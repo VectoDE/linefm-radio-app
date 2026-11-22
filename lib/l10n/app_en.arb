@@ -196,6 +196,7 @@
   "legalLoadError": "The text couldn’t be loaded.",
   "aboutTitle": "About LINEFM Radio",
   "aboutVersion": "Version {version} ({build})",
+  "aboutDevVersion": "Development version ({commit})",
   "aboutLicenses": "Open-source licenses",
   "trustGridinsoft": "Website check at Gridinsoft",
   "trustTrustpilot": "Reviews on Trustpilot",

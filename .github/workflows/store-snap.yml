@@ -27,7 +27,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Versions-Tag (z. B. v1.0.0)
+        description: Versions-Tag (Form vX.Y.Z)
         type: string
         required: true
       channel:

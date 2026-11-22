@@ -30,4 +30,4 @@ body:
     attributes:
       label: Version und Umgebung
       description: Optional. App-Version, Gerät oder Betriebssystem, bei Web der Browser.
-      placeholder: "1.0.0 (12), Windows 11, Firefox"
+      placeholder: "X.Y.Z (Build), Windows 11, Firefox"

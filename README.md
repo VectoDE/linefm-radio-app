@@ -45,7 +45,7 @@ Fehler melden und Ideen: im Bereich Issues oder Discussions dieses Repositories.
 
 ## Barrierefreiheit
 
-Die App lässt sich mit Tastatur bedienen, alle Bereiche sind für Screenreader ausgezeichnet, hell und dunkel erreichen die Texte mindestens 4,5:1 Kontrast. Jeder Pull Request lässt axe-core über die Web-Version laufen (Workflow `a11y.yml`); bei einem schweren Fund schlägt der Lauf fehl. Mit echten Screenreadern (TalkBack, VoiceOver, NVDA) ist die App noch nicht geprüft. Was geht, was fehlt und wie du uns erreichst: [Erklärung zur Barrierefreiheit](docs/BARRIEREFREIHEIT.md).
+Die App lässt sich mit Tastatur bedienen, alle Bereiche sind für Screenreader ausgezeichnet, hell und dunkel erreichen die Texte mindestens 4,5:1 Kontrast. Jeder Pull Request lässt axe-core über die Web-Version laufen (Workflow `a11y.yml`); bei einem schweren Fund schlägt der Lauf fehl. Mit echten Screenreadern (TalkBack, VoiceOver, NVDA) ist die App noch nicht geprüft. Was geht, was fehlt und wie du uns erreichst: [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) (Deutsch und Englisch) und die ausführliche [Erklärung zur Barrierefreiheit](docs/BARRIEREFREIHEIT.md).
 
 ## Für Entscheider
 
@@ -127,6 +127,7 @@ Einige Scorecard-Prüfungen können hier nicht voll punkten, und das schreiben w
 | [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md) | Bauen, Testen, Architektur |
 | [docs/hosting-uebersicht.md](docs/hosting-uebersicht.md) | Web-Hosting, Cache, Header |
 | [docs/STORE-TEXTE.md](docs/STORE-TEXTE.md) | Texte für Play, Microsoft Store, Snap, Flathub, Tester-Einladung |
+| [.github/ACCESSIBILITY.md](.github/ACCESSIBILITY.md) | Barrierefreiheit: Ziel, Stand, bekannte Lücken, Barriere melden (de/en) |
 | [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md) | Erklärung zur Barrierefreiheit (Entwurf) |
 | [docs/secrets.md](docs/secrets.md) | Alle Secrets und Variablen der Abläufe |
 | [docs/stores-pipelines.md](docs/stores-pipelines.md) | Store- und Deploy-Abläufe, Erstveröffentlichung |

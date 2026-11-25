@@ -214,7 +214,6 @@ jobs:
         env:
           PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
         run: |
-          if [ -n "$PAGESPEED_API_KEY" ]; then echo "::add-mask::$PAGESPEED_API_KEY"; fi
           node pagespeed_gate.mjs --url "$PAGES_URL" --out out/gate --lighthouse-summary out/lighthouse/summary.json
 
       - name: Upload reports
@@ -256,7 +255,6 @@ jobs:
         run: |
           set -uo pipefail
           if [ -z "$PAGESPEED_API_KEY" ]; then echo "::error::PAGESPEED_API_KEY missing"; exit 1; fi
-          echo "::add-mask::$PAGESPEED_API_KEY"
           echo "## Competitor comparison" >> "$GITHUB_STEP_SUMMARY"
           for entry in linefm=$PAGES_URL radio-de=https://www.radio.de/ tunein=https://tunein.com/ laut-fm=https://laut.fm/ radio-net=https://www.radio.net/; do
             node pagespeed_gate.mjs --report-only --name "${entry%%=*}" --url "${entry#*=}" --out out/competitors || echo "- ${entry%%=*}: measurement failed" >> "$GITHUB_STEP_SUMMARY"

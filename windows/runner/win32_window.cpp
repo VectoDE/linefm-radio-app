@@ -148,11 +148,31 @@ bool Win32Window::Create(const std::wstring& title,
 
   UpdateTheme(window);
 
+  // Cloaked until Flutter has presented the loader (Reveal()). Showing,
+  // maximising or restoring bounds before that (window_manager runs before
+  // runApp) then never puts an empty window on screen.
+  BOOL cloak = TRUE;
+  DwmSetWindowAttribute(window, DWMWA_CLOAK, &cloak, sizeof(cloak));
+
   return OnCreate();
 }
 
 bool Win32Window::Show() {
+  // Keep a state set earlier (e.g. maximised by window_manager).
+  if (IsWindowVisible(window_handle_)) {
+    return true;
+  }
   return ShowWindow(window_handle_, SW_SHOWNORMAL);
+}
+
+void Win32Window::Reveal() {
+  if (revealed_ || window_handle_ == nullptr) {
+    return;
+  }
+  revealed_ = true;
+  Show();
+  BOOL cloak = FALSE;
+  DwmSetWindowAttribute(window_handle_, DWMWA_CLOAK, &cloak, sizeof(cloak));
 }
 
 // static

@@ -35,23 +35,32 @@ bool FlutterWindow::OnCreate() {
           &flutter::StandardMethodCodec::GetInstance());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
+  // The window is created cloaked (Win32Window::Create). On the first frame it
+  // is shown but stays cloaked: the frame callback fires before the Flutter
+  // surface reaches the screen, which showed an empty window for ~200 ms.
+  // Dart reports when the loader has really been presented
+  // (de.linefm.app/window_reveal, lib/platform/desktop/window_reveal.dart);
+  // a timer reveals the window anyway if that signal never comes.
+  window_reveal_channel_ =
+      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+          flutter_controller_->engine()->messenger(),
+          "de.linefm.app/window_reveal",
+          &flutter::StandardMethodCodec::GetInstance());
+  window_reveal_channel_->SetMethodCallHandler(
+      [this](const flutter::MethodCall<flutter::EncodableValue>& call,
+             std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+                 result) {
+        if (call.method_name() == "reveal") {
+          DwmFlush();
+          Reveal();
+          result->Success();
+        } else {
+          result->NotImplemented();
+        }
+      });
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
-    // The callback fires once the frame is rasterised, not composited. Wait
-    // for the desktop compositor so the first visible frame is the loader,
-    // not an empty (white) child surface.
-    DwmFlush();
-    // Without this the open animation fades in an empty, dark frame before
-    // the loader (the content is only drawn once the transition ends). The
-    // animation is switched back on afterwards for minimise and restore.
-    HWND hwnd = GetHandle();
-    BOOL disable = TRUE;
-    DwmSetWindowAttribute(hwnd, DWMWA_TRANSITIONS_FORCEDISABLED, &disable,
-                          sizeof(disable));
     this->Show();
-    DwmFlush();
-    disable = FALSE;
-    DwmSetWindowAttribute(hwnd, DWMWA_TRANSITIONS_FORCEDISABLED, &disable,
-                          sizeof(disable));
+    SetTimer(GetHandle(), kRevealTimerId, kRevealFallbackMs, nullptr);
   });
 
   // Flutter can complete the first frame before the "show window" callback is
@@ -64,6 +73,7 @@ bool FlutterWindow::OnCreate() {
 
 void FlutterWindow::OnDestroy() {
   single_instance_channel_ = nullptr;
+  window_reveal_channel_ = nullptr;
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
   }
@@ -90,6 +100,7 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
       // Zweiter Programmstart: Fenster zeigen, Argumente an Dart geben.
       const auto* data = reinterpret_cast<const COPYDATASTRUCT*>(lparam);
       if (data != nullptr && data->dwData == kSingleInstanceCopyData) {
+        Reveal();
         ::ShowWindow(hwnd, ::IsIconic(hwnd) ? SW_RESTORE : SW_SHOW);
         ::SetForegroundWindow(hwnd);
         if (single_instance_channel_) {
@@ -117,6 +128,13 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
       }
       break;
     }
+    case WM_TIMER:
+      if (wparam == kRevealTimerId) {
+        KillTimer(hwnd, kRevealTimerId);
+        Reveal();
+        return 0;
+      }
+      break;
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
       break;

@@ -39,6 +39,9 @@ class Win32Window {
   // Show the current window. Returns true if the window was successfully shown.
   bool Show();
 
+  // Shows the window and lifts the cloak set in Create(); runs once.
+  void Reveal();
+
   // Release OS resources associated with window.
   void Destroy();
 
@@ -94,6 +97,8 @@ class Win32Window {
 
   // window handle for top level window.
   HWND window_handle_ = nullptr;
+
+  bool revealed_ = false;
 
   // window handle for hosted content.
   HWND child_content_ = nullptr;

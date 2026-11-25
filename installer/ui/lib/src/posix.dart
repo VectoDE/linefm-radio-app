@@ -261,6 +261,9 @@ class SetupAutopilot {
           c.setLaunchAfter(false);
           await _settle();
           await _capture('done-final');
+          // Engine log next to the pictures, for the CI artifact.
+          await File('${outDir.path}/$prefix-engine.log')
+              .writeAsString('${c.log.join('\n')}\n');
           await c.finish();
           return;
       }

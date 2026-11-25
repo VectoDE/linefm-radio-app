@@ -27,7 +27,7 @@ abstract interface class RadioPlayer {
 
   /// Loads [url] without starting playback. Throws on load errors.
   ///
-  /// Issue #99: loading and starting are separate so the handler can check,
+  /// Loading and starting are separate so the handler can check,
   /// after the (possibly slow) load, that this station is still the one the
   /// user wants before any sound starts.
   Future<void> load(Uri url);

@@ -438,7 +438,7 @@ void main() {
     expect(api.calls, isEmpty);
   });
 
-  group('Issue #99: schneller Senderwechsel', () {
+  group('schneller Senderwechsel', () {
     test(
       'verspaetete Antwort des alten Senders aendert den neuen nicht',
       () async {
@@ -610,7 +610,7 @@ void main() {
     });
   });
 
-  test('Issue #5: every history entry gets its own cover, misses keep the '
+  test('every history entry gets its own cover, misses keep the '
       'station logo fallback', () async {
     artwork.misses.addAll(<String>{'alt2', 'alt5'});
     final r = repo();
@@ -642,7 +642,7 @@ void main() {
     r.dispose();
   });
 
-  test('Issue #5: a reloaded history keeps covers already found', () async {
+  test('a reloaded history keeps covers already found', () async {
     final r = repo();
     List<HistoryEntry>? history;
     final sub = r.watchHistory(main).listen((v) => history = v);

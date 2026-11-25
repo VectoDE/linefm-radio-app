@@ -154,7 +154,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   final ArtworkService _artwork;
   final Clock _clock;
 
-  /// Feste Liste (Tests); sonst die aktuelle Senderliste (Issue #91).
+  /// Feste Liste (Tests); sonst die aktuelle Senderliste.
   final List<Station>? _fixedStations;
 
   List<Station> get _stations => _fixedStations ?? stationsCatalog;
@@ -162,7 +162,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   Station _active;
 
   /// Zaehlt Stationswechsel; Antworten, die fuer eine fruehere aktive
-  /// Station angefordert wurden, planen keinen Timer mehr (Issue #99).
+  /// Station angefordert wurden, planen keinen Timer mehr.
   int _activeGeneration = 0;
   bool _foreground;
   bool _playing;
@@ -209,7 +209,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     return controller.stream;
   }
 
-  /// Die Senderliste hat sich geaendert (Issue #91): Liste neu melden und
+  /// Die Senderliste hat sich geaendert: Liste neu melden und
   /// neue Sender beim naechsten Abruf mitnehmen.
   void stationsChanged() {
     if (_disposed) return;
@@ -258,7 +258,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     if (_disposed || station == _active) return;
     _active = station;
     _activeGeneration++;
-    // Issue #99: Ein gemerkter Titel, dessen Ende schon vorbei ist, stammt
+    // Ein gemerkter Titel, dessen Ende schon vorbei ist, stammt
     // aus einem frueheren Abruf (im Hintergrund werden nur die aktive
     // Station und im Vordergrund alle 60 s abgefragt). Statt ihn bis zur
     // Antwort stehen zu lassen, sofort neutral (Sendername) anzeigen.
@@ -396,7 +396,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
       bypassGap: bypassGap,
     );
     if (list == null || _disposed) return;
-    // Issue #5: keep covers already resolved for the same song; the API
+    // Keep covers already resolved for the same song; the API
     // list usually carries none.
     final previous = _last[slug] ?? const <Track>[];
     _last[slug] = <Track>[
@@ -417,7 +417,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     return track;
   }
 
-  /// Issue #5: every history entry gets its own cover, looked up by its own
+  /// Every history entry gets its own cover, looked up by its own
   /// artist and title (cached by the artwork service). Entries without a
   /// hit keep `artworkUrl == null`, so the UI falls back to the station logo.
   void _lookupHistoryCovers(String slug) {
@@ -577,7 +577,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     final current = _current[slug];
     if (current == null || !_sameSong(current, track)) {
       // The song ended before its cover arrived: it is in the history now
-      // and keeps its own cover there (Issue #5).
+      // and keeps its own cover there.
       if (_patchHistoryCover(slug, track, url)) _emit();
       return;
     }

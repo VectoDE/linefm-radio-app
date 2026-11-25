@@ -21,7 +21,7 @@ class FakeRadioPlayer implements RadioPlayer {
   /// Meldet nach play() automatisch "playing".
   bool autoPlay = true;
 
-  /// Streams that actually started (Issue #99: what the user hears).
+  /// Streams that actually started (what the user hears).
   final List<Uri> played = <Uri>[];
   Uri? _loaded;
 
@@ -235,7 +235,7 @@ void main() {
     final player = FakeRadioPlayer();
     final h = _handler(player);
 
-    // Immer drei Ordner (Issue #42), ohne Daten sind zwei davon leer.
+    // Immer drei Ordner, ohne Daten sind zwei davon leer.
     final root = await h.getChildren(AudioService.browsableRootId);
     expect(root.map((e) => e.id), <String>[
       BrowseTree.favoriteStationsId,
@@ -305,7 +305,7 @@ void main() {
     );
   });
 
-  test('Issue #99: gestoppt, neuer Sender gewaehlt -> Benachrichtigung zeigt '
+  test('gestoppt, neuer Sender gewaehlt -> Benachrichtigung zeigt '
       'dessen Titel', () async {
     final player = FakeRadioPlayer();
     final h = _handler(player);
@@ -326,27 +326,24 @@ void main() {
     expect(h.mediaItem.value?.title, 'Neuer Sender');
   });
 
-  test(
-    'Issue #99: Wechsel per Medientaste zeigt keinen abgelaufenen Titel',
-    () async {
-      final player = FakeRadioPlayer();
-      final h = _handler(player);
-      await h.updateNowPlaying(
-        rap,
-        Track(
-          artist: 'Alt',
-          title: 'Laengst vorbei',
-          endsAt: DateTime.now().subtract(const Duration(minutes: 30)),
-        ),
-      );
-      await h.playStation(main);
-      await h.skipToNext();
-      expect(h.state.station, rap);
-      expect(h.mediaItem.value?.title, isNot('Laengst vorbei'));
-    },
-  );
+  test('Wechsel per Medientaste zeigt keinen abgelaufenen Titel', () async {
+    final player = FakeRadioPlayer();
+    final h = _handler(player);
+    await h.updateNowPlaying(
+      rap,
+      Track(
+        artist: 'Alt',
+        title: 'Laengst vorbei',
+        endsAt: DateTime.now().subtract(const Duration(minutes: 30)),
+      ),
+    );
+    await h.playStation(main);
+    await h.skipToNext();
+    expect(h.state.station, rap);
+    expect(h.mediaItem.value?.title, isNot('Laengst vorbei'));
+  });
 
-  group('Issue #99: station switch', () {
+  group('station switch', () {
     test('switch while playing stops the old stream before the new one '
         'starts', () async {
       final player = FakeRadioPlayer();

@@ -8,7 +8,7 @@ Vollständige Liste aller GitHub-Secrets und -Variablen, die die automatischen A
 - **Variable** (nicht geheim, lesbar): derselbe Ort, Tab "Variables" > "New repository variable".
 - **Umgebung `production`**: Repository > Settings > Environments > "New environment" > `production`. Dort "Required reviewers" eintragen, dann wartet jeder Web-Deploy auf deine Freigabe. Secrets für den Web-Deploy dürfen wahlweise im Repository oder in dieser Umgebung stehen.
 - Werte, die aus Dateien stammen (Schlüssel, Zertifikate), als Base64 eintragen: `base64 -w0 datei` (Linux, macOS) oder `[Convert]::ToBase64String([IO.File]::ReadAllBytes("datei"))` (PowerShell).
-- Wer legt an: In der Spalte "Wer" steht **jaybelife** (Konto-Inhaber, besorgt den Wert) oder **Entwickler** (kann es aus Repo-Angaben selbst setzen). Eingetragen wird immer von einer Person mit Schreibrecht auf die Repo-Einstellungen. Passwörter und Schlüssel gehören nie in Chat, E-Mail oder Issues.
+- Wer legt an: In der Spalte "Wer" steht **jaybelife** (Konto-Inhaber, besorgt den Wert) oder **Entwickler** (kann es aus Repo-Angaben selbst setzen). Eingetragen wird immer von einer Person mit Schreibrecht auf die Repo-Einstellungen. Passwörter und Schlüssel gehören nie in Chat, E-Mail oder Tickets.
 
 ## Google Play
 
@@ -139,7 +139,7 @@ Für die Store-Prüfung der Rechtstexte gilt: Ist Telemetrie aktiv (`UMAMI_*`, `
 
 ## Sicherheits-Scanner (optional)
 
-Beide Workflows laufen ohne Secret grün durch und melden in der Zusammenfassung "übersprungen, fehlt: …". In Pull Requests aus Forks wird kein Secret verwendet. Einrichtung Schritt für Schritt: [EINRICHTUNG.md](EINRICHTUNG.md), Schritte 12.4 und 12.5.
+Beide Workflows laufen ohne Secret grün durch und melden in der Zusammenfassung "übersprungen, fehlt: …". In Änderungsvorschläge aus Forks wird kein Secret verwendet. Einrichtung Schritt für Schritt: [EINRICHTUNG.md](EINRICHTUNG.md), Schritte 12.4 und 12.5.
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|

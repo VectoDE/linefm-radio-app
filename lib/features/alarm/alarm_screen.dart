@@ -520,7 +520,7 @@ class _StationPicker extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final c = context.linefm;
     final stations = ref.watch(stationsCatalogProvider);
-    // Sender entfernt oder ausgeblendet (Issue #91): Auswahl zeigt den
+    // Sender entfernt oder ausgeblendet: Auswahl zeigt den
     // Ersatz, den der Wecker spielt, und ein Hinweis sagt es offen.
     final fallback = alarmStationFor(slug);
     final unavailable = fallback.slug != slug;

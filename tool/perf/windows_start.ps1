@@ -1,5 +1,5 @@
 <#
-  Windows-Messung (Issue #92): Start, Speicher, CPU, Ton-Start, Paketgroesse.
+  Windows-Messung: Start, Speicher, CPU, Ton-Start, Paketgroesse.
 
   Voraussetzung: Release-Build mit Messpunkten
     flutter build windows --release --dart-define-from-file=config/app.json `

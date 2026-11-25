@@ -95,6 +95,14 @@ function check(ok, msg) {
 /** Neuer Kontext; jede Anfrage an Google wird notiert und verworfen. */
 async function newContext(browser) {
   const context = await browser.newContext({ locale: 'de-DE', viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+  // The engine starts on intent for first-time visitors; this check needs the app.
+  await context.addInitScript(() => {
+    try {
+      localStorage.setItem('linefm.started', '1');
+    } catch {
+      /* no storage */
+    }
+  });
   const google = [];
   await context.route('**/*', (route) => {
     const url = new URL(route.request().url());

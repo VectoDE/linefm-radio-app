@@ -271,7 +271,7 @@ class PipeReporter : public Reporter {
       if (c == '\n' || c == '\r') c = ' ';
     }
     data.push_back('\n');
-    // Overlapped write (#147): on a synchronous handle Windows serialises all
+    // Overlapped write: on a synchronous handle Windows serialises all
     // I/O on the file object, so this write blocked behind the reader
     // thread's pending ReadFile until the UI sent something. The engine then
     // stalled and the progress page never finished.

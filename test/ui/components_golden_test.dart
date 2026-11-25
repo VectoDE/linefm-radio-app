@@ -1,7 +1,7 @@
 @Tags(<String>['golden'])
 library;
 
-// Bildvergleich der Kernkomponenten in Dark und Hell (Issue #2). Referenzbilder
+// Bildvergleich der Kernkomponenten in Dark und Hell. Referenzbilder
 // entstehen auf dem CI-Runner, siehe test/golden_support.dart und
 // docs/ENTWICKLUNG.md ("Goldens aktualisieren").
 import 'dart:async' show unawaited;

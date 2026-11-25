@@ -1,7 +1,7 @@
 @Tags(<String>['golden'])
 library;
 
-// Bildvergleich der eigenen Fenster-Titelleiste in Dark und Hell (Issue #87).
+// Bildvergleich der eigenen Fenster-Titelleiste in Dark und Hell.
 // Referenzbilder entstehen auf dem CI-Runner, siehe test/golden_support.dart.
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';

@@ -16,7 +16,7 @@ Jeder Schritt hat eine Nummer (zum Beispiel 6.4) und diese fünf Angaben:
 
 Wichtig vorab:
 
-- Passwörter, Schlüssel und Tokens (geheime Zugangscodes) gehören **nie** in eine E-Mail, einen Chat oder ein Issue. Sie kommen als Secret in die GitHub-Einstellungen des Repos (Schritt 1.3) oder in deinen Passwortmanager.
+- Passwörter, Schlüssel und Tokens (geheime Zugangscodes) gehören **nie** in eine E-Mail, einen Chat oder ein Ticket. Sie kommen als Secret in die GitHub-Einstellungen des Repos (Schritt 1.3) oder in deinen Passwortmanager.
 - Ein **Secret** ist ein geheimer Wert, den GitHub speichert und danach nie wieder anzeigt. Eine **Variable** ist ein nicht geheimer Wert, der lesbar bleibt. Beides legst du im Repo an (Schritt 1.3).
 - **CI** (Continuous Integration) heißt hier: GitHub baut, prüft und lädt die App automatisch hoch. Eine **Pipeline** oder ein **Workflow** ist so ein automatischer Ablauf. Ein **Release** ist eine veröffentlichte Version.
 - Ohne ein Secret passiert nichts Schlimmes. Der betroffene Schritt wird übersprungen oder baut unsigniert. Die Zusammenfassung des Laufs nennt den fehlenden Namen, nie den Wert.
@@ -100,7 +100,7 @@ Abschnitt 2 zuerst anstoßen, weil Antworten von Dritten am längsten dauern. Di
 
 - **Was:** Das Repository ist seit dem 19.11.2026 öffentlich. Die Lizenz bleibt proprietär (alle Rechte vorbehalten). Du bestätigst schriftlich, dass der Quellcode öffentlich sichtbar sein darf.
 - **Wozu:** Jeder kann den Code lesen, aber nicht frei nutzen. Das muss mit dem Rechteinhaber der Marke und der App geklärt sein, bevor Dritte darauf bauen.
-- **Wo eintragen:** schriftlich (E-Mail oder Eintrag im Issue reicht). Abschnitt A7 der [Freigabe-Checkliste](FREIGABE-CHECKLISTE.md) abhaken.
+- **Wo eintragen:** schriftlich (E-Mail oder Eintrag im Ticket reicht). Abschnitt A7 der [Freigabe-Checkliste](FREIGABE-CHECKLISTE.md) abhaken.
 - **Woher:** deine Entscheidung. Den Wortlaut und die Frage, was "sichtbar, aber nicht frei nutzbar" für Weitergabe und Weiterentwicklung bedeutet, lässt du anwaltlich prüfen.
 - **Prüfschritt:** Die Zustimmung liegt schriftlich vor und die anwaltliche Prüfung ist vermerkt.
 - [ ] erledigt
@@ -439,10 +439,10 @@ Quelle: [packaging/flathub/README.md](../packaging/flathub/README.md).
   1. Datei `https://linefm.de/.well-known/org.flathub.VerifiedApps.txt` auf der Hauptdomain bereitstellen. Den Inhalt nennt Flathub bei der Einreichung. Das geht nur über `linefm.de`, die du verwaltest.
   2. Altersangabe (OARS, Alterseinstufung bei Linux-Stores) in der Metainfo bestätigen, wegen Kraftausdrücken bei +RAP.
   3. Screenshots im Netz bereitstellen, URLs in der Metainfo eintragen (dort stehen Platzhalter).
-  4. Einreichung per Pull Request gegen `flathub/flathub`. Der Entwickler bereitet ihn vor. Du reichst mit deinem GitHub-Konto ein oder gibst Tim Hauke die Vollmacht.
+  4. Einreichung per Änderungsvorschlag gegen `flathub/flathub`. Der Entwickler bereitet ihn vor. Du reichst mit deinem GitHub-Konto ein oder gibst Tim Hauke die Vollmacht.
 - **Woher:** Inhalt der Verifizierungsdatei von Flathub.
 - **Prüfschritt:** `curl -s https://linefm.de/.well-known/org.flathub.VerifiedApps.txt` liefert den Inhalt. Flathub bestätigt die Verifizierung.
-- **Ehrlicher Hinweis:** Unser Paket enthält die fertig gebaute Binärdatei, nicht den Quelltext. Flathub verlangt bei nicht offener Software meist den Bau aus dem Quelltext oder besondere Regeln. Es kann sein, dass Flathub ablehnt oder eine Ausnahme verlangt. Das klärst du nur durch Nachfragen bei den Flathub-Betreuern (Issue im Repo `flathub/flathub`). Scheitert es, bleiben Snap Store und der Tarball auf GitHub.
+- **Ehrlicher Hinweis:** Unser Paket enthält die fertig gebaute Binärdatei, nicht den Quelltext. Flathub verlangt bei nicht offener Software meist den Bau aus dem Quelltext oder besondere Regeln. Es kann sein, dass Flathub ablehnt oder eine Ausnahme verlangt. Das klärst du nur durch Nachfragen bei den Flathub-Betreuern (Ticket im Repo `flathub/flathub`). Scheitert es, bleiben Snap Store und der Tarball auf GitHub.
 - [ ] erledigt
 
 ### 8.2 Snap Store
@@ -722,7 +722,7 @@ Der Test `test/tool/einrichtung_vollstaendig_test.dart` prüft bei jedem Lauf, d
 
 ### 16.3 Wenn etwas hakt
 
-- Frag im Repo unter Issues oder Discussions nach. Beschreibe, welchen Schritt du gerade machst und was du siehst.
+- Frag im Repo unter Tickets oder Discussions nach. Beschreibe, welchen Schritt du gerade machst und was du siehst.
 - Bei Fehlermeldungen von Stores: Meldung kopieren, Screenshot anhängen, keine Passwörter.
 - Zeitaufwand der Prüfungen einplanen: Google Play einige Tage, CarPlay-Antrag Wochen, Flathub je nach Betreuern.
 

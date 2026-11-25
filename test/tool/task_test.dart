@@ -1,4 +1,4 @@
-// Prueft den Aufgaben-Starter tool/task.dart (Issue #63), ohne Befehle zu
+// Prueft den Aufgaben-Starter tool/task.dart, ohne Befehle zu
 // starten: Welche Befehle eine Aufgabe ausloest, Hilfe und Fehlercodes.
 import 'package:flutter_test/flutter_test.dart';
 

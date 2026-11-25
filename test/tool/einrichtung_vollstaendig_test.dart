@@ -1,4 +1,4 @@
-// Gegenpruefung der Einrichtungsliste (Issue #64): Jeder Platzhalter, den der
+// Gegenpruefung der Einrichtungsliste: Jeder Platzhalter, den der
 // Betreiber fuellen muss, und jedes Secret bzw. jede Variable, die ein Workflow
 // liest, steht in docs/EINRICHTUNG.md. Faellt etwas Neues dazu, schlaegt dieser
 // Test fehl, bis die Liste nachgezogen ist.
@@ -185,7 +185,7 @@ void main() {
     expect(mentioned('Trag `FOO` ein', 'FOO'), isTrue);
     expect(mentioned('{{BAR}} fuellen', 'BAR'), isTrue);
     expect(mentioned('FOOBAR', 'FOO'), isFalse);
-    // Auch mehrzeilige Ausdruecke (Review PR #77, L8).
+    // Auch mehrzeilige Ausdruecke.
     expect(
       secretsAndVarsIn(
         'a: 1\n'

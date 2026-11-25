@@ -356,7 +356,7 @@ void main() {
           .where((l) => l.trim().isNotEmpty)
           .map((l) => l.trim())
           .toList();
-      // Pages-only lines: comments and the detach of the default CORS header (#137).
+      // Pages-only lines: comments and the detach of the default CORS header.
       expect(cfHeaders, contains('! Access-Control-Allow-Origin'));
       cfHeaders.removeWhere((l) => l.startsWith('#') || l.startsWith('!'));
 

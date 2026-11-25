@@ -4,7 +4,7 @@ import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/stations_config.dart';
 
-/// Favoriten-Sender (Issue #42, Entscheidung 49): Sender, die per Stern auf
+/// Favoriten-Sender (Entscheidung 49): Sender, die per Stern auf
 /// der Stationskarte gemerkt werden. Getrennt von den Song-Favoriten
 /// ([FavoritesLogic]) und unter eigenem Speicherschluessel.
 ///
@@ -26,7 +26,7 @@ class FavoriteStationsLogic {
 
   /// Gemerkte Sender in der Reihenfolge von [catalog] (Standard: aktuelle
   /// Senderliste). Slugs ohne Sender in der Liste (entfernt oder
-  /// ausgeblendet, Issue #91) werden nicht angezeigt.
+  /// ausgeblendet) werden nicht angezeigt.
   static List<Station> stations(Set<String> slugs, {List<Station>? catalog}) =>
       <Station>[
         for (final s in catalog ?? stationsCatalog)
@@ -35,7 +35,7 @@ class FavoriteStationsLogic {
 
   /// JSON-Liste der Slugs, bekannte in Senderlisten-Reihenfolge, danach die
   /// uebrigen. Slugs gerade ausgeblendeter Sender bleiben gespeichert, damit
-  /// der Stern wieder da ist, wenn der Sender zurueckkommt (Issue #91).
+  /// der Stern wieder da ist, wenn der Sender zurueckkommt.
   static String encode(Set<String> slugs) {
     final known = <String>[for (final s in stations(slugs)) s.slug];
     final rest = slugs.where((s) => !known.contains(s)).toList()..sort();

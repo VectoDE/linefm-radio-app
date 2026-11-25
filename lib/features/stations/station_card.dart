@@ -21,7 +21,7 @@ import 'package:material_ui/material_ui.dart';
 ///   Kontrastmangel aufgehellt, siehe `StationStyle.border`).
 /// - Auf der aktiven Karte zeigen drei Balken, dass gespielt wird.
 /// - Mit [onToggleFavorite] steht oben rechts ein Stern: Antippen merkt den
-///   Sender als Favoriten-Sender oder entfernt ihn (Issue #42). Fuer
+///   Sender als Favoriten-Sender oder entfernt ihn. Fuer
 ///   Screenreader ist das eine eigene Aktion der Karte ([favoriteLabel]).
 class StationCard extends StatefulWidget {
   const StationCard({

@@ -25,7 +25,7 @@ typedef FavoritesFilePicker = Future<XFile?> Function();
 Future<XFile?> _systemPicker() =>
     openFile(acceptedTypeGroups: const <XTypeGroup>[favoritesImportTypes]);
 
-/// Import-Einstieg (Issue #9): Datei waehlen (CSV oder Text aus dem eigenen
+/// Import-Einstieg: Datei waehlen (CSV oder Text aus dem eigenen
 /// Export), lesen, mit den vorhandenen Favoriten zusammenfuehren, Ergebnis
 /// als SnackBar. Web: `<input type=file>` ueber file_selector_web; Android,
 /// iOS, macOS, Windows, Linux: System-Dateidialog.

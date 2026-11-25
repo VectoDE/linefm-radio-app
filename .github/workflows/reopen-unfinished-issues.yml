@@ -1,7 +1,7 @@
-name: Unfertige Issues wieder oeffnen
+name: Unfertige Tickets wieder oeffnen
 
-# Hausregel F470: Ein Issue wird erst geschlossen, wenn alle Aufgaben (Checkboxen) und
-# Sub-Issues erledigt sind. Wird es mit offenen "- [ ]"-Aufgaben oder offenen Sub-Issues
+# Hausregel F470: Ein Ticket wird erst geschlossen, wenn alle Aufgaben (Checkboxen) und
+# Unter-Tickets erledigt sind. Wird es mit offenen "- [ ]"-Aufgaben oder offenen Unter-Tickets
 # geschlossen, oeffnet dieser Workflow es sofort wieder und begruendet das im Kommentar.
 # Checkboxen in Code-Bloecken (``` bzw. ~~~) zaehlen nicht.
 
@@ -40,7 +40,7 @@ jobs:
           issue_json="$(gh api "repos/$REPO/issues/$NUMBER")"
           state="$(jq -r '.state' <<< "$issue_json")"
           if [ "$state" != "closed" ]; then
-            echo "Issue #$NUMBER ist nicht mehr geschlossen, nichts zu tun."
+            echo "Ticket #$NUMBER ist nicht mehr geschlossen, nichts zu tun."
             exit 0
           fi
 
@@ -64,14 +64,14 @@ jobs:
           sub_done="$(jq -r '.sub_issues_summary.completed // 0' <<< "$issue_json")"
           open_subs=$(( sub_total - sub_done ))
 
-          echo "Offene Aufgaben: $open_tasks, offene Sub-Issues: $open_subs"
+          echo "Offene Aufgaben: $open_tasks, offene Unter-Tickets: $open_subs"
           if [ "$open_tasks" -eq 0 ] && [ "$open_subs" -le 0 ]; then
-            echo "Alle Aufgaben erledigt, Issue bleibt geschlossen." >> "$GITHUB_STEP_SUMMARY"
+            echo "Alle Aufgaben erledigt, Ticket bleibt geschlossen." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
           {
-            echo "Automatisch wieder geöffnet: Dieses Issue wurde geschlossen, obwohl noch nicht alles erledigt ist."
+            echo "Automatisch wieder geöffnet: Dieses Ticket wurde geschlossen, obwohl noch nicht alles erledigt ist."
             echo ""
             if [ "$open_tasks" -gt 0 ]; then
               echo "**Offene Aufgaben ($open_tasks):**"
@@ -81,15 +81,15 @@ jobs:
               echo ""
             fi
             if [ "$open_subs" -gt 0 ]; then
-              echo "**Offene Sub-Issues:** $open_subs von $sub_total"
+              echo "**Offene Unter-Tickets:** $open_subs von $sub_total"
               echo ""
             fi
-            echo "Regel: Ein Issue wird erst geschlossen, wenn alle Aufgaben mit Beleg (Commit, PR, CI-Lauf, Messwert) abgehakt und alle Sub-Issues erledigt sind. Unerledigte Aufgaben werden nachgeholt, nicht gestrichen. Bitte erledigen, abhaken und danach erneut schließen."
+            echo "Regel: Ein Ticket wird erst geschlossen, wenn alle Aufgaben mit Beleg (Commit, Zusammenführung, CI-Lauf, Messwert) abgehakt und alle Unter-Tickets erledigt sind. Unerledigte Aufgaben werden nachgeholt, nicht gestrichen. Bitte erledigen, abhaken und danach erneut schließen."
           } > comment.md
 
           gh issue reopen "$NUMBER" --repo "$REPO" --comment "$(cat comment.md)"
           {
-            echo "Issue #$NUMBER wieder geöffnet."
+            echo "Ticket #$NUMBER wieder geöffnet."
             echo ""
             cat comment.md
           } >> "$GITHUB_STEP_SUMMARY"

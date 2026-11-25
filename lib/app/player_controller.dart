@@ -138,7 +138,7 @@ class PlayerController {
   Future<void> shuffleStation([Random? random]) async {
     final current = _ref.read(activeStationProvider);
     final others = stationsCatalog.where((s) => s != current).toList();
-    // Nur ein Sender in der Liste (Issue #91): nichts zu mischen.
+    // Nur ein Sender in der Liste: nichts zu mischen.
     if (others.isEmpty) return;
     final next = others[(random ?? Random()).nextInt(others.length)];
     await startStation(next);
@@ -312,7 +312,7 @@ class PlayerController {
           .streamUrl(station.slug)
           .timeout(const Duration(seconds: 4));
       final uri = url == null ? null : Uri.tryParse(url);
-      // Nur Streams von laut.fm (Issue #91: keine fremden Stream-Hosts,
+      // Nur Streams von laut.fm (keine fremden Stream-Hosts,
       // auch nicht ueber eine veraenderte API-Antwort).
       if (uri != null && uri.scheme == 'https' && isLautFmHost(uri.host)) {
         _streamUrls[station.slug] = uri;

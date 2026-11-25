@@ -6,7 +6,7 @@ später nur Konto, Profile und Freigaben eingetragen werden müssen.
 
 Hinweis: Entwickelt wurde ohne Mac. iOS und macOS sind nicht lokal gebaut
 worden; Abnahme über den macOS-Job in CI (`build.yml`, `apple=true` bzw.
-PR-Label `ci:apple`) oder einen Mac. Der iOS-Job prüft nach dem Build das
+dem Label `ci:apple` am Änderungsvorschlag) oder einen Mac. Der iOS-Job prüft nach dem Build das
 fertige Bundle (Widget eingebettet, Info.plist-Schlüssel, Privacy-Manifeste,
 native Kanäle im Binary).
 
@@ -21,8 +21,8 @@ Plugin-Ziel ab („GoogleCast requires minimum platform version 16.0 … this
 target supports 15.0“), egal welche Mindestversion die App hat. Deshalb
 pinnt `Runner.xcodeproj` das SDK exakt auf 4.8.4 (`XCRemoteSwiftPackageReference`,
 ein Pin im Wurzelprojekt gewinnt gegen den Bereich des Plugins). Entfernen,
-sobald `flutter_chrome_cast` iOS 16 erklärt (Upstream-Issue
-felnanuke2/flutter_google_cast#90), dann läuft wieder das aktuelle SDK.
+sobald `flutter_chrome_cast` iOS 16 erklärt (bekannte offene Meldung beim
+Plugin-Autor), dann läuft wieder das aktuelle SDK.
 
 ## Überblick iOS (`ios/Runner`)
 

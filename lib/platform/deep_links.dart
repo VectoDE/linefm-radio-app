@@ -55,7 +55,7 @@ class DeepLinks {
   static String? _pendingUnavailable;
 
   /// Eigene Links auf einen Sender, der nicht (mehr) in der Senderliste
-  /// steht (entfernt oder ausgeblendet, Issue #91). Die App zeigt dazu einen
+  /// steht (entfernt oder ausgeblendet). Die App zeigt dazu einen
   /// Hinweis, spielt aber nichts.
   static Stream<String> get unavailable => _unavailable.stream;
 

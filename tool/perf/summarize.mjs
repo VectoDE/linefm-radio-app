@@ -1,4 +1,4 @@
-// Fasst die Messergebnisse (Issue #92) zu einer Markdown-Tabelle zusammen:
+// Fasst die Messergebnisse zu einer Markdown-Tabelle zusammen:
 // Kennzahl | Median | Streuung | Ziel (= Median / 3 bei Zeiten) | Methode.
 //
 //   node summarize.mjs --in <ordner mit den Artefakten> --out perf-summary.md
@@ -182,7 +182,7 @@ if (sizes) {
 
 const env = web?.environment ?? lh?.environment ?? win?.environment ?? {};
 const lines = [];
-lines.push('## Performance-Ausgangswerte (#92)');
+lines.push('## Performance-Ausgangswerte');
 lines.push('');
 lines.push(`Commit \`${env.commit ?? '?'}\`${env.runUrl ? `, Lauf ${env.runUrl}` : ''}.`);
 if (web) lines.push(`Web: ${web.environment.runner.os} ${web.environment.runner.image ?? ''} ${web.environment.runner.imageVersion ?? ''}, ${web.environment.cpu.model} (${web.environment.cpu.cores} Kerne), Node ${web.environment.node}, Chromium von Playwright, Server: nginx-Container aus deploy/traefik (gzip 5, Cache-Header aus deploy/nginx/snippets), HTTP/1.1 ohne TLS.`);

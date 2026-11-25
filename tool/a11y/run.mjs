@@ -368,6 +368,29 @@ async function main() {
         // Test-Umami (--consent) zeigt ins Leere; trotzdem nichts durchlassen.
         await context.route(/^https?:\/\/127\.0\.0\.1:9\//, (route) => route.abort());
         const page = await context.newPage();
+        // Static shell as a first-time visitor sees it: the engine starts only
+        // on intent (web/flutter_bootstrap.js), so it is a page of its own.
+        if (!only || only.has('shell')) {
+          const entry = { kind: 'shell', theme, layout: size.name, width: size.width, view: 'shell', url: '/' };
+          const t0 = Date.now();
+          try {
+            await page.goto(`${base}/`, { waitUntil: 'load' });
+            await page.waitForSelector('#start-app.ready', { timeout: 15_000 });
+            await check(page, entry, t0);
+          } catch (error) {
+            const message = String(error).split(/\r?\n/)[0];
+            results.push({ ...entry, error: message });
+            console.log(`FEHLER ${theme} ${size.name} shell: ${message}`);
+          }
+        }
+        // From here on behave like a returning visitor: the app starts on load.
+        await context.addInitScript(() => {
+          try {
+            localStorage.setItem('linefm.started', '1');
+          } catch {
+            /* no storage */
+          }
+        });
         let fresh = false;
         for (const [view, steps, opts = {}] of appViews(wide)) {
           if (only && !only.has(view)) continue;

@@ -2,7 +2,7 @@
 library;
 
 // Bildvergleich des App-Rahmens (Header mit Favoriten-Badge, Navigation,
-// Mini-Player) und der Einstellungen in Dark und Hell (Issue #2). Referenzbilder
+// Mini-Player) und der Einstellungen in Dark und Hell. Referenzbilder
 // entstehen auf dem CI-Runner, siehe docs/ENTWICKLUNG.md ("Goldens
 // aktualisieren").
 import 'package:flutter_test/flutter_test.dart';

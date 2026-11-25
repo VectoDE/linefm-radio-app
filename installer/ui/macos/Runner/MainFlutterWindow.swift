@@ -2,7 +2,7 @@ import Cocoa
 import FlutterMacOS
 
 /// Setup window: same client size as on Windows, not resizable, no native
-/// title bar (#88: the Flutter UI draws the custom LINEFM bar with its own
+/// title bar (the Flutter UI draws the custom LINEFM bar with its own
 /// window buttons). Close and Cmd+Q are handed to the setup UI
 /// (confirmation, cancel and rollback while the engine runs); the UI ends
 /// the process itself.

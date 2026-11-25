@@ -2,7 +2,7 @@ import AVKit
 import Flutter
 import UIKit
 
-/// Native Seite des AirPlay-Knopfs (Issue #14/#51). Dart-Seite:
+/// Native Seite des AirPlay-Knopfs. Dart-Seite:
 /// `lib/platform/airplay_button.dart`.
 ///
 /// * MethodChannel `de.linefm.app/airplay`, Methode `isAvailable` -> true.

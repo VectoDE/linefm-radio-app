@@ -1,4 +1,4 @@
-// Zufallsbasierte Robustheitstests (property-based, Issue #63) fuer die
+// Zufallsbasierte Robustheitstests (property-based) fuer die
 // Parser der laut.fm-API und der iTunes-Suche.
 //
 // Eigenschaft: Beliebige, auch kaputte Eingaben fuehren nie zu einer

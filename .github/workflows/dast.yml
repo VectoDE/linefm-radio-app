@@ -1,14 +1,14 @@
 name: DAST
 
-# Dynamic checks of the own web build (#133). Everything runs against
+# Dynamic checks of the own web build. Everything runs against
 # localhost on the runner: the web build is served with Cloudflare Pages
 # semantics (wrangler pages dev, real _headers) and scanned with nikto.
 # No third-party host is scanned. dependency-check runs when the secret
 # NVD_API_KEY exists and is skipped cleanly otherwise.
-# Report only: findings do not fail the job; triage happens in #133.
+# Report only: findings do not fail the job; triage happens in the tracker.
 
 on:
-  # Changes to this workflow are tested in their own PR (no secrets on forks).
+  # Changes to this workflow are tested in their own proposed change (no secrets on forks).
   pull_request:
     paths:
       - .github/workflows/dast.yml

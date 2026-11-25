@@ -279,11 +279,11 @@ if ($window) {
     }
     # Mandatory accessibility gate: Axe.Windows reports no errors.
     Check 'Accessibility: Axe.Windows ohne Fehler' $axeOk
-    # Informational only (#131): on hosted runners the Flutter UIA tree stays
+    # Informational only: on hosted runners the Flutter UIA tree stays
     # empty, also for the unchanged app runner. The tree dump stays in the
-    # artifact; the real screen reader check is tracked in #131.
+    # artifact; the real screen reader check is tracked separately.
     if ($null -eq $next) {
-      Write-Host '::notice::UIA: button "Next" not reachable on this runner (see #131); tree dump in artifact'
+      Write-Host '::notice::UIA: button "Next" not reachable on this runner ; tree dump in artifact'
     }
     if ($next) {
       Invoke-El $next
@@ -348,7 +348,7 @@ Start-Sleep -Seconds 2
 Check 'Nutzerdaten geloescht' (-not (Test-Path $marker))
 Check 'Autostart entfernt' ($null -eq (RegValue 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' $product))
 
-# --- 9b. UI engine path (named pipe), as the setup UI drives it (#147) ------
+# --- 9b. UI engine path (named pipe), as the setup UI drives it ------
 # The silent runs above use the console reporter. The setup UI instead starts
 # "--engine install --pipe <name>" and reads protocol lines from a pipe; that
 # path deadlocked in v0.1.0-alpha.7/8 and no step covered it. This harness

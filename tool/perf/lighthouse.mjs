@@ -1,4 +1,4 @@
-// Lighthouse-Laeufe (Issue #92): je Profil (mobil, desktop) N Laeufe gegen
+// Lighthouse-Laeufe: je Profil (mobil, desktop) N Laeufe gegen
 // den lokal ausgelieferten Web-Build, simuliertes Throttling (Standard).
 //
 //   node lighthouse.mjs --url http://127.0.0.1:8080/ --out out/lighthouse --runs 5

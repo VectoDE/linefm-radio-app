@@ -1,4 +1,4 @@
-// Groessen des Web-Builds (Issue #92): roh, gzip Stufe 5 (wie nginx in
+// Groessen des Web-Builds: roh, gzip Stufe 5 (wie nginx in
 // deploy/) und Brotli Stufe 11 (Vergleich: was Vorkomprimieren bringen wuerde).
 //
 //   node sizes.mjs --web ../../build/web --out out/sizes.json

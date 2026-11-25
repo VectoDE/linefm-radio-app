@@ -167,7 +167,7 @@ class _FavoriteRowState extends State<_FavoriteRow>
   @override
   Widget build(BuildContext context) {
     final favorite = widget.favorite;
-    // Sender nicht mehr in der Liste (Issue #91): neutraler Platzhalter
+    // Sender nicht mehr in der Liste: neutraler Platzhalter
     // statt eines falschen Senders; der Favorit bleibt erhalten.
     final Station station =
         stationBySlug(favorite.stationSlug) ??

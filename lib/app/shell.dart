@@ -677,7 +677,7 @@ class _ExpandedLayout extends ConsumerWidget {
         icon: FaIcon(icon, size: 18),
         // Feste Breite: Lange Woerter (z. B. "EINSTELLUNGEN") werden
         // verkleinert statt die Leiste zu verbreitern oder abgeschnitten zu
-        // werden. Der Screenreader liest immer den vollen Text (Issue #101).
+        // werden. Der Screenreader liest immer den vollen Text.
         label: SizedBox(
           width: LinefmMetrics.railWidth - 16,
           child: FittedBox(
@@ -884,7 +884,7 @@ class _NavItem extends StatelessWidget {
               FaIcon(icon, size: 18, color: color),
               const SizedBox(height: 8),
               // Verkleinern statt Ausblenden, falls eine Sprache laenger ist
-              // als der feste Platz (Issue #101).
+              // als der feste Platz.
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(

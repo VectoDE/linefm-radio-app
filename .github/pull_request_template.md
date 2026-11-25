@@ -30,7 +30,7 @@ Refs #
 
 ## Qualitäts-Checkliste (qs)
 
-Nur ankreuzen, was dieser PR betrifft und was geprüft ist.
+Nur ankreuzen, was diese Änderung betrifft und was geprüft ist.
 
 - [ ] Sicherheit: Workflows, Abhängigkeiten, Eingaben, Rechte geprüft (actionlint, zizmor, gitleaks)
 - [ ] Barrierefreiheit: Tastatur, Screenreader-Label, Kontrast; a11y-Workflow ohne serious/critical

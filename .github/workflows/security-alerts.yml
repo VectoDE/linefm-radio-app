@@ -1,19 +1,19 @@
 name: Sicherheitsfunde
 
-# Haelt fuer jeden offenen Sicherheits-Alert genau ein Issue mit dem Label
-# typ:sicherheit offen und schliesst es, sobald der Alert zu ist (#115).
+# Haelt fuer jeden offenen Sicherheits-Alert genau ein Ticket mit dem Label
+# typ:sicherheit offen und schliesst es, sobald der Alert zu ist.
 # Quellen: Code Scanning (CodeQL, Semgrep, Trivy, zizmor, Scorecard), Dependabot,
 # Secret Scanning.
 #
 # Ausloeser: nach jedem Lauf von CodeQL, Semgrep, Scorecard und Supply Chain auf
 # main, dazu woechentlich und von Hand. Es wird kein fremder Code ausgecheckt und
-# kein Artefakt gelesen; der Job liest nur die Alert-APIs und pflegt Issues.
+# kein Artefakt gelesen; der Job liest nur die Alert-APIs und pflegt Tickets.
 #
-# Das Repo ist oeffentlich: Die Issues enthalten absichtlich nur Quelle, Nummer,
+# Das Repo ist oeffentlich: Die Tickets enthalten absichtlich nur Quelle, Nummer,
 # Schweregrad und den Link zum Alert (sichtbar nur fuer Betreuer), keine Dateipfade,
 # Meldungstexte oder Geheimnistypen.
 #
-# Rechte: GITHUB_TOKEN liest Code Scanning (security-events: read) und pflegt Issues.
+# Rechte: GITHUB_TOKEN liest Code Scanning (security-events: read) und pflegt Tickets.
 # Dependabot- und Secret-Scanning-Alerts erreicht GITHUB_TOKEN nicht. Ein
 # zusaetzliches Token gibt es nach Entscheidung des Inhabers nicht (22.11.2026):
 # Der Abgleich beschraenkt sich regulaer auf Code Scanning. Dependabot- und
@@ -37,8 +37,8 @@ concurrency:
 
 jobs:
   sync:
-    name: Alerts mit Issues abgleichen
-    # Nur Laeufe aus Pushes auf main (nicht aus PR-Laeufen mit Kopfzweig main aus Forks).
+    name: Alerts mit Tickets abgleichen
+    # Nur Laeufe aus Pushes auf main (nicht aus Laeufen von Aenderungsvorschlaegen mit Kopfzweig main aus Forks).
     if: >-
       github.event_name != 'workflow_run' ||
       (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'schedule') &&
@@ -78,17 +78,17 @@ jobs:
           # sind mit dem Actions-Token nicht lesbar und werden nicht abgeglichen.
           echo "::notice::Abgleich nur fuer Code Scanning. Dependabot- und Secret-Scanning-Alerts werden in der Security-Ansicht des Repos geprueft (siehe SECURITY.md)."
 
-          # Vorhandene Issues mit Marker "<!-- sicherheitsfund:quelle:nummer -->".
+          # Vorhandene Tickets mit Marker "<!-- sicherheitsfund:quelle:nummer -->".
           gh issue list --repo "$REPO" --label "$LABEL" --state all --limit 1000 \
             --json number,state,body \
             --jq '.[] | (.body | capture("<!-- sicherheitsfund:(?<k>[a-z-]+):(?<n>[0-9]+) -->")?) as $m
                   | select($m != null) | [$m.k + ":" + $m.n, (.number|tostring), .state] | @tsv' \
-            > "$work/issues.tsv"
+            > "$work/tickets.tsv"
 
           created=0; reopened=0; closed=0
           while IFS=$'\t' read -r kind num sev tool url; do
             key="$kind:$num"
-            line="$(awk -F'\t' -v k="$key" '$1==k' "$work/issues.tsv" | sort -t$'\t' -k2,2n | tail -n 1)"
+            line="$(awk -F'\t' -v k="$key" '$1==k' "$work/tickets.tsv" | sort -t$'\t' -k2,2n | tail -n 1)"
             if [ -z "$line" ]; then
               body="$(printf '%s\n\n%s\n\n%s\n%s\n%s\n%s\n\n%s\n%s\n%s\n%s\n' \
                 "<!-- sicherheitsfund:$key -->" \
@@ -100,7 +100,7 @@ jobs:
                 "## Aufgaben" \
                 "- [ ] Fund pruefen (erreichbar? echte Eingabequelle?)" \
                 "- [ ] Beheben oder mit Begruendung als False Positive/Won't fix schliessen" \
-                "- [ ] Alert ist geschlossen (dieses Issue schliesst sich dann automatisch)")"
+                "- [ ] Alert ist geschlossen (dieses Ticket schliesst sich dann automatisch)")"
               gh issue create --repo "$REPO" --label "$LABEL" \
                 --title "Sicherheitsfund: $tool, $kind #$num ($sev)" --body "$body"
               created=$((created + 1))
@@ -113,8 +113,8 @@ jobs:
             fi
           done < "$work/open.tsv"
 
-          # Offene Issues schliessen, deren Code-Scanning-Alert nicht mehr offen ist.
-          # Issues anderer Quellen bleiben unangetastet.
+          # Offene Tickets schliessen, deren Code-Scanning-Alert nicht mehr offen ist.
+          # Tickets anderer Quellen bleiben unangetastet.
           while IFS=$'\t' read -r key inum istate; do
             [ "$istate" = "OPEN" ] || continue
             kind="${key%%:*}"
@@ -124,11 +124,11 @@ jobs:
                 --comment "Der Alert $key ist geschlossen (behoben oder begruendet verworfen)."
               closed=$((closed + 1))
             fi
-          done < "$work/issues.tsv"
+          done < "$work/tickets.tsv"
 
           {
             echo "### Sicherheitsfunde"
             echo "- Offene Alerts: $(wc -l < "$work/open.tsv")"
             echo "- Quelle: nur Code Scanning (Dependabot/Secret Scanning siehe Security-Ansicht)"
-            echo "- Issues angelegt: $created, wieder geoeffnet: $reopened, geschlossen: $closed"
+            echo "- Tickets angelegt: $created, wieder geoeffnet: $reopened, geschlossen: $closed"
           } >> "$GITHUB_STEP_SUMMARY"

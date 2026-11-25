@@ -1,6 +1,6 @@
 # Performance: Messung, Ausgangswerte, Engpässe
 
-Stand 21.11.2026, Issue #92. Vorgabe des Inhabers: App-Start, Laden im Browser, Bedienung und Ton nach Klick sollen dreimal so schnell werden (gemessene Zeiten auf ein Drittel).
+Stand 21.11.2026. Vorgabe des Inhabers: App-Start, Laden im Browser, Bedienung und Ton nach Klick sollen dreimal so schnell werden (gemessene Zeiten auf ein Drittel).
 
 Dieses Dokument hält den Ausgangsstand fest. Budgets in der CI gibt es noch nicht; sie folgen, wenn die Maßnahmen umgesetzt und nachgemessen sind.
 
@@ -21,7 +21,7 @@ Alle Werte sind Laborwerte auf GitHub-Runnern (4 Kerne AMD EPYC, ohne GPU). Feld
 
 ## Ausgangswerte
 
-Lauf [44950025363](https://github.com/VectoDE/linefm-radio-app/actions/runs/44950025363), Commit `b640b22` (Merge-Stand des PR #102 auf `main` 348adff). Median aus 5 Läufen, Streuung = Minimum bis Maximum. Ziel = Median / 3.
+Lauf [44950025363](https://github.com/VectoDE/linefm-radio-app/actions/runs/44950025363), Commit `b640b22` (Merge-Stand auf `main` 348adff). Median aus 5 Läufen, Streuung = Minimum bis Maximum. Ziel = Median / 3.
 
 ### App-Start
 
@@ -81,7 +81,7 @@ Der Verlauf ist der trägste Wechsel (mobil 18 Bilder über 33 ms, längstes 317
 | Windows: Anforderung bis Zustand „spielt“ | 3,91 s (4 von 5 Läufen) | 3,86 – 4,41 s | 1,30 s |
 | Windows: Senderwechsel bis „spielt“ | 3,91 s (3 von 5) | 3,90 – 4,44 s | 1,30 s |
 
-Der Senderwechsel im Web erreichte in keinem Lauf `playing`; an der Senderwahl wird in #99 gearbeitet.
+Der Senderwechsel im Web erreichte in keinem Lauf `playing`; an der Senderwahl wird noch gearbeitet.
 
 ## Engpässe (Fundliste)
 
@@ -94,7 +94,7 @@ Nach erwarteter Wirkung sortiert. Belegt heißt: Messwert aus dem Lauf oben und 
 | P92-03 | `lib/services/audio/audio_handler.dart:37` (`minConnectDuration` 1 s), `:425-427` | High | Ton-Marke `player-playing` frühestens nach 1 s, auch wenn der Stream schneller ist | Mindestdauer nur für die Anzeige, nicht für den Zustand; oder auf 0 setzen. Spart bis 1 s bei schnellem Stream |
 | P92-04 | Ton nach Klick, Stream-Puffer von laut.fm | High | Web: URL nach ca. 60 ms bekannt, `playing` erst nach 4,3 s; der Rest ist Puffern des Icecast-Streams im Browser bzw. in media_kit | Nur teilweise beeinflussbar: Verbindung vorwärmen (`preconnect` zu `*.stream.laut.fm`), Stream-URLs beim Start vorab holen (`lib/app/player_controller.dart:291`), media_kit-Puffergröße prüfen. Faktor 3 hier unsicher |
 | P92-05 | Windows `runApp` bis erstes Bild, `lib/main.dart:62-78` | High | 139 ms bis `runApp`, dann ca. 0,93 s bis zum ersten gerasterten Bild | Erstes Bild schlanker (Loader ohne Blur/Netzbilder), Schriften und Shader vorwärmen; Trace im Folgelauf |
-| P92-06 | `lib/features/loader/app_loader.dart:213-215` | Medium | Fester Ladebildschirm 400 ms (Web) bzw. 300 ms (nativ) plus 350 ms Ausblenden nach dem ersten Bild | Entscheidung des Inhabers (21.11.2026): Splash ohne feste Mindestzeit, nur kurz einblenden. Mindestdauer entfällt, Ausblenden kürzen. Bis 0,75 s schneller bedienbar. Design in #80 |
+| P92-06 | `lib/features/loader/app_loader.dart:213-215` | Medium | Fester Ladebildschirm 400 ms (Web) bzw. 300 ms (nativ) plus 350 ms Ausblenden nach dem ersten Bild | Entscheidung des Inhabers (21.11.2026): Splash ohne feste Mindestzeit, nur kurz einblenden. Mindestdauer entfällt, Ausblenden kürzen. Bis 0,75 s schneller bedienbar. Entwurf liegt vor |
 | P92-07 | `deploy/nginx/snippets/linefm-headers.conf:26-31` | Medium | Nur gzip 5; Startdateien 3,03 MB statt 2,33 MB mit Brotli 11 | Vorkomprimierte `.br`-Dateien im Build und `brotli_static`, bzw. Brotli bei Cloudflare. Mobil ca. 0,7 MB weniger, bei Slow-4G rund 3,5 s |
 | P92-08 | `web/index.html:189-190` | Medium | `main.dart.wasm` und `skwasm.wasm` werden erst nach `flutter_bootstrap.js` und `main.dart.mjs` angefordert (Kaskade); `analytics.js` blockiert den Parser vor dem Bootstrap | `<link rel="preload">` bzw. `modulepreload` für die gehashten Startdateien (Postbuild kennt die Namen), `analytics.js` mit `defer`. Spart mindestens eine Runde Netzlatenz |
 | P92-09 | `pubspec.yaml:72-81` | Low | Schriften als TTF, 0,39 MB roh, 0,29 MB übertragen | Untermengen bilden; Flutter Web lädt nur TTF/OTF, daher kein WOFF2. Ca. 0,2 MB weniger |
@@ -111,7 +111,7 @@ Nach erwarteter Wirkung sortiert. Belegt heißt: Messwert aus dem Lauf oben und 
 
 ## Maßnahmenplan
 
-Je Maßnahme ein eigener PR mit Vorher/Nachher aus diesem Workflow (gleiche Läufe, gleiche Runner):
+Je Maßnahme ein eigener Änderungsvorschlag mit Vorher/Nachher aus diesem Workflow (gleiche Läufe, gleiche Runner):
 
 1. P92-03 und P92-06: künstliche Wartezeiten (Mindest-Verbindungsdauer, Ladebildschirm). Klein, sofort messbar.
 2. P92-02: Dauer-Animationen im Leerlauf.
@@ -131,7 +131,7 @@ Je Maßnahme ein eigener PR mit Vorher/Nachher aus diesem Workflow (gleiche Läu
 
 ## Public web quality checks
 
-Issue #132. Workflow `.github/workflows/pages.yml` builds the web app for GitHub Pages
+Public measurement. Workflow `.github/workflows/pages.yml` builds the web app for GitHub Pages
 (`--base-href /linefm-radio-app/`) and deploys it to https://vectode.github.io/linefm-radio-app/
 on every push to `main` that touches the app. Pages must be enabled once
 (Settings > Pages > Source: GitHub Actions); until then the deploy step is skipped with a note.
@@ -143,6 +143,18 @@ After each deploy the job "Web quality gate" checks the live URL:
 - Thresholds (`tool/perf/pagespeed_gate.mjs`): performance >= 95, accessibility, best practices and SEO = 100.
   Below that the job fails. Reports are in the artifact `web-gate-<sha>`.
 
+Engine start on intent (`web/flutter_bootstrap.js`). A first-time visitor gets the static shell
+in `web/index.html` (headline, station list, legal links, button "Radio starten"). The Flutter
+loader is evaluated and the Wasm engine is downloaded and started only on the first pointer, touch
+or key input outside a link. Returning visitors (`localStorage` key `linefm.started`), deep links
+below the base path and the installed app start the engine right away. Reason: downloading,
+compiling and initialising the engine blocks the main thread for seconds on a throttled phone
+(PageSpeed mobile: Total Blocking Time 3.9 to 18 s, performance 61); no split of the engine start
+gets that under the 200 ms needed for 95. Lighthouse and PageSpeed therefore measure the shell,
+which is what a first-time visitor sees before the first tap. Playback needs a user gesture in
+any case. `tool/perf/web_perf.mjs` sets the returning-visitor key, so its numbers still describe
+the engine start and the app itself.
+
 Seobility (https://www.seobility.net/de/seocheck/) and WebsiteScorer (https://websitescorer.com/)
 offer no free API. They are run by hand against the Pages URL after a deploy that changes the
-web output; the scores and findings go into issue #132.
+web output; the scores and findings go into the tracker.

@@ -1,4 +1,4 @@
-// Integrationstest auf Windows (Issues #99, #101, #87): die echte App in
+// Integrationstest auf Windows : die echte App in
 // einem echten Fenster, mit Netzwerk-Fakes fuer laut.fm (wie in
 // test/data/live/now_playing_repository_test.dart) und ohne Audio.
 //
@@ -7,7 +7,7 @@
 //
 // Die Fenster-Funktionen (window_manager) sind die echten; Tray und
 // Tastenkuerzel laufen mit. Nicht geprueft werden hier Ziehen, Andocken und
-// Snap-Layouts (siehe Bericht im PR).
+// Snap-Layouts (siehe Bericht zur Änderung).
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async';
@@ -59,7 +59,7 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   setUpAll(() async {
-    // Fixed station list (#91): the tests must not depend on the operator's
+    // Fixed station list: the tests must not depend on the operator's
     // config/stations.yaml. Same content as test/fixtures/stations/stations_6.json.
     installBundledStations(parseStationsConfig(_stationsJson));
     final out = _outDefine.isNotEmpty
@@ -85,112 +85,103 @@ void main() {
     );
   });
 
-  // ---------------------------------------------------------------- #99
+  // ---------------------------------------------------------------- Rapid station switching
 
-  testWidgets(
-    'Issue #99: schneller Wechsel zwischen drei Sendern zeigt Titel und '
-    'Sender des zuletzt gewaehlten',
-    (tester) async {
-      await _setWindowSize(tester, const Size(1000, 680));
-      final world = _World(settings: _settings(AppLanguage.de));
-      await _pumpWorld(tester, world);
-      final start = stationsCatalog.first;
-      final rap = stationsCatalog[1];
-      final gaming = stationsCatalog[2];
-      final lofi = stationsCatalog[3];
+  testWidgets('schneller Wechsel zwischen drei Sendern zeigt Titel und '
+      'Sender des zuletzt gewaehlten', (tester) async {
+    await _setWindowSize(tester, const Size(1000, 680));
+    final world = _World(settings: _settings(AppLanguage.de));
+    await _pumpWorld(tester, world);
+    final start = stationsCatalog.first;
+    final rap = stationsCatalog[1];
+    final gaming = stationsCatalog[2];
+    final lofi = stationsCatalog[3];
 
-      // Ausgangslage: Titel des ersten Senders steht im Player.
-      await _pumpUntil(
-        tester,
-        () =>
-            _inPlayer(find.text(_old(start).toUpperCase()))
-                .evaluate()
-                .isNotEmpty,
-        'Titel von ${start.displayName} im Player',
-      );
-      await _shot(tester, '99-1-start-${start.slug}');
+    // Ausgangslage: Titel des ersten Senders steht im Player.
+    await _pumpUntil(
+      tester,
+      () =>
+          _inPlayer(find.text(_old(start).toUpperCase())).evaluate().isNotEmpty,
+      'Titel von ${start.displayName} im Player',
+    );
+    await _shot(tester, '99-1-start-${start.slug}');
 
-      // Ab jetzt haengen alle Antworten, bis der Test sie freigibt; die Uhr
-      // des Repositories laeuft 20 Minuten weiter: die gemerkten Titel sind
-      // abgelaufen und duerfen nicht mehr erscheinen.
-      world.api.gated = true;
-      world.clock.advance(const Duration(minutes: 20));
+    // Ab jetzt haengen alle Antworten, bis der Test sie freigibt; die Uhr
+    // des Repositories laeuft 20 Minuten weiter: die gemerkten Titel sind
+    // abgelaufen und duerfen nicht mehr erscheinen.
+    world.api.gated = true;
+    world.clock.advance(const Duration(minutes: 20));
 
-      await _tapStation(tester, rap);
-      await tester.pump(const Duration(milliseconds: 40));
-      await _tapStation(tester, gaming);
-      await tester.pump(const Duration(milliseconds: 40));
-      await _tapStation(tester, lofi);
-      await _pumpFor(tester, const Duration(milliseconds: 600));
+    await _tapStation(tester, rap);
+    await tester.pump(const Duration(milliseconds: 40));
+    await _tapStation(tester, gaming);
+    await tester.pump(const Duration(milliseconds: 40));
+    await _tapStation(tester, lofi);
+    await _pumpFor(tester, const Duration(milliseconds: 600));
 
-      expect(world.container.read(activeStationProvider), lofi);
-      _expectPlayer(
-        lofi,
-        forbidden: <String>[for (final s in stationsCatalog) _old(s)],
-      );
-      expect(
-        world.api.pending.keys,
-        containsAll(<String>[
-          'current:${rap.slug}',
-          'current:${gaming.slug}',
-          'current:${lofi.slug}',
-        ]),
-        reason: 'alle drei Abrufe haengen (Antworten stehen aus)',
-      );
-      await _shot(tester, '99-2-gewechselt-antworten-ausstehend');
+    expect(world.container.read(activeStationProvider), lofi);
+    _expectPlayer(
+      lofi,
+      forbidden: <String>[for (final s in stationsCatalog) _old(s)],
+    );
+    expect(
+      world.api.pending.keys,
+      containsAll(<String>[
+        'current:${rap.slug}',
+        'current:${gaming.slug}',
+        'current:${lofi.slug}',
+      ]),
+      reason: 'alle drei Abrufe haengen (Antworten stehen aus)',
+    );
+    await _shot(tester, '99-2-gewechselt-antworten-ausstehend');
 
-      // Der zuletzt gewaehlte Sender antwortet zuerst.
-      world.api.release('current:${lofi.slug}', world.next(lofi));
-      await _pumpUntil(
-        tester,
-        () =>
-            _inPlayer(find.text(_new(lofi).toUpperCase()))
-                .evaluate()
-                .isNotEmpty,
-        'neuer Titel von ${lofi.displayName} im Player',
-      );
-      await _shot(tester, '99-3-antwort-des-letzten-senders');
+    // Der zuletzt gewaehlte Sender antwortet zuerst.
+    world.api.release('current:${lofi.slug}', world.next(lofi));
+    await _pumpUntil(
+      tester,
+      () =>
+          _inPlayer(find.text(_new(lofi).toUpperCase())).evaluate().isNotEmpty,
+      'neuer Titel von ${lofi.displayName} im Player',
+    );
+    await _shot(tester, '99-3-antwort-des-letzten-senders');
 
-      // Die verspaeteten Antworten der frueher gewaehlten Sender folgen.
-      world.api
-        ..release('current:${gaming.slug}', world.next(gaming))
-        ..release('current:${rap.slug}', world.next(rap));
-      await _pumpFor(tester, const Duration(milliseconds: 800));
-      _expectPlayer(
-        lofi,
-        title: _new(lofi),
-        forbidden: <String>[_new(rap), _new(gaming)],
-      );
-      expect(world.container.read(activeStationProvider), lofi);
-      await _shot(tester, '99-4-nach-verspaeteten-antworten');
+    // Die verspaeteten Antworten der frueher gewaehlten Sender folgen.
+    world.api
+      ..release('current:${gaming.slug}', world.next(gaming))
+      ..release('current:${rap.slug}', world.next(rap));
+    await _pumpFor(tester, const Duration(milliseconds: 800));
+    _expectPlayer(
+      lofi,
+      title: _new(lofi),
+      forbidden: <String>[_new(rap), _new(gaming)],
+    );
+    expect(world.container.read(activeStationProvider), lofi);
+    await _shot(tester, '99-4-nach-verspaeteten-antworten');
 
-      // Restliche Antworten (Verlauf, Hoerer) freigeben; nichts aendert sich.
-      for (final key in world.api.pending.keys.toList()) {
-        world.api.release(key, null);
-      }
-      await _pumpFor(tester, const Duration(milliseconds: 500));
-      _expectPlayer(lofi, title: _new(lofi));
+    // Restliche Antworten (Verlauf, Hoerer) freigeben; nichts aendert sich.
+    for (final key in world.api.pending.keys.toList()) {
+      world.api.release(key, null);
+    }
+    await _pumpFor(tester, const Duration(milliseconds: 500));
+    _expectPlayer(lofi, title: _new(lofi));
 
-      // Zurueck zu einem der frueheren Sender: dessen eigener, neuer Titel.
-      world.api.gated = false;
-      await _tapStation(tester, rap);
-      await _pumpUntil(
-        tester,
-        () =>
-            _inPlayer(find.text(_new(rap).toUpperCase())).evaluate().isNotEmpty,
-        'Titel von ${rap.displayName} nach Rueckwechsel',
-      );
-      _expectPlayer(rap, title: _new(rap), forbidden: <String>[_new(lofi)]);
-      await _shot(tester, '99-5-rueckwechsel-${rap.slug}');
+    // Zurueck zu einem der frueheren Sender: dessen eigener, neuer Titel.
+    world.api.gated = false;
+    await _tapStation(tester, rap);
+    await _pumpUntil(
+      tester,
+      () => _inPlayer(find.text(_new(rap).toUpperCase())).evaluate().isNotEmpty,
+      'Titel von ${rap.displayName} nach Rueckwechsel',
+    );
+    _expectPlayer(rap, title: _new(rap), forbidden: <String>[_new(lofi)]);
+    await _shot(tester, '99-5-rueckwechsel-${rap.slug}');
 
-      await _disposeWorld(tester, world);
-    },
-    timeout: const Timeout(Duration(minutes: 4)),
-  );
+    await _disposeWorld(tester, world);
+  }, timeout: const Timeout(Duration(minutes: 4)));
 
-  // --------------------------------------------------------------- #101
+  // --------------------------------------------------------------- Language switch
 
-  testWidgets('Issue #101: Sprache de/en umschalten, Rail-Breite bleibt 104', (
+  testWidgets('Sprache de/en umschalten, Rail-Breite bleibt 104', (
     tester,
   ) async {
     expect(LinefmMetrics.railWidth, 104);
@@ -243,9 +234,9 @@ void main() {
     }
   }, timeout: const Timeout(Duration(minutes: 4)));
 
-  // ---------------------------------------------------------------- #87
+  // ---------------------------------------------------------------- Custom title bar
 
-  testWidgets('Issue #87: Titelleiste - Maximieren, Doppelklick, Minimieren, '
+  testWidgets('Titelleiste - Maximieren, Doppelklick, Minimieren, '
       'Schliessen in den Tray, Groesse setzen', (tester) async {
     final desktop = DesktopController.instance;
     expect(

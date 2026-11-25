@@ -1,8 +1,8 @@
 # Freigabe-Checkliste
 
-Diese Liste gehört zu Issue #27. Sie sagt, was vor der Veröffentlichung von LINEFM Radio geprüft und bestätigt sein muss. Teil A bestätigt jaybelife als Betreiber, Teil B prüft jemand mit den echten Geräten, Teil C sind Texte und Datenschutzangaben.
+Diese Liste sagt, was vor der Veröffentlichung von LINEFM Radio geprüft und bestätigt sein muss. Teil A bestätigt jaybelife als Betreiber, Teil B prüft jemand mit den echten Geräten, Teil C sind Texte und Datenschutzangaben.
 
-So geht es: Jeder Punkt wird mit Datum und Name abgehakt oder als "offen" vermerkt. Ein Punkt gilt erst als erledigt, wenn die Antwort schriftlich vorliegt (E-Mail oder Eintrag im Issue reicht).
+So geht es: Jeder Punkt wird mit Datum und Name abgehakt oder als "offen" vermerkt. Ein Punkt gilt erst als erledigt, wenn die Antwort schriftlich vorliegt (E-Mail oder Eintrag im Ticket reicht).
 
 Alle Rechts- und Steuerfragen hier sind eine Vorprüfung. Sie ersetzen keinen Anwalt und keinen Steuerberater.
 
@@ -13,7 +13,7 @@ Die Kontoeinrichtung steht in [EINRICHTUNG.md](EINRICHTUNG.md).
 Diese Punkte lassen sich nicht als "offen" begründen. Solange einer nicht erfüllt ist, wird nicht veröffentlicht bzw. nicht eingeschaltet.
 
 - [ ] **Telemetrie nicht aktivieren, solange keine AVV unterschrieben ist.** Erst wenn der Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO) mit dem Betreiber der Statistik- bzw. Fehlerberichte-Instanz unterschrieben vorliegt, dürfen `UMAMI_*`, `SENTRY_DSN` oder Firebase in `config/app.json` bzw. den CI-Variablen gesetzt werden. Hintergrund: Mit aktiver Telemetrie sagt die Datenschutzerklärung, dass diese Verträge bestehen (Abschnitt 12). Ohne Telemetrie erscheint der Satz nicht.
-- [x] **App-Icon und Markenlogos: schriftliche Zustimmung von jaybelife.** Erfüllt: Die schriftliche Freigabe für App-Icon und Logos liegt laut Inhaber seit 21.11.2026 vor (Issue #20 geschlossen, siehe auch #58 und #76). Das gilt für das Icon aus `https://cdn.linefm.de/images/icons/main.png` (Android, iOS, macOS, Windows, Linux, Web), die Store-Grafiken und das Social-Preview-Bild. Die Sperre ist damit aufgehoben. Bei künftigen neuen Logos oder geänderten Motiven muss die Zustimmung erneut schriftlich (E-Mail oder Issue-Eintrag) vorliegen. Das Social-Preview-Bild lädt der Inhaber selbst bei GitHub hoch.
+- [x] **App-Icon und Markenlogos: schriftliche Zustimmung von jaybelife.** Erfüllt: Die schriftliche Freigabe für App-Icon und Logos liegt laut Inhaber seit 21.11.2026 vor. Das gilt für das Icon aus `https://cdn.linefm.de/images/icons/main.png` (Android, iOS, macOS, Windows, Linux, Web), die Store-Grafiken und das Social-Preview-Bild. Die Sperre ist damit aufgehoben. Bei künftigen neuen Logos oder geänderten Motiven muss die Zustimmung erneut schriftlich (E-Mail oder Ticket-Eintrag) vorliegen. Das Social-Preview-Bild lädt der Inhaber selbst bei GitHub hoch.
 - [ ] Der Release-Build mit `--strict` läuft durch: keine offenen Pflicht-Platzhalter in Rechtstexten, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `BARRIEREFREIHEIT.md` und `security.txt`.
 
 ## A. Bestätigungen durch jaybelife

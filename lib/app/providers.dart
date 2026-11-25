@@ -224,7 +224,7 @@ final stationsProvider = StreamProvider<List<StationLive>>(
 class ActiveStationNotifier extends Notifier<Station> {
   @override
   Station build() {
-    // Nachgeladene Senderliste (Issue #91): geaenderte Angaben des aktiven
+    // Nachgeladene Senderliste: geaenderte Angaben des aktiven
     // Senders (Name, Farbe, Logo) uebernehmen. Wurde er entfernt, bleibt er
     // aktiv, bis der Nutzer wechselt; eine laufende Wiedergabe reisst nicht
     // ab.

@@ -1,4 +1,4 @@
-// Sichert die Store-Metadaten (Issue #63): docs/STORE-TEXTE.md ist die Quelle,
+// Sichert die Store-Metadaten: docs/STORE-TEXTE.md ist die Quelle,
 // fastlane/metadata/ ist abgeleitet. Der Test prueft Zeichenlimits von Google
 // Play und App Store, Vollstaendigkeit in Deutsch und Englisch und dass beide
 // Seiten uebereinstimmen. Die Limits stehen mit Quelle im Kopf von

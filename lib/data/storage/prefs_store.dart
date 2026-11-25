@@ -13,7 +13,7 @@ abstract interface class PrefsStore {
   List<Favorite> readFavorites();
   Future<void> writeFavorites(List<Favorite> favorites);
 
-  /// Favoriten-Sender (Slugs, Issue #42), getrennt von den Song-Favoriten.
+  /// Favoriten-Sender (Slugs), getrennt von den Song-Favoriten.
   Set<String> readFavoriteStations();
   Future<void> writeFavoriteStations(Set<String> slugs);
 
@@ -37,7 +37,7 @@ abstract interface class PrefsStore {
   String? readCoverCache();
   Future<void> writeCoverCache(String json);
 
-  /// Zuletzt gueltig nachgeladene Senderliste samt ETag (Issue #91), als
+  /// Zuletzt gueltig nachgeladene Senderliste samt ETag, als
   /// JSON-Text. Gleiche Regel wie der Cover-Cache: nur mit Bestaetigung.
   String? readStationsCache();
   Future<void> writeStationsCache(String json);

@@ -21,7 +21,7 @@ const String appBuildNumber = String.fromEnvironment(
 );
 
 /// Versionszeile: Release-Version mit Build, lokal "Entwicklungsversion"
-/// mit Commit-Kurz-ID (#104).
+/// mit Commit-Kurz-ID.
 String versionText(AppLocalizations l10n, AppConfig config) {
   if (config.isDevBuild) {
     final commit = config.appCommit.isEmpty ? '?' : config.appCommit;

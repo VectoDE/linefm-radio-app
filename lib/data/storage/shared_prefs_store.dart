@@ -32,10 +32,10 @@ abstract final class PrefsKeys {
   static const String telemetryConsent = 'linefm-telemetry-consent';
   static const String coverCache = 'linefm-cover-cache';
 
-  /// Zuletzt gueltig nachgeladene Senderliste (Issue #91).
+  /// Zuletzt gueltig nachgeladene Senderliste.
   static const String stationsCache = 'linefm-stations-cache';
 
-  /// Favoriten-Sender (Issue #42). Gibt es in der Web-App nicht.
+  /// Favoriten-Sender. Gibt es in der Web-App nicht.
   static const String favoriteStations = 'linefm-favorite-stations';
 
   /// Fenstergroesse/-position und Mini-Fenster (Desktop, P18).

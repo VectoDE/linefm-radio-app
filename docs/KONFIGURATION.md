@@ -23,7 +23,7 @@ Alle Einstellungen, die beim Bauen der App festgelegt werden, liegen im Ordner [
 | `stations.yaml` | Senderliste | ja |
 | `app.example.yaml` → `app.yaml` | Umgebung, Web-Adresse, Telemetrie, Firebase, Google Tag, Vertrauenssiegel, `STATIONS_URL` (feste https-Adresse zum Nachladen der Senderliste) | ja |
 | `features.example.yaml` → `features.yaml` | Schalter. `showListenerCount`: Hörerzahl im Player zeigen (`true`/`false`, Standard `false`) | ja |
-| `operator.example.yaml` → `operator.yaml` | Betreiberangaben fürs Impressum (Issue #98) | noch nicht, nur Schema |
+| `operator.example.yaml` → `operator.yaml` | Betreiberangaben fürs Impressum | noch nicht, nur Schema |
 | `telemetry.example.yaml` → `telemetry.yaml` | Telemetrie getrennt von `app.yaml` | noch nicht, nur Schema; heute stehen die Werte in `app.yaml` |
 | `updater.example.yaml` → `updater.yaml` | Update-Hinweis: `enabled` (`true`/`false`), `channel` (`stable` oder `beta`) | noch nicht, nur Schema |
 
@@ -47,7 +47,7 @@ In der CI gibt es keine echten Dateien. Die Werte kommen aus den Repository-Eins
 
 ## Prüfung in der CI
 
-Jeder Pull Request führt `dart run tool/check_config.dart` aus. Geprüft wird:
+Jeder Änderungsvorschlag führt `dart run tool/check_config.dart` aus. Geprüft wird:
 
 - Über jedem Schlüssel steht ein Kommentar.
 - Jede Beispieldatei enthält alle Schlüssel ihres Schemas, keine unbekannten, mit dem richtigen Typ und genau dem Standardwert.

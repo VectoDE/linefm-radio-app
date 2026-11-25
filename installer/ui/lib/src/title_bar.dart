@@ -4,7 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'theme.dart';
 
 /// Custom title bar of the setup window, the same on Windows, macOS and
-/// Linux (#88, design of the app's bar from #87: 40 dp, logo, name, window
+/// Linux (design of the app's bar: 40 dp, logo, name, window
 /// buttons on the right, 46 x 40 like Windows 11). The native title bar is
 /// hidden by the runners. The setup window has a fixed size, so it offers
 /// minimize and close only (no maximize, no double-click zoom).

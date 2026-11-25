@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/core/update/app_version.dart';
 
-OpenIssue issue(List<String> labels) => OpenIssue(labels.toSet());
+OpenItem item(List<String> labels) => OpenItem(labels.toSet());
 SemVer v(String s) => SemVer.tryParse(s)!;
 
 void main() {
@@ -39,12 +39,12 @@ void main() {
     });
   });
 
-  group('Stufe aus offenen Issues', () {
-    test('offenes Feature-Issue -> alpha', () {
+  group('Stufe aus offenen Tickets', () {
+    test('offenes Feature-Ticket -> alpha', () {
       expect(
-        stageFromIssues([
-          issue(['typ:feature']),
-          issue(['bug']),
+        stageFromItems([
+          item(['typ:feature']),
+          item(['bug']),
         ]),
         ReleaseStage.alpha,
       );
@@ -52,9 +52,9 @@ void main() {
 
     test('alle Features zu, anderes offen -> beta', () {
       expect(
-        stageFromIssues([
-          issue(['bug']),
-          issue(['nur-noch:jaybelife']),
+        stageFromItems([
+          item(['bug']),
+          item(['nur-noch:jaybelife']),
         ]),
         ReleaseStage.beta,
       );
@@ -62,16 +62,16 @@ void main() {
 
     test('nur noch nur-noch:jaybelife offen -> rc', () {
       expect(
-        stageFromIssues([
-          issue(['nur-noch:jaybelife', 'typ:feature']),
-          issue(['nur-noch:jaybelife']),
+        stageFromItems([
+          item(['nur-noch:jaybelife', 'typ:feature']),
+          item(['nur-noch:jaybelife']),
         ]),
         ReleaseStage.rc,
       );
     });
 
     test('nichts offen -> stabil', () {
-      expect(stageFromIssues(const []), ReleaseStage.stable);
+      expect(stageFromItems(const []), ReleaseStage.stable);
     });
   });
 
@@ -141,7 +141,7 @@ void main() {
       );
     });
 
-    test('keine Rückstufe, wenn ein Issue wieder aufgeht', () {
+    test('keine Rückstufe, wenn ein Ticket wieder aufgeht', () {
       expect(
         nextVersion(
           last: v('1.0.0-rc.1'),

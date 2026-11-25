@@ -153,7 +153,15 @@
     #static-shell ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
     #static-shell a { color: #ffffff; }
     #static-shell .muted { color: #a4a7b6; font-size: 0.9rem; }
+    #static-shell .start-slot { height: 48px; display: flex; align-items: center; justify-content: center; }
     #static-shell .dots { display: flex; gap: 8px; }
+    #static-shell .dots[hidden] { display: none; }
+    /* The engine starts on intent (flutter_bootstrap.js). Without JavaScript the
+       button stays invisible but keeps its space, so nothing shifts. */
+    #start-app { visibility: hidden; min-height: 48px; min-width: 48px; padding: 0 28px; border: 0; border-radius: 24px; background: #ffffff; color: #0f1221; font: inherit; font-weight: 600; cursor: pointer; }
+    #start-app.ready { visibility: visible; }
+    #start-app[hidden] { display: none; }
+    #start-app:focus-visible { outline: 3px solid #a4a7b6; outline-offset: 3px; }
     #static-shell .dots i { width: 8px; height: 8px; border-radius: 50%; background: #898da1; animation: dot 1.2s infinite ease-in-out; }
     #static-shell .dots i:nth-child(2) { animation-delay: .2s; }
     #static-shell .dots i:nth-child(3) { animation-delay: .4s; }
@@ -167,16 +175,21 @@
       #static-shell a { color: #0f1221; }
       #static-shell .muted { color: #4a4e62; }
       #static-shell .dots i { background: #565a6e; }
+      #start-app { background: #0f1221; color: #ffffff; }
+      #start-app:focus-visible { outline-color: #4a4e62; }
     }
   </style>
 </head>
 <body>
-  <div id="static-shell">
+  <main id="static-shell">
     <img src="icons/Icon-192.png" width="96" height="96" alt="LINEFM Radio" decoding="async">
     <h1>LINEFM | Radio</h1>
     <p lang="de">Hör LineFM +MAIN, +RAP, +GAMING und +LOFI sowie die Partnersender Radio3FM und FobFM live. Die App merkt sich Favoriten, zeigt den Verlauf und schaltet sich per Sleeptimer ab.</p>
     <p lang="en">Listen to LineFM +MAIN, +RAP, +GAMING and +LOFI plus the partner stations Radio3FM and FobFM live. The app remembers your favourites, shows your history and stops with a sleep timer.</p>
-    <div class="dots" role="status" aria-label="LINEFM wird geladen"><i></i><i></i><i></i></div>
+    <div class="start-slot">
+      <button id="start-app" type="button">Radio starten</button>
+      <div id="shell-loading" class="dots" role="status" aria-label="LINEFM wird geladen" hidden><i></i><i></i><i></i></div>
+    </div>
     <ul aria-label="Sender">
       <li>LineFM +MAIN</li>
       <li>LineFM +RAP</li>
@@ -187,7 +200,7 @@
     </ul>
     <noscript><p lang="de">Für das Radio wird JavaScript benötigt. Bitte aktiviere es in deinem Browser.</p><p lang="en">The radio needs JavaScript. Please enable it in your browser.</p></noscript>
     <p class="muted">Ein Angebot von <a href="https://radiogruppe.de" rel="noopener">RadioGruppe Deutschland</a> · <a href="https://linefm.de" rel="noopener">linefm.de</a> · <a href="impressum/">Impressum</a> · <a href="datenschutz/">Datenschutz</a></p>
-  </div>
+  </main>
   <script src="analytics.js"></script>
   <script src="flutter_bootstrap.js" async></script>
 </body>

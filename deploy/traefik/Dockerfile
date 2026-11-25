@@ -5,7 +5,7 @@
 FROM nginxinc/nginx-unprivileged:1.31-alpine@sha256:b5047b9b76845eac124358373c6852377c52e4b05834a47647e955dd91cb8f1e
 
 # Sicherheitsupdates der Alpine-Pakete beim Bauen einspielen. Das Basisimage wird
-# upstream nicht bei jeder Paketkorrektur neu gebaut (Trivy-Fund in PR #85: musl,
+# upstream nicht bei jeder Paketkorrektur neu gebaut (Trivy-Fund: musl,
 # zlib, expat, libxml2, libxslt, curl mit verfuegbarem Fix im 1.31-alpine-Digest).
 USER root
 RUN apk upgrade --no-cache

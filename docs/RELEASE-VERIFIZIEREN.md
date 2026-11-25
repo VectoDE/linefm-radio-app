@@ -51,7 +51,7 @@ cosign verify-blob \
 
 Erwartete Ausgabe: `Verified OK`. Am sichersten prüfst du zuerst `SHA256SUMS.txt` mit seinem Bundle und danach die Downloads mit `sha256sum -c` (Schritt 1).
 
-Seit #104 entsteht jedes Release beim Merge auf `main`. Die Identität ist deshalb für alle Versionen gleich. Welche Version eine Datei ist, belegen ihr Name und `SHA256SUMS.txt`; aus welchem Commit sie stammt, zeigt die Attestierung (Schritt 2).
+Seit der Umstellung entsteht jedes Release beim Merge auf `main`. Die Identität ist deshalb für alle Versionen gleich. Welche Version eine Datei ist, belegen ihr Name und `SHA256SUMS.txt`; aus welchem Commit sie stammt, zeigt die Attestierung (Schritt 2).
 
 ## 4. GPG-Signatur (optional)
 

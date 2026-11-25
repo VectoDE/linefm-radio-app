@@ -2,7 +2,7 @@ import AVKit
 import Cocoa
 import FlutterMacOS
 
-/// Native Seite des AirPlay-Knopfs unter macOS (Issue #14/#51). Gleicher
+/// Native Seite des AirPlay-Knopfs unter macOS. Gleicher
 /// Kanal und Platform-View-Typ wie iOS; Dart-Seite:
 /// `lib/platform/airplay_button.dart` (AppKitView).
 ///

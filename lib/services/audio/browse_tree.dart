@@ -1,6 +1,7 @@
 import 'dart:ui' show Locale;
 
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
@@ -77,7 +78,7 @@ class AutoMenuTitles {
   final String recent;
 }
 
-/// Android-Auto-Browse-Tree (Spec 2.2, Issue #42): Die Wurzel zeigt immer
+/// Android-Auto-Browse-Tree (Spec 2.2): Die Wurzel zeigt immer
 /// drei Ordner in fester Reihenfolge: Favoriten-Sender, Sender, Zuletzt
 /// gehoert. Dazu Suche im Sendernamen.
 class BrowseTree {
@@ -113,7 +114,7 @@ class BrowseTree {
   );
 
   /// Name des Drawables eines Senders (nur Kleinbuchstaben und Ziffern).
-  /// Sender ohne mitgeliefertes Logo (erst nachgeladen, Issue #91) zeigen
+  /// Sender ohne mitgeliefertes Logo (erst nachgeladen) zeigen
   /// das LINEFM-Logo wie das Homescreen-Widget; Android Auto kann keine
   /// Bilder aus dem Netz anzeigen.
   static String androidDrawableName(Station station) =>
@@ -126,6 +127,18 @@ class BrowseTree {
 
   /// Senderlogo aus dem Netz (iOS, Web, Benachrichtigung).
   static Uri remoteArt(Station station) => Uri.parse(station.logoUrl);
+
+  /// Station art for the media session. On the web the bundled logo from the
+  /// app's own origin: the logo CDN sends no CORS header, so the browser
+  /// refuses to read it from another origin and logs an error. The relative
+  /// URL resolves against the document base, like every Flutter asset.
+  static Uri defaultArt(Station station) {
+    final asset = station.logoAsset;
+    if (kIsWeb && asset != null && asset.isNotEmpty) {
+      return Uri.parse('assets/$asset');
+    }
+    return remoteArt(station);
+  }
 
   /// Die drei Ordner des Auto-Menues. [favorites] sind die gemerkten Sender
   /// (Reihenfolge der Senderliste), [recent] die zuletzt gehoerte Station.
@@ -224,7 +237,7 @@ class BrowseTree {
       displayDescription: station.displayName,
       artUri: cover != null && cover.isNotEmpty
           ? Uri.parse(cover)
-          : (art ?? remoteArt(station)),
+          : (art ?? defaultArt(station)),
       playable: true,
       isLive: true,
       extras: <String, dynamic>{'stationId': station.id},

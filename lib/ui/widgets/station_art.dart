@@ -20,7 +20,7 @@ String stationInitials(String displayName) {
 /// es fehlt) steht das Kuerzel da; das Logo blendet in 200 ms ein.
 ///
 /// Mitgelieferte Sender nutzen das Logo aus dem App-Paket. Nachgeladene
-/// Sender ohne mitgeliefertes Logo (Issue #91) laden es von ihrer
+/// Sender ohne mitgeliefertes Logo laden es von ihrer
 /// Logo-Adresse (nur erlaubte Hosts, siehe stations_config.dart); bis dahin
 /// und bei Fehlern bleibt der Platzhalter in Senderfarbe, in beiden Themes
 /// derselbe wie bei mitgelieferten Sendern.

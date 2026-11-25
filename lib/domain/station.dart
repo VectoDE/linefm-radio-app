@@ -1,6 +1,6 @@
 import 'dart:ui' show Color;
 
-/// Ein Sender. Die Liste kommt aus config/stations.yaml (Issue #91),
+/// Ein Sender. Die Liste kommt aus config/stations.yaml,
 /// siehe `stationsCatalog`.
 class Station {
   const Station({

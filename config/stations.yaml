@@ -1,4 +1,4 @@
-# Senderliste der LINEFM-App (Issue #91).
+# Senderliste der LINEFM-App.
 # Anleitung Schritt für Schritt: docs/SENDER-VERWALTEN.md
 # Prüfen: dart run tool/check_config.dart
 #

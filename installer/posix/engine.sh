@@ -184,13 +184,14 @@ is_ours() {
 # --- install record ----------------------------------------------------------
 
 # Per-user record first (like the Windows engine), then the system-wide one.
-[ -f "$RECORD" ] || RECORD=$MACHINE_RECORD
-R_VERSION=$(kv "$RECORD" VERSION)
-R_SCOPE=$(kv "$RECORD" SCOPE)
-R_DIR=$(kv "$RECORD" DIR)
-R_DESKTOP=$(kv "$RECORD" DESKTOP)
-R_STARTMENU=$(kv "$RECORD" STARTMENU)
-R_AUTOSTART=$(kv "$RECORD" AUTOSTART)
+READ_RECORD=$RECORD
+[ -f "$READ_RECORD" ] || READ_RECORD=$MACHINE_RECORD
+R_VERSION=$(kv "$READ_RECORD" VERSION)
+R_SCOPE=$(kv "$READ_RECORD" SCOPE)
+R_DIR=$(kv "$READ_RECORD" DIR)
+R_DESKTOP=$(kv "$READ_RECORD" DESKTOP)
+R_STARTMENU=$(kv "$READ_RECORD" STARTMENU)
+R_AUTOSTART=$(kv "$READ_RECORD" AUTOSTART)
 
 installed_json() {
   if [ -n "$R_VERSION" ] && [ "$R_SCOPE" = "$1" ]; then
@@ -284,15 +285,13 @@ ensure_not_running() {
     *) finish "$EX_RUNNING" "App is running" ;;
   esac
   emit "phase closing"
-  # shellcheck disable=SC2086 # list of numeric PIDs
-  kill -TERM $pids 2>/dev/null
+  echo "$pids" | xargs kill -TERM 2>/dev/null
   i=0
   while [ -n "$(app_pids)" ] && [ $i -lt 50 ]; do sleep 0.2; i=$((i + 1)); done
   pids=$(app_pids)
   if [ -n "$pids" ]; then
     log "App does not respond, forcing it to quit"
-    # shellcheck disable=SC2086
-    kill -KILL $pids 2>/dev/null
+    echo "$pids" | xargs kill -KILL 2>/dev/null
     sleep 1
   fi
   [ -z "$(app_pids)" ] || finish "$EX_RUNNING" "App cannot be closed"
@@ -317,20 +316,20 @@ dock_edit() { # add|remove DIR
   url="file://$(printf '%s' "$2" | sed -e 's/%/%25/g' -e 's/ /%20/g')/"
   pb=/usr/libexec/PlistBuddy
   i=0; found=""
-  while label=$($pb -c "Print :persistent-apps:$i:tile-data:file-data:_CFURLString" "$tmp" 2>/dev/null) || \
-        $pb -c "Print :persistent-apps:$i" "$tmp" >/dev/null 2>&1; do
+  while label=$("$pb" -c "Print :persistent-apps:$i:tile-data:file-data:_CFURLString" "$tmp" 2>/dev/null) || \
+        "$pb" -c "Print :persistent-apps:$i" "$tmp" >/dev/null 2>&1; do
     if [ "$label" = "$url" ]; then found=$i; break; fi
     i=$((i + 1)); label=""
   done
   if [ "$1" = add ] && [ -z "$found" ]; then
-    $pb -c "Add :persistent-apps:$i dict" \
+    "$pb" -c "Add :persistent-apps:$i dict" \
         -c "Add :persistent-apps:$i:tile-type string file-tile" \
         -c "Add :persistent-apps:$i:tile-data dict" \
         -c "Add :persistent-apps:$i:tile-data:file-data dict" \
         -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLString string $url" \
         -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLStringType integer 15" "$tmp" >/dev/null 2>&1 || return 0
   elif [ "$1" = remove ] && [ -n "$found" ]; then
-    $pb -c "Delete :persistent-apps:$found" "$tmp" >/dev/null 2>&1 || return 0
+    "$pb" -c "Delete :persistent-apps:$found" "$tmp" >/dev/null 2>&1 || return 0
   else
     return 0
   fi
@@ -449,7 +448,7 @@ install_uninstaller() { # STAGING
   if [ "$OS" = macos ]; then
     src="$1/uninstaller/$P_UNINSTALLER"
     [ -d "$src" ] || { log "No uninstaller in the payload"; return 0; }
-    rm -rf "$STATE_DIR/$P_UNINSTALLER"
+    rm -rf "${STATE_DIR:?}/${P_UNINSTALLER:?}"
     mv "$src" "$STATE_DIR/$P_UNINSTALLER"
   else
     bundle=$(dirname "$SELF_DIR")
@@ -649,6 +648,32 @@ delete_user_data() {
 # Runs root-helper.sh with administrator rights. Only a verb and 0/1 flags
 # are passed; the helper copies the staged files into a root-owned folder,
 # checks the payload hash there and writes only to fixed system paths.
+# Runs HELPER [ARGS...] with administrator rights; output to $out, exit code
+# to $rc (written last, so $rc marks completion).
+root_exec() {
+  if [ "$(id -u)" = 0 ]; then
+    /bin/sh "$@" > "$out" 2>&1; c=$?
+  elif [ "${LF_SETUP_ELEVATE:-}" = sudo ]; then
+    # CI test mode (passwordless sudo on the runner).
+    # shellcheck disable=SC2024 # output files stay user-owned on purpose
+    sudo -n /bin/sh "$@" > "$out" 2>&1; c=$?
+  elif [ "$OS" = linux ]; then
+    pkexec /bin/sh "$@" > "$out" 2>&1; c=$?
+  else
+    # Standard macOS administrator prompt. Script text is fixed; the helper
+    # path and the flags are passed as arguments and quoted by AppleScript.
+    # Output arrives only at the end here, so progress jumps on macOS.
+    /usr/bin/osascript -e 'on run argv' \
+      -e 'set cmd to "/bin/sh"' \
+      -e 'repeat with a in argv' -e 'set cmd to cmd & " " & quoted form of (a as text)' -e 'end repeat' \
+      -e 'do shell script cmd with administrator privileges' -e 'end run' \
+      "$@" > "$out.r" 2>&1; c=$?
+    tr '\r' '\n' < "$out.r" > "$out"
+  fi
+  echo "$c" > "$rc"
+}
+
+
 run_root() { # VERB [FLAGS...]
   elev="$WORK/elev"
   rm -rf "$elev"; mkdir -m 755 "$elev" || finish "$EX_FAILED" "Cannot stage"
@@ -665,24 +690,25 @@ run_root() { # VERB [FLAGS...]
   helper="$elev/root-helper.sh"
   rc="$WORK/root.rc"; out="$WORK/root.out"
   emit "phase elevating"
-  if [ "$(id -u)" = 0 ]; then
-    /bin/sh "$helper" "$@" > "$out" 2>&1; echo $? > "$rc"
-  elif [ "${LF_SETUP_ELEVATE:-}" = sudo ]; then
-    # CI test mode (passwordless sudo on the runner).
-    sudo -n /bin/sh "$helper" "$@" > "$out" 2>&1; echo $? > "$rc"
-  elif [ "$OS" = linux ]; then
+  if [ "$(id -u)" != 0 ] && [ "${LF_SETUP_ELEVATE:-}" != sudo ] && [ "$OS" = linux ]; then
     command -v pkexec >/dev/null 2>&1 || finish "$EX_ELEVATION" "pkexec (polkit) is not installed"
-    pkexec /bin/sh "$helper" "$@" > "$out" 2>&1; echo $? > "$rc"
-  else
-    # Standard macOS administrator prompt. Script text is fixed; the helper
-    # path and the flags are passed as arguments and quoted by AppleScript.
-    /usr/bin/osascript -e 'on run argv' \
-      -e 'set cmd to "/bin/sh"' \
-      -e 'repeat with a in argv' -e 'set cmd to cmd & " " & quoted form of (a as text)' -e 'end repeat' \
-      -e 'do shell script cmd with administrator privileges' -e 'end run' \
-      "$helper" "$@" > "$out" 2>&1; echo $? > "$rc"
-    tr '\r' '\n' < "$out" > "$out.n" && mv "$out.n" "$out"
   fi
+  : > "$out"; rm -f "$rc"
+  # The helper runs in the background; its byte progress is mapped live onto
+  # our scale (the extraction share between HASH_W and HASH_W + BYTES).
+  root_exec "$helper" "$@" &
+  hp=$!
+  last=""
+  while :; do
+    line=$(grep -E '^progress [0-9]+ [0-9]+$' "$out" 2>/dev/null | tail -n 1 \
+      | awk -v base="${HASH_W:-0}" -v bytes="${BYTES:-0}" -v grand="${GRAND:-0}" \
+          '$3 > 0 && grand > 0 { printf "progress %d %d", base + int(bytes * ($2 / $3)), grand }')
+    if [ -n "$line" ] && [ "$line" != "$last" ]; then emit "$line"; last=$line; fi
+    [ -f "$rc" ] && break
+    kill -0 "$hp" 2>/dev/null || { sleep 0.2; [ -f "$rc" ] || echo 1 > "$rc"; break; }
+    sleep 0.3
+  done
+  wait "$hp" 2>/dev/null
   code=$(cat "$rc")
   # Forward the helper's log (progress units are the engine's), keep its
   # result for us.

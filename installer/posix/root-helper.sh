@@ -154,6 +154,7 @@ cmd_install() {
   # Root-owned copy, then verify: no swap possible between check and use.
   TMP=$(mktemp -d /tmp/linefm-root.XXXXXX) || finish "$EX_FAILED" "No temp folder"
   chmod 700 "$TMP"
+  # shellcheck disable=SC2015 # the fallback is meant to run when any step fails
   cp "$SRC/payload.tar.gz" "$TMP/payload.tar.gz" && cp "$SRC/payload.sha256" "$TMP/payload.sha256" \
     || finish "$EX_CORRUPT" "Payload missing"
   # Uninstaller (setup UI without payload): copied, never extracted, so it
@@ -163,14 +164,26 @@ cmd_install() {
   expected=$(awk '{print $1; exit}' "$TMP/payload.sha256")
   [ -n "$expected" ] && [ "$expected" = "$(sha256_of "$TMP/payload.tar.gz")" ] || finish "$EX_CORRUPT" "Payload damaged"
   log "Payload SHA-256 verified as root"
-  mkdir "$TMP/x" && tar -xzf "$TMP/payload.tar.gz" -C "$TMP/x" --no-same-owner 2>/dev/null \
-    || tar -xzf "$TMP/payload.tar.gz" -C "$TMP/x" || finish "$EX_CORRUPT" "Payload unreadable"
+  # Progress in bytes of the app (#88): one verbose tar line per entry, in
+  # archive order; the engine maps "progress done total" onto its own scale.
+  if [ "$OS" = macos ]; then field=5; else field=3; fi
+  tar -tzvf "$TMP/payload.tar.gz" 2>/dev/null \
+    | awk -v f="$field" '{ s = $f; if (s !~ /^[0-9]+$/) s = 0; print s }' > "$TMP/sizes"
+  B=$(awk '{ t += $1 } END { printf "%d", t }' "$TMP/sizes")
+  [ "${B:-0}" -gt 0 ] 2>/dev/null || B=1
+  T=$((B + B / 50 + 1))
+  emit "progress 0 $T"
+  mkdir "$TMP/x" || finish "$EX_FAILED" "No extract folder"
+  tar -xzvf "$TMP/payload.tar.gz" -C "$TMP/x" --no-same-owner 2>&1 | awk -v total="$T" -v sizes="$TMP/sizes" '
+    BEGIN { while ((getline l < sizes) > 0) sz[++n] = l }
+    { i++; done += sz[i]; if (i % 20 == 0) { printf "progress %d %d\n", done, total; fflush() } }'
+  emit "progress $B $T"
   if [ "$OS" = macos ]; then NEW="$TMP/x/app/LINEFM Radio.app"; else NEW="$TMP/x/app"; fi
   [ -d "$NEW" ] || finish "$EX_CORRUPT" "Payload incomplete"
   chown -R 0:0 "$NEW" 2>/dev/null || chown -R 0:wheel "$NEW"
   chmod -R go-w "$NEW"
   [ "$OS" = linux ] && : > "$NEW/.linefm-install"
-  emit "progress 1 3"
+
 
   parent=$(dirname "$DIR"); base=$(basename "$DIR")
   STAGE="$parent/.$base.lfnew.$$"; BACKUP="$parent/.$base.lfold.$$"
@@ -182,7 +195,7 @@ cmd_install() {
     finish "$EX_FAILED" "Cannot move new version into place"
   fi
   rm -rf "$BACKUP"
-  emit "progress 2 3"
+
 
   mkdir -p "$STATE"; chmod 755 "$STATE"
   if [ "$OS" = linux ]; then
@@ -202,6 +215,7 @@ cmd_install() {
     fi
     command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$APPS" >/dev/null 2>&1
     rm -rf "$STATE/uninstaller"
+    # shellcheck disable=SC2015 # the fallback is meant to run when any step fails
     chown -R -h 0:0 "$TMP/uninstaller" && chmod -R go-w "$TMP/uninstaller" \
       && mv "$TMP/uninstaller" "$STATE/uninstaller" || log "Uninstaller could not be kept"
   else
@@ -213,11 +227,12 @@ cmd_install() {
     lsreg=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
     [ -x "$lsreg" ] && "$lsreg" -f "$DIR" >/dev/null 2>&1
   fi
+  # shellcheck disable=SC2015 # the fallback is meant to run when any step fails
   {
     echo "VERSION=$VERSION"; echo "SCOPE=machine"; echo "DIR=$DIR"
     echo "DESKTOP=$DESK"; echo "STARTMENU=$ENTRY"; echo "AUTOSTART=$AUTO"
   } > "$RECORD.new" && chmod 644 "$RECORD.new" && mv -f "$RECORD.new" "$RECORD" || finish "$EX_FAILED" "Cannot write record"
-  emit "progress 3 3"
+  emit "progress $T $T"
   log "System-wide installation finished"
   finish "$EX_OK" "$DIR"
 }

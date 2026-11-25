@@ -202,6 +202,6 @@ if [ "$os" = linux ]; then
   check "everyone: system entries removed" sh -c '! test -e /usr/share/applications/de.linefm.app.desktop && ! test -e /usr/local/bin/linefm-radio && ! test -e /etc/xdg/autostart/de.linefm.app.desktop'
 fi
 
-ls -R "$art/screenshots" | head -60
+find "$art/screenshots" -type f | sort | head -60
 echo "failures: $failures"
 [ "$failures" = 0 ]

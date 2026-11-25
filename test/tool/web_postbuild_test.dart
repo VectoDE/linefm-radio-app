@@ -356,6 +356,9 @@ void main() {
           .where((l) => l.trim().isNotEmpty)
           .map((l) => l.trim())
           .toList();
+      // Pages-only lines: comments and the detach of the default CORS header (#137).
+      expect(cfHeaders, contains('! Access-Control-Allow-Origin'));
+      cfHeaders.removeWhere((l) => l.startsWith('#') || l.startsWith('!'));
 
       expect(pleskHeaders, nginxHeaders);
       expect(apacheHeaders, nginxHeaders);

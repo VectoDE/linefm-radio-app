@@ -6,7 +6,7 @@
   Zwei Stufen, damit die CI dazwischen signieren kann:
 
     -Stage prepare  Engine (setup_stub.exe, lfpack.exe) mit CMake/MSVC und die
-                    Setup-Oberflaeche (Flutter, installer/windows/ui) bauen.
+                    Setup-Oberflaeche (Flutter, installer/ui) bauen.
     -Stage pack     App-Ordner, Oberflaeche, Lizenzen und Produktdaten an den
                     Stub haengen: setup.exe.
     -Stage all      beides (lokal, ohne Signatur).
@@ -38,7 +38,7 @@ try {
   }
   $numeric = ($Version -split '[-+]')[0]
   $engineBuild = Join-Path $WorkDir 'engine'
-  $uiProject = 'installer/windows/ui'
+  $uiProject = 'installer/ui'
   $uiRelease = Join-Path $uiProject 'build/windows/x64/runner/Release'
 
   if ($Stage -in 'prepare', 'all') {

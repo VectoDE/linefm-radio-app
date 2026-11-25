@@ -1,6 +1,6 @@
 # linefm_setup
 
-Setup-Oberfläche (Installer und Deinstaller) von LINEFM Radio für Windows. Wird nicht allein ausgeliefert, sondern vom Setup-Stub aus `setup.exe` entpackt und mit `--context <context.json>` gestartet. Aufbau, Protokoll und Sicherheit: [../README.md](../README.md).
+Setup-Oberfläche (Installer und Deinstaller) von LINEFM Radio für Windows. Wird nicht allein ausgeliefert, sondern vom Setup-Stub aus `setup.exe` entpackt und mit `--context <context.json>` gestartet. Shared by all desktop installers (Windows engine: [../windows/README.md](../windows/README.md)). Aufbau, Protokoll und Sicherheit: [../windows/README.md](../windows/README.md).
 
 ```powershell
 flutter pub get

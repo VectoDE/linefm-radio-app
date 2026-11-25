@@ -40,7 +40,18 @@ bool FlutterWindow::OnCreate() {
     // for the desktop compositor so the first visible frame is the loader,
     // not an empty (white) child surface.
     DwmFlush();
+    // Without this the open animation fades in an empty, dark frame before
+    // the loader (the content is only drawn once the transition ends). The
+    // animation is switched back on afterwards for minimise and restore.
+    HWND hwnd = GetHandle();
+    BOOL disable = TRUE;
+    DwmSetWindowAttribute(hwnd, DWMWA_TRANSITIONS_FORCEDISABLED, &disable,
+                          sizeof(disable));
     this->Show();
+    DwmFlush();
+    disable = FALSE;
+    DwmSetWindowAttribute(hwnd, DWMWA_TRANSITIONS_FORCEDISABLED, &disable,
+                          sizeof(disable));
   });
 
   // Flutter can complete the first frame before the "show window" callback is

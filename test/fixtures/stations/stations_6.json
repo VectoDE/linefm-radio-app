@@ -1,0 +1,48 @@
+{
+  "hinweis": "Senderliste der App. Anleitung: docs/SENDER-VERWALTEN.md",
+  "schemaVersion": 1,
+  "sender": [
+    {
+      "kuerzel": "linefm",
+      "name": "LineFM +MAIN",
+      "farbe": "#4B4B7D",
+      "logo": "https://cdn.linefm.de/images/icons/main.png",
+      "logoDatei": "assets/images/stations/main.png"
+    },
+    {
+      "kuerzel": "linefmrap",
+      "name": "LineFM +RAP",
+      "farbe": "#FF0084",
+      "logo": "https://cdn.linefm.de/images/icons/rap.png",
+      "logoDatei": "assets/images/stations/rap.png"
+    },
+    {
+      "kuerzel": "linefmgaming",
+      "name": "LineFM +GAMING",
+      "farbe": "#4BBD71",
+      "logo": "https://cdn.linefm.de/images/icons/gaming.png",
+      "logoDatei": "assets/images/stations/gaming.png"
+    },
+    {
+      "kuerzel": "linefmlofi",
+      "name": "LineFM +LOFI",
+      "farbe": "#546E7A",
+      "logo": "https://cdn.linefm.de/images/icons/lofi.png",
+      "logoDatei": "assets/images/stations/lofi.png"
+    },
+    {
+      "kuerzel": "radio3fm",
+      "name": "Radio3FM",
+      "farbe": "#177D29",
+      "logo": "https://cdn.linefm.de/images/icons/radio3fm.png",
+      "logoDatei": "assets/images/stations/radio3fm.png"
+    },
+    {
+      "kuerzel": "fobfm",
+      "name": "FobFM",
+      "farbe": "#04FFF7",
+      "logo": "https://cdn.linefm.de/images/icons/fobfm.png",
+      "logoDatei": "assets/images/stations/fobfm.png"
+    }
+  ]
+}

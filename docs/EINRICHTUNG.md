@@ -413,6 +413,8 @@ Quelle: [packaging/windows/README.md](../packaging/windows/README.md).
 - **Wo eintragen:** Secrets `WINDOWS_CERT_PFX_BASE64` und `WINDOWS_CERT_PASSWORD`.
 - **Woher:** Ein Zertifikatsanbieter (kostenpflichtig, kostenlose Wege prüfen).
 - **Prüfschritt:** Der Installer zeigt in den Dateieigenschaften eine digitale Signatur.
+- **Was damit signiert wird:** die App-EXE, der Setup-Stub (er ist zugleich `uninstall.exe`), das Setup-Fenster `linefm_setup.exe` und die fertige `setup.exe`. Die CI prüft die Signatur der `setup.exe` mit `signtool verify`. Das Zertifikat sollte auf den Hersteller "LineFM Studios" lauten, so steht er auch in den Dateieigenschaften und unter "Installierte Apps".
+- **Bedienung des Installers:** [BAUEN-UND-STARTEN.md](BAUEN-UND-STARTEN.md), Abschnitt "Windows: Installer benutzen".
 - [ ] erledigt
 
 ### 7.5 Store-Eintrag
@@ -471,7 +473,7 @@ Ohne Konfiguration sendet die App nichts und fragt nicht nach Einwilligung. Tech
 
 - **Was:** Öffentliche IDs als Repository-Variablen setzen.
 - **Wozu:** Sie aktivieren den Anbieter im Build. Es sind keine Geheimnisse, sie stehen im fertigen Programm.
-- **Wo eintragen:** Variablen `UMAMI_URL`, `UMAMI_WEBSITE_ID`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT`. Für Firebase Secret `FIREBASE_CONFIG_JSON` (JSON mit `FIREBASE_*`-Schlüsseln). Lokal: `config/app.json` nach Vorlage `config/app.example.json`, nicht einchecken.
+- **Wo eintragen:** Variablen `UMAMI_URL`, `UMAMI_WEBSITE_ID`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT`. Für Firebase Secret `FIREBASE_CONFIG_JSON` (JSON mit `FIREBASE_*`-Schlüsseln). Lokal: `config/app.yaml` nach Vorlage `config/app.example.yaml`, nicht einchecken (siehe [Konfiguration](KONFIGURATION.md)).
 - **Woher:** Umami: Website-ID in den Website-Einstellungen. Sentry/GlitchTip: DSN im Projekt. Firebase: Projekteinstellungen > Web-App.
 - **Prüfschritt:** Nach der Einwilligung in der App erscheint ein Ereignis in Umami bzw. ein Testabsturz in GlitchTip. Ohne Einwilligung geht nichts raus. Nach jeder Änderung die Web-Version neu bauen und die Server-Header neu ausrollen, sonst blockiert die Sicherheitsrichtlinie die neuen Domains.
 - [ ] erledigt
@@ -789,6 +791,7 @@ Art: S = Secret, V = Variable. "Pflicht" heißt: ohne den Wert fehlt die Funktio
 | `FIREBASE_CONFIG_JSON` | S | Telemetrie (optional) | Firebase, Web-App-Konfiguration | 9.2 |
 | `GSC_VERIFICATION` | V | Search Console | Search Console, "HTML-Tag" | 10.1 |
 | `GTM_ID` | V | GTM (Web) | tagmanager.google.com, Container | 10.2 |
+| `FEATURES_JSON` | V | Funktionsschalter (`showListenerCount`), Standard alles aus, siehe [Konfiguration](KONFIGURATION.md) | z. B. `{"showListenerCount": true}` | – |
 | `GA4_MEASUREMENT_ID` | V | GA4 (Web) | analytics.google.com, Datenstreams | 10.2 |
 | `TRUST_GRIDINSOFT_URL` | V | Vertrauens-Badge | Profil bei Gridinsoft | 11.1 |
 | `TRUST_TRUSTPILOT_URL` | V | Vertrauens-Badge | Profil bei Trustpilot | 11.2 |

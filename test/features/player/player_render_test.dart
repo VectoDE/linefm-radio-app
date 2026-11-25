@@ -216,7 +216,7 @@ void main() {
       // Senderlogo vorladen, sonst bleibt nur das Kuerzel sichtbar.
       await tester.runAsync(() async {
         await precacheImage(
-          AssetImage(c.data.station.logoAsset),
+          AssetImage(c.data.station.logoAsset!),
           tester.element(find.byType(PlayerView)),
         );
       });

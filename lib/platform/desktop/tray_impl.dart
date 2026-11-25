@@ -38,6 +38,8 @@ class TrayManagerTrayController with TrayListener implements TrayController {
       _tray.addListener(this);
       await _tray.setIcon(trayIconDataUri);
       _available = true;
+      // Nachgeladene Senderliste (Issue #91): Untermenue neu aufbauen.
+      stationsCatalogListenable.addListener(() => unawaited(refresh()));
       await refresh();
     } on Object catch (e) {
       // Kein Tray (z. B. GNOME ohne AppIndicator): App laeuft ohne weiter.
@@ -80,6 +82,7 @@ class TrayManagerTrayController with TrayListener implements TrayController {
       mini,
       onTop,
       actions != null,
+      for (final s in stationsCatalog) '${s.slug}=${s.displayName}',
     ].join('|');
     if (signature == _signature) return;
     _signature = signature;

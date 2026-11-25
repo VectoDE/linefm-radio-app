@@ -133,6 +133,13 @@ esac
 
 define_args=()
 commit="$(git -C "$repo" rev-parse --short HEAD 2>/dev/null || true)"
+# config/app.yaml und config/features.yaml (YAML mit Kommentaren) werden
+# geprueft und als Bauwerte nach config/app.json geschrieben (Issue #91).
+if [ -f "$repo/config/app.yaml" ] || [ -f "$repo/config/features.yaml" ]; then
+  echo "config/app.yaml bzw. features.yaml gefunden, Bauwerte werden erzeugt."
+  (cd "$repo" && dart run tool/check_config.dart --defines config/app.json) ||
+    fehler "Konfiguration in config/ fehlerhaft, siehe Meldungen oben." 1
+fi
 if [ -f "$repo/config/app.json" ]; then
   echo "config/app.json gefunden, wird beim Bauen verwendet."
   define_args=(--dart-define-from-file=config/app.json)

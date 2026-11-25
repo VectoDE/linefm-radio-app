@@ -32,6 +32,9 @@ abstract final class PrefsKeys {
   static const String telemetryConsent = 'linefm-telemetry-consent';
   static const String coverCache = 'linefm-cover-cache';
 
+  /// Zuletzt gueltig nachgeladene Senderliste (Issue #91).
+  static const String stationsCache = 'linefm-stations-cache';
+
   /// Favoriten-Sender (Issue #42). Gibt es in der Web-App nicht.
   static const String favoriteStations = 'linefm-favorite-stations';
 
@@ -61,6 +64,7 @@ abstract final class PrefsKeys {
     alarms,
     telemetryConsent,
     coverCache,
+    stationsCache,
     desktopWindow,
     desktopMini,
   ];
@@ -269,6 +273,16 @@ class SharedPrefsStore implements PrefsStore {
   Future<void> writeCoverCache(String json) async {
     if (!_consent) return;
     await _write(() => _prefs.setString(PrefsKeys.coverCache, json));
+  }
+
+  @override
+  String? readStationsCache() =>
+      _consent ? _readString(PrefsKeys.stationsCache) : null;
+
+  @override
+  Future<void> writeStationsCache(String json) async {
+    if (!_consent) return;
+    await _write(() => _prefs.setString(PrefsKeys.stationsCache, json));
   }
 
   @override

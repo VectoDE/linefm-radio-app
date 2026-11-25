@@ -133,15 +133,13 @@ CORS-Fehler.
 
 ## Konfiguration der App
 
-`config/app.json` (nicht eingecheckt, Vorlage `config/app.example.json`):
+`config/app.yaml` (nicht eingecheckt, Vorlage `config/app.example.yaml`, Bauwerte daraus mit `dart run tool/check_config.dart --defines config/app.json`):
 
-```json
-{
-  "UMAMI_URL": "https://statistik.example.org",
-  "UMAMI_WEBSITE_ID": "00000000-0000-0000-0000-000000000000",
-  "SENTRY_DSN": "https://key@fehler.example.org/1",
-  "SENTRY_ENVIRONMENT": "prod"
-}
+```yaml
+UMAMI_URL: https://statistik.example.org
+UMAMI_WEBSITE_ID: "00000000-0000-0000-0000-000000000000"
+SENTRY_DSN: https://key@fehler.example.org/1
+SENTRY_ENVIRONMENT: prod
 ```
 
 Build mit `flutter build <ziel> --dart-define-from-file=config/app.json`.

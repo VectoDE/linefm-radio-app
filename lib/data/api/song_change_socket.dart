@@ -165,13 +165,29 @@ class WebSocketSongChangeSocket implements SongChangeSocket {
     this.cooldown = const Duration(minutes: 10),
     this.maxFailures = 3,
   }) : uri = uri ?? Uri.parse('wss://api.laut.fm/song_change.ws.json'),
-       slugs = slugs ?? <String>{for (final s in stationsCatalog) s.slug},
+       _fixedSlugs = slugs,
        _connector = connector ?? WebSocketChannel.connect,
        guard = guard ?? TrafficGuard(),
        _random = random ?? Random();
 
   final Uri uri;
-  final Set<String> slugs;
+
+  /// Kuerzel, deren Titelwechsel zaehlen: fest (Tests) oder die aktuelle
+  /// Senderliste (Issue #91, nachgeladene Sender eingeschlossen).
+  Set<String> get slugs {
+    final fixed = _fixedSlugs;
+    if (fixed != null) return fixed;
+    final list = stationsCatalog;
+    if (!identical(list, _slugSource)) {
+      _slugSource = list;
+      _catalogSlugs = <String>{for (final s in list) s.slug};
+    }
+    return _catalogSlugs;
+  }
+
+  final Set<String>? _fixedSlugs;
+  List<Object>? _slugSource;
+  Set<String> _catalogSlugs = const <String>{};
   final TrafficGuard guard;
   final Duration minBackoff;
   final Duration maxBackoff;

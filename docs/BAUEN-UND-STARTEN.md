@@ -63,7 +63,7 @@ Was in welchem Artefakt liegt, abgeglichen mit dem Lauf vom 21.11.2026 ([Lauf 44
 
 Stand dieses Laufs: Android, Web, Windows, Linux und macOS waren grün. Die iOS-Prüfung war rot. Sie ist eine reine Kompilierprüfung und liefert keine Datei (siehe A6). Der Fehler wird in einem eigenen Pull Request behoben, die Version dafür ist iOS 16 als Mindestversion. Ob sie danach grün ist, siehst du in der Lauf-Liste unter Actions.
 
-Windows-MSIX: `build.yml` sieht eine MSIX-Datei vor. Im Lauf vom 21.11.2026 lag keine im Artefakt. Nimm den Installer (`...-setup.exe`) oder die ZIP.
+Windows-MSIX: `build.yml` legt eine MSIX-Datei ins Artefakt (belegt im [Lauf 44953548872](https://github.com/VectoDE/linefm-radio-app/actions/runs/44953548872)). Fehlt sie, schlägt der Schritt fehl. Ohne Signatur lässt sie sich aber nicht installieren (siehe unten). Nimm den Installer (`...-setup.exe`) oder die ZIP.
 
 ### A3 Dasselbe auf der Kommandozeile
 
@@ -110,9 +110,41 @@ Es gibt zwei Wege.
 2. Öffne den Ordner und starte `linefm_radio.exe` per Doppelklick.
 3. Lass den Ordnerinhalt zusammen. Die EXE läuft nur mit den Dateien daneben, kopiere sie nicht allein weg.
 
-**Installer** (`...-windows-x64-setup.exe`): Doppelklick und den Dialogen folgen. Der Installer braucht keine Administratorrechte und installiert für deinen Benutzer (der Dialog erlaubt auch "für alle").
+**Installer** (`...-windows-x64-setup.exe`): siehe den nächsten Abschnitt.
 
 Woran du erkennst, dass es klappt: Das Fenster "LINEFM Radio" öffnet sich mit der Senderliste.
+
+#### Windows: Installer benutzen
+
+Der Installer hat ein eigenes Fenster im Look der App, auf Deutsch oder Englisch (je nach Windows-Sprache) und hell oder dunkel (je nach Windows-Einstellung). Er lässt sich komplett mit der Tastatur bedienen: Tab wechselt zwischen den Feldern, Enter drückt den hervorgehobenen Knopf, Esc fragt, ob du abbrechen willst. Screenreader wie die Sprachausgabe von Windows oder NVDA lesen Schritte, Knöpfe und Fortschritt vor. Geprüft wird das automatisch mit Axe.Windows (Microsoft) und mit Tests der Bildschirmleser-Beschriftungen. Ein Test mit einem echten Screenreader steht noch aus (#131).
+
+1. Doppelklick auf `...-windows-x64-setup.exe`.
+2. **Willkommen**: zeigt Version, Herausgeber (LineFM Studios), Hersteller (Tim Hauke) und den Platzbedarf. Ist LINEFM Radio schon installiert, steht hier, von welcher auf welche Version aktualisiert wird. Ist eine neuere Version installiert, geht es nicht weiter (kein versehentliches Zurückstufen).
+3. **Lizenz**: Bedingungen lesen, Haken bei "Ich akzeptiere" setzen.
+4. **Optionen**:
+   - **Nur für mich** (Standard, empfohlen): keine Administratorrechte, Ziel `%LOCALAPPDATA%\Programs\LINEFM Radio`.
+   - **Alle Benutzer dieses PCs**: Ziel `C:\Program Files\LINEFM Radio`. Erst beim Klick auf **Installieren** fragt Windows nach Administratorrechten (UAC), sonst nie.
+   - Zielordner (mit **Durchsuchen …** wählbar), Desktop-Verknüpfung, Startmenü-Eintrag, Autostart beim Anmelden.
+   - Bei einem Update stehen Bereich und Ordner fest, deine bisherigen Optionen sind vorausgewählt.
+5. **Installation**: Fortschrittsbalken. Läuft die App noch, fragt das Setup, ob es sie beenden darf. **Abbrechen** nimmt alle Änderungen zurück.
+6. **Fertig**: Haken bei "LINEFM Radio jetzt starten" lassen oder entfernen, dann **Fertig**.
+
+Was der Installer einrichtet: einen Eintrag unter **Einstellungen > Apps > Installierte Apps**, die Verknüpfungen, das Link-Schema `linefm://` (Links wie `linefm://play?station=...` öffnen die App) und den App-Pfad (Start über **Win+R** mit `linefm_radio`). Einstellungen, Favoriten und Wecker liegen getrennt von den Programmdateien und bleiben bei jedem Update erhalten.
+
+**Deinstallieren**: **Einstellungen > Apps > Installierte Apps > LINEFM Radio > Deinstallieren**. Es öffnet sich ein Fenster im selben Look. Dort entscheidest du, ob auch Einstellungen, Favoriten und Wecker gelöscht werden. Ohne Haken bleiben sie für eine spätere Installation liegen.
+
+**Für Admins (stille Installation)**, etwa für die Softwareverteilung:
+
+```powershell
+# Nur für den angemeldeten Benutzer, ohne Fenster
+.\linefm-radio-X.Y.Z-windows-x64-setup.exe /S
+# Für alle Benutzer (Administrator-Konsole), ohne Desktop-Verknüpfung, mit Protokoll
+.\linefm-radio-X.Y.Z-windows-x64-setup.exe /S /ALLUSERS /DESKTOPSHORTCUT=0 /LOG="C:\Temp\linefm-setup.log"
+# Still deinstallieren (steht auch in der Registry als QuietUninstallString)
+& "$env:LOCALAPPDATA\Programs\LINEFM Radio\uninstall.exe" /S
+```
+
+Alle Parameter und Exit-Codes stehen in [packaging/windows/README.md](../packaging/windows/README.md), `setup.exe /?` zeigt sie ebenfalls.
 
 Windows-Warnung "Der Computer wurde durch Windows geschützt" (SmartScreen): Die Dateien sind nicht mit einem Zertifikat signiert, solange keins eingerichtet ist. Klicke auf **Weitere Informationen** und dann auf **Trotzdem ausführen**. Bei einem Herunterladen aus GitHub ist das normal.
 
@@ -241,14 +273,14 @@ Die App baut auch ohne Konfigurationsdatei mit Standardwerten. Das wurde am 21.1
 Wenn du eigene Werte brauchst, zum Beispiel eine andere Web-Adresse, kopiere die Vorlage:
 
 ```powershell
-copy config\app.example.json config\app.json
+copy config\app.example.yaml config\app.yaml
 ```
 
 ```bash
-cp config/app.example.json config/app.json
+cp config/app.example.yaml config/app.yaml
 ```
 
-Trage dann in `config/app.json` die Werte ein. Was die Schlüssel bedeuten, steht in [ENTWICKLUNG.md](ENTWICKLUNG.md), Abschnitt "Konfiguration". Die Datei bleibt auf deinem Rechner und wird nicht ins Repository hochgeladen. Hänge an jeden Bau-Befehl unten ` --dart-define-from-file=config/app.json` an, wenn du sie nutzen willst. Das Skript aus Teil C erkennt die Datei selbst.
+Trage dann in `config/app.yaml` die Werte ein. Über jedem Schlüssel steht als Kommentar, was er bedeutet, welche Werte erlaubt sind und ein Beispiel; mehr in [Konfiguration](KONFIGURATION.md). Die Datei bleibt auf deinem Rechner und wird nicht ins Repository hochgeladen. Das Skript aus Teil C prüft sie und erzeugt daraus selbst die Bauwerte `config/app.json`. Baust du ohne Skript, erzeuge sie mit `dart run tool/check_config.dart --defines config/app.json` und hänge an jeden Bau-Befehl unten ` --dart-define-from-file=config/app.json` an.
 
 ### B4 Ziele im Überblick
 
@@ -291,6 +323,14 @@ Typische Fehler:
 | `cargo` oder `rustc` nicht gefunden, Bau bricht bei `smtc_windows` ab | Rust fehlt. Installiere es mit <https://rustup.rs>, öffne ein neues Terminal. |
 | "Unable to find suitable Visual Studio toolchain" | C++-Workload fehlt. Im Visual Studio Installer **Ändern**, **Desktopentwicklung mit C++** anhaken. |
 | Fehler mit sehr langen Pfaden, Datei nicht gefunden | Pfad zu lang (MAX_PATH). Projekt in einen kurzen Ordner wie `C:\linefm` legen. |
+
+Den Installer (`setup.exe`) baust du danach mit einem Befehl. Er braucht dieselben Werkzeuge (Visual Studio mit C++, darin ist CMake enthalten) und kompiliert die Setup-Engine sowie das Setup-Fenster:
+
+```powershell
+pwsh installer\windows\build.ps1 -Version 1.0.0 -Out dist\linefm-radio-setup.exe
+```
+
+Aufbau und Sicherheitsmaßnahmen des Installers stehen in [installer/windows/README.md](../installer/windows/README.md).
 
 ### B6 Web bauen und ansehen
 

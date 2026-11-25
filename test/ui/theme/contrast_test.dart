@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/stations_config.dart';
+import 'package:linefm_radio/features/loader/app_loader.dart';
 import 'package:linefm_radio/ui/theme/contrast.dart';
 import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
@@ -128,17 +129,18 @@ void main() {
     }
   });
 
-  // Statische Startseite (web/index.html, R4-E/R4-D3): gleiche Farben wie die
-  // Tokens, Fliesstext und `.muted` mit 7:1 in beiden Schemata.
+  // Static start page (web/index.html): it is the branded loading screen and,
+  // like AppLoader and the native splash, always dark. Same colours as the
+  // tokens, body text and `.muted` at 7:1.
   group('Statische Web-Shell', () {
     final html = File('web/index.html').readAsStringSync();
-    const marker = '@media (prefers-color-scheme: light) {';
-    final style = html.substring(html.indexOf('<style>'));
-    final light = style.substring(style.indexOf(marker));
-    final dark = style.substring(0, style.indexOf(marker));
+    final style = html.substring(
+      html.indexOf('<style>'),
+      html.indexOf('</style>'),
+    );
 
-    Color css(String block, String pattern) {
-      final m = RegExp(pattern).firstMatch(block);
+    Color css(String pattern) {
+      final m = RegExp(pattern).firstMatch(style);
       expect(m, isNotNull, reason: pattern);
       return Color(int.parse('FF${m!.group(1)}', radix: 16));
     }
@@ -146,28 +148,39 @@ void main() {
     const bg = r'html, body \{[^}]*background: #([0-9a-fA-F]{6})';
     const fg = r'html, body \{[^}]*[^-]color: #([0-9a-fA-F]{6})';
     const muted = r'\.muted \{ color: #([0-9a-fA-F]{6})';
+    const tokens = LinefmColors.dark;
 
-    for (final (name, block, tokens) in <(String, String, LinefmColors)>[
-      ('dunkel', dark, LinefmColors.dark),
-      ('hell', light, LinefmColors.light),
-    ]) {
-      test('Farben = Tokens ($name)', () {
-        expect(css(block, bg), tokens.background);
-        expect(css(block, fg), tokens.text);
-        expect(css(block, muted), tokens.tickerText);
-      });
-      test('.muted und Text >= 7:1 ($name)', () {
-        final b = css(block, bg);
-        expect(
-          Contrast.ratio(css(block, muted), b),
-          greaterThanOrEqualTo(Contrast.aaaText),
-        );
-        expect(
-          Contrast.ratio(css(block, fg), b),
-          greaterThanOrEqualTo(Contrast.aaaText),
-        );
-      });
-    }
+    test('always dark, no light scheme (matches AppLoader)', () {
+      expect(style, isNot(contains('prefers-color-scheme: light')));
+      expect(css(bg), loaderBackground);
+    });
+    test('Farben = Tokens (dunkel)', () {
+      expect(css(bg), tokens.background);
+      expect(css(fg), tokens.text);
+      expect(css(muted), tokens.tickerText);
+    });
+    test('.muted und Text >= 7:1', () {
+      final b = css(bg);
+      expect(
+        Contrast.ratio(css(muted), b),
+        greaterThanOrEqualTo(Contrast.aaaText),
+      );
+      expect(
+        Contrast.ratio(css(fg), b),
+        greaterThanOrEqualTo(Contrast.aaaText),
+      );
+    });
+    test('description and station list are visually hidden, not removed', () {
+      final shell = html.substring(html.indexOf('<main id="static-shell">'));
+      final hidden = RegExp(
+        r'<div class="visually-hidden">([\s\S]*?)</div>',
+      ).firstMatch(shell);
+      expect(hidden, isNotNull);
+      expect(hidden!.group(1), contains('<h1>'));
+      expect(hidden.group(1), contains('<li>LineFM +MAIN</li>'));
+      expect(style, contains('.visually-hidden { position: absolute'));
+      expect(style, isNot(contains('.visually-hidden { display: none')));
+    });
   });
 
   group('Text auf Senderfarben', () {

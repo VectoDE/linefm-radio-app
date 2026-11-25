@@ -29,15 +29,38 @@ function linefmEvaluateFlutterLoader() {
   function showApp() {
     var shell = document.getElementById('static-shell');
     if (!shell) return;
-    shell.hidden = true;
+    // Fade like the in-app loader (LoaderGate, 350 ms), then take it out.
+    shell.classList.add('leaving');
+    setTimeout(function () { shell.hidden = true; }, 350);
     shell.setAttribute('aria-hidden', 'true');
     shell.setAttribute('inert', '');
   }
 
+  // runApp resolves before Flutter has painted anything; hiding the shell
+  // right away showed a few empty frames between the two loading screens.
+  // The shell sits above the Flutter view (z-index in index.html) until the
+  // view holds a rendered canvas, then two more frames so it is on screen.
+  function whenFirstFramePainted(done) {
+    var deadline = performance.now() + 3000;
+    function check() {
+      // The rendered scene lives in the shadow root of flt-glass-pane.
+      var pane = document.querySelector('flutter-view > flt-glass-pane');
+      var root = pane && (pane.shadowRoot || pane);
+      var painted = root && root.querySelector('flt-scene canvas');
+      if (painted || performance.now() > deadline) {
+        requestAnimationFrame(function () { requestAnimationFrame(done); });
+      } else {
+        requestAnimationFrame(check);
+      }
+    }
+    requestAnimationFrame(check);
+  }
+
   // Start the engine on intent, not on page load. Downloading, compiling and
   // initialising the Wasm engine blocks the main thread for several seconds on
-  // mid-range phones; first-time visitors see the static shell (real content,
-  // links and a start button) until they interact. Returning visitors, deep
+  // mid-range phones; first-time visitors see the static shell (the branded
+  // loading screen with a start button and the legal links) until they
+  // interact. The button replaces the loading dots via CSS in index.html. Returning visitors, deep
   // links and the installed app start right away. Audio needs a user gesture
   // in any case, so the first tap costs no extra step before playback.
   var started = false;
@@ -69,7 +92,7 @@ function linefmEvaluateFlutterLoader() {
       onEntrypointLoaded: async function (engineInitializer) {
         var appRunner = await engineInitializer.initializeEngine(config);
         await appRunner.runApp();
-        showApp();
+        whenFirstFramePainted(showApp);
       },
     });
   }

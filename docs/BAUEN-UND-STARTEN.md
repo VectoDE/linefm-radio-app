@@ -116,7 +116,7 @@ Woran du erkennst, dass es klappt: Das Fenster "LINEFM Radio" öffnet sich mit d
 
 #### Windows: Installer benutzen
 
-Der Installer hat ein eigenes Fenster im Look der App, auf Deutsch oder Englisch (je nach Windows-Sprache) und hell oder dunkel (je nach Windows-Einstellung). Er lässt sich komplett mit der Tastatur bedienen: Tab wechselt zwischen den Feldern, Enter drückt den hervorgehobenen Knopf, Esc fragt, ob du abbrechen willst. Screenreader wie die Sprachausgabe von Windows oder NVDA lesen Schritte, Knöpfe und Fortschritt vor.
+Der Installer hat ein eigenes Fenster im Look der App, auf Deutsch oder Englisch (je nach Windows-Sprache) und hell oder dunkel (je nach Windows-Einstellung). Er lässt sich komplett mit der Tastatur bedienen: Tab wechselt zwischen den Feldern, Enter drückt den hervorgehobenen Knopf, Esc fragt, ob du abbrechen willst. Screenreader wie die Sprachausgabe von Windows oder NVDA lesen Schritte, Knöpfe und Fortschritt vor. Geprüft wird das automatisch mit Axe.Windows (Microsoft) und mit Tests der Bildschirmleser-Beschriftungen. Ein Test mit einem echten Screenreader steht noch aus (#131).
 
 1. Doppelklick auf `...-windows-x64-setup.exe`.
 2. **Willkommen**: zeigt Version, Herausgeber (LineFM Studios), Hersteller (Tim Hauke) und den Platzbedarf. Ist LINEFM Radio schon installiert, steht hier, von welcher auf welche Version aktualisiert wird. Ist eine neuere Version installiert, geht es nicht weiter (kein versehentliches Zurückstufen).

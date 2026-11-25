@@ -1,0 +1,49 @@
+[
+  {
+    "pattern": "^\\d+ packages? ha(s|ve) newer versions incompatible with dependency constraints\\.$",
+    "expires": "2027-02-28",
+    "reason": "Summary line of pub get. Every held-back package is still gated on its own line below, so a new one fails the check."
+  },
+  {
+    "pattern": "^\\s*(material_color_utilities|test_api) \\S+ \\(\\S+ available\\)$",
+    "expires": "2027-02-28",
+    "reason": "Pinned by the Flutter SDK (flutter / flutter_test). Resolves with the next Flutter SDK release."
+  },
+  {
+    "pattern": "^\\s*cross_file 0\\.3\\.\\S+ \\(0\\.4\\.\\S+ available\\)$",
+    "expires": "2027-02-28",
+    "reason": "Held by share_plus and file_selector (latest releases) which still require cross_file ^0.3."
+  },
+  {
+    "pattern": "^\\s*dbus 0\\.7\\.\\S+ \\(0\\.8\\.\\S+ available\\)$",
+    "expires": "2027-02-28",
+    "reason": "Held by audio_service_mpris (latest release) which still requires dbus ^0.7."
+  },
+  {
+    "pattern": "^\\s*equatable 2\\.\\S+ \\(3\\.\\S+ available\\)$",
+    "expires": "2027-02-28",
+    "reason": "Held by alarm (latest release) which still requires equatable ^2."
+  },
+  {
+    "pattern": "^\\s*cli_util 0\\.4\\.\\S+ \\(0\\.6\\.\\S+ available\\)$",
+    "expires": "2027-02-28",
+    "reason": "Dev tooling only: held by flutter_launcher_icons and msix (latest releases) which still require cli_util ^0.4."
+  },
+  {
+    "pattern": "^! flutter_rust_bridge 2\\.11\\.1 \\(overridden\\) \\(\\S+ available\\)$",
+    "expires": "2027-01-31",
+    "reason": "smtc_windows 1.1.0 (latest) ships bindings generated with flutter_rust_bridge 2.11.1; see the override reason in pubspec.yaml. Ends with a smtc_windows release on 2.13 or our own fork."
+  },
+  {
+    "pattern": "^WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin \\(KGP\\): alarm, home_widget$",
+    "job": "Android",
+    "expires": "2027-02-28",
+    "reason": "alarm 5.15.0 and home_widget 0.10.0 (latest) still apply KGP in their own Gradle files. Upstream reports are drafted; the Flutter tool prints this before Gradle runs, so no app-side change removes it."
+  },
+  {
+    "pattern": "^Warning: Building for device with codesigning disabled\\. You will have to manually codesign before deploying to device\\.$",
+    "job": "iOS",
+    "expires": "2027-11-30",
+    "reason": "The iOS job is an unsigned compile check by design (no signing secrets outside releases); Flutter prints this notice for every --no-codesign build."
+  }
+]

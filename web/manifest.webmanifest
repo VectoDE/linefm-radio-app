@@ -1,10 +1,10 @@
 {
-  "id": "/",
+  "id": "./",
   "name": "LINEFM Radio",
   "short_name": "LINEFM",
   "description": "LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM und FobFM live hören.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0f1221",

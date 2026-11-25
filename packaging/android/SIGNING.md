@@ -4,7 +4,7 @@
 
 `android/app/build.gradle.kts` signiert den Release-Build nur, wenn `android/key.properties` existiert. Ohne die Datei entsteht ein unsigniertes Release (so baut die CI ohne Secrets). `key.properties` und `*.jks` sind in `.gitignore` und dürfen nie committet werden.
 
-### Upload-Schluessel erzeugen (einmalig, jaybelife)
+### Upload-Schluessel erzeugen (einmalig, LineFM Studios)
 
 ```bash
 keytool -genkeypair -v -storetype PKCS12 -keystore upload-keystore.jks \

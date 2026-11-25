@@ -1,6 +1,6 @@
 # Freigabe-Checkliste
 
-Diese Liste sagt, was vor der Veröffentlichung von LINEFM Radio geprüft und bestätigt sein muss. Teil A bestätigt jaybelife als Betreiber, Teil B prüft jemand mit den echten Geräten, Teil C sind Texte und Datenschutzangaben.
+Diese Liste sagt, was vor der Veröffentlichung von LINEFM Radio geprüft und bestätigt sein muss. Teil A bestätigt LineFM Studios als Betreiber, Teil B prüft jemand mit den echten Geräten, Teil C sind Texte und Datenschutzangaben.
 
 So geht es: Jeder Punkt wird mit Datum und Name abgehakt oder als "offen" vermerkt. Ein Punkt gilt erst als erledigt, wenn die Antwort schriftlich vorliegt (E-Mail oder Eintrag im Ticket reicht).
 
@@ -13,10 +13,10 @@ Die Kontoeinrichtung steht in [EINRICHTUNG.md](EINRICHTUNG.md).
 Diese Punkte lassen sich nicht als "offen" begründen. Solange einer nicht erfüllt ist, wird nicht veröffentlicht bzw. nicht eingeschaltet.
 
 - [ ] **Telemetrie nicht aktivieren, solange keine AVV unterschrieben ist.** Erst wenn der Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO) mit dem Betreiber der Statistik- bzw. Fehlerberichte-Instanz unterschrieben vorliegt, dürfen `UMAMI_*`, `SENTRY_DSN` oder Firebase in `config/app.json` bzw. den CI-Variablen gesetzt werden. Hintergrund: Mit aktiver Telemetrie sagt die Datenschutzerklärung, dass diese Verträge bestehen (Abschnitt 12). Ohne Telemetrie erscheint der Satz nicht.
-- [x] **App-Icon und Markenlogos: schriftliche Zustimmung von jaybelife.** Erfüllt: Die schriftliche Freigabe für App-Icon und Logos liegt laut Inhaber seit 21.11.2026 vor. Das gilt für das Icon aus `https://cdn.linefm.de/images/icons/main.png` (Android, iOS, macOS, Windows, Linux, Web), die Store-Grafiken und das Social-Preview-Bild. Die Sperre ist damit aufgehoben. Bei künftigen neuen Logos oder geänderten Motiven muss die Zustimmung erneut schriftlich (E-Mail oder Ticket-Eintrag) vorliegen. Das Social-Preview-Bild lädt der Inhaber selbst bei GitHub hoch.
+- [x] **App-Icon und Markenlogos: schriftliche Zustimmung von LineFM Studios.** Erfüllt: Die schriftliche Freigabe für App-Icon und Logos liegt laut Inhaber seit 21.11.2026 vor. Das gilt für das Icon aus `https://cdn.linefm.de/images/icons/main.png` (Android, iOS, macOS, Windows, Linux, Web), die Store-Grafiken und das Social-Preview-Bild. Die Sperre ist damit aufgehoben. Bei künftigen neuen Logos oder geänderten Motiven muss die Zustimmung erneut schriftlich (E-Mail oder Ticket-Eintrag) vorliegen. Das Social-Preview-Bild lädt der Inhaber selbst bei GitHub hoch.
 - [ ] Der Release-Build mit `--strict` läuft durch: keine offenen Pflicht-Platzhalter in Rechtstexten, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `BARRIEREFREIHEIT.md` und `security.txt`.
 
-## A. Bestätigungen durch jaybelife
+## A. Bestätigungen durch LineFM Studios
 
 ### A1. Marke und Logos
 
@@ -40,7 +40,7 @@ Diese Punkte lassen sich nicht als "offen" begründen. Solange einer nicht erfü
 
 - [ ] Betreiberdaten stimmen mit `https://linefm.de/impressum` überein (Name, Anschrift, E-Mail). Fehlende Angaben liefern: Telefon oder Kontaktformular, Vertretung, Datenschutzbehörde, Hosting-Anbieter, CDN-Betreiber, Log-Dauer (Liste in `assets/legal/placeholders.json`).
 - [ ] Der Datenschutztext passt zur tatsächlichen Konfiguration (welche Telemetrie ist aktiv, wer hostet).
-- [ ] Rechtsprüfung durch jaybelife oder einen Anwalt ist erfolgt. Offene Rechtsfragen, die jaybelife selbst klärt:
+- [ ] Rechtsprüfung durch LineFM Studios oder einen Anwalt ist erfolgt. Offene Rechtsfragen, die LineFM Studios selbst klärt:
   - [ ] **Rundfunkrecht (MStV):** Ist für das Webradio eine Zulassung nötig, oder gilt es als zulassungsfrei? Welche Angaben verlangt § 18 MStV im Impressum (verantwortliche Person)? Die Felder `AUFSICHTSBEHOERDE_MEDIEN` und `VERANTWORTLICHER_MSTV` stehen noch offen.
   - [ ] **GEMA und GVL:** Sind die Musikrechte für die Wiedergabe über eine eigene App abgedeckt? Unsere Quelle (laut.fm) belegt das nur in einem Artikel von 2015. Empfehlung: schriftliche Bestätigung von laut.fm (`team@laut.fm`) einholen.
   - [ ] **Speicher-Hinweis in den nativen Apps:** Der Hinweis erscheint im Browser als Banner am unteren Rand, in der App und auf dem Desktop als Popup beim ersten Start, das mit "Verstanden" bestätigt werden muss. Prüfen lassen, ob er in den nativen Apps rechtlich nötig oder ausreichend ist.
@@ -49,7 +49,7 @@ Diese Punkte lassen sich nicht als "offen" begründen. Solange einer nicht erfü
 
 ### A5. laut.fm-Daten
 
-- [ ] jaybelife bestätigt schriftlich, ob und in welchem Umfang für die Sender eine Lizenz über laut.fm besteht. Die App nutzt die öffentliche laut.fm-API (Titel, Cover-Hinweis, Hörerzahl, Streams). Im Impressum steht deshalb bewusst keine Aussage wie "eigene Lizenz", sondern nur, dass die Lizenzierung bei den Sendern bzw. bei laut.fm liegt. Wenn sich das belegen lässt, kann der Satz genauer werden.
+- [ ] LineFM Studios bestätigt schriftlich, ob und in welchem Umfang für die Sender eine Lizenz über laut.fm besteht. Die App nutzt die öffentliche laut.fm-API (Titel, Cover-Hinweis, Hörerzahl, Streams). Im Impressum steht deshalb bewusst keine Aussage wie "eigene Lizenz", sondern nur, dass die Lizenzierung bei den Sendern bzw. bei laut.fm liegt. Wenn sich das belegen lässt, kann der Satz genauer werden.
 - [ ] Radio3FM und FobFM stehen in den Texten als Partnersender (Sender anderer Betreiber). Bestätigen, dass diese Bezeichnung stimmt.
 - [ ] Der Hinweis in Datenschutz und Impressum zu laut.fm ist richtig formuliert, vor allem die Aussage, dass wir selbst keine Verbindungsdaten aus dem Stream sehen. Prüfen, ob laut.fm dem Betreiber Hörerstatistiken bereitstellt.
 - [ ] Cover kommen von der iTunes-Suche (Apple). Bestätigen, dass das in Ordnung ist, und dass es in der Datenschutzerklärung steht.
@@ -58,11 +58,11 @@ Diese Punkte lassen sich nicht als "offen" begründen. Solange einer nicht erfü
 
 Festzuhalten, damit später keine Zweifel entstehen:
 
-- [ ] Tim Hauke (VectoDE) hat die App **unentgeltlich für jaybelife** entwickelt.
-- [ ] LINEFM, die Marke, die Logos und das App-Icon gehören jaybelife.
-- [ ] Der Quellcode steht unter "Alle Rechte vorbehalten", ohne Open-Source-Lizenz. Er ist sichtbar, aber nicht frei nutzbar. Schriftlich regeln, wer die Rechte am Code hat und was jaybelife damit tun darf (Weiterentwicklung durch Dritte, Weitergabe, Übergabe des Repos).
-- [ ] Der Hinweis "Entwickelt von Tim Hauke (VectoDE) für jaybelife" mit GitHub-Link bleibt im Über-Bereich der App. jaybelife stimmt dem Wortlaut zu.
-- [ ] Übergabe: Repository, Zugänge und Schlüssel. Upload-Schlüssel (Android) und Konten gehören jaybelife und liegen im Passwortmanager von jaybelife. Wer verwaltet die Stores nach dem Start?
+- [ ] Tim Hauke (VectoDE) hat die App **unentgeltlich für LineFM Studios** entwickelt.
+- [ ] LINEFM, die Marke, die Logos und das App-Icon gehören LineFM Studios.
+- [ ] Der Quellcode steht unter "Alle Rechte vorbehalten", ohne Open-Source-Lizenz. Er ist sichtbar, aber nicht frei nutzbar. Schriftlich regeln, wer die Rechte am Code hat und was LineFM Studios damit tun darf (Weiterentwicklung durch Dritte, Weitergabe, Übergabe des Repos).
+- [ ] Der Hinweis "Entwickelt von Tim Hauke (VectoDE) für LineFM Studios" mit GitHub-Link bleibt im Über-Bereich der App. LineFM Studios stimmt dem Wortlaut zu.
+- [ ] Übergabe: Repository, Zugänge und Schlüssel. Upload-Schlüssel (Android) und Konten gehören LineFM Studios und liegen im Passwortmanager von LineFM Studios. Wer verwaltet die Stores nach dem Start?
 - [ ] Wartung nach dem Start: Wer reagiert auf Fehler, Store-Rückfragen und Updates?
 
 ### A7. Veröffentlichen
@@ -170,7 +170,7 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 ## C. Store-Texte und Datenschutzangaben
 
 - [ ] Kurz- und Langbeschreibung auf Deutsch und Englisch gelesen und freigegeben (Entwürfe in [STORE-TEXTE.md](STORE-TEXTE.md)). Sie nennen nur, was die App wirklich kann. Plattform-Hinweise stimmen (kein CarPlay, solange Apple fehlt).
-- [ ] Keine Aussagen wie "offizielle App der RadioGruppe", wenn jaybelife das nicht bestätigt hat. Der Hinweis "Ein Angebot von RadioGruppe Deutschland" entspricht der Web-App.
+- [ ] Keine Aussagen wie "offizielle App der RadioGruppe", wenn LineFM Studios das nicht bestätigt hat. Der Hinweis "LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe" entspricht der Web-App.
 - [ ] Screenshots zeigen die echte App und keine Fantasiedaten, nichts Fremdes (keine Cover von Dritten in Großansicht ohne Freigabe).
 - [ ] Altersangabe stimmt (+RAP: Kraftausdrücke möglich).
 - [ ] Google Play: "Datensicherheit" und "App-Inhalte" zur Datenschutzerklärung passend ausgefüllt (siehe [EINRICHTUNG.md](EINRICHTUNG.md), Abschnitt 2.5).

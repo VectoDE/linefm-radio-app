@@ -72,6 +72,10 @@ IDI_APP_ICON            ICON                    "resources\\app_icon.ico"
 #define VERSION_AS_STRING "0.0.0-dev"
 #endif
 
+#ifndef LF_COPYRIGHT
+#define LF_COPYRIGHT "Copyright (C) LineFM Studios"
+#endif
+
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION VERSION_AS_NUMBER
  PRODUCTVERSION VERSION_AS_NUMBER
@@ -93,7 +97,7 @@ BEGIN
             VALUE "FileDescription", "LINEFM Radio Setup" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "linefm_setup" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 Tim Hauke" "\0"
+            VALUE "LegalCopyright", LF_COPYRIGHT ". Developed by Tim Hauke (VectoDE). All rights reserved." "\0"
             VALUE "OriginalFilename", "linefm_setup.exe" "\0"
             VALUE "ProductName", "LINEFM Radio Setup" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

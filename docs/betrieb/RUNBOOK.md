@@ -1,6 +1,6 @@
 # Betriebshandbuch
 
-Für den Betrieb der Web-Version unter https://app.linefm.de und für die Veröffentlichung der App-Pakete. Zielgruppe: jaybelife als Betreiber, dazu ein Entwickler, der später einspringt. Meldewege bei Störungen: [INCIDENT.md](INCIDENT.md).
+Für den Betrieb der Web-Version unter https://app.linefm.de und für die Veröffentlichung der App-Pakete. Zielgruppe: LineFM Studios als Betreiber, dazu ein Entwickler, der später einspringt. Meldewege bei Störungen: [INCIDENT.md](INCIDENT.md).
 
 Die App hat kein Backend, keine Datenbank und keine Konten. Es gibt nichts, was gesichert oder aus einem Backup zurückgespielt werden müsste. Der Betrieb besteht aus drei Dingen: statische Web-Dateien ausliefern, die Fremddienste im Blick behalten (laut.fm, Stream, Cover-Suche) und Releases bei Bedarf zurücknehmen.
 

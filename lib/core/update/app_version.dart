@@ -120,12 +120,12 @@ class OpenItem {
 }
 
 const String featureLabel = 'typ:feature';
-const String ownerOnlyLabel = 'nur-noch:jaybelife';
+const String ownerOnlyLabel = 'nur-noch:linefm-studios';
 
 /// Stufe, die der Stand der offenen Tickets erlaubt:
 /// - offene Feature-Tickets -> alpha,
 /// - keine Feature-Tickets mehr, aber andere offen -> beta,
-/// - nur noch Tickets mit `nur-noch:jaybelife` offen -> rc,
+/// - nur noch Tickets mit `nur-noch:linefm-studios` offen -> rc,
 /// - nichts mehr offen -> stabil (1.0.0).
 ReleaseStage stageFromItems(Iterable<OpenItem> open) {
   final list = open.toList();

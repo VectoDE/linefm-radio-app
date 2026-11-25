@@ -1,6 +1,6 @@
 # Mitarbeiten
 
-LINEFM Radio ist ein Projekt von Tim Hauke (VectoDE) für jaybelife. Das Repository ist öffentlich einsehbar, der Quellcode steht aber unter "Alle Rechte vorbehalten" (siehe [LICENSE](LICENSE)): Lesen ja, Nutzungsrechte nein. Kopieren, Ändern oder Weitergeben braucht die schriftliche Erlaubnis des Rechteinhabers. Beiträge von außen sind nur nach Absprache möglich. Schreib vorher ein Ticket, bevor du Zeit in einen Änderungsvorschlag steckst.
+LINEFM Radio ist ein Projekt von [Tim Hauke](https://github.com/VectoDE) für LineFM Studios. Das Repository ist öffentlich einsehbar, der Quellcode steht aber unter "Alle Rechte vorbehalten" (siehe [LICENSE](LICENSE)): Lesen ja, Nutzungsrechte nein. Kopieren, Ändern oder Weitergeben braucht die schriftliche Erlaubnis des Rechteinhabers. Beiträge von außen sind nur nach Absprache möglich. Schreib vorher ein Ticket, bevor du Zeit in einen Änderungsvorschlag steckst.
 
 ## Vor dem ersten Beitrag
 

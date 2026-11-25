@@ -13,4 +13,4 @@ Datenschutz in Kürze: Favoriten, Verlauf und Einstellungen bleiben auf deinem G
 
 Hinweis: Das Programm kommt von laut.fm. Je nach Sender können Lieder Kraftausdrücke enthalten. Die Namen und Logos der Sender gehören den jeweiligen Betreibern.
 
-Ein Angebot von RadioGruppe Deutschland. Entwickelt von Tim Hauke (VectoDE) für jaybelife.
+LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Entwickelt von Tim Hauke (VectoDE).

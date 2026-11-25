@@ -41,9 +41,10 @@ Future<void> openAbout(BuildContext context) => Navigator.of(context)
 /// Build, Rechtstexte, Open-Source-Lizenzen und optional die Vertrauens-
 /// Badges (Gridinsoft, Trustpilot), sofern ihre URLs konfiguriert sind.
 ///
-/// Credits (Entscheidungen 30 und 46): "Made by .jaybelife with ♥", "Ein
+/// Credits (Entscheidungen 30 und 46): "Made by Tim Hauke with ♥", "Ein
 /// Angebot von" + RadioGruppe, "Entwickelt von Tim Hauke (VectoDE) fuer
-/// jaybelife" mit Link auf GitHub und "LINEFM und die App gehoeren jaybelife."
+/// LineFM Studios" mit Link auf GitHub und "LINEFM und die App gehoeren
+/// LineFM Studios."
 class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
 
@@ -136,14 +137,15 @@ class AboutScreen extends ConsumerWidget {
   }
 }
 
-/// "Made by .jaybelife with ♥" wie im Ladebildschirm.
-class _MadeBy extends StatelessWidget {
+/// "Made by Tim Hauke with ♥" wie im Ladebildschirm, der Name ist ein Link.
+class _MadeBy extends ConsumerWidget {
   const _MadeBy();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.linefm;
     return MadeByCredit(
+      onAuthorTap: () => openExternalUrl(context, ref, developerUrl),
       style: LinefmText.listTitle.copyWith(
         color: c.muted,
         fontSize: LinefmType.bodyLarge,

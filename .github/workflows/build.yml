@@ -564,10 +564,10 @@ jobs:
         uses: ./.github/actions/setup-flutter
 
       # Installer (#88): Engine (C++, CMake/MSVC) und eigene Setup-Oberflaeche
-      # (Flutter, installer/windows/ui) zuerst, damit Fehler frueh auffallen.
+      # (Flutter, installer/ui) zuerst, damit Fehler frueh auffallen.
       - name: Setup-Oberflaeche pruefen (analyze, Tests, Bildschirmfotos)
         shell: bash
-        working-directory: installer/windows/ui
+        working-directory: installer/ui
         run: |
           set -euo pipefail
           flutter pub get
@@ -625,7 +625,7 @@ jobs:
           # App, Setup-Stub (wird auch uninstall.exe) und Setup-Oberflaeche.
           $files = @(Get-ChildItem 'build/windows/x64/runner/Release' -Recurse -Include *.exe) +
                    @(Get-Item 'build/installer/engine/Release/setup_stub.exe') +
-                   @(Get-ChildItem 'installer/windows/ui/build/windows/x64/runner/Release' -Recurse -Include *.exe)
+                   @(Get-ChildItem 'installer/ui/build/windows/x64/runner/Release' -Recurse -Include *.exe)
           foreach ($f in $files) {
             & $signtool.FullName sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $env:PFX_PATH /p $env:PFX_PASSWORD $f.FullName
             if ($LASTEXITCODE -ne 0) { throw "signtool fehlgeschlagen fuer $($f.Name)" }
@@ -722,7 +722,7 @@ jobs:
           name: installer-test-windows
           path: |
             build/installer-test/
-            installer/windows/ui/build/screenshots/
+            installer/ui/build/screenshots/
           if-no-files-found: warn
           retention-days: 14
 

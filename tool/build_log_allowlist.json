@@ -50,6 +50,6 @@
     "pattern": "^Warning: 'no file associated with this alert' is not a valid URI in 'instance\\.runs\\[\\d+\\]\\.results\\[\\d+\\]\\.locations\\[0\\]\\.physicalLocation\\.artifactLocation\\.uri'\\.$",
     "job": "Scorecard",
     "expires": "2027-02-28",
-    "reason": "ossf/scorecard writes this placeholder URI for repository-level findings and github/codeql-action warns while uploading the SARIF (upstream: ossf/scorecard issue 3063, closed but still emitted by scorecard-action 2.5.0). The findings are uploaded; only the file location is dropped."
+    "reason": "ossf/scorecard writes this placeholder URI for repository-level findings and github/codeql-action warns while uploading the SARIF. Reported upstream in the ossf/scorecard tracker (bug titled 'URI \"no file associated with this alert\" in SARIF now invalid in github/codeql-action'), closed there but still emitted by scorecard-action 2.5.0. The findings are uploaded; only the file location is dropped."
   }
 ]

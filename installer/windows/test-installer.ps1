@@ -363,7 +363,9 @@ function Invoke-EnginePipe([string]$exe, [string[]]$engineArgs, [string]$label,
     [System.IO.Pipes.PipeDirection]::InOut, 1,
     [System.IO.Pipes.PipeTransmissionMode]::Byte,
     [System.IO.Pipes.PipeOptions]::Asynchronous)
-  $argLine = @('--engine', $engineArgs[0], '--pipe', $name) + @($engineArgs | Select-Object -Skip 1)
+  # Start-Process does not quote array elements; paths contain spaces.
+  $argLine = (@('--engine', $engineArgs[0], '--pipe', $name) + @($engineArgs | Select-Object -Skip 1) |
+    ForEach-Object { if ($_ -match '\s') { "`"$_`"" } else { $_ } }) -join ' '
   $proc = Start-Process -FilePath $exe -ArgumentList $argLine -PassThru -WindowStyle Hidden
   $lines = [System.Collections.Generic.List[string]]::new()
   $result = $null

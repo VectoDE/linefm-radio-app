@@ -19,7 +19,8 @@
 // - config/stations.yaml ist die einzige echte Datei im Repo und wird streng
 //   geprueft (lib/domain/stations_config.dart, dieselbe Regel wie in der App).
 // - app.example.yaml muss jeden Wert enthalten, den der App-Code per
-//   String/bool.fromEnvironment liest (ausser denen aus features).
+//   String/bool.fromEnvironment liest (ausser denen aus features und den vom Build gesetzten Werten APP_VERSION,
+//   APP_COMMIT, LINEFM_PERF_MARKS).
 //
 // Neues Thema = neuer Eintrag in [_schemas]; Ladeweg und CI bleiben gleich.
 // Exit-Code 0 = alles in Ordnung, 1 = mindestens ein Fehler.
@@ -267,6 +268,13 @@ List<String> _checkSchema(
   return errors;
 }
 
+// Set by the build or release workflow, never by the operator (#104, #92).
+const Set<String> _injectedKeys = <String>{
+  'APP_VERSION',
+  'APP_COMMIT',
+  'LINEFM_PERF_MARKS',
+};
+
 List<String> _appKeysInCode(String text) {
   final data = _readYaml(text, <String>[]) ?? const <String, Object?>{};
   final source = <Directory>[Directory('lib'), Directory('packages')]
@@ -282,7 +290,7 @@ List<String> _appKeysInCode(String text) {
       .toSet();
   final features = _schemas['features']!.keys.toSet();
   return <String>[
-    for (final key in read.difference(features))
+    for (final key in read.difference(features).difference(_injectedKeys))
       if (!data.containsKey(key))
         'Schlüssel "$key" fehlt (liest der App-Code).',
   ];

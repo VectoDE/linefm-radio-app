@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/features/consent/cast_consent.dart';
 import 'package:linefm_radio/features/consent/google_consent.dart';
 import 'package:linefm_radio/features/stations/favorite_stations.dart';
 import 'package:linefm_radio/ui/widgets/cover_image.dart';
@@ -17,7 +18,9 @@ Future<void> clearAppStorage(WidgetRef ref) async {
   await CoverImage.diskCache?.clear();
   await ref.read(telemetryProvider).setConsent(value: false);
   await ref.read(alarmCoordinatorProvider).rescheduleAll(const []);
-  // Zuletzt: War Google schon geladen, laedt web/analytics.js die Seite neu.
+  // Zuletzt: War Google schon geladen, laden web/analytics.js bzw.
+  // web/cast.js die Seite neu.
+  ref.read(castConsentProvider.notifier).reset();
   ref.read(googleConsentProvider.notifier).reset();
   ref
     ..invalidate(settingsProvider)

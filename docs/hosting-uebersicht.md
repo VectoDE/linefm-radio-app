@@ -77,7 +77,7 @@ Die App nutzt Pfad-URLs. Alle Pfade ohne Dateiendung liefern `index.html`. Pfade
 
 Die CSP erlaubt nur die eigene Herkunft, dazu gezielt:
 
-- Skripte: `'self'` und `'wasm-unsafe-eval'` (nötig, damit der Browser das Wasm-Modul kompiliert). Kein `unsafe-inline`, kein `unsafe-eval`.
+- Skripte: `'self'` und `'wasm-unsafe-eval'` (nötig, damit der Browser das Wasm-Modul kompiliert). Kein `unsafe-inline`, kein `unsafe-eval`. Dazu `https://www.gstatic.com` für Google Cast: `cast.js` lädt das Cast-Skript von dort erst, wenn jemand der Übertragung zugestimmt hat.
 - Stile: `'self'` und `'unsafe-inline'`. **Dokumentierte Ausnahme:** Die Flutter-Engine setzt zur Laufzeit Inline-Stile (`style`-Attribute an `flt-*`-Elementen), und die statische Startseite bringt ein eigenes `<style>`. Beides lässt sich ohne Nonce oder Hash nicht erlauben, und ein Nonce pro Antwort geht bei statischem Hosting nicht. Das Risiko ist begrenzt, weil `script-src` kein `unsafe-inline` hat: Wer Stile einschleust, führt dadurch keinen Code aus. Wird die Ausnahme eng, wäre der Weg ein Hash für das Start-`<style>` und, sobald die Engine es erlaubt, der Verzicht auf `unsafe-inline`. Vor jedem Flutter-Update neu prüfen.
 - Bilder und Abrufe: `api.laut.fm` (auch `wss:`), `itunes.apple.com`, `*.mzstatic.com` (Cover), `cdn.linefm.de` (Senderlogos), `assets.laut.fm`, `radiogruppe.de` (RadioGruppe-Logo).
 - Audio: `*.laut.fm` (Streams laufen über `<sender>.stream.laut.fm`).

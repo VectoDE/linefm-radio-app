@@ -784,6 +784,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get castDisconnect => 'Stop casting';
 
   @override
+  String get castChooseDevice => 'Choose a device';
+
+  @override
+  String get castConsentTitle => 'Casting with Google Cast';
+
+  @override
+  String get castConsentIntro =>
+      'To send the radio to a Chromecast or a speaker with Google Cast, the page needs a script from Google. It only loads once you agree here.';
+
+  @override
+  String get castConsentRecipient =>
+      'The provider is Google Ireland Limited (Dublin, Ireland). When the script loads, Google receives your IP address and details about your browser and device. While casting, the Cast device gets the stream address, title, artist and cover and plays the stream directly from laut.fm.';
+
+  @override
+  String get castConsentTransfer =>
+      'Google may transfer the data to Google LLC in the USA. This is based on the EU-US Data Privacy Framework, for which the EU Commission has found an adequate level of data protection.';
+
+  @override
+  String get castConsentOutro =>
+      'Your consent is voluntary and separate from audience measurement. You can withdraw it at any time in the settings. If Cast was already loaded, the page then reloads once.';
+
+  @override
+  String get settingCastTitle => 'Google Cast (Chromecast)';
+
+  @override
+  String get settingCastBodyOn =>
+      'Allowed. The page may load the Cast script from Google. You can withdraw this at any time; the page then reloads once.';
+
+  @override
+  String get settingCastBodyOff =>
+      'Not allowed. The page loads nothing from Google for Cast.';
+
+  @override
   String get airplayButton => 'AirPlay';
 
   @override

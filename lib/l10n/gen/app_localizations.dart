@@ -1388,6 +1388,60 @@ abstract class AppLocalizations {
   /// **'Übertragung beenden'**
   String get castDisconnect;
 
+  /// No description provided for @castChooseDevice.
+  ///
+  /// In de, this message translates to:
+  /// **'Gerät auswählen'**
+  String get castChooseDevice;
+
+  /// No description provided for @castConsentTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Übertragen mit Google Cast'**
+  String get castConsentTitle;
+
+  /// No description provided for @castConsentIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Damit du das Radio auf einen Chromecast oder einen Lautsprecher mit Google Cast schicken kannst, braucht die Seite ein Skript von Google. Es lädt erst, wenn du hier zustimmst.'**
+  String get castConsentIntro;
+
+  /// No description provided for @castConsentRecipient.
+  ///
+  /// In de, this message translates to:
+  /// **'Anbieter ist Google Ireland Limited (Dublin, Irland). Beim Laden erhält Google deine IP-Adresse und Angaben zu Browser und Gerät. Beim Übertragen bekommt das Cast-Gerät Stream-Adresse, Titel, Künstler und Cover und spielt den Stream direkt von laut.fm ab.'**
+  String get castConsentRecipient;
+
+  /// No description provided for @castConsentTransfer.
+  ///
+  /// In de, this message translates to:
+  /// **'Google kann die Daten an Google LLC in den USA übermitteln. Grundlage ist das EU-US Data Privacy Framework, für das die EU-Kommission ein angemessenes Datenschutzniveau festgestellt hat.'**
+  String get castConsentTransfer;
+
+  /// No description provided for @castConsentOutro.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Einwilligung ist freiwillig und getrennt von der Reichweitenmessung. Du kannst sie jederzeit in den Einstellungen widerrufen. War Cast schon geladen, lädt die Seite dann einmal neu.'**
+  String get castConsentOutro;
+
+  /// No description provided for @settingCastTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Google Cast (Chromecast)'**
+  String get settingCastTitle;
+
+  /// No description provided for @settingCastBodyOn.
+  ///
+  /// In de, this message translates to:
+  /// **'Erlaubt. Die Seite darf das Cast-Skript von Google laden. Widerrufen geht jederzeit; die Seite lädt dann einmal neu.'**
+  String get settingCastBodyOn;
+
+  /// No description provided for @settingCastBodyOff.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht erlaubt. Für Cast lädt die Seite nichts von Google.'**
+  String get settingCastBodyOff;
+
   /// No description provided for @airplayButton.
   ///
   /// In de, this message translates to:

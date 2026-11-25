@@ -128,3 +128,21 @@ Je Maßnahme ein eigener PR mit Vorher/Nachher aus diesem Workflow (gleiche Läu
 - **App-Start Windows:** offen. 139 ms bis `runApp` sind schon gut; ob das erste Bild auf 357 ms kommt, zeigt erst ein Trace.
 - **Ton nach Klick:** eher nicht. Rund 3 s entfallen auf das Puffern der laut.fm-Streams. Realistisch sind 1 bis 1,5 s weniger (P92-03, P92-04), also etwa Faktor 1,3 bis 1,5.
 - **Bedienung:** offen bis die Seitenwechsel gemessen sind. Die Scrollwerte auf dem GPU-losen Runner sind als Vergleichsgröße brauchbar, nicht als absoluter Nutzerwert.
+
+## Public web quality checks
+
+Issue #132. Workflow `.github/workflows/pages.yml` builds the web app for GitHub Pages
+(`--base-href /linefm-radio-app/`) and deploys it to https://vectode.github.io/linefm-radio-app/
+on every push to `main` that touches the app. Pages must be enabled once
+(Settings > Pages > Source: GitHub Actions); until then the deploy step is skipped with a note.
+
+After each deploy the job "Web quality gate" checks the live URL:
+
+- With the repository secret `PAGESPEED_API_KEY`: PageSpeed Insights API, mobile and desktop.
+- Without it: Lighthouse on the runner (`tool/perf/lighthouse.mjs`, median of 5 runs, simulated throttling).
+- Thresholds (`tool/perf/pagespeed_gate.mjs`): performance >= 95, accessibility, best practices and SEO = 100.
+  Below that the job fails. Reports are in the artifact `web-gate-<sha>`.
+
+Seobility (https://www.seobility.net/de/seocheck/) and WebsiteScorer (https://websitescorer.com/)
+offer no free API. They are run by hand against the Pages URL after a deploy that changes the
+web output; the scores and findings go into issue #132.

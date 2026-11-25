@@ -120,7 +120,7 @@ Die Werte sind im Binary lesbar. Keine Geheimnisse hinein. Ohne Telemetrie-Werte
 | Linux, macOS, iOS | `flutter build linux`, `macos`, `ipa` (ungetestet) |
 
 - Android signiert nur, wenn `android/key.properties` existiert, sonst entsteht ein unsigniertes Release. Details: [packaging/android/SIGNING.md](../packaging/android/SIGNING.md).
-- Verpackung für die Verteilung (Inno Setup, MSIX, Flatpak, Snap, DMG, iOS-Export): [packaging/README.md](../packaging/README.md).
+- Verpackung für die Verteilung (eigener Windows-Installer in `installer/windows`, MSIX, Flatpak, Snap, DMG, iOS-Export): [packaging/README.md](../packaging/README.md).
 - `flutter build` schreibt `lib/l10n/gen/*` mit anderen Zeilenenden neu. Diese Änderungen nicht committen, zurücksetzen.
 - App-Icons entstehen aus einer Quelle mit `tool/generate_icons.sh` (Quelle `assets/branding/source/`). Das Icon wird technisch skaliert, nicht verändert.
 - Übersetzungen: `lib/l10n/app_de.arb` ist die Vorlage, `app_en.arb` die zweite Sprache. `flutter gen-l10n` erzeugt `lib/l10n/gen/`. Jeder Schlüssel muss in beiden Sprachen stehen (CI-Job und `test/app/language_test.dart` prüfen das). Neue sichtbare Texte kommen immer in die ARB-Dateien, nie als Literal in den Code. Texte ohne BuildContext (Wecker, Tray, Auto-Menü) holen `systemLocalizations()` aus `lib/l10n/system_l10n.dart`; das berücksichtigt die in den Einstellungen gewählte Sprache.

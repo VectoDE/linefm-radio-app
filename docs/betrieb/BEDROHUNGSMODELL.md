@@ -125,7 +125,7 @@ Die Spalte "Vorhanden" nennt Maßnahmen, die im Repository belegt sind. "Rest" i
 | S | Gestohlenes GitHub-Konto oder Token | Aktionen mit minimalen `permissions:`, Umgebung `production` mit Genehmiger (Betreiber muss ihn einrichten), Secret-Scan mit gitleaks | Kontosicherheit (2FA, Hardware-Schlüssel) liegt beim Betreiber | S1 |
 | I | Secrets in Code oder Logs | gitleaks, Secret-Gate-Action, keine Secrets im Repository | Fehler im Workflow könnten Secrets ausgeben | S1 |
 | R | Wer hat was veröffentlicht | Git-Verlauf, geschützter Hauptzweig, Workflow-Läufe mit Benutzer und Zeit, Attestierungen | Rulesets und Branch-Schutz müssen aktiv sein (Repo-Einstellung) | S3 |
-| T | Unverankertes Build-Werkzeug im Signier-Job (Inno Setup über Chocolatey als Rückfall) | Runner-Image bringt Inno Setup mit, der Rückfall ist auf eine feste Version gepinnt (#133) | Chocolatey-Paketquelle bleibt Vertrauensanker des Rückfalls | S3 |
+| T | Unverankertes Build-Werkzeug im Signier-Job | Der Windows-Installer entsteht mit dem eigenen Packer aus dem Repository (`installer/windows`), es wird kein Fremdwerkzeug nachinstalliert (#133, #88) | Der Axe.Windows-Scanner im Prüflauf ist per Hash gepinnt | S3 |
 | E | Fremder Pull Request führt Code mit Rechten aus | Kein privilegierter Job auf `pull_request`, Secrets nur in geschützten Läufen | Fehlkonfiguration bei neuen Workflows. Jeder neue Workflow wird gegen diese Regel geprüft. | S2 |
 
 ### Desktop-Installation (Windows, Linux, macOS)

@@ -413,6 +413,8 @@ Quelle: [packaging/windows/README.md](../packaging/windows/README.md).
 - **Wo eintragen:** Secrets `WINDOWS_CERT_PFX_BASE64` und `WINDOWS_CERT_PASSWORD`.
 - **Woher:** Ein Zertifikatsanbieter (kostenpflichtig, kostenlose Wege prüfen).
 - **Prüfschritt:** Der Installer zeigt in den Dateieigenschaften eine digitale Signatur.
+- **Was damit signiert wird:** die App-EXE, der Setup-Stub (er ist zugleich `uninstall.exe`), das Setup-Fenster `linefm_setup.exe` und die fertige `setup.exe`. Die CI prüft die Signatur der `setup.exe` mit `signtool verify`. Das Zertifikat sollte auf den Hersteller "LineFM Studios" lauten, so steht er auch in den Dateieigenschaften und unter "Installierte Apps".
+- **Bedienung des Installers:** [BAUEN-UND-STARTEN.md](BAUEN-UND-STARTEN.md), Abschnitt "Windows: Installer benutzen".
 - [ ] erledigt
 
 ### 7.5 Store-Eintrag

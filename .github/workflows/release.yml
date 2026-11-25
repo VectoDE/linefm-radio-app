@@ -145,8 +145,9 @@ jobs:
       FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
     permissions:
       contents: read
-      # The build log gate in build.yml reads the job logs of this run.
+      # The build log gate in build.yml reads the job logs and annotations of this run.
       actions: read
+      checks: read
 
   # Signieren (P31): nur dieser Job bekommt id-token: write (OIDC fuer Sigstore).
   # Er erzeugt SBOM und SHA256SUMS.txt, attestiert die Herkunft (GitHub-Attestierung,
@@ -469,6 +470,9 @@ jobs:
       FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
     permissions:
       contents: read
+      # The log gate of the called workflow reads job logs and annotations.
+      actions: read
+      checks: read
 
   snap-store:
     name: Snap Store
@@ -481,6 +485,9 @@ jobs:
       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
     permissions:
       contents: read
+      # The log gate of the called workflow reads job logs and annotations.
+      actions: read
+      checks: read
 
   microsoft-store:
     name: Microsoft Store
@@ -497,6 +504,9 @@ jobs:
       FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
     permissions:
       contents: read
+      # The log gate of the called workflow reads job logs and annotations.
+      actions: read
+      checks: read
 
   flathub-prep:
     name: Flathub-Vorbereitung
@@ -507,6 +517,9 @@ jobs:
       tag: ${{ needs.version.outputs.tag }}
     permissions:
       contents: read
+      # The log gate of the called workflow reads job logs and annotations.
+      actions: read
+      checks: read
 
   apple-stores:
     name: Apple (TestFlight, Mac App Store)
@@ -529,6 +542,9 @@ jobs:
       FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
     permissions:
       contents: read
+      # The log gate of the called workflow reads job logs and annotations.
+      actions: read
+      checks: read
 
   deploy-web:
     name: Web-Deploy
@@ -550,3 +566,36 @@ jobs:
       PLESK_SSH_KNOWN_HOSTS: ${{ secrets.PLESK_SSH_KNOWN_HOSTS }}
     permissions:
       contents: read
+      # The log gate of the called workflow reads job logs and annotations.
+      actions: read
+      checks: read
+
+  # Zero-warning rule: any warning or error in a job log or a check-run
+  # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented upstream exceptions, each with an expiry date.
+  log-gate:
+    name: Log gate
+    needs: [version, build, sign, publish, google-play, snap-store, microsoft-store, flathub-prep, apple-stores, deploy-web]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan job logs and annotations
+        uses: ./.github/actions/log-gate
+        with:
+          job-name: Log gate
+          token: ${{ github.token }}

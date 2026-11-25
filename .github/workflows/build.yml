@@ -1135,9 +1135,9 @@ jobs:
         run: |
           echo "- iOS: Kompilierpruefung erfolgreich (unsigniert, kein Release-Artefakt; Store-Upload ueber store-apple.yml)" >> "$GITHUB_STEP_SUMMARY"
 
-  # Zero-warning rule: any warning or error line in a job log fails the run,
-  # including third-party output. Fix the cause; tool/build_log_allowlist.json
-  # holds the few documented exceptions, each with an expiry date.
+  # Zero-warning rule: any warning or error in a job log or a check-run
+  # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented upstream exceptions, each with an expiry date.
   log-gate:
     name: Build log gate
     needs: [meta, android, web, linux, windows, macos-setup-ui, macos, ios]
@@ -1147,6 +1147,7 @@ jobs:
     permissions:
       contents: read
       actions: read
+      checks: read
     steps:
       - name: Runner haerten
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
@@ -1158,13 +1159,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Scan job logs for warnings and errors
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          logs="$RUNNER_TEMP/job-logs"
-          bash tool/fetch_job_logs.sh "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$logs" "Build log gate"
-          shopt -s nullglob
-          files=("$logs"/*.log)
-          [ "${#files[@]}" -gt 0 ] || { echo "::error::no job logs downloaded"; exit 1; }
-          python3 -I tool/check_build_logs.py "${files[@]}"
+      - name: Scan job logs and annotations
+        uses: ./.github/actions/log-gate
+        with:
+          job-name: Build log gate
+          token: ${{ github.token }}

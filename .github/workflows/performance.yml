@@ -329,3 +329,33 @@ jobs:
             perf-summary.md
             perf-summary.json
           retention-days: 90
+
+  # Zero-warning rule: any warning or error in a job log or a check-run
+  # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented upstream exceptions, each with an expiry date.
+  log-gate:
+    name: Log gate
+    needs: [web, windows, android, bericht]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan job logs and annotations
+        uses: ./.github/actions/log-gate
+        with:
+          job-name: Log gate
+          token: ${{ github.token }}

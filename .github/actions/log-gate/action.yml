@@ -1,0 +1,40 @@
+name: Log gate
+description: >
+  Zero-warning rule for a whole workflow run. Downloads the log and the
+  check-run annotations of every finished job of the current run and fails
+  when any of them contains a warning or an error that
+  tool/build_log_allowlist.json does not cover (expired entries fail too).
+  The calling job needs the repository checked out, runs last with
+  "if: always()" and "needs" on every other job, and the permissions
+  actions: read and checks: read.
+
+inputs:
+  job-name:
+    description: Name of the calling job, left out of the scan
+    required: true
+  token:
+    description: Token with actions:read and checks:read
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Scan job logs and annotations
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        GATE_JOB: ${{ inputs.job-name }}
+      run: |
+        set -euo pipefail
+        out="$RUNNER_TEMP/log-gate"
+        status=0
+        bash tool/fetch_job_logs.sh "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$out" "$GATE_JOB" || status=1
+        bash tool/fetch_run_annotations.sh "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$out" "$GATE_JOB" || status=1
+        shopt -s nullglob
+        files=("$out"/*.log "$out"/*.annotations)
+        if [ "${#files[@]}" -eq 0 ]; then
+          echo "No finished jobs to scan besides the gate."
+        else
+          python3 -I tool/check_build_logs.py "${files[@]}" || status=1
+        fi
+        exit "$status"

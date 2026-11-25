@@ -97,7 +97,9 @@ const wchar_t* WindowClassRegistrar::GetWindowClass() {
     window_class.hInstance = GetModuleHandle(nullptr);
     window_class.hIcon =
         LoadIcon(window_class.hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
-    window_class.hbrBackground = 0;
+    // Same ink as the native splash and the in-app loader (#0F1221), so the
+    // window is never white while the first Flutter frame is on its way.
+    window_class.hbrBackground = CreateSolidBrush(RGB(0x0F, 0x12, 0x21));
     window_class.lpszMenuName = nullptr;
     window_class.lpfnWndProc = Win32Window::WndProc;
     RegisterClass(&window_class);
@@ -146,11 +148,31 @@ bool Win32Window::Create(const std::wstring& title,
 
   UpdateTheme(window);
 
+  // Cloaked until Flutter has presented the loader (Reveal()). Showing,
+  // maximising or restoring bounds before that (window_manager runs before
+  // runApp) then never puts an empty window on screen.
+  BOOL cloak = TRUE;
+  DwmSetWindowAttribute(window, DWMWA_CLOAK, &cloak, sizeof(cloak));
+
   return OnCreate();
 }
 
 bool Win32Window::Show() {
+  // Keep a state set earlier (e.g. maximised by window_manager).
+  if (IsWindowVisible(window_handle_)) {
+    return true;
+  }
   return ShowWindow(window_handle_, SW_SHOWNORMAL);
+}
+
+void Win32Window::Reveal() {
+  if (revealed_ || window_handle_ == nullptr) {
+    return;
+  }
+  revealed_ = true;
+  Show();
+  BOOL cloak = FALSE;
+  DwmSetWindowAttribute(window_handle_, DWMWA_CLOAK, &cloak, sizeof(cloak));
 }
 
 // static
@@ -212,6 +234,15 @@ Win32Window::MessageHandler(HWND hwnd,
         SetFocus(child_content_);
       }
       return 0;
+
+    case WM_ERASEBKGND: {
+      RECT rect;
+      GetClientRect(hwnd, &rect);
+      HBRUSH brush = CreateSolidBrush(RGB(0x0F, 0x12, 0x21));
+      FillRect(reinterpret_cast<HDC>(wparam), &rect, brush);
+      DeleteObject(brush);
+      return 1;
+    }
 
     case WM_DWMCOLORIZATIONCOLORCHANGED:
       UpdateTheme(hwnd);

@@ -15,6 +15,7 @@ import 'package:linefm_radio/platform/deep_links.dart';
 import 'package:linefm_radio/platform/desktop/desktop_controller.dart';
 import 'package:linefm_radio/platform/desktop/desktop_init.dart';
 import 'package:linefm_radio/platform/desktop/legacy_data_dir.dart';
+import 'package:linefm_radio/platform/desktop/window_reveal.dart';
 import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
 import 'package:linefm_radio/services/audio/audio_backend.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
@@ -78,6 +79,7 @@ Future<void> main(List<String> args) async {
   await initDeepLinks();
   DeepLinks.dispatchFromArguments(args);
   perfMark('run-app');
+  unawaited(revealWindowWhenPresented());
   if (kPerfMarks) {
     WidgetsBinding.instance.waitUntilFirstFrameRasterized
         .then((_) => perfMark('first-frame'))

@@ -89,7 +89,7 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "de.linefm" "\0"
+            VALUE "CompanyName", "LineFM Studios" "\0"
             VALUE "FileDescription", "LINEFM Radio" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "linefm_radio" "\0"

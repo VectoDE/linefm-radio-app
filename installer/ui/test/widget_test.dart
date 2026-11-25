@@ -16,7 +16,7 @@ void main() {
     ThemeMode mode = ThemeMode.dark,
     bool uninstall = false,
   }) async {
-    tester.view.physicalSize = const Size(844, 620);
+    tester.view.physicalSize = const Size(844, 660);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     platform = FakePlatform();

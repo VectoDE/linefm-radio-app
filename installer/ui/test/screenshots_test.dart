@@ -49,7 +49,7 @@ void main() {
     required HostOs os,
     Future<void> Function(SetupController c, FakePlatform p)? after,
   }) async {
-    tester.view.physicalSize = const Size(844 * 1.25, 620 * 1.25);
+    tester.view.physicalSize = const Size(844 * 1.25, 660 * 1.25);
     tester.view.devicePixelRatio = 1.25;
     addTearDown(tester.view.reset);
     final platform = FakePlatform();

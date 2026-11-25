@@ -28,6 +28,35 @@ static gboolean delete_event_cb(GtkWidget* widget, GdkEvent* event,
   return TRUE;
 }
 
+// Custom title bar (#88): Dart asks to move or minimize the window. Only
+// these two fixed actions exist.
+static void method_call_cb(FlMethodChannel* channel, FlMethodCall* call,
+                           gpointer user_data) {
+  GtkWindow* window = GTK_WINDOW(user_data);
+  g_autoptr(FlMethodResponse) response = nullptr;
+  if (g_strcmp0(fl_method_call_get_name(call), "window") == 0) {
+    FlValue* args = fl_method_call_get_args(call);
+    const gchar* action = (args != nullptr &&
+                           fl_value_get_type(args) == FL_VALUE_TYPE_STRING)
+                              ? fl_value_get_string(args)
+                              : "";
+    if (g_strcmp0(action, "startDrag") == 0) {
+      GdkDisplay* display = gtk_widget_get_display(GTK_WIDGET(window));
+      GdkSeat* seat = gdk_display_get_default_seat(display);
+      GdkDevice* pointer = gdk_seat_get_pointer(seat);
+      gint x = 0, y = 0;
+      gdk_device_get_position(pointer, nullptr, &x, &y);
+      gtk_window_begin_move_drag(window, 1, x, y, GDK_CURRENT_TIME);
+    } else if (g_strcmp0(action, "minimize") == 0) {
+      gtk_window_iconify(window);
+    }
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else {
+    response = FL_METHOD_RESPONSE(fl_method_not_implemented_response_new());
+  }
+  fl_method_call_respond(call, response, nullptr);
+}
+
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
@@ -35,7 +64,9 @@ static void my_application_activate(GApplication* application) {
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
   // Same client size as the Windows setup window.
-  gtk_window_set_default_size(window, 844, 620);
+  gtk_window_set_default_size(window, 844, 660);
+  // No native title bar: the Flutter UI draws the LINEFM bar (#88).
+  gtk_window_set_decorated(window, FALSE);
   gtk_window_set_resizable(window, FALSE);
 
   // If you want to use a header bar, uncomment the following lines.
@@ -74,6 +105,8 @@ static void my_application_activate(GApplication* application) {
   self->channel = fl_method_channel_new(
       fl_engine_get_binary_messenger(fl_view_get_engine(view)),
       "linefm_setup/native", FL_METHOD_CODEC(codec));
+  fl_method_channel_set_method_call_handler(self->channel, method_call_cb,
+                                            window, nullptr);
   g_signal_connect(window, "delete-event", G_CALLBACK(delete_event_cb), self);
 
   gtk_widget_grab_focus(GTK_WIDGET(view));

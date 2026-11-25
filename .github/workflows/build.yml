@@ -521,7 +521,7 @@ jobs:
           bash installer/linux/fetch-appimagetool.sh build/installer/tools
 
       - name: Check the installer engine (shellcheck)
-        run: shellcheck -s sh installer/posix/engine.sh && shellcheck installer/posix/test-installer.sh installer/linux/*.sh
+        run: shellcheck -s sh installer/posix/engine.sh installer/posix/root-helper.sh && shellcheck installer/posix/test-installer.sh installer/linux/*.sh
 
       - name: Build the Linux installer (AppImage)
         run: |

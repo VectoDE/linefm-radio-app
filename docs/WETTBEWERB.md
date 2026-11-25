@@ -17,7 +17,7 @@ Angaben zu den Mitbewerbern stehen so in deren Store-Beschreibung. "nicht genann
 
 | | LINEFM Radio (Stand Code) | radio.de | TuneIn Radio | laut.fm (App der LAUT AG) | Simple Radio | app.linecast.de (bisherige Web-App) |
 |---|---|---|---|---|---|---|
-| Anbieter | jaybelife (Betreiber), Entwicklung VectoDE | radio.de GmbH | TuneIn | LAUT AG | Streema, Inc. | RadioGruppe Deutschland, "Made by .jaybelife" |
+| Anbieter | LineFM Studios (Betreiber), Entwicklung VectoDE | radio.de GmbH | TuneIn | LAUT AG | Streema, Inc. | RadioGruppe Deutschland, "Made by Tim Hauke" |
 | Umfang | 6 Sender (4 LINEFM, 2 Partner) | über 60.000 Sender, über 2,2 Mio. Podcasts | über 100.000 Sender aus 197 Ländern, Sport, Nachrichten, Podcasts | über 10.000 Sender, Millionen Songs, eigene Sendungen gestalten und live moderieren | rund 90.000 Sender | Sender der RadioGruppe |
 | Preis | kostenlos, ohne Werbung, ohne Konto (Ziel laut Store-Text) | kostenlos, Prime (einmalig 39,99 EUR) gegen Video- und Banner-Werbung | kostenlos, optionales Premium-Abo | kostenlos | kostenlos mit In-App-Käufen, laut Beschreibung ohne Werbung | kostenlos, Werbung nicht belegt |
 | Sleeptimer | ja (15/30/45/60 Min.) | genannt | nicht genannt | genannt | nicht genannt | ja (15/30/45/60 Min.) |
@@ -42,7 +42,7 @@ Die Spalte LINEFM Radio nennt den Code-Stand, nicht den Stand eines Stores. Die 
 
 ## Lücken und Chancen (Vorschlagsliste)
 
-Das sind Vorschläge für Planung und Entscheidung durch jaybelife. Es wurden keine Tickets dafür angelegt.
+Das sind Vorschläge für Planung und Entscheidung durch LineFM Studios. Es wurden keine Tickets dafür angelegt.
 
 | Nr. | Vorschlag | Beleg | Aufwand | Hinweis |
 |---|---|---|---|---|

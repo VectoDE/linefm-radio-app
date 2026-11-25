@@ -5,7 +5,7 @@ name: Release
 # (tool/release/next_version.dart, Logik in lib/core/update/app_version.dart):
 # Start 0.1.0-alpha.1, jeder Merge zaehlt die Vorabnummer hoch; beta, sobald kein
 # Ticket mit typ:feature mehr offen ist; rc (1.0.0-rc.N), sobald nur noch Tickets mit
-# nur-noch:jaybelife offen sind; 1.0.0, wenn nichts mehr offen ist. Die Version steht
+# nur-noch:linefm-studios offen sind; 1.0.0, wenn nichts mehr offen ist. Die Version steht
 # nirgends fest; pubspec.yaml traegt nur den Platzhalter 0.0.0-dev.
 # Baut alle Plattformen ueber build.yml. Der Job "sign" erzeugt SHA256SUMS.txt und
 # eine SBOM (SPDX und CycloneDX, syft), legt GitHub-Attestierungen (Build-Provenance,

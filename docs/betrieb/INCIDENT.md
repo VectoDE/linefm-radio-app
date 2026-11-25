@@ -23,7 +23,7 @@ Fremddienste: Fällt laut.fm oder Apple aus, kann die App nichts beheben. Sie ze
 | Nutzer | GitHub Discussions, Tickets, Kontaktadresse aus dem Impressum | Fehler, Fragen |
 | Nutzer, Forscher | vertrauliches Meldeformular nach [SECURITY.md](../../SECURITY.md) | Sicherheitslücken. **Nie** als öffentliches Ticket. |
 | Store-Konsolen | E-Mail des Entwicklerkontos (Google Play, App Store Connect, Partner Center) | Ablehnungen, Richtlinienhinweise, Abstürze laut Konsole |
-| Betreiber (jaybelife) | Betreuer des Repositories | Entscheidungen, Kommunikation nach außen |
+| Betreiber (LineFM Studios) | Betreuer des Repositories | Entscheidungen, Kommunikation nach außen |
 
 Die Kontaktdaten des Betreibers stehen im Impressum der App. Sie stehen absichtlich nicht in diesem Dokument.
 

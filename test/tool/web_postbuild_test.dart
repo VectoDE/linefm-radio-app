@@ -405,6 +405,13 @@ void main() {
       );
     });
 
+    test('Copyright-Jahre: erstes Jahr bis Build-Jahr', () {
+      expect(copyrightYears(DateTime.utc(2026, 11, 19)), '2026');
+      expect(copyrightYears(DateTime.utc(2027, 1, 1)), '2026-2027');
+      final index = File('web/index.html').readAsStringSync();
+      expect(index, contains(copyrightYearsPlaceholder));
+    });
+
     test('eingecheckte Sitemap: lastmod, kein hreflang en', () {
       final xml = File('web/sitemap.xml').readAsStringSync();
       expect(xml, contains('<lastmod>'));

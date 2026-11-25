@@ -1,6 +1,6 @@
 # LINEFM Radio
 
-Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI sowie Radio3FM und FobFM. Ein Angebot von RadioGruppe Deutschland. Gebaut mit Flutter (ein Framework von Google) für Android, iOS, Windows, macOS, Linux und das Web.
+Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI sowie Radio3FM und FobFM. LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Gebaut mit Flutter (ein Framework von Google) für Android, iOS, Windows, macOS, Linux und das Web.
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/VectoDE/linefm-radio-app/badge)](https://scorecard.dev/viewer/?uri=github.com/VectoDE/linefm-radio-app)
 [![CI](https://github.com/VectoDE/linefm-radio-app/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/VectoDE/linefm-radio-app/actions/workflows/ci.yml)
@@ -20,7 +20,7 @@ Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI so
 | Hörerin oder Hörer | wissen, was die App kann | [Für Hörer](#für-hörer) |
 | Mensch mit Screenreader, Tastatur oder Vergrößerung | wissen, was geht und was nicht | [Barrierefreiheit](#barrierefreiheit) |
 | Entscheider | Stand, Kosten, Risiken auf einen Blick | [Für Entscheider](#für-entscheider) |
-| Betreiber (jaybelife) | Konten einrichten und freigeben | [Für Betreiber](#für-betreiber) |
+| Betreiber (LineFM Studios) | Konten einrichten und freigeben | [Für Betreiber](#für-betreiber) |
 | Neu im Code | zum ersten Mal bauen | [Erste Schritte](#erste-schritte) |
 | Betreiber oder Tester | die App selbst bauen lassen, herunterladen, öffnen und nutzen | [Bauen und Starten](docs/BAUEN-UND-STARTEN.md) |
 | Entwickler | bauen, testen, erweitern | [Für Entwickler](#für-entwickler) |
@@ -169,9 +169,9 @@ Stand: 22. November 2026. Status heißt: **erfüllt** = die Prüfung läuft in d
 
 ## Credits
 
-Entwickelt von [Tim Hauke (VectoDE)](https://github.com/VectoDE) für jaybelife. LINEFM und diese App gehören jaybelife.
+Entwickelt von [Tim Hauke](https://github.com/VectoDE) für LineFM Studios. LINEFM und diese App gehören LineFM Studios.
 
-Made by .jaybelife with ♥. Ein Angebot von RadioGruppe Deutschland. Die Sender werden über laut.fm ausgespielt. Schriften: Poppins und Syncopate (Lizenztexte in der App).
+Made by [Tim Hauke](https://github.com/VectoDE) with ♥. LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Die Sender werden über laut.fm ausgespielt. Schriften: Poppins und Syncopate (Lizenztexte in der App).
 
 ## Rechte
 
@@ -181,7 +181,7 @@ LINEFM, die Logos, das App-Icon und die Sendernamen sind Marken und Eigentum des
 
 ## English
 
-LINEFM Radio is a Flutter app for listening to the LINEFM radio stations live (Android, iOS, Windows, macOS, Linux, web). It is under development and not yet published in any store. Operators start with [docs/EINRICHTUNG.md](docs/EINRICHTUNG.md) and [docs/FREIGABE-CHECKLISTE.md](docs/FREIGABE-CHECKLISTE.md), developers with [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md) (all in German). Developed by Tim Hauke (VectoDE) for jaybelife. LINEFM and this app belong to jaybelife. All rights reserved, no open-source license.
+LINEFM Radio is a Flutter app for listening to the LINEFM radio stations live (Android, iOS, Windows, macOS, Linux, web). It is under development and not yet published in any store. Operators start with [docs/EINRICHTUNG.md](docs/EINRICHTUNG.md) and [docs/FREIGABE-CHECKLISTE.md](docs/FREIGABE-CHECKLISTE.md), developers with [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md) (all in German). Developed by [Tim Hauke](https://github.com/VectoDE) for LineFM Studios. LINEFM and this app belong to LineFM Studios. All rights reserved, no open-source license.
 
 ### Standards and compliance
 

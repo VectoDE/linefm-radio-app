@@ -89,7 +89,7 @@ Die Versionsnummer steht in keiner Datei, `pubspec.yaml` trägt nur den Platzhal
 | noch kein Release | Start | `0.1.0-alpha.1` |
 | mindestens ein Ticket mit `typ:feature` offen | Alpha | `0.1.0-alpha.2`, `0.1.0-alpha.3` |
 | kein `typ:feature` mehr offen | Beta | `0.1.0-beta.1` |
-| nur noch Tickets mit `nur-noch:jaybelife` offen | Release-Kandidat | `1.0.0-rc.1` |
+| nur noch Tickets mit `nur-noch:linefm-studios` offen | Release-Kandidat | `1.0.0-rc.1` |
 | kein Ticket mehr offen | Stabil | `1.0.0` |
 
 Jeder Merge zählt die letzte Zahl hoch. Eine Stufe fällt nie zurück, auch wenn ein Ticket wieder aufgeht. Nach `1.0.0` richtet sich die nächste Nummer nach den Commit-Titeln (`fix:` ergibt 1.0.1, `feat:` 1.1.0, `feat!:` 2.0.0). Die Build-Nummer für die Stores steigt mit jedem Lauf.

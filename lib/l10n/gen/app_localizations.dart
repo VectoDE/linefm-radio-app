@@ -167,10 +167,10 @@ abstract class AppLocalizations {
   /// Wörtlich, in allen Sprachen gleich
   ///
   /// In de, this message translates to:
-  /// **'Made by .jaybelife with ♥'**
+  /// **'Made by Tim Hauke with ♥'**
   String get creditsMadeBy;
 
-  /// Teil 1 von creditsMadeBy (Name wird fett gesetzt)
+  /// Teil 1 von creditsMadeBy (Name wird hervorgehoben und verlinkt)
   ///
   /// In de, this message translates to:
   /// **'Made by '**
@@ -179,7 +179,7 @@ abstract class AppLocalizations {
   /// Teil 2 von creditsMadeBy
   ///
   /// In de, this message translates to:
-  /// **'.jaybelife'**
+  /// **'Tim Hauke'**
   String get creditsMadeByAuthor;
 
   /// Teil 3 von creditsMadeBy (Herz farbig)
@@ -197,13 +197,13 @@ abstract class AppLocalizations {
   /// No description provided for @creditsDevelopedBy.
   ///
   /// In de, this message translates to:
-  /// **'Entwickelt von Tim Hauke (VectoDE) für jaybelife'**
+  /// **'Entwickelt von Tim Hauke (VectoDE) für LineFM Studios'**
   String get creditsDevelopedBy;
 
   /// No description provided for @creditsOwnership.
   ///
   /// In de, this message translates to:
-  /// **'LINEFM und die App gehören jaybelife.'**
+  /// **'LINEFM und die App gehören LineFM Studios.'**
   String get creditsOwnership;
 
   /// No description provided for @creditsDeveloperOpen.

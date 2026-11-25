@@ -1,6 +1,6 @@
 # LINEFM Radio
 
-> LINEFM Radio ist die Web-App zum Live-Hören der LINEFM-Sender. Sie läuft im Browser, ist als App installierbar und kostet nichts. Ein Angebot von RadioGruppe Deutschland, die Sender werden über laut.fm ausgespielt.
+> LINEFM Radio ist die Web-App zum Live-Hören der LINEFM-Sender. Sie läuft im Browser, ist als App installierbar und kostet nichts. LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe (LineFM Studios gehört Julian Gebauer), die Sender werden über laut.fm ausgespielt.
 
 Die App hat Favoriten ("Song merken"), einen Verlauf der zuletzt gespielten Titel, Lautstärkeregelung und einen Sleeptimer (15, 30, 45 oder 60 Minuten). Sprachen: Deutsch und Englisch. Native Apps für Android, Windows, Linux, macOS und iOS sind geplant.
 

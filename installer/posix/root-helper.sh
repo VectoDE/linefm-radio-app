@@ -154,6 +154,7 @@ cmd_install() {
   # Root-owned copy, then verify: no swap possible between check and use.
   TMP=$(mktemp -d /tmp/linefm-root.XXXXXX) || finish "$EX_FAILED" "No temp folder"
   chmod 700 "$TMP"
+  # shellcheck disable=SC2015 # the fallback is meant to run when any step fails
   cp "$SRC/payload.tar.gz" "$TMP/payload.tar.gz" && cp "$SRC/payload.sha256" "$TMP/payload.sha256" \
     || finish "$EX_CORRUPT" "Payload missing"
   # Uninstaller (setup UI without payload): copied, never extracted, so it
@@ -202,6 +203,7 @@ cmd_install() {
     fi
     command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$APPS" >/dev/null 2>&1
     rm -rf "$STATE/uninstaller"
+    # shellcheck disable=SC2015 # the fallback is meant to run when any step fails
     chown -R -h 0:0 "$TMP/uninstaller" && chmod -R go-w "$TMP/uninstaller" \
       && mv "$TMP/uninstaller" "$STATE/uninstaller" || log "Uninstaller could not be kept"
   else
@@ -213,6 +215,7 @@ cmd_install() {
     lsreg=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
     [ -x "$lsreg" ] && "$lsreg" -f "$DIR" >/dev/null 2>&1
   fi
+  # shellcheck disable=SC2015 # the fallback is meant to run when any step fails
   {
     echo "VERSION=$VERSION"; echo "SCOPE=machine"; echo "DIR=$DIR"
     echo "DESKTOP=$DESK"; echo "STARTMENU=$ENTRY"; echo "AUTOSTART=$AUTO"

@@ -11,6 +11,7 @@ analyzer:
     - macos/**
     - linux/**
     - packages/**
+    - installer/**
     - _input/**
   language:
     strict-casts: true

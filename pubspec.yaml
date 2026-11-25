@@ -92,7 +92,7 @@ flutter:
 # Windows-Paket (MSIX). Publisher wird spaeter aus dem Partner Center uebernommen.
 msix_config:
   display_name: LINEFM Radio
-  publisher_display_name: LINEFM
+  publisher_display_name: LineFM Studios
   identity_name: de.linefm.app
   # msix_version kommt aus dem Release (build.yml: msix:create --version), #104.
   logo_path: assets/branding/icon_1024.png

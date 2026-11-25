@@ -4,7 +4,7 @@ Konfigurationen für die Verteilung außerhalb von `flutter build`. Gebaut werde
 
 | Ordner | Inhalt | Verteilung |
 |---|---|---|
-| `windows/` | Inno-Setup-Skript, MSIX-/Store-Anleitung | GitHub Releases, Microsoft Store |
+| `windows/` | Produktdaten des eigenen Installers (`installer.ini`, Code in `installer/windows`), MSIX-/Store-Anleitung | GitHub Releases, Microsoft Store |
 | `flathub/` | Flatpak-Manifest, Hinweise zu Flathub-Regeln | Flathub |
 | `snap/` | `snapcraft.yaml` (strict, core24) | Snap Store |
 | `macos/` | `create_dmg.sh`, Öffnen-Anleitung, DMG-Hintergrund | GitHub Releases (unsigniertes DMG) |
@@ -13,4 +13,4 @@ Konfigurationen für die Verteilung außerhalb von `flutter build`. Gebaut werde
 
 Mac App Store: nicht Teil dieses Ordners. Vorbereitet sind Entitlements und Bundle-ID in `macos/` und die Pipeline `store-apple.yml` (hinter dem Schalter `APPLE_PUBLISHING_ENABLED`). Das unsignierte DMG hier ist die GitHub-Variante.
 
-Alles Ungetestete ist in den jeweiligen Dateien markiert (Flatpak und Snap brauchen Linux, DMG braucht macOS, Inno Setup braucht Windows mit Inno Setup 6).
+Alles Ungetestete ist in den jeweiligen Dateien markiert (Flatpak und Snap brauchen Linux, DMG braucht macOS; der Windows-Installer wird in der CI auf Windows gebaut und getestet).

@@ -6,6 +6,7 @@ import 'package:linefm_radio/app/app.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
 import 'package:linefm_radio/core/perf/perf_marks.dart';
+import 'package:linefm_radio/data/artwork/cover_disk_cache.dart';
 import 'package:linefm_radio/data/config/stations_source.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/data/storage/webapp_migration.dart';
@@ -22,6 +23,7 @@ import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/services/widgets/home_widget_sync.dart';
 import 'package:linefm_radio/ui/theme/font_licenses.dart';
 import 'package:linefm_radio/ui/theme/native_licenses.dart';
+import 'package:linefm_radio/ui/widgets/cover_image.dart';
 
 /// Bootstrap (Besitz P01, danach P11/P28), unabhaengige Schritte parallel:
 /// Bindings, Schrift-Lizenzen, Konfiguration, Senderliste, Audio, CarPlay,
@@ -37,6 +39,7 @@ Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   // Before anything opens SharedPreferences (data folder renamed).
   await migrateLegacyDataDir();
+  CoverImage.diskCache = await openCoverDiskCache();
   registerFontLicenses();
   registerNativeLicenses();
   final appConfig = AppConfig.fromEnvironment();

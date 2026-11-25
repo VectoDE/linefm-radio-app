@@ -47,6 +47,9 @@ dependencies:
   # Konfigurationsdateien in config/ sind YAML mit Kommentaren.
   # Stand schon transitiv im Lock (3.1.4), offizielles Dart-Paket.
   yaml: ^3.1.3
+  # On-device cover cache folder (getApplicationCacheDirectory). Already
+  # transitive via shared_preferences; official flutter.dev package.
+  path_provider: ^2.1.5
 # override-reason(flutter_rust_bridge): smtc_windows 1.1.0 (latest) is generated
 # against flutter_rust_bridge 2.11.1 and pins the Rust crate to =2.11.1; newer
 # Dart versions fail the bridge's runtime content-hash check. Remove once

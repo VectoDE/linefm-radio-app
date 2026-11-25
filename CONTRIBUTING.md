@@ -32,6 +32,7 @@ Alle drei müssen grün sein. Bei Web-Änderungen zusätzlich `flutter build web
 - Keine Zugangsdaten, Schlüssel oder personenbezogenen Daten in Code, Commits oder Issues. Konfiguration liegt in `config/*.yaml` (nur `*.example.yaml` und `stations.yaml` im Repo, siehe [docs/KONFIGURATION.md](docs/KONFIGURATION.md)).
 - Texte für Menschen (App, Doku, Stores) gehen durch eine Sprachprüfung: klingen wie von einem Menschen geschrieben, echte Umlaute, Fachwörter erklärt.
 - Neue sichtbare Texte kommen in beide Sprachen (Deutsch und Englisch).
+- Barrierefreiheit: Neue Bedienelemente brauchen einen Namen für Screenreader und müssen per Tastatur bedienbar sein. Stand und bekannte Lücken: [.github/ACCESSIBILITY.md](.github/ACCESSIBILITY.md).
 
 ## Fragen
 

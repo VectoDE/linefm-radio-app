@@ -381,6 +381,14 @@
       }
     }
   },
+  "aboutDevVersion": "Entwicklungsversion ({commit})",
+  "@aboutDevVersion": {
+    "placeholders": {
+      "commit": {
+        "type": "String"
+      }
+    }
+  },
   "aboutLicenses": "Open-Source-Lizenzen",
   "trustGridinsoft": "Website-Prüfung bei Gridinsoft",
   "trustTrustpilot": "Bewertungen bei Trustpilot",

@@ -63,7 +63,6 @@ const _https = _Str(r'^$|^https://\S+$');
 const Map<String, Map<String, _Type>> _schemas = <String, Map<String, _Type>>{
   'app': <String, _Type>{
     'APP_ENV': _OneOf(<String>['dev', 'prod']),
-    'APP_VERSION': _Str(r'^\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$', '1.0.0'),
     'WEB_BASE_URL': _Str(r'^https://\S*[^/\s]$', 'https://app.linefm.de'),
     'UMAMI_URL': _https,
     'UMAMI_WEBSITE_ID': _str,

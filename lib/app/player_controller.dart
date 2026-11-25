@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/core/logging.dart';
+import 'package:linefm_radio/core/perf/perf_marks.dart';
 import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
@@ -100,6 +101,7 @@ class PlayerController {
   /// wuerde den Ton blockieren. Dann bleibt es bei der Auswahl, und die Shell
   /// zeigt "Radio starten" ([autoplayBlockedProvider]).
   Future<void> startStation(Station station) async {
+    perfMark('play-request:${station.slug}');
     _userStarted = true;
     _autoplayPending = false;
     await selectStation(station);
@@ -216,6 +218,9 @@ class PlayerController {
   void _onState(PlayerUiState next) {
     final prev = _last;
     _last = next;
+    if (kPerfMarks && prev.status != next.status) {
+      perfMark('player-${next.status.name}:${next.station?.slug ?? '-'}');
+    }
     final wasActive = prev.isPlaying || prev.isBusy;
     final isActive = next.isPlaying || next.isBusy;
     if (isActive) _setAutoplayBlocked(value: false);
@@ -295,7 +300,11 @@ class PlayerController {
 
   Future<Uri> _resolveStreamUrl(Station station) async {
     final known = _streamUrls[station.slug];
-    if (known != null) return known;
+    if (known != null) {
+      perfMark('stream-url:cache:${station.slug}');
+      return known;
+    }
+    perfMark('stream-url-start:${station.slug}');
     final fallback = Uri.parse(station.fallbackStreamUrl);
     try {
       final url = await _ref
@@ -307,11 +316,13 @@ class PlayerController {
       // auch nicht ueber eine veraenderte API-Antwort).
       if (uri != null && uri.scheme == 'https' && isLautFmHost(uri.host)) {
         _streamUrls[station.slug] = uri;
+        perfMark('stream-url:api:${station.slug}');
         return uri;
       }
     } on Object catch (e) {
       logError('stream_url nicht ermittelt, Rueckfall', e);
     }
+    perfMark('stream-url:fallback:${station.slug}');
     return fallback;
   }
 }

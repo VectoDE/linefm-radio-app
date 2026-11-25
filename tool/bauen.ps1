@@ -186,6 +186,10 @@ if (Test-Path (Join-Path $repo 'config\app.json')) {
 } else {
   Write-Host 'Keine config\app.json, die App baut mit Standardwerten.'
 }
+# Lokale Builds zeigen "Entwicklungsversion" mit Commit-Kurz-ID (#104).
+$commit = ''
+try { $commit = (& git -C $repo rev-parse --short HEAD 2>$null) } catch { $commit = '' }
+if ($commit) { $defineArgs += "--dart-define=APP_COMMIT=$commit" }
 
 $webPort = $Port
 if ($Ziel -eq 'web') { $webPort = Get-FreierPort $Port }

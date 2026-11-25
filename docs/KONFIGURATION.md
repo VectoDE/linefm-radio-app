@@ -21,7 +21,7 @@ Alle Einstellungen, die beim Bauen der App festgelegt werden, liegen im Ordner [
 | Datei | Wofür | Liest die App? |
 |---|---|---|
 | `stations.yaml` | Senderliste | ja |
-| `app.example.yaml` → `app.yaml` | Umgebung, Version, Web-Adresse, Telemetrie, Firebase, Google Tag, Vertrauenssiegel, `STATIONS_URL` (feste https-Adresse zum Nachladen der Senderliste) | ja |
+| `app.example.yaml` → `app.yaml` | Umgebung, Web-Adresse, Telemetrie, Firebase, Google Tag, Vertrauenssiegel, `STATIONS_URL` (feste https-Adresse zum Nachladen der Senderliste) | ja |
 | `features.example.yaml` → `features.yaml` | Schalter. `showListenerCount`: Hörerzahl im Player zeigen (`true`/`false`, Standard `false`) | ja |
 | `operator.example.yaml` → `operator.yaml` | Betreiberangaben fürs Impressum (Issue #98) | noch nicht, nur Schema |
 | `telemetry.example.yaml` → `telemetry.yaml` | Telemetrie getrennt von `app.yaml` | noch nicht, nur Schema; heute stehen die Werte in `app.yaml` |

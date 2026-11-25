@@ -6,7 +6,8 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show debugPrint;
-import 'package:flutter/services.dart' show LogicalKeyboardKey;
+import 'package:flutter/services.dart'
+    show LogicalKeyboardKey, PlatformException;
 import 'package:hotkey_manager/legacy.dart';
 import 'package:linefm_radio/platform/desktop/desktop_controller.dart';
 import 'package:linefm_radio/platform/desktop/hotkeys.dart';
@@ -98,6 +99,19 @@ class HotkeyManagerDesktopHotkeys implements DesktopHotkeys {
         keyDownHandler: (_) => unawaited(action()),
       );
       _registered.add(hotKey);
+    } on PlatformException catch (e) {
+      if (e.code == 'unsupported_hotkey') {
+        // hotkey_manager kennt fuer diese Taste keinen Systemcode (Windows:
+        // erweiterte Scancodes der Medientasten liegen ueber 0xFF). Das ist
+        // eine Plattformgrenze des Pakets, kein Fehler der App; die Medien-
+        // tasten bedient SMTC bzw. das System.
+        debugPrint(
+          'Info: Tastenkuerzel ${hotKey.key} auf dieser '
+          'Plattform nicht registrierbar (unsupported_hotkey).',
+        );
+      } else {
+        debugPrint('Tastenkuerzel nicht registriert (${hotKey.key}): $e');
+      }
     } on Object catch (e) {
       // Belegt oder vom System nicht erlaubt (z. B. Wayland ohne Portal).
       debugPrint('Tastenkuerzel nicht registriert (${hotKey.key}): $e');

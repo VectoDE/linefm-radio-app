@@ -11,7 +11,7 @@ Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI so
 [![Lizenz: proprietär](https://img.shields.io/badge/Lizenz-propriet%C3%A4r-lightgrey)](LICENSE)
 
 
-**Stand:** in Entwicklung, Version 1.0.0. Noch in keinem Store veröffentlicht. Die Web-Version ist für `https://app.linefm.de` vorgesehen.
+**Stand:** in Entwicklung. Jeder Merge auf `main` erzeugt eine signierte Vorabversion unter [Releases](https://github.com/VectoDE/linefm-radio-app/releases), zuerst `0.1.0-alpha.N` (Ablauf: [Bauen und Starten, A4](docs/BAUEN-UND-STARTEN.md#a4-der-weg-über-ein-release)). Noch in keinem Store veröffentlicht. Die Web-Version ist für `https://app.linefm.de` vorgesehen.
 
 ## Wer liest was?
 
@@ -45,11 +45,11 @@ Fehler melden und Ideen: im Bereich Issues oder Discussions dieses Repositories.
 
 ## Barrierefreiheit
 
-Die App lässt sich mit Tastatur bedienen, alle Bereiche sind für Screenreader ausgezeichnet, hell und dunkel erreichen die Texte mindestens 4,5:1 Kontrast. Jeder Pull Request lässt axe-core über die Web-Version laufen (Workflow `a11y.yml`); bei einem schweren Fund schlägt der Lauf fehl. Mit echten Screenreadern (TalkBack, VoiceOver, NVDA) ist die App noch nicht geprüft. Was geht, was fehlt und wie du uns erreichst: [Erklärung zur Barrierefreiheit](docs/BARRIEREFREIHEIT.md).
+Die App lässt sich mit Tastatur bedienen, alle Bereiche sind für Screenreader ausgezeichnet, hell und dunkel erreichen die Texte mindestens 4,5:1 Kontrast. Jeder Pull Request lässt axe-core über die Web-Version laufen (Workflow `a11y.yml`); bei einem schweren Fund schlägt der Lauf fehl. Mit echten Screenreadern (TalkBack, VoiceOver, NVDA) ist die App noch nicht geprüft. Was geht, was fehlt und wie du uns erreichst: [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) (Deutsch und Englisch) und die ausführliche [Erklärung zur Barrierefreiheit](docs/BARRIEREFREIHEIT.md).
 
 ## Für Entscheider
 
-- **Stand:** Version 1.0.0 fertig gebaut, noch in keinem Store. Was vor dem Start fehlt, sind Konten, Zugangsdaten und schriftliche Freigaben des Betreibers, keine Programmierarbeit: [Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md).
+- **Stand:** Vorabversionen erscheinen bei jedem Merge automatisch unter Releases, noch in keinem Store. Was vor dem Start fehlt, sind Konten, Zugangsdaten und schriftliche Freigaben des Betreibers, keine Programmierarbeit: [Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md).
 - **Laufende Kosten:** kein eigenes Backend, keine Nutzerkonten. Es fallen nur Store-Gebühren (Google Play einmalig, Apple jährlich, falls später gewünscht) und das Web-Hosting an. Die Sender kommen über die öffentliche laut.fm-API.
 - **Daten:** Ohne aktivierte Statistik schickt die App von sich aus nur Anfragen an laut.fm (API und Streams), an Apple (iTunes-Cover-Suche, abschaltbar), an cdn.linefm.de (Sender-Icons) und an radiogruppe.de (Logo). Statistik und Absturzberichte nur nach Einwilligung, siehe [Telemetrie](docs/telemetry.md). Im Web optional Google Analytics, nur nach eigener Einwilligung (siehe [Einrichtung](docs/EINRICHTUNG.md)).
 - **Prüfbarkeit:** Jedes Release hat Prüfsummen, eine SBOM, eine Herkunfts-Attestierung von GitHub und eine cosign-Signatur je Datei, auf Wunsch zusätzlich eine GPG-Signatur: [Release-Dateien prüfen](docs/RELEASE-VERIFIZIEREN.md).
@@ -118,6 +118,32 @@ Einige Scorecard-Prüfungen können hier nicht voll punkten, und das schreiben w
 - **Fuzzing:** Scorecard erkennt OSS-Fuzz, ClusterFuzzLite und Fuzz- bzw. Property-Tests in Go, Haskell, JavaScript/TypeScript, Erlang und C#/F#. Für Dart gibt es weder eine passende Fuzzing-Engine noch eine Erkennung. ClusterFuzzLite unterstützt Dart nicht, ein Ersatz-Fuzzer nur für die Hilfsskripte in Python würde die Wertung heben, ohne die App sicherer zu machen. Begründung in Issue #59.
 - **Branch-Protection** und **CI-Tests** steigen mit der Zeit: Seit dem 19.11.2026 schützt das Ruleset `main-schutz` den Branch `main`, jede Änderung läuft als Pull Request durch die Pflicht-Checks. Scorecard bewertet aber auch die älteren Commits.
 
+## Standards und Konformität
+
+Stand: 22. November 2026. Status heißt: **erfüllt** = die Prüfung läuft in der CI und war grün, **teilweise** = ein Teil ist belegt, der Rest steht offen daneben, **Ziel** = angestrebt, noch nicht belegt. Nichts steht auf „erfüllt“, was wir nicht nachweisen können. Das ist keine Rechtsberatung und keine Zertifizierung.
+
+| Bereich | Standard oder Praxis | Status | Beleg und offene Punkte |
+|---|---|---|---|
+| Barrierefreiheit | WCAG 2.2 AA | teilweise | axe-core bei jedem Pull Request ohne Verstöße ([a11y.yml](.github/workflows/a11y.yml)). Screenreader-Prüfung und Zoom 400 % fehlen, siehe [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) |
+| Barrierefreiheit | EN 301 549 | Ziel | Maßstab, kein Nachweis ([ACCESSIBILITY.md](.github/ACCESSIBILITY.md)) |
+| Barrierefreiheit | BFSG | Ziel | Ob das BFSG für diese App gilt und eine Erklärung Pflicht ist, wird geprüft; Entwurf in [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md). Falls es gilt, ist die MLBF in Magdeburg zuständig ([mlbf-barrierefrei.de](https://www.mlbf-barrierefrei.de)) |
+| Sicherheit | OpenSSF Scorecard | teilweise | Läuft wöchentlich und bei jedem Push auf `main` ([scorecard.yml](.github/workflows/scorecard.yml)); einige Prüfungen können nicht voll punkten, siehe [OpenSSF und Prüfsiegel](#openssf-und-prüfsiegel) |
+| Sicherheit | Signierte Releases (cosign, Sigstore) | Ziel | Der Ablauf steht in [release.yml](.github/workflows/release.yml), es gibt aber noch kein Release; Prüfanleitung: [docs/RELEASE-VERIFIZIEREN.md](docs/RELEASE-VERIFIZIEREN.md) |
+| Sicherheit | Herkunftsnachweis (GitHub-Attestierung, SLSA Build Provenance) | Ziel | Wie oben: erst mit dem ersten Release belegbar. Eine SLSA-Stufe behaupten wir nicht |
+| Sicherheit | SBOM (SPDX, CycloneDX) | Ziel | Wird im Release-Ablauf erzeugt ([release.yml](.github/workflows/release.yml)), noch kein Release |
+| Sicherheit | CodeQL | teilweise | GitHub-Actions-Workflows bei jedem Pull Request, Kotlin und Java wöchentlich; Dart unterstützt CodeQL nicht ([codeql.yml](.github/workflows/codeql.yml)) |
+| Sicherheit | Semgrep CE | teilweise | Läuft bei jedem Pull Request; Dart ist nicht abgedeckt, dort prüft `flutter analyze` ([semgrep.yml](.github/workflows/semgrep.yml)) |
+| Sicherheit | Trivy, OSV, gitleaks | erfüllt | Abhängigkeiten, Konfiguration und Git-Historie, bei jedem Pull Request ([supply-chain.yml](.github/workflows/supply-chain.yml)) |
+| Sicherheit | zizmor (Workflow-Prüfung) | erfüllt | Bei jedem Pull Request ([supply-chain.yml](.github/workflows/supply-chain.yml), Regeln in [zizmor.yml](.github/zizmor.yml)) |
+| Datenschutz | DSGVO | teilweise | Favoriten, Verlauf und Einstellungen bleiben auf dem Gerät ([ADR 0001](docs/adr/0001-kein-backend-keine-konten.md)). Die Datenschutzerklärung ist ein Entwurf mit offenen Platzhaltern ([#58](https://github.com/VectoDE/linefm-radio-app/issues/58)); Prüfung durch einen Anwalt steht aus |
+| Datenschutz | TDDDG, Einwilligung | teilweise | Statistik und Reichweitenmessung starten nur nach Einwilligung, Widerruf stoppt sie ([docs/telemetry.md](docs/telemetry.md), Tests `test/features/consent_storage_test.dart`, `google_consent_test.dart`). Rechtliche Prüfung steht aus |
+| Recht | DDG (Impressum) | Ziel | Text als Entwurf vorhanden, die Betreiberangaben sind noch nicht eingetragen ([#58](https://github.com/VectoDE/linefm-radio-app/issues/58), [#98](https://github.com/VectoDE/linefm-radio-app/issues/98)); der Release-Build bricht bis dahin ab |
+| Recht | MStV | Ziel | Angabe der verantwortlichen Person ist als Pflichtfeld vorgesehen, aber noch offen; ob sie nötig ist, klärt ein Anwalt |
+| Qualität | Tests und Pflicht-Checks | erfüllt | Testsuite, Format- und Analyseprüfung bei jedem Pull Request ([ci.yml](.github/workflows/ci.yml)); `main` ist per Ruleset geschützt |
+| Qualität | Coverage | teilweise | Wird in der CI gemessen, eine feste Schwelle gibt es noch nicht; Ziel 100 % in `lib/` ([#106](https://github.com/VectoDE/linefm-radio-app/issues/106)) |
+| Qualität | Golden-Tests | teilweise | Kernkomponenten und einzelne Ansichten in Hell und Dunkel; alle Bildschirme und Breiten stehen in [#106](https://github.com/VectoDE/linefm-radio-app/issues/106) offen |
+| Qualität | Lasttests | Ziel | Es gibt noch keine; geplant gegen eigene Endpunkte ([#106](https://github.com/VectoDE/linefm-radio-app/issues/106)) |
+
 ## Dokumentation
 
 | Dokument | Inhalt |
@@ -127,6 +153,7 @@ Einige Scorecard-Prüfungen können hier nicht voll punkten, und das schreiben w
 | [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md) | Bauen, Testen, Architektur |
 | [docs/hosting-uebersicht.md](docs/hosting-uebersicht.md) | Web-Hosting, Cache, Header |
 | [docs/STORE-TEXTE.md](docs/STORE-TEXTE.md) | Texte für Play, Microsoft Store, Snap, Flathub, Tester-Einladung |
+| [.github/ACCESSIBILITY.md](.github/ACCESSIBILITY.md) | Barrierefreiheit: Ziel, Stand, bekannte Lücken, Barriere melden (de/en) |
 | [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md) | Erklärung zur Barrierefreiheit (Entwurf) |
 | [docs/secrets.md](docs/secrets.md) | Alle Secrets und Variablen der Abläufe |
 | [docs/stores-pipelines.md](docs/stores-pipelines.md) | Store- und Deploy-Abläufe, Erstveröffentlichung |
@@ -155,3 +182,29 @@ LINEFM, die Logos, das App-Icon und die Sendernamen sind Marken und Eigentum des
 ## English
 
 LINEFM Radio is a Flutter app for listening to the LINEFM radio stations live (Android, iOS, Windows, macOS, Linux, web). It is under development and not yet published in any store. Operators start with [docs/EINRICHTUNG.md](docs/EINRICHTUNG.md) and [docs/FREIGABE-CHECKLISTE.md](docs/FREIGABE-CHECKLISTE.md), developers with [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md) (all in German). Developed by Tim Hauke (VectoDE) for jaybelife. LINEFM and this app belong to jaybelife. All rights reserved, no open-source license.
+
+### Standards and compliance
+
+As of 22 November 2026. Status: **met** = the check runs in CI and was green, **partly met** = part is proven and the rest is listed as open, **target** = aimed for, not proven yet. Nothing is marked met without proof. This is neither legal advice nor a certification. Most evidence files are in German.
+
+| Area | Standard or practice | Status | Evidence and open points |
+|---|---|---|---|
+| Accessibility | WCAG 2.2 AA | partly met | axe-core on every pull request with no violations ([a11y.yml](.github/workflows/a11y.yml)). Screen reader testing and 400 % zoom are missing, see [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) |
+| Accessibility | EN 301 549 | target | Yardstick, no proof ([ACCESSIBILITY.md](.github/ACCESSIBILITY.md)) |
+| Accessibility | BFSG | target | Whether the BFSG applies to this app and a statement is mandatory is being reviewed; draft in [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md). If it applies, the MLBF in Magdeburg is the competent body ([mlbf-barrierefrei.de](https://www.mlbf-barrierefrei.de)) |
+| Security | OpenSSF Scorecard | partly met | Runs weekly and on every push to `main` ([scorecard.yml](.github/workflows/scorecard.yml)); some checks cannot score fully, see the German section "OpenSSF und Prüfsiegel" |
+| Security | Signed releases (cosign, Sigstore) | target | The flow is in [release.yml](.github/workflows/release.yml), but no release exists yet; verification guide: [docs/RELEASE-VERIFIZIEREN.md](docs/RELEASE-VERIFIZIEREN.md) |
+| Security | Provenance (GitHub attestation, SLSA build provenance) | target | As above: provable only with the first release. We do not claim a SLSA level |
+| Security | SBOM (SPDX, CycloneDX) | target | Produced in the release flow ([release.yml](.github/workflows/release.yml)), no release yet |
+| Security | CodeQL | partly met | GitHub Actions workflows on every pull request, Kotlin and Java weekly; CodeQL does not support Dart ([codeql.yml](.github/workflows/codeql.yml)) |
+| Security | Semgrep CE | partly met | Runs on every pull request; Dart is not covered, `flutter analyze` covers it ([semgrep.yml](.github/workflows/semgrep.yml)) |
+| Security | Trivy, OSV, gitleaks | met | Dependencies, configuration and git history, on every pull request ([supply-chain.yml](.github/workflows/supply-chain.yml)) |
+| Security | zizmor (workflow audit) | met | On every pull request ([supply-chain.yml](.github/workflows/supply-chain.yml), rules in [zizmor.yml](.github/zizmor.yml)) |
+| Privacy | GDPR | partly met | Favorites, history and settings stay on the device ([ADR 0001](docs/adr/0001-kein-backend-keine-konten.md)). The privacy policy is a draft with open placeholders ([#58](https://github.com/VectoDE/linefm-radio-app/issues/58)); review by a lawyer is pending |
+| Privacy | TDDDG, consent | partly met | Statistics and reach measurement start only after consent, withdrawal stops them ([docs/telemetry.md](docs/telemetry.md), tests `test/features/consent_storage_test.dart`, `google_consent_test.dart`). Legal review is pending |
+| Legal | DDG (legal notice) | target | Draft text exists, the operator details are not filled in yet ([#58](https://github.com/VectoDE/linefm-radio-app/issues/58), [#98](https://github.com/VectoDE/linefm-radio-app/issues/98)); the release build fails until then |
+| Legal | MStV | target | The responsible person is planned as a required field but still open; a lawyer decides whether it applies |
+| Quality | Tests and required checks | met | Test suite, format and analysis on every pull request ([ci.yml](.github/workflows/ci.yml)); `main` is protected by a ruleset |
+| Quality | Coverage | partly met | Measured in CI, no fixed threshold yet; target 100 % in `lib/` ([#106](https://github.com/VectoDE/linefm-radio-app/issues/106)) |
+| Quality | Golden tests | partly met | Core components and some views in light and dark; all screens and widths are open in [#106](https://github.com/VectoDE/linefm-radio-app/issues/106) |
+| Quality | Load tests | target | None yet; planned against our own endpoints ([#106](https://github.com/VectoDE/linefm-radio-app/issues/106)) |

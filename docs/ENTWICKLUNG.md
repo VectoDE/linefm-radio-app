@@ -100,7 +100,7 @@ flutter run -d windows --dart-define-from-file=config/app.json
 
 | Schlüssel | Bedeutung |
 |---|---|
-| `APP_ENV`, `APP_VERSION` | Umgebung und angezeigte Version |
+| `APP_ENV` | Umgebung (die Version kommt aus dem Release, #104) |
 | `WEB_BASE_URL` | Basis für Share-Links und kanonische URL, Standard `https://app.linefm.de` |
 | `UMAMI_URL`, `UMAMI_WEBSITE_ID`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT`, `FIREBASE_*` | Telemetrie, siehe [telemetry.md](telemetry.md) |
 | `WS_ENABLED` | laut.fm-WebSocket, Standard `false` (siehe unten) |
@@ -150,6 +150,10 @@ Referenzbilder hängen von der Rasterung der Plattform ab. Sie gelten deshalb nu
   3. Die Bilder im Diff ansehen, nur gewollte Änderungen committen, pushen. Der Job wird grün.
 - Alternativ lokal auf Windows 11: `flutter test --update-goldens test/ui/components_golden_test.dart` (je Datei), Bilder prüfen und committen. Die CI bleibt maßgeblich: stimmt sie nicht überein, gilt das Artifact.
 - Ein neuer Golden-Test braucht das Tag (`@Tags(<String>['golden'])` und `library;` ganz oben), den Dateinamen `*_golden_test.dart` und `setUpAll(prepareGoldens)` aus `test/golden_support.dart`.
+
+### Windows-Integrationstest
+
+`integration_test/windows_app_test.dart` startet die echte App in einem echten Windows-Fenster (Netzwerk-Fakes für laut.fm, kein Audio) und prüft Senderwechsel (#99), Sprachwechsel mit fester Rail-Breite (#101) und die eigene Titelleiste (#87: Maximieren, Doppelklick, Minimieren, Schließen in den Tray, Größe setzen). Er läuft nur in der CI (Workflow `itest-windows.yml`, bei Pull Request und manuell), nicht lokal. Die Bilder je Schritt liegen im Artifact `windows-itest-screens`: `gh run download <run-id> -n windows-itest-screens -D tmp-itest`. Nicht geprüft werden Ziehen, Andocken und Snap-Layouts (echte Mauseingaben des Betriebssystems).
 
 ### Coverage
 

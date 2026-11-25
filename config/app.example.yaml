@@ -9,10 +9,6 @@
 # Pflicht. Werte: dev oder prod. Standard: dev. Beispiel: prod
 APP_ENV: dev
 
-# Angezeigte Version.
-# Pflicht. Format: SemVer. Standard: 1.0.0. Beispiel: 1.2.0-rc.1
-APP_VERSION: 1.0.0
-
 # Adresse der Web-App (Deep Links, Sitemap, Canonical).
 # Pflicht. Format: https-URL ohne Schrägstrich am Ende.
 # Standard: https://app.linefm.de. Beispiel: https://app.linefm.de

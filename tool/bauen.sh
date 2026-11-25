@@ -132,6 +132,7 @@ case "$ziel" in
 esac
 
 define_args=()
+commit="$(git -C "$repo" rev-parse --short HEAD 2>/dev/null || true)"
 # config/app.yaml und config/features.yaml (YAML mit Kommentaren) werden
 # geprueft und als Bauwerte nach config/app.json geschrieben (Issue #91).
 if [ -f "$repo/config/app.yaml" ] || [ -f "$repo/config/features.yaml" ]; then
@@ -145,6 +146,8 @@ if [ -f "$repo/config/app.json" ]; then
 else
   echo "Keine config/app.json, die App baut mit Standardwerten."
 fi
+# Lokale Builds zeigen "Entwicklungsversion" mit Commit-Kurz-ID (#104).
+if [ -n "$commit" ]; then define_args+=(--dart-define=APP_COMMIT="$commit"); fi
 
 port_frei() {
   # Frei, wenn sich nichts mit dem Port verbinden laesst.

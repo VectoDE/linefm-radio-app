@@ -6,6 +6,7 @@ Wo du am schnellsten eine Antwort bekommst:
 |---|---|
 | Frage zur App, zum Bauen oder zur Einrichtung | [Discussions](https://github.com/VectoDE/linefm-radio-app/discussions) |
 | Etwas funktioniert nicht | [Issue "Fehler melden"](https://github.com/VectoDE/linefm-radio-app/issues/new/choose) |
+| Etwas ist nicht barrierefrei | [Issue "Barriere melden"](https://github.com/VectoDE/linefm-radio-app/issues/new?template=accessibility.yml), Stand in [.github/ACCESSIBILITY.md](.github/ACCESSIBILITY.md) |
 | Idee für eine neue Funktion | [Issue "Idee oder Wunsch"](https://github.com/VectoDE/linefm-radio-app/issues/new/choose) |
 | Sicherheitslücke | nicht öffentlich, sondern wie in [SECURITY.md](SECURITY.md) beschrieben |
 | Frage zum Programm, zu Sendungen oder Musik | an LINEFM selbst, siehe [linefm.de](https://linefm.de) |

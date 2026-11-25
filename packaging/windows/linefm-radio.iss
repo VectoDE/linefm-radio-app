@@ -9,7 +9,7 @@
 ;
 ; Lokal bauen (Inno Setup 6, https://jrsoftware.org/isinfo.php):
 ;   flutter build windows --release
-;   iscc /DAppVersion=1.0.0 /DSourceDir=..\..\build\windows\x64\runner\Release ^
+;   iscc /DAppVersion=X.Y.Z /DSourceDir=..\..\build\windows\x64\runner\Release ^
 ;        /DOutputDir=..\..\dist /DOutputBaseFilename=linefm-radio-setup linefm-radio.iss
 ;
 ; Signatur: Das Skript signiert nicht selbst. Die CI signiert Setup-EXE

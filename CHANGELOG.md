@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an LINEFM Radio stehen hier. Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die Versionen folgen [Semantic Versioning](https://semver.org/lang/de/).
 
-## [1.0.0] - unreleased
+## [Unreleased]
 
 Erste Version. Noch in keinem Store veröffentlicht, das Datum wird beim Release gesetzt.
 

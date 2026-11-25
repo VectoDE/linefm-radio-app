@@ -14,6 +14,10 @@ description: |
   Listen to the LINEFM stations live: LineFM +MAIN, +RAP, +GAMING, +LOFI,
   Radio3FM and FobFM. Shows the current song with cover and keeps your
   favorites. Media keys control playback.
+
+  LineFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM
+  Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke
+  (VectoDE).
 license: Proprietary
 website: https://app.linefm.de
 contact: https://app.linefm.de

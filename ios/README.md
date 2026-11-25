@@ -73,7 +73,7 @@ gesperrt ist. Deshalb startet der `AppDelegate` die Engine beim App-Start
 
 ## CarPlay einschalten
 
-Voraussetzung: jaybelife beantragt bei Apple das CarPlay-Audio-Entitlement
+Voraussetzung: LineFM Studios beantragt bei Apple das CarPlay-Audio-Entitlement
 (https://developer.apple.com/carplay/, Kategorie Audio) für die App-ID
 `de.linefm.app`.
 

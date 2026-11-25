@@ -5,7 +5,7 @@ Quelle: Entscheidung des Inhabers, Runde 1 bis 3 (18.11.2026)
 
 ## Kontext
 
-Die App soll LINEFM-Sender hören lassen und die Funktionen der Web-App app.linecast.de abbilden. Betreiber ist jaybelife, entwickelt wird unentgeltlich von einer Einzelperson. Die Titel- und Senderdaten liefert laut.fm öffentlich, ohne Anmeldung.
+Die App soll LINEFM-Sender hören lassen und die Funktionen der Web-App app.linecast.de abbilden. Betreiber ist LineFM Studios, entwickelt wird unentgeltlich von einer Einzelperson. Die Titel- und Senderdaten liefert laut.fm öffentlich, ohne Anmeldung.
 
 ## Entscheidung
 

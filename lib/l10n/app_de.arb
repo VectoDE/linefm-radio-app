@@ -17,15 +17,15 @@
   "regionHeader": "Kopfbereich",
   "regionNotices": "Hinweise",
   "loaderSemantics": "LINEFM wird geladen",
-  "creditsMadeBy": "Made by .jaybelife with ♥",
+  "creditsMadeBy": "Made by Tim Hauke with ♥",
   "@creditsMadeBy": {
     "description": "Wörtlich, in allen Sprachen gleich"
   },
   "creditsMadeByLead": "Made by ",
   "@creditsMadeByLead": {
-    "description": "Teil 1 von creditsMadeBy (Name wird fett gesetzt)"
+    "description": "Teil 1 von creditsMadeBy (Name wird hervorgehoben und verlinkt)"
   },
-  "creditsMadeByAuthor": ".jaybelife",
+  "creditsMadeByAuthor": "Tim Hauke",
   "@creditsMadeByAuthor": {
     "description": "Teil 2 von creditsMadeBy"
   },
@@ -34,8 +34,8 @@
     "description": "Teil 3 von creditsMadeBy (Herz farbig)"
   },
   "creditsOfferedBy": "Ein Angebot von",
-  "creditsDevelopedBy": "Entwickelt von Tim Hauke (VectoDE) für jaybelife",
-  "creditsOwnership": "LINEFM und die App gehören jaybelife.",
+  "creditsDevelopedBy": "Entwickelt von Tim Hauke (VectoDE) für LineFM Studios",
+  "creditsOwnership": "LINEFM und die App gehören LineFM Studios.",
   "creditsDeveloperOpen": "Tim Hauke auf GitHub öffnen",
   "radioGruppeName": "RadioGruppe Deutschland",
   "radioGruppeOpen": "RadioGruppe Deutschland öffnen",

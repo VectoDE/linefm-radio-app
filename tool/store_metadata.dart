@@ -2,7 +2,7 @@
 // fastlane/metadata/ aus docs/STORE-TEXTE.md.
 //
 // Einzige Quelle der Wahrheit ist docs/STORE-TEXTE.md (dort liest und
-// genehmigt jaybelife die Texte). Die Dateien unter fastlane/metadata/ sind
+// genehmigt LineFM Studios die Texte). Die Dateien unter fastlane/metadata/ sind
 // abgeleitet und werden nie von Hand bearbeitet. fastlane selbst ist nicht
 // installiert, die Struktur folgt nur dessen Dateinamen (supply fuer Google
 // Play, deliver fuer den App Store).

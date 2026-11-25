@@ -13,7 +13,7 @@ import 'package:material_ui/material_ui.dart';
 const Color loaderBackground = LinefmPalette.ink;
 
 /// Ladebildschirm der Web-App: Wortmarke auf weisser Kachel, um -7 Grad
-/// geneigt, drei pulsierende Punkte und die Zeile "Made by .jaybelife with ♥".
+/// geneigt, drei pulsierende Punkte und die Zeile "Made by Tim Hauke with ♥".
 ///
 /// Immer dunkel, weil der native Splash davor ebenfalls `#0f1221` ist. Bei
 /// "Animationen reduzieren" stehen die Punkte still.

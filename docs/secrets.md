@@ -8,17 +8,17 @@ Vollständige Liste aller GitHub-Secrets und -Variablen, die die automatischen A
 - **Variable** (nicht geheim, lesbar): derselbe Ort, Tab "Variables" > "New repository variable".
 - **Umgebung `production`**: Repository > Settings > Environments > "New environment" > `production`. Dort "Required reviewers" eintragen, dann wartet jeder Web-Deploy auf deine Freigabe. Secrets für den Web-Deploy dürfen wahlweise im Repository oder in dieser Umgebung stehen.
 - Werte, die aus Dateien stammen (Schlüssel, Zertifikate), als Base64 eintragen: `base64 -w0 datei` (Linux, macOS) oder `[Convert]::ToBase64String([IO.File]::ReadAllBytes("datei"))` (PowerShell).
-- Wer legt an: In der Spalte "Wer" steht **jaybelife** (Konto-Inhaber, besorgt den Wert) oder **Entwickler** (kann es aus Repo-Angaben selbst setzen). Eingetragen wird immer von einer Person mit Schreibrecht auf die Repo-Einstellungen. Passwörter und Schlüssel gehören nie in Chat, E-Mail oder Tickets.
+- Wer legt an: In der Spalte "Wer" steht **LineFM Studios** (Konto-Inhaber, besorgt den Wert) oder **Entwickler** (kann es aus Repo-Angaben selbst setzen). Eingetragen wird immer von einer Person mit Schreibrecht auf die Repo-Einstellungen. Passwörter und Schlüssel gehören nie in Chat, E-Mail oder Tickets.
 
 ## Google Play
 
 | Name | Art | Wert / Herkunft | Wer | Wo besorgen |
 |---|---|---|---|---|
-| `PLAY_SERVICE_ACCOUNT_JSON` | Secret | Kompletter Inhalt der JSON-Schlüsseldatei des Dienstkontos | jaybelife | EINRICHTUNG 2.4 (Google Cloud Console, Dienstkonto in der Play Console einladen) |
-| `ANDROID_KEYSTORE_BASE64` | Secret | `upload-keystore.jks` als Base64 | jaybelife | `packaging/android/SIGNING.md` |
-| `ANDROID_KEYSTORE_PASSWORD` | Secret | Store-Passwort | jaybelife | wie oben |
-| `ANDROID_KEY_ALIAS` | Secret | z. B. `upload` | jaybelife | wie oben |
-| `ANDROID_KEY_PASSWORD` | Secret | Schlüssel-Passwort | jaybelife | wie oben |
+| `PLAY_SERVICE_ACCOUNT_JSON` | Secret | Kompletter Inhalt der JSON-Schlüsseldatei des Dienstkontos | LineFM Studios | EINRICHTUNG 2.4 (Google Cloud Console, Dienstkonto in der Play Console einladen) |
+| `ANDROID_KEYSTORE_BASE64` | Secret | `upload-keystore.jks` als Base64 | LineFM Studios | `packaging/android/SIGNING.md` |
+| `ANDROID_KEYSTORE_PASSWORD` | Secret | Store-Passwort | LineFM Studios | wie oben |
+| `ANDROID_KEY_ALIAS` | Secret | z. B. `upload` | LineFM Studios | wie oben |
+| `ANDROID_KEY_PASSWORD` | Secret | Schlüssel-Passwort | LineFM Studios | wie oben |
 | `BUILD_NUMBER_OFFSET` | Variable, optional | Zahl, wird zur Lauf-Nummer addiert (`versionCode`). Standard 100 | Entwickler | nur anheben, wenn Play einen höheren `versionCode` verlangt |
 
 Der Upload braucht ein **signiertes** AAB. Fehlt der Upload-Key beim Release-Build, bricht `store-google.yml` mit einer klaren Meldung ab.
@@ -29,16 +29,16 @@ Werte aus dem Partner Center: Konto-Einstellungen > Benutzer > Azure-AD-Anwendun
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|
-| `MS_STORE_TENANT_ID` | Secret | Azure-AD-Verzeichnis-/Tenant-ID | jaybelife |
-| `MS_STORE_SELLER_ID` | Secret | Händler-ID aus dem Partner Center (Konto-Einstellungen > Organisationsprofil > Legal info) | jaybelife |
-| `MS_STORE_CLIENT_ID` | Secret | Anwendungs-(Client-)ID der Azure-AD-App mit Rolle "Manager" | jaybelife |
-| `MS_STORE_CLIENT_SECRET` | Secret | Client-Secret dieser App | jaybelife |
-| `MS_STORE_PRODUCT_ID` | Variable | Store-Produkt-ID der App (12 Zeichen, z. B. `9NXXXXXXXXXX`) | jaybelife |
-| `MS_STORE_IDENTITY_NAME` | Variable | `Package/Identity/Name` | jaybelife |
-| `MS_STORE_PUBLISHER` | Variable | `Package/Identity/Publisher` (`CN=...`) | jaybelife |
-| `MS_STORE_PUBLISHER_DISPLAY_NAME` | Variable | `Package/Properties/PublisherDisplayName` | jaybelife |
-| `WINDOWS_CERT_PFX_BASE64` | Secret, optional | Code-Signing-Zertifikat für den GitHub-Installer (nicht für den Store) | jaybelife |
-| `WINDOWS_CERT_PASSWORD` | Secret, optional | Passwort dazu | jaybelife |
+| `MS_STORE_TENANT_ID` | Secret | Azure-AD-Verzeichnis-/Tenant-ID | LineFM Studios |
+| `MS_STORE_SELLER_ID` | Secret | Händler-ID aus dem Partner Center (Konto-Einstellungen > Organisationsprofil > Legal info) | LineFM Studios |
+| `MS_STORE_CLIENT_ID` | Secret | Anwendungs-(Client-)ID der Azure-AD-App mit Rolle "Manager" | LineFM Studios |
+| `MS_STORE_CLIENT_SECRET` | Secret | Client-Secret dieser App | LineFM Studios |
+| `MS_STORE_PRODUCT_ID` | Variable | Store-Produkt-ID der App (12 Zeichen, z. B. `9NXXXXXXXXXX`) | LineFM Studios |
+| `MS_STORE_IDENTITY_NAME` | Variable | `Package/Identity/Name` | LineFM Studios |
+| `MS_STORE_PUBLISHER` | Variable | `Package/Identity/Publisher` (`CN=...`) | LineFM Studios |
+| `MS_STORE_PUBLISHER_DISPLAY_NAME` | Variable | `Package/Properties/PublisherDisplayName` | LineFM Studios |
+| `WINDOWS_CERT_PFX_BASE64` | Secret, optional | Code-Signing-Zertifikat für den GitHub-Installer (nicht für den Store) | LineFM Studios |
+| `WINDOWS_CERT_PASSWORD` | Secret, optional | Passwort dazu | LineFM Studios |
 
 Der Store braucht keine eigene Signatur, Microsoft signiert selbst.
 
@@ -46,7 +46,7 @@ Der Store braucht keine eigene Signatur, Microsoft signiert selbst.
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|
-| `SNAPCRAFT_STORE_CREDENTIALS` | Secret | Ausgabe von `snapcraft export-login --snaps linefm-radio --channels edge,beta,candidate --acls package_upload,package_release -` (Anmeldedaten mit Ablaufdatum, wiederholen, wenn sie ablaufen) | jaybelife |
+| `SNAPCRAFT_STORE_CREDENTIALS` | Secret | Ausgabe von `snapcraft export-login --snaps linefm-radio --channels edge,beta,candidate --acls package_upload,package_release -` (Anmeldedaten mit Ablaufdatum, wiederholen, wenn sie ablaufen) | LineFM Studios |
 
 ## Flathub
 
@@ -58,19 +58,19 @@ Alles hinter der Variable `APPLE_PUBLISHING_ENABLED`. Solange sie nicht `true` i
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|
-| `APPLE_PUBLISHING_ENABLED` | Variable | `true`, erst wenn alles andere vorliegt | jaybelife |
-| `APPLE_TEAM_ID` | Secret | 10-stellige Team-ID (Account > Mitgliedschaft) | jaybelife |
-| `APP_STORE_CONNECT_API_KEY_ID` | Secret | Schlüssel-ID des App-Store-Connect-API-Schlüssels | jaybelife |
-| `APP_STORE_CONNECT_API_KEY_ISSUER_ID` | Secret | Issuer-ID (Nutzer und Zugriff > Integrationen) | jaybelife |
-| `APP_STORE_CONNECT_API_KEY_P8` | Secret | Inhalt der `.p8`-Datei (Text, nicht Base64) | jaybelife |
-| `APPLE_DISTRIBUTION_CERT_P12_BASE64` | Secret | "Apple Distribution"-Zertifikat samt privatem Schlüssel als `.p12`, Base64 | jaybelife |
-| `APPLE_DISTRIBUTION_CERT_PASSWORD` | Secret | Passwort der `.p12` | jaybelife |
-| `APPLE_MAC_INSTALLER_CERT_P12_BASE64` | Secret | "Mac Installer Distribution"-Zertifikat (`.p12`, Base64), nur für das Mac-App-Store-Paket | jaybelife |
-| `APPLE_MAC_INSTALLER_CERT_PASSWORD` | Secret | Passwort dazu | jaybelife |
-| `APPLE_IOS_PROVISIONING_PROFILES_BASE64` | Secret | App-Store-Profile für `de.linefm.app` **und** `de.linefm.app.widget`, je Profil eine Zeile Base64 | jaybelife |
-| `APPLE_MACOS_PROVISIONING_PROFILE_BASE64` | Secret | Mac-App-Store-Profil für `de.linefm.app` (`.provisionprofile`, Base64) | jaybelife |
-| `APPLE_DEVELOPER_ID_CERT_P12_BASE64` | Secret | "Developer ID Application"-Zertifikat für das signierte DMG außerhalb des Stores | jaybelife |
-| `APPLE_DEVELOPER_ID_CERT_PASSWORD` | Secret | Passwort dazu | jaybelife |
+| `APPLE_PUBLISHING_ENABLED` | Variable | `true`, erst wenn alles andere vorliegt | LineFM Studios |
+| `APPLE_TEAM_ID` | Secret | 10-stellige Team-ID (Account > Mitgliedschaft) | LineFM Studios |
+| `APP_STORE_CONNECT_API_KEY_ID` | Secret | Schlüssel-ID des App-Store-Connect-API-Schlüssels | LineFM Studios |
+| `APP_STORE_CONNECT_API_KEY_ISSUER_ID` | Secret | Issuer-ID (Nutzer und Zugriff > Integrationen) | LineFM Studios |
+| `APP_STORE_CONNECT_API_KEY_P8` | Secret | Inhalt der `.p8`-Datei (Text, nicht Base64) | LineFM Studios |
+| `APPLE_DISTRIBUTION_CERT_P12_BASE64` | Secret | "Apple Distribution"-Zertifikat samt privatem Schlüssel als `.p12`, Base64 | LineFM Studios |
+| `APPLE_DISTRIBUTION_CERT_PASSWORD` | Secret | Passwort der `.p12` | LineFM Studios |
+| `APPLE_MAC_INSTALLER_CERT_P12_BASE64` | Secret | "Mac Installer Distribution"-Zertifikat (`.p12`, Base64), nur für das Mac-App-Store-Paket | LineFM Studios |
+| `APPLE_MAC_INSTALLER_CERT_PASSWORD` | Secret | Passwort dazu | LineFM Studios |
+| `APPLE_IOS_PROVISIONING_PROFILES_BASE64` | Secret | App-Store-Profile für `de.linefm.app` **und** `de.linefm.app.widget`, je Profil eine Zeile Base64 | LineFM Studios |
+| `APPLE_MACOS_PROVISIONING_PROFILE_BASE64` | Secret | Mac-App-Store-Profil für `de.linefm.app` (`.provisionprofile`, Base64) | LineFM Studios |
+| `APPLE_DEVELOPER_ID_CERT_P12_BASE64` | Secret | "Developer ID Application"-Zertifikat für das signierte DMG außerhalb des Stores | LineFM Studios |
+| `APPLE_DEVELOPER_ID_CERT_PASSWORD` | Secret | Passwort dazu | LineFM Studios |
 
 Der macOS-Gate in `build.yml` (Developer ID + Notarisierung) nutzt `APPLE_TEAM_ID`, die zwei `APPLE_DEVELOPER_ID_*`-Secrets und die drei `APP_STORE_CONNECT_*`-Secrets. Die Store-Pipeline `store-apple.yml` nutzt die `APPLE_DISTRIBUTION_*`-, `APPLE_MAC_INSTALLER_*`-, Profil- und `APP_STORE_CONNECT_*`-Secrets.
 
@@ -80,24 +80,24 @@ Auslöser sind Release-Tag (nur Endversionen) oder manueller Start von `deploy-w
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|
-| `WEB_DEPLOY_TARGETS` | Variable | Kommagetrennt: `cloudflare`, `ssh`, `plesk`. Leer = es wird nichts ausgerollt | jaybelife |
+| `WEB_DEPLOY_TARGETS` | Variable | Kommagetrennt: `cloudflare`, `ssh`, `plesk`. Leer = es wird nichts ausgerollt | LineFM Studios |
 
 **Cloudflare Pages** ([hosting-cloudflare.md](hosting-cloudflare.md)):
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|
-| `CLOUDFLARE_API_TOKEN` | Secret | API-Token mit Berechtigung "Cloudflare Pages: Edit" (Dashboard > Mein Profil > API-Tokens) | jaybelife |
-| `CLOUDFLARE_ACCOUNT_ID` | Secret | Konto-ID (Dashboard, rechte Spalte der Übersicht) | jaybelife |
+| `CLOUDFLARE_API_TOKEN` | Secret | API-Token mit Berechtigung "Cloudflare Pages: Edit" (Dashboard > Mein Profil > API-Tokens) | LineFM Studios |
+| `CLOUDFLARE_ACCOUNT_ID` | Secret | Konto-ID (Dashboard, rechte Spalte der Übersicht) | LineFM Studios |
 | `CLOUDFLARE_PAGES_PROJECT` | Variable | Projektname, `linefm-app` (siehe `deploy/cloudflare/wrangler.toml`) | Entwickler |
 
 **Eigener Server mit nginx oder Traefik** ([hosting-nginx.md](hosting-nginx.md), [hosting-traefik.md](hosting-traefik.md)):
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|
-| `DEPLOY_HOST` | Secret | Hostname oder IP des Servers | jaybelife |
-| `DEPLOY_USER` | Secret | SSH-Benutzer (eigener Deploy-Benutzer ohne Root, mit Schreibrecht auf `DEPLOY_PATH`) | jaybelife |
-| `DEPLOY_SSH_KEY` | Secret | Privater Schlüssel (OpenSSH, ohne Passphrase), nur für diesen Zweck erzeugt: `ssh-keygen -t ed25519 -f deploy_key -C linefm-deploy`. Den öffentlichen Teil in `~/.ssh/authorized_keys` des Benutzers eintragen | jaybelife |
-| `DEPLOY_KNOWN_HOSTS` | Secret | Host-Schlüssel des Servers: einmalig `ssh-keyscan -t ed25519 <host>` ausführen, den Fingerabdruck mit dem Server vergleichen (`ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` dort) und die Zeile eintragen. Die Pipeline prüft strikt dagegen, `StrictHostKeyChecking=no` gibt es nicht | jaybelife |
+| `DEPLOY_HOST` | Secret | Hostname oder IP des Servers | LineFM Studios |
+| `DEPLOY_USER` | Secret | SSH-Benutzer (eigener Deploy-Benutzer ohne Root, mit Schreibrecht auf `DEPLOY_PATH`) | LineFM Studios |
+| `DEPLOY_SSH_KEY` | Secret | Privater Schlüssel (OpenSSH, ohne Passphrase), nur für diesen Zweck erzeugt: `ssh-keygen -t ed25519 -f deploy_key -C linefm-deploy`. Den öffentlichen Teil in `~/.ssh/authorized_keys` des Benutzers eintragen | LineFM Studios |
+| `DEPLOY_KNOWN_HOSTS` | Secret | Host-Schlüssel des Servers: einmalig `ssh-keyscan -t ed25519 <host>` ausführen, den Fingerabdruck mit dem Server vergleichen (`ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` dort) und die Zeile eintragen. Die Pipeline prüft strikt dagegen, `StrictHostKeyChecking=no` gibt es nicht | LineFM Studios |
 | `DEPLOY_PATH` | Variable | Absoluter Zielordner, z. B. `/var/www/linefm-app` (darunter `releases/`, `current`, `hosting/`) | Entwickler |
 | `DEPLOY_PORT` | Variable, optional | SSH-Port, Standard 22 | Entwickler |
 | `DEPLOY_RELOAD_COMMAND` | Variable, optional | Befehl, der nach dem Umschalten auf dem Server läuft, z. B. `sudo systemctl reload nginx` oder bei Traefik `cd /opt/linefm && docker compose up -d --build`. Muss ohne Passwortabfrage laufen (sudoers-Eintrag) | Entwickler |
@@ -106,10 +106,10 @@ Auslöser sind Release-Tag (nur Endversionen) oder manueller Start von `deploy-w
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|
-| `PLESK_SSH_HOST` | Secret | Plesk-Server | jaybelife |
-| `PLESK_SSH_USER` | Secret | Systembenutzer des Abonnements | jaybelife |
-| `PLESK_SSH_KEY` | Secret | Privater Schlüssel, wie bei `DEPLOY_SSH_KEY` | jaybelife |
-| `PLESK_SSH_KNOWN_HOSTS` | Secret | Host-Schlüssel wie bei `DEPLOY_KNOWN_HOSTS` | jaybelife |
+| `PLESK_SSH_HOST` | Secret | Plesk-Server | LineFM Studios |
+| `PLESK_SSH_USER` | Secret | Systembenutzer des Abonnements | LineFM Studios |
+| `PLESK_SSH_KEY` | Secret | Privater Schlüssel, wie bei `DEPLOY_SSH_KEY` | LineFM Studios |
+| `PLESK_SSH_KNOWN_HOSTS` | Secret | Host-Schlüssel wie bei `DEPLOY_KNOWN_HOSTS` | LineFM Studios |
 | `PLESK_DOCROOT` | Variable | Dokumentstamm relativ zum Home des Benutzers oder absolut, z. B. `httpdocs` | Entwickler |
 | `PLESK_SSH_PORT` | Variable, optional | SSH-Port, Standard 22 | Entwickler |
 
@@ -152,7 +152,7 @@ Attestierung und cosign-Signatur (`release.yml`, Job `sign`) brauchen kein Secre
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|
-| `GPG_PRIVATE_KEY` | Secret, optional | Privater Schlüssel, ASCII-armored: `gpg --armor --export-secret-keys <FINGERABDRUCK>` (vorher `gpg --full-generate-key`, ed25519 oder RSA 4096, mit Ablaufdatum). Am besten ein eigener Signier-Unterschlüssel nur für Releases | jaybelife bzw. Inhaber |
+| `GPG_PRIVATE_KEY` | Secret, optional | Privater Schlüssel, ASCII-armored: `gpg --armor --export-secret-keys <FINGERABDRUCK>` (vorher `gpg --full-generate-key`, ed25519 oder RSA 4096, mit Ablaufdatum). Am besten ein eigener Signier-Unterschlüssel nur für Releases | LineFM Studios bzw. Inhaber |
 | `GPG_PASSPHRASE` | Secret, optional | Passphrase des Schlüssels | wie oben |
 
 Mit beiden Secrets erzeugt der Release-Lauf `SHA256SUMS.txt.asc` (detached, ASCII) und prüft sie sofort. Fehlt eines, überspringt das Secret-Gate den Schritt und nennt den fehlenden Namen in der Zusammenfassung. Den öffentlichen Schlüssel und seinen Fingerabdruck veröffentlicht der Schlüsselinhaber selbst (z. B. auf keys.openpgp.org und in SECURITY.md), sonst kann niemand die Signatur sinnvoll prüfen. Prüfbefehle: [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).

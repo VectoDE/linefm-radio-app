@@ -12,7 +12,7 @@ Finder madeByText() => find.byWidgetPredicate(
   (w) =>
       w is Text &&
       w.textSpan?.toPlainText(includePlaceholders: false) ==
-          'Made by .jaybelife with ',
+          'Made by Tim Hauke with ',
 );
 
 void main() {
@@ -105,18 +105,15 @@ void main() {
       await tester.pumpAndSettle();
       final handle = tester.ensureSemantics();
       expect(madeByText(), findsOneWidget);
-      expect(
-        find.bySemanticsLabel('Made by .jaybelife with ♥'),
-        findsOneWidget,
-      );
+      expect(find.bySemanticsLabel('Made by Tim Hauke with ♥'), findsOneWidget);
       handle.dispose();
       expect(find.text('Ein Angebot von'), findsOneWidget);
       expect(
-        find.text('Entwickelt von Tim Hauke (VectoDE) für jaybelife'),
+        find.text('Entwickelt von Tim Hauke (VectoDE) für LineFM Studios'),
         findsOneWidget,
       );
       expect(
-        find.text('LINEFM und die App gehören jaybelife.'),
+        find.text('LINEFM und die App gehören LineFM Studios.'),
         findsOneWidget,
       );
       expect(find.text('Entwicklungsversion (?)'), findsOneWidget);
@@ -136,11 +133,11 @@ void main() {
       expect(madeByText(), findsOneWidget);
       expect(find.text('A service of'), findsOneWidget);
       expect(
-        find.text('Developed by Tim Hauke (VectoDE) for jaybelife'),
+        find.text('Developed by Tim Hauke (VectoDE) for LineFM Studios'),
         findsOneWidget,
       );
       expect(
-        find.text('LINEFM and this app belong to jaybelife.'),
+        find.text('LINEFM and this app belong to LineFM Studios.'),
         findsOneWidget,
       );
     });
@@ -153,8 +150,20 @@ void main() {
       await tester.pumpWidget(host.app(const AboutScreen(), scaffold: false));
       await tester.pumpAndSettle();
       await tester.tap(
-        find.text('Entwickelt von Tim Hauke (VectoDE) für jaybelife'),
+        find.text('Entwickelt von Tim Hauke (VectoDE) für LineFM Studios'),
       );
+      await tester.pump();
+      expect(host.opened.single.toString(), 'https://github.com/VectoDE');
+    });
+
+    testWidgets('Autor in der Credit-Zeile ist ein Link auf GitHub', (
+      tester,
+    ) async {
+      useSize(tester, 420, 1600);
+      final host = FeatureHost();
+      await tester.pumpWidget(host.app(const AboutScreen(), scaffold: false));
+      await tester.pumpAndSettle();
+      await tester.tapOnText(find.textRange.ofSubstring('Tim Hauke').first);
       await tester.pump();
       expect(host.opened.single.toString(), 'https://github.com/VectoDE');
     });

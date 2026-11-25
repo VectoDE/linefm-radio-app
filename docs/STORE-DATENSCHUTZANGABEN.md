@@ -1,6 +1,6 @@
 # Datenschutzangaben für die Stores
 
-Ausfüllhilfe für zwei Formulare: **Datensicherheit** (Data safety) in der Google Play Console und **App-Datenschutz** (App Privacy) in App Store Connect. Jede Zeile nennt die Frage, die Antwort und den Grund. jaybelife kann die Antworten übernehmen. Die Antworten gelten für den Stand des Quellcodes vom 21.11.2026 und müssen bei jeder Änderung an Telemetrie, Fremddiensten oder Berechtigungen nachgezogen werden (Gegenstücke: [telemetry.md](telemetry.md), `ios/Runner/PrivacyInfo.xcprivacy`, `android/app/src/main/AndroidManifest.xml`).
+Ausfüllhilfe für zwei Formulare: **Datensicherheit** (Data safety) in der Google Play Console und **App-Datenschutz** (App Privacy) in App Store Connect. Jede Zeile nennt die Frage, die Antwort und den Grund. LineFM Studios kann die Antworten übernehmen. Die Antworten gelten für den Stand des Quellcodes vom 21.11.2026 und müssen bei jeder Änderung an Telemetrie, Fremddiensten oder Berechtigungen nachgezogen werden (Gegenstücke: [telemetry.md](telemetry.md), `ios/Runner/PrivacyInfo.xcprivacy`, `android/app/src/main/AndroidManifest.xml`).
 
 **Vor Abgabe anwaltlich prüfen.** Die Einordnung, was als "Erfassung", "Weitergabe" und "verknüpft" gilt, ist eine Rechtsfrage. Dieses Dokument ist eine technische Vorprüfung und kein Rechtsrat. Stellen, an denen eine Entscheidung offen ist, tragen die Marke **[Anwalt]**. Was wir nicht belegen konnten, steht als **[nicht belegt]**.
 

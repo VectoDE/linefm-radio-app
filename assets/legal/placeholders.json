@@ -2,7 +2,7 @@
   "version": 1,
   "note": "Platzhalter in den Rechtstexten. Werte per tool/gen_legal_html.dart --values <datei> einsetzen. Optionale Angaben ohne Inhalt als 'Nicht zutreffend.' setzen, nicht leer lassen (leere Werte gelten als offen). required_if: Pflicht, sobald der genannte Anbieter aktiv ist (umami, sentry, firebase, telemetry, ga4).",
   "placeholders": {
-    "BETREIBER_NAME": {"required": true, "desc": "Vollständiger Name des Betreibers (Person oder Firma), § 5 Abs. 1 Nr. 1 DDG"},
+    "BETREIBER_NAME": {"required": true, "desc": "Vollständiger Name des Diensteanbieters (laut Inhaber Julian Gebauer, LineFM Studios; Angaben trägt er selbst ein), § 5 Abs. 1 Nr. 1 DDG"},
     "BETREIBER_RECHTSFORM": {"required": true, "desc": "Rechtsform (z. B. Einzelunternehmen, GbR, UG, GmbH)"},
     "BETREIBER_STRASSE": {"required": true, "desc": "Straße und Hausnummer (ladungsfähige Anschrift, kein Postfach)"},
     "BETREIBER_PLZ_ORT": {"required": true, "desc": "PLZ und Ort, bei Bedarf Land"},
@@ -13,7 +13,6 @@
     "REGISTERNUMMER": {"required": false, "desc": "Registernummer (sonst: Nicht zutreffend.)"},
     "USTID": {"required": false, "desc": "USt-IdNr. nach § 27a UStG oder Wirtschafts-IdNr., falls vorhanden (sonst: Nicht zutreffend.)"},
     "AUFSICHTSBEHOERDE_MEDIEN": {"required": true, "desc": "Zuständige Medienanstalt, falls zulassungspflichtig, sonst 'Nicht zutreffend.' (Bagatellrundfunk prüfen lassen)"},
-    "APP_AUFTRAGGEBER": {"required": true, "desc": "Für wen die App entwickelt wurde (Auftraggeber, z. B. jaybelife / LINEFM). Genaue Schreibweise gibt der Inhaber vor."},
     "VERANTWORTLICHER_MSTV": {"required": true, "desc": "Name und Anschrift der verantwortlichen Person für journalistisch-redaktionelle Inhalte, § 18 Abs. 2 MStV"},
     "DATENSCHUTZBEAUFTRAGTER": {"required": true, "desc": "Name und Kontakt oder: Wir haben keine(n) Datenschutzbeauftragte(n) benannt, da dies gesetzlich nicht erforderlich ist."},
     "AUFSICHTSBEHOERDE_DATENSCHUTZ": {"required": true, "desc": "Zuständige Landesdatenschutzbehörde nach Sitz des Betreibers"},

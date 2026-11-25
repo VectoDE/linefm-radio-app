@@ -41,6 +41,10 @@ jobs:
       - name: No tracker references
         run: python3 tool/check_no_issue_refs.py
 
+      # Retired brand name nowhere, developer shown by name (linked), never by URL.
+      - name: Branding
+        run: python3 tool/check_branding.py
+
       # dependency_overrides only with a documented reason.
       - name: Dependency overrides documented
         run: bash tool/check_dependency_overrides.sh

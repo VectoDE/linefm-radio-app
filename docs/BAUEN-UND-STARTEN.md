@@ -150,6 +150,28 @@ Windows-Warnung "Der Computer wurde durch Windows geschützt" (SmartScreen): Die
 
 MSIX: Eine MSIX-Datei lässt sich nur installieren, wenn sie signiert ist und Windows dem Zertifikat vertraut. Eine unsignierte MSIX weist Windows ab. Deshalb gibt es sie hier nur im Zusammenhang mit dem Microsoft Store (siehe [packaging/windows/README.md](../packaging/windows/README.md)). Für dich zählen ZIP und Installer.
 
+#### macOS und Linux: Installer benutzen
+
+Auf dem Mac und unter Linux gibt es denselben Installer wie unter Windows: gleiches Fenster, gleiche Schritte (Willkommen, Lizenz, Optionen, Installation, Fertig), gleiche Texte. Nur wo sich das System unterscheidet, heißt eine Option anders.
+
+**macOS** (`...-macos-setup.dmg`):
+
+1. DMG öffnen und auf **LINEFM Radio Setup** doppelklicken. Ohne Apple-Entwicklerkonto ist der Installer nicht notarisiert. Dann einmal Rechtsklick auf **LINEFM Radio Setup** und **Öffnen** wählen.
+2. **Optionen**:
+   - **Alle Benutzer dieses Macs**: Ziel `/Applications/LINEFM Radio.app`. Das ist der Standard, wenn du ein Administratorkonto hast.
+   - **Nur für mich**: Ziel `~/Applications/LINEFM Radio.app`.
+   - **Alias auf dem Schreibtisch**, **Im Dock behalten**, **Beim Anmelden automatisch starten** (Anmeldeobjekt).
+   - Das Setup fragt nie nach einem Passwort und erhöht keine Rechte. Ohne Schreibrecht auf `/Applications` meldet es das und du wählst **Nur für mich**.
+3. **Deinstallieren**: `~/Library/Application Support/LINEFM Radio Setup/Uninstall LINEFM Radio.app` öffnen. Es erscheint dasselbe Fenster wie unter Windows, mit der Wahl, ob auch Einstellungen, Favoriten und Wecker gelöscht werden.
+
+**Linux** (`...-linux-x64-setup.AppImage`):
+
+1. Datei ausführbar machen und starten: `chmod +x linefm-radio-X.Y.Z-linux-x64-setup.AppImage && ./linefm-radio-X.Y.Z-linux-x64-setup.AppImage`. Fehlt FUSE, geht es mit `APPIMAGE_EXTRACT_AND_RUN=1` davor.
+2. **Optionen**: Installiert wird immer nur für dich, ohne Root-Rechte. Standardziel ist `~/.local/share/linefm-radio`. Wählbar sind **Verknüpfung auf dem Desktop**, **Eintrag im App-Menü** und **Beim Anmelden automatisch starten** (`~/.config/autostart`). Links wie `linefm://play` öffnen danach die App.
+3. **Deinstallieren**: Rechtsklick auf LINEFM Radio im App-Menü und **LINEFM Radio deinstallieren** wählen, oder `~/.local/share/linefm-radio-setup/uninstaller/linefm_setup` starten.
+
+Auf beiden Systemen prüft das Setup vor dem Kopieren den SHA-256 der mitgelieferten App, verhindert ein Zurückstufen auf eine ältere Version und nimmt bei **Abbrechen** alles zurück. Die `.tar.gz` (Linux) und das App-DMG (macOS) gibt es weiterhin für alle, die ohne Installer auspacken wollen. Aufbau und Sicherheit: [installer/ui/README.md](../installer/ui/README.md).
+
 #### Android
 
 1. Lade `dist-android` herunter und entpacke es auf dem Rechner. Kopiere die Datei `...-android.apk` aufs Handy (USB-Kabel, Cloud-Ordner oder Mail an dich selbst).

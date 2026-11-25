@@ -1,8 +1,8 @@
 name: Build
 
 # Baut alle sechs Plattformen und legt die Ergebnisse als Artefakte "dist-<plattform>" ab.
-# macOS/iOS laufen (wegen 10-facher Actions-Minuten im privaten Repo) nur bei Release-Tags,
-# bei manuellem Start mit apple=true oder in Änderungsvorschlägen mit dem Label "ci:apple".
+# macOS/iOS laufen nur bei Release-Tags, bei manuellem Start mit apple=true oder in
+# Änderungsvorschlägen mit dem Label "ci:apple" (öffentliches Repo: Actions-Minuten sind frei).
 # Signaturschritte laufen nur ausserhalb von Änderungsvorschlägen und nur, wenn die Secrets gesetzt sind;
 # ohne Secrets entstehen unsignierte Artefakte und die Zusammenfassung nennt, was fehlt.
 
@@ -29,7 +29,7 @@ on:
   workflow_dispatch:
     inputs:
       apple:
-        description: macOS- und iOS-Build einschliessen (macOS-Minuten zaehlen 10-fach)
+        description: macOS- und iOS-Build einschliessen
         type: boolean
         default: false
   workflow_call:

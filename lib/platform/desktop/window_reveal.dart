@@ -30,7 +30,7 @@ Future<void> revealWindowWhenPresented({
   final shown = Completer<void>();
   pendingWindowReveal = shown.future;
   try {
-    await (presented ?? _loaderPresented)();
+    await (presented ?? loaderPresented)();
     await channel.invokeMethod<void>('reveal');
   } on Object catch (e) {
     debugPrint('Window reveal signal failed: $e');
@@ -46,27 +46,62 @@ Future<void> revealWindowWhenPresented({
 /// first one showed the bare window background for 150 to 220 ms.
 const int revealAfterRasterizedFrames = 2;
 
-Future<void> _loaderPresented() async {
+/// Upper bound for [waitForStableFrames]; the runner's own fallback timer
+/// (2 s) is longer.
+const Duration revealWaitCap = Duration(milliseconds: 1500);
+
+/// Default wait of [revealWindowWhenPresented]: first rasterised frame,
+/// then [waitForStableFrames] on the implicit view. The parameters replace
+/// the binding in tests.
+@visibleForTesting
+Future<void> loaderPresented({
+  Future<void>? firstFrame,
+  Future<void> Function()? nextFrame,
+  Size? Function()? size,
+}) async {
   final binding = WidgetsBinding.instance;
-  await binding.waitUntilFirstFrameRasterized;
-  // Frame timings are reported in batches (up to a second apart in release),
-  // so count produced frames instead. A window restored maximised is resized
-  // only when it is shown, right after the first frame; the count restarts on
-  // every size change so the reveal waits for frames at the final size.
+  await (firstFrame ?? binding.waitUntilFirstFrameRasterized);
   final view = binding.platformDispatcher.implicitView;
-  var size = view?.physicalSize;
+  await waitForStableFrames(
+    nextFrame:
+        nextFrame ??
+        () {
+          binding.scheduleFrame();
+          return binding.endOfFrame;
+        },
+    size: size ?? () => view?.physicalSize,
+  );
+}
+
+/// Waits for [frames] produced frames in a row at an unchanged window size.
+///
+/// Frame timings are reported in batches (up to a second apart in release),
+/// so this counts produced frames instead. A window restored maximised is
+/// resized only when it is shown, right after the first frame; the count
+/// restarts on every size change so the reveal waits for frames at the final
+/// size. Gives up after [cap]. Returns the number of frames waited.
+@visibleForTesting
+Future<int> waitForStableFrames({
+  required Future<void> Function() nextFrame,
+  required Size? Function() size,
+  int frames = revealAfterRasterizedFrames,
+  Duration cap = revealWaitCap,
+  DateTime Function() now = DateTime.now,
+}) async {
+  var last = size();
   var stable = 0;
-  final deadline = DateTime.now().add(const Duration(milliseconds: 1500));
-  while (stable < revealAfterRasterizedFrames &&
-      DateTime.now().isBefore(deadline)) {
-    binding.scheduleFrame();
-    await binding.endOfFrame;
-    final now = view?.physicalSize;
-    if (now == size) {
+  var waited = 0;
+  final deadline = now().add(cap);
+  while (stable < frames && now().isBefore(deadline)) {
+    await nextFrame();
+    waited++;
+    final current = size();
+    if (current == last) {
       stable++;
     } else {
-      size = now;
+      last = current;
       stable = 0;
     }
   }
+  return waited;
 }

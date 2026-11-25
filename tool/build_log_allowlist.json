@@ -51,5 +51,22 @@
     "job": "Scorecard",
     "expires": "2027-02-28",
     "reason": "ossf/scorecard writes this placeholder URI for repository-level findings and github/codeql-action warns while uploading the SARIF. Reported upstream in the ossf/scorecard tracker (bug titled 'URI \"no file associated with this alert\" in SARIF now invalid in github/codeql-action'), closed there but still emitted by scorecard-action 2.5.0. The findings are uploaded; only the file location is dropped."
+  },
+  {
+    "pattern": "^\\(node:\\d+\\) \\[DEP0005\\] DeprecationWarning: Buffer\\(\\) is deprecated",
+    "expires": "2027-02-28",
+    "reason": "Printed by actions/download-artifact v8.0.2 (latest) on every download. Reported upstream in the actions/download-artifact tracker (open: 'v8 emits Node DEP0005 Buffer() deprecation warning on every download')."
+  },
+  {
+    "pattern": "^\\(node:\\d+\\) \\[DEP0040\\] DeprecationWarning: The `punycode` module is deprecated",
+    "job": "Deploy.to.GitHub.Pages",
+    "expires": "2027-02-28",
+    "reason": "Printed by actions/deploy-pages v5.0.1 (latest) through its bundled @actions/artifact. Reported upstream in the actions/deploy-pages tracker (open: 'v5 emits Node DEP0040 punycode deprecation warning on successful deployments')."
+  },
+  {
+    "pattern": "^WARNING: Java vector incubator module is not readable\\.",
+    "job": "OWASP.dependency-check",
+    "expires": "2027-02-28",
+    "reason": "Lucene inside dependency-check prints this notice when the incubator vector module is off; enabling it makes the JVM print 'Using incubator modules' instead. Ends when dependency-check ships a Lucene/JDK combination without the incubator module."
   }
 ]

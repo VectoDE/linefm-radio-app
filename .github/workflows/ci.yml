@@ -58,6 +58,9 @@ jobs:
       - name: Analyzer (fatal-infos)
         run: flutter analyze --fatal-infos
 
+      - name: Python tool tests
+        run: python3 -m unittest discover -s test/tool -p "test_*.py"
+
   test:
     name: Tests
     runs-on: ubuntu-latest

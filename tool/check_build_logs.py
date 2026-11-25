@@ -51,7 +51,18 @@ RULES: list[tuple[str, re.Pattern[str]]] = [
     ("pub-outdated", re.compile(r"^!?\s*[a-z0-9_]+ \S+ (\(overridden\) )?\(\S+ available\)$")),
     ("pub-summary", re.compile(r"packages? ha(s|ve) newer versions incompatible")),
     ("pub-discontinued", re.compile(r"\(discontinued")),
-    ("npm", re.compile(r"^npm (WARN|warn|ERR!)")),
+    ("npm", re.compile(r"^npm (WARN|warn|ERR!|error)\b")),
+    # Tools that prefix their own output, such as nikto ("+ ERROR: ...").
+    ("prefixed", re.compile(r"^[+*>|-] (Warning|WARNING|WARN|Error|ERROR):? ")),
+    ("warn", re.compile(r"^\[?(WARN|WARNING|ERROR)\]?[: ]")),
+    ("perl", re.compile(r"^(Use of uninitialized value|.+ is deprecated)\b.* at \S+ line \d+\b")),
+    ("apt", re.compile(r"^[EW]: ")),
+    ("warning-mid-line", re.compile(r"\b(Warning|WARNING|DeprecationWarning|UserWarning):\s")),
+    # Not for quoted JSON values: SARIF dumps quote rule help texts.
+    ("deprecated", re.compile(
+        r"^(?!\s*\")(?=.*(\b(is|are|has been|was) deprecated\b|\bDEPRECATED\b|\bdeprecation warning\b))",
+        re.I,
+    )),
 ]
 
 TIMESTAMP = re.compile(r"^﻿?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z ?")
@@ -91,7 +102,9 @@ def scan(job: str, text: str, allow: list[dict]) -> list[str]:
         if SCRIPT_ECHO in raw:
             continue
         line = ANSI.sub("", TIMESTAMP.sub("", raw)).rstrip()
-        if line.startswith(("##[group]", "##[endgroup]", "[command]")):
+        # Runner markers repeat the step source (including our own
+        # `echo "::warning::..."` lines), not its output.
+        if line.startswith(("##[group]", "##[endgroup]", "##[start-action", "##[end-action", "[command]")):
             continue
         rule = next((name for name, rx in RULES if rx.search(line)), None)
         if rule is None:

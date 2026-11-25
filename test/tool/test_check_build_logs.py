@@ -13,8 +13,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location("check_build_logs", ROOT / "tool/check_build_logs.py")
+assert _spec is not None and _spec.loader is not None
 cbl = importlib.util.module_from_spec(_spec)
-assert _spec.loader is not None
 _spec.loader.exec_module(cbl)
 
 TS = "2026-11-25T22:00:22.1234567Z "

@@ -95,14 +95,26 @@ jobs:
           git -C "$RUNNER_TEMP/nikto" checkout -q FETCH_HEAD
           test "$(git -C "$RUNNER_TEMP/nikto" rev-parse HEAD)" = "$NIKTO_COMMIT"
 
+      # nikto checks for XML::Writer at start-up and stops without a report
+      # when the module is missing (it is not part of the runner's Perl).
+      - name: Install nikto Perl modules
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends libxml-writer-perl
+
       - name: nikto
         working-directory: ${{ runner.temp }}/nikto/program
         run: |
           mkdir -p "$GITHUB_WORKSPACE/out"
+          # A non-zero exit only means nikto reported findings; a missing or
+          # empty report means the scan itself failed.
           perl nikto.pl -h http://127.0.0.1:8788 -maxtime 1500s -nointeractive \
             -Format json -o "$GITHUB_WORKSPACE/out/nikto.json" || true
           perl nikto.pl -h http://127.0.0.1:8788 -maxtime 600s -nointeractive -Plugins headers \
             -Format txt -o "$GITHUB_WORKSPACE/out/nikto-headers.txt" || true
+          for f in nikto.json nikto-headers.txt; do
+            test -s "$GITHUB_WORKSPACE/out/$f" || { echo "::error::nikto wrote no $f"; exit 1; }
+          done
 
       - name: Summary
         if: ${{ always() }}
@@ -122,7 +134,7 @@ jobs:
           name: nikto-report-${{ github.sha }}
           path: out/
           retention-days: 30
-          if-no-files-found: warn
+          if-no-files-found: error
 
   dependency-check:
     name: OWASP dependency-check

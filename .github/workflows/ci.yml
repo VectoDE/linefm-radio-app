@@ -101,7 +101,6 @@ jobs:
       # Dateien ohne Messdaten.
       - name: Ungeladene lib-Dateien einmessen
         if: always()
-        continue-on-error: true
         run: |
           pkg=$(sed -n 's/^name:[[:space:]]*//p' pubspec.yaml | tr -d '\r')
           out=test/zz_coverage_all_test.dart
@@ -114,7 +113,9 @@ jobs:
               i=$((i + 1))
               echo "import 'package:${pkg}/${f#lib/}' as a${i};"
             done < <(find lib -name '*.dart' ! -path 'lib/l10n/gen/*' | sort)
-            echo "void main() {}"
+            echo "import 'package:flutter_test/flutter_test.dart';"
+            # flutter test exits with 79 when a file declares no test.
+            echo "void main() => test('every lib file loads', () {});"
           } > "$out"
           flutter test --coverage --branch-coverage --coverage-path coverage/lcov.all.info "$out"
           rm -f "$out"
@@ -333,9 +334,10 @@ jobs:
           app-env: dev
 
       - name: Web bauen
-        run: >-
-          flutter build web --release --wasm --no-web-resources-cdn
-          --dart-define-from-file=config/app.json --base-href /
+        shell: bash
+        run: |
+          mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
+          flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file=config/app.json --base-href / "${web_defines[@]}"
 
       - name: Ersatzschriften selbst hosten (L14)
         run: |
@@ -362,7 +364,41 @@ jobs:
           ls build/web/main*.dart.js >/dev/null 2>&1 || { echo "::error::kein main*.dart.js"; exit 1; }
           ls build/web/main*.dart.wasm >/dev/null 2>&1 || { echo "::error::kein main*.dart.wasm"; exit 1; }
           test -d build/web/canvaskit || { echo "::error::canvaskit/ fehlt (no-web-resources-cdn)"; exit 1; }
-          if grep -rIl --include='*.js' --include='*.html' 'gstatic.com' build/web >/dev/null; then
-            echo "::warning::Verweis auf gstatic.com im Web-Build gefunden"
-          fi
+          # The engine keeps the gstatic.com CanvasKit URL as a default string;
+          # what matters is that the build config switches to the bundled copy.
+          grep -qF '"useLocalCanvasKit":true' build/web/flutter_bootstrap.js || { echo "::error::flutter_bootstrap.js does not use the bundled CanvasKit"; exit 1; }
           echo "**Web-Build:** $(du -sh build/web | cut -f1), $(find build/web -type f | wc -l) Dateien" >> "$GITHUB_STEP_SUMMARY"
+
+  # Zero-warning rule: any warning or error line in a job log fails the run,
+  # including third-party output. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented exceptions, each with an expiry date.
+  log-gate:
+    name: Build log gate
+    needs: [analyze, test, goldens, l10n-check, web-smoke]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan job logs for warnings and errors
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          logs="$RUNNER_TEMP/job-logs"
+          bash tool/fetch_job_logs.sh "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$logs" "Build log gate"
+          shopt -s nullglob
+          files=("$logs"/*.log)
+          [ "${#files[@]}" -gt 0 ] || { echo "::error::no job logs downloaded"; exit 1; }
+          python3 -I tool/check_build_logs.py "${files[@]}"

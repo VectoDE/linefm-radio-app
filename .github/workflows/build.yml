@@ -397,9 +397,11 @@ jobs:
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
 
       - name: Web bauen
-        run: >-
-          flutter build web $FLUTTER_BUILD_FLAGS --wasm --no-web-resources-cdn --base-href /
-          --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
+        shell: bash
+        run: |
+          mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
+          # shellcheck disable=SC2086 # FLUTTER_BUILD_FLAGS is a flag list
+          flutter build web $FLUTTER_BUILD_FLAGS --wasm --no-web-resources-cdn --base-href /             --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER" "${web_defines[@]}"
 
       - name: Ersatzschriften selbst hosten (L14)
         run: |
@@ -1056,3 +1058,37 @@ jobs:
       - name: Ergebnis
         run: |
           echo "- iOS: Kompilierpruefung erfolgreich (unsigniert, kein Release-Artefakt; Store-Upload ueber store-apple.yml)" >> "$GITHUB_STEP_SUMMARY"
+
+  # Zero-warning rule: any warning or error line in a job log fails the run,
+  # including third-party output. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented exceptions, each with an expiry date.
+  log-gate:
+    name: Build log gate
+    needs: [meta, android, web, linux, windows, macos, ios]
+    if: always() && needs.meta.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan job logs for warnings and errors
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          logs="$RUNNER_TEMP/job-logs"
+          bash tool/fetch_job_logs.sh "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$logs" "Build log gate"
+          shopt -s nullglob
+          files=("$logs"/*.log)
+          [ "${#files[@]}" -gt 0 ] || { echo "::error::no job logs downloaded"; exit 1; }
+          python3 -I tool/check_build_logs.py "${files[@]}"

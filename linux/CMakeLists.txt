@@ -70,9 +70,19 @@ set_target_properties(${BINARY_NAME}
 )
 
 
+# sentry-native compiles its C sources as C99 unless the project sets a
+# standard; it uses _Generic, which then triggers -Wc11-extensions.
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# Pinned fixes for warnings printed by third-party build files and sources.
+include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/third_party_patches.cmake")
+third_party_patch_plugins(linux)
+
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
+third_party_patch_sentry_native()
 
 
 # === Installation ===

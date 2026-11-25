@@ -1,4 +1,4 @@
-// Quality gate for the public web deploy (issue #132).
+// Quality gate for the public web deploy.
 //
 //   node pagespeed_gate.mjs --url https://vectode.github.io/linefm-radio-app/ --out out/gate
 //

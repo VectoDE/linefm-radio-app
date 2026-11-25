@@ -50,7 +50,7 @@ class AppConfig {
 
   final String appEnv;
 
-  /// Version aus dem Release (#104); der Release-Workflow setzt APP_VERSION.
+  /// Version aus dem Release; der Release-Workflow setzt APP_VERSION.
   /// Leer bei lokalen Builds: die App zeigt dann "Entwicklungsversion".
   final String appVersion;
 
@@ -83,7 +83,7 @@ class AppConfig {
   final String trustGridinsoftUrl;
   final String trustTrustpilotUrl;
 
-  /// Feste Adresse der nachladbaren Senderliste (Issue #91), z. B.
+  /// Feste Adresse der nachladbaren Senderliste, z. B.
   /// `https://app.linefm.de/stations.yaml`. Leer = nur die mitgelieferte
   /// Liste, kein Netzabruf. Nur https (siehe StationsUpdater.parseUrl).
   final String stationsUrl;

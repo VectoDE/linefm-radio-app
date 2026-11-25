@@ -299,7 +299,7 @@ abstract final class LinefmMetrics {
 
   /// Feste Breite der seitlichen Navigation (NavigationRail) in allen
   /// Sprachen. Vorher richtete sich die Leiste nach der laengsten
-  /// Beschriftung und sprang beim Sprachwechsel (Issue #101).
+  /// Beschriftung und sprang beim Sprachwechsel.
   static const double railWidth = 104;
 
   /// Standarddauern (Web: .18 bis .35 s).

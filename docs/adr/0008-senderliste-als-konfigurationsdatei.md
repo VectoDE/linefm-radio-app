@@ -1,7 +1,7 @@
 # ADR 0008: Senderliste als Konfigurationsdatei mit Nachladen
 
 Status: angenommen
-Quelle: Anforderung und Entscheidung des Inhabers vom 21.11.2026 (Issue #91), ersetzt [ADR 0003](0003-senderliste-fest-im-code.md)
+Quelle: Anforderung und Entscheidung des Inhabers vom 21.11.2026, ersetzt [ADR 0003](0003-senderliste-fest-im-code.md)
 
 ## Kontext
 

@@ -77,7 +77,7 @@ class AutoMenuTitles {
   final String recent;
 }
 
-/// Android-Auto-Browse-Tree (Spec 2.2, Issue #42): Die Wurzel zeigt immer
+/// Android-Auto-Browse-Tree (Spec 2.2): Die Wurzel zeigt immer
 /// drei Ordner in fester Reihenfolge: Favoriten-Sender, Sender, Zuletzt
 /// gehoert. Dazu Suche im Sendernamen.
 class BrowseTree {
@@ -113,7 +113,7 @@ class BrowseTree {
   );
 
   /// Name des Drawables eines Senders (nur Kleinbuchstaben und Ziffern).
-  /// Sender ohne mitgeliefertes Logo (erst nachgeladen, Issue #91) zeigen
+  /// Sender ohne mitgeliefertes Logo (erst nachgeladen) zeigen
   /// das LINEFM-Logo wie das Homescreen-Widget; Android Auto kann keine
   /// Bilder aus dem Netz anzeigen.
   static String androidDrawableName(Station station) =>

@@ -9,7 +9,7 @@ import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/stations_config.dart';
 
-/// Nachladen der Senderliste (Issue #91): Sicherheit, ETag, Rueckfall.
+/// Nachladen der Senderliste: Sicherheit, ETag, Rueckfall.
 void main() {
   final fixture = File('test/fixtures/stations/stations_6.json')
       .readAsStringSync();

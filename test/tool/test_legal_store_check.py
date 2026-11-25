@@ -67,7 +67,7 @@ class ValuesTest(unittest.TestCase):
 
 
 class RequirementTest(unittest.TestCase):
-    """Review PR #77: Listen in requires gelten als UND (ga4-Varianten)."""
+    """Review finding: Listen in requires gelten als UND (ga4-Varianten)."""
 
     def test_listen_und_ga4(self) -> None:
         self.assertTrue(lsc.requirement_met(["!telemetry", "ga4"], {"ga4"}))

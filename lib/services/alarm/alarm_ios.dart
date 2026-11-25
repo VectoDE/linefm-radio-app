@@ -49,7 +49,7 @@ class IosAlarmPlatform implements AlarmPlatform {
       return;
     }
     final texts = _texts ?? AlarmTexts.system();
-    // Entfernter Sender: wie der Wecker selbst der erste der Liste (#91).
+    // Entfernter Sender: wie der Wecker selbst der erste der Liste.
     final station = alarmStationFor(rule.stationSlug);
     try {
       await _channel.invokeMethod<bool>('requestPermission');

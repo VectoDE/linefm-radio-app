@@ -26,7 +26,7 @@ class FavoritesMergeResult {
   final int added;
 }
 
-/// Liest den eigenen Export wieder ein (Issue #9, Gegenstueck zu
+/// Liest den eigenen Export wieder ein (Gegenstueck zu
 /// [FavoritesExport]): CSV (Semikolon, optional BOM, Kopfzeile deutsch oder
 /// englisch) oder Textliste (`Kuenstler - Titel (Sender)`).
 class FavoritesImport {

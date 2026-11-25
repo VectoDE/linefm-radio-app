@@ -1,9 +1,9 @@
 name: Windows-Integrationstest
 
 # Integrationstest der echten App auf Windows (integration_test/windows_app_test.dart):
-# - #99: schneller Senderwechsel mit verspaeteten laut.fm-Antworten (Netzwerk-Fakes),
-# - #101: Sprache de/en, Rail-Breite bleibt 104,
-# - #87: eigene Titelleiste (Maximieren, Doppelklick, Minimieren, Schliessen in den
+# - Schneller Senderwechsel mit verspaeteten laut.fm-Antworten (Netzwerk-Fakes),
+# - Sprache de/en, Rail-Breite bleibt 104,
+# - Eigene Titelleiste (Maximieren, Doppelklick, Minimieren, Schliessen in den
 #   Tray, Groesse setzen) im echten Fenster.
 # Bilder je Schritt als Artefakt "windows-itest-screens" (Flutter-Ansicht und
 # Bildschirmaufnahme mit Fensterrahmen). Nicht pruefbar: Ziehen, Andocken,

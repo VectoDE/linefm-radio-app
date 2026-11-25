@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the Linux installer (#88): an AppImage of the shared setup UI
+# Builds the Linux installer: an AppImage of the shared setup UI
 # (installer/ui) with the POSIX engine and the app bundle as payload.
 #
 #   installer/linux/build.sh --version X.Y.Z --app build/linux/x64/release/bundle \

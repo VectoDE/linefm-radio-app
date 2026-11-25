@@ -92,7 +92,7 @@
   },
   "stationFavoriteAdd": "{station} als Favoriten-Sender merken",
   "@stationFavoriteAdd": {
-    "description": "Stern auf der Stationskarte (Screenreader/Tooltip), Issue #42",
+    "description": "Stern auf der Stationskarte (Screenreader/Tooltip)",
     "placeholders": {
       "station": {
         "type": "String"
@@ -186,7 +186,7 @@
   "favoritesExportFailed": "Der Export hat nicht geklappt. Versuche es noch einmal.",
   "favoritesImport": "Favoriten importieren",
   "@favoritesImport": {
-    "description": "Knopf/Tooltip: Favoriten aus einer eigenen Export-Datei (CSV oder Text) einlesen, Issue #9"
+    "description": "Knopf/Tooltip: Favoriten aus einer eigenen Export-Datei (CSV oder Text) einlesen"
   },
   "favoritesImportDone": "{count, plural, =0{Keine neuen Favoriten in der Datei.} =1{1 Favorit importiert.} other{{count} Favoriten importiert.}}",
   "@favoritesImportDone": {
@@ -494,7 +494,7 @@
   "notificationChannelName": "Wiedergabe",
   "browseFavoriteStations": "Favoriten-Sender",
   "@browseFavoriteStations": {
-    "description": "Ordner im Auto-Menü (Android Auto/CarPlay): gemerkte Sender, Issue #42"
+    "description": "Ordner im Auto-Menü (Android Auto/CarPlay): gemerkte Sender"
   },
   "browseStations": "Sender",
   "@browseStations": {

@@ -26,15 +26,15 @@ import 'package:linefm_radio/ui/theme/native_licenses.dart';
 /// Bindings, Schrift-Lizenzen, Konfiguration, Senderliste, Audio, CarPlay,
 /// Desktop, Speicher, Telemetrie (samt Absturz-Handlern), Wecker, Widget,
 /// Deep Links, runApp mit den echten Diensten. Die Senderliste aus dem Netz
-/// (Issue #91) kommt erst nach dem ersten Bild und haelt den Start nicht auf.
+/// kommt erst nach dem ersten Bild und haelt den Start nicht auf.
 ///
 /// [args]: Startargumente unter Windows und Linux, z. B.
 /// `linefm://play?station=linefmrap` (Protokoll-Aktivierung, Startmenue).
 Future<void> main(List<String> args) async {
-  // Messpunkte (#92) nur mit --dart-define=LINEFM_PERF_MARKS=true, sonst entfernt.
+  // Messpunkte nur mit --dart-define=LINEFM_PERF_MARKS=true, sonst entfernt.
   perfMark('main');
   WidgetsFlutterBinding.ensureInitialized();
-  // Before anything opens SharedPreferences (#98: data folder renamed).
+  // Before anything opens SharedPreferences (data folder renamed).
   await migrateLegacyDataDir();
   registerFontLicenses();
   registerNativeLicenses();
@@ -94,7 +94,7 @@ Future<void> main(List<String> args) async {
       child: const LinefmApp(),
     ),
   );
-  // Aktuelle Senderliste erst nach dem ersten Bild holen (P30/#92: der Start
+  // Aktuelle Senderliste erst nach dem ersten Bild holen (der Start
   // wartet nicht aufs Netz); ohne STATIONS_URL passiert nichts.
   unawaited(
     WidgetsBinding.instance.waitUntilFirstFrameRasterized.then(

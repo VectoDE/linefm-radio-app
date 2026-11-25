@@ -1,7 +1,7 @@
 # ADR 0004: Zwei Sprachen, Deutsch und Englisch
 
 Status: angenommen
-Quelle: Entscheidung 15 des Inhabers (18.11.2026), bestätigt am 19.11.2026 (Issue #63)
+Quelle: Entscheidung 15 des Inhabers (18.11.2026), bestätigt am 19.11.2026
 
 ## Kontext
 

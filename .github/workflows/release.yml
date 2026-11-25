@@ -1,6 +1,6 @@
 name: Release
 
-# #104: Jeder Merge auf main erzeugt ein Release. Der Job "version" berechnet die
+# Jeder Merge auf main erzeugt ein Release. Der Job "version" berechnet die
 # Version aus dem hoechsten bisherigen Release-Tag und den offenen Issues
 # (tool/release/next_version.dart, Logik in lib/core/update/app_version.dart):
 # Start 0.1.0-alpha.1, jeder Merge zaehlt die Vorabnummer hoch; beta, sobald kein
@@ -223,7 +223,7 @@ jobs:
           path: dist
           merge-multiple: true
 
-      # #88: the installer with its own setup UI exists for every desktop OS
+      # The installer with its own setup UI exists for every desktop OS
       # and is part of every release (checksum, cosign bundle, provenance
       # follow in the next steps like for every other file).
       - name: Check the desktop installers
@@ -424,7 +424,7 @@ jobs:
             fi
             echo "### Installieren und aktualisieren"
             echo ""
-            echo "- Android, Linux, macOS und Web: Dateien unten. Der Windows-Installer folgt mit #110."
+            echo "- Android, Linux, macOS und Web: Dateien unten. Der Windows-Installer folgt später."
             echo "- Vorabversionen sind fuer Tester gedacht und erscheinen nicht in den Stores."
             echo ""
             echo "### Pruefen der Downloads"

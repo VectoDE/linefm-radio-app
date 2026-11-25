@@ -149,7 +149,7 @@ runs:
           $set += 'FIREBASE_ENABLED'
         }
         # Schalter aus config/features.example.yaml (Standard aus), ueberschrieben
-        # von FEATURES_JSON; nur bekannte Schluessel, nur true/false (Issue #91).
+        # von FEATURES_JSON; nur bekannte Schluessel, nur true/false.
         $feat = Read-FlatYaml 'config/features.example.yaml'
         if (-not [string]::IsNullOrWhiteSpace($env:CFG_FEATURES_JSON)) {
           $over = $env:CFG_FEATURES_JSON | ConvertFrom-Json -AsHashtable

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# #104: Die App-Version kommt nur aus dem Release bzw. Tag. Dieser Check meldet
+# Die App-Version kommt nur aus dem Release bzw. Tag. Dieser Check meldet
 # jede fest eingetragene Versionsnummer der App ausserhalb von CHANGELOG.md und
 # Tests. Versionen von Abhaengigkeiten (pubspec-Pakete, Action-Pins, Flutter,
 # Gradle) bleiben erlaubt, sie muessen fest sein.
@@ -57,7 +57,7 @@ if out="$(git grep -nIE "\bv?$sv\b" -- .github/ISSUE_TEMPLATE .github/DISCUSSION
 fi
 
 if [ "$fail" -ne 0 ]; then
-  echo "Die Version kommt aus dem Release (#104). Platzhalter wie vX.Y.Z verwenden."
+  echo "Die Version kommt aus dem Release. Platzhalter wie vX.Y.Z verwenden."
   exit 1
 fi
 echo "Keine fest eingetragene App-Version gefunden."

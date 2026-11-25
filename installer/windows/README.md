@@ -1,6 +1,6 @@
 # Windows-Installer
 
-Eigener Installer für LINEFM Radio mit eigener Oberfläche im App-Design (Entscheidung des Inhabers vom 21.11.2026, Issue #88). Kein Inno Setup, kein NSIS, kein WiX und keine Fremdbibliotheken: nur Win32, BCrypt und die Windows-Compression-API für die Engine, Flutter für die Oberfläche.
+Eigener Installer für LINEFM Radio mit eigener Oberfläche im App-Design (Entscheidung des Inhabers vom 21.11.2026). Kein Inno Setup, kein NSIS, kein WiX und keine Fremdbibliotheken: nur Win32, BCrypt und die Windows-Compression-API für die Engine, Flutter für die Oberfläche.
 
 Bedienung für Nutzer und Admins: [docs/BAUEN-UND-STARTEN.md](../../docs/BAUEN-UND-STARTEN.md), Abschnitt "Windows: Installer benutzen". Parameter, Exit-Codes und Produktdaten: [packaging/windows/README.md](../../packaging/windows/README.md).
 

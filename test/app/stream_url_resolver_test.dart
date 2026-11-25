@@ -76,7 +76,7 @@ void main() {
     return (first, second, api);
   }
 
-  group('Stream-URL (PlayerController, #92)', () {
+  group('Stream-URL (PlayerController)', () {
     test('https-URL aus der API wird genommen und gemerkt', () async {
       final (a, b, api) = await resolveTwice(
         () async => 'https://linefmrap.stream.laut.fm/linefmrap',

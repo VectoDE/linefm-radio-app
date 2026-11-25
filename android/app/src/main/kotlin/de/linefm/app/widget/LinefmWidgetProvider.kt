@@ -22,7 +22,7 @@ import es.antonborri.home_widget.HomeWidgetProvider
 import java.io.File
 
 /**
- * Homescreen-Widget (Spec 2.2, Issue #15) in drei Groessen: 2x1, 4x1, 4x2.
+ * Homescreen-Widget (Spec 2.2) in drei Groessen: 2x1, 4x1, 4x2.
  *
  * Die Daten schreibt die App ueber home_widget (`lib/services/widgets/
  * home_widget_sync.dart`, Schluessel siehe [WidgetKeys]). Das Widget selbst
@@ -261,7 +261,7 @@ internal class WidgetState(
 /**
  * Gebuendelte Senderlogos (auch fuer Android Auto, siehe keep.xml).
  *
- * Keine eigene Senderliste (Issue #91): Die Senderliste steht nur in
+ * Keine eigene Senderliste: Die Senderliste steht nur in
  * config/stations.yaml. Hier wird nur das Format des Kuerzels geprueft
  * und das Drawable `auto_station_<kuerzel>` per Name gesucht; fehlt es (Sender
  * erst nachgeladen), erscheint das LINEFM-Logo.

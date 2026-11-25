@@ -1,5 +1,5 @@
 #!/bin/sh
-# LINEFM Radio installer engine for macOS and Linux (#88).
+# LINEFM Radio installer engine for macOS and Linux.
 #
 # Counterpart of the Windows engine (installer/windows/engine). The shared
 # setup UI (installer/ui) starts it as a child process and reads the same
@@ -478,7 +478,7 @@ write_record() {
 
 # --- install -----------------------------------------------------------------
 
-# --- progress (#88) -----------------------------------------------------------
+# --- progress -----------------------------------------------------------
 # Units are bytes of the app: a fixed share for the hash check, the bytes of
 # every extracted file, a fixed share for shortcuts and clean-up. 100 % is
 # only reported right before the result.

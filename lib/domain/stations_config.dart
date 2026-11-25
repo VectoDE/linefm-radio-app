@@ -1,4 +1,4 @@
-// Senderliste als Konfigurationsdatei (Issue #91).
+// Senderliste als Konfigurationsdatei.
 //
 // Ohne Flutter (dart:convert und package:yaml): Dieselbe Pruefung nutzen
 // die App (beim Start und beim Nachladen) und tool/check_config.dart. So gibt

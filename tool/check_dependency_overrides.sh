@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# #129: Every entry under `dependency_overrides:` in pubspec.yaml needs a
+# Every entry under `dependency_overrides:` in pubspec.yaml needs a
 # documented reason. The line directly above the entry (or above the
 # `dependency_overrides:` key for its first entry) must be a comment of the form
 #   # override-reason(<package>): <why, with issue reference>

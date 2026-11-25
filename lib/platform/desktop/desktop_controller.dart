@@ -43,7 +43,7 @@ class DesktopController {
   TrayController tray = const NoopTrayController();
   DesktopHotkeys hotkeys = const NoopDesktopHotkeys();
 
-  /// Eigene Titelleiste (Issue #87). Bleibt [CaptionStyle.none], solange die
+  /// Eigene Titelleiste. Bleibt [CaptionStyle.none], solange die
   /// Systemleiste steht (Web, Mobil, Fehler beim Ausblenden).
   WindowCaptionControls caption = NoopWindowCaptionControls();
 

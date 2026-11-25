@@ -1,4 +1,4 @@
-// Gemeinsame Hilfen fuer die Golden-Tests (Issue #2).
+// Gemeinsame Hilfen fuer die Golden-Tests.
 //
 // Referenzbilder haengen von der Rasterung der Plattform ab. Sie entstehen
 // deshalb nur auf dem CI-Runner (siehe docs/ENTWICKLUNG.md, "Goldens

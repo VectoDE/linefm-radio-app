@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
-  # Woechentlich, damit neue Fehler auch ohne Commit auffallen (#115).
+  # Woechentlich, damit neue Fehler auch ohne Commit auffallen.
   schedule:
     - cron: "11 4 * * 5"
   workflow_dispatch:
@@ -33,11 +33,11 @@ jobs:
         with:
           persist-credentials: false
 
-      # #104: Die App-Version kommt nur aus dem Release; feste Nummern sind ein Fehler.
+      # Die App-Version kommt nur aus dem Release; feste Nummern sind ein Fehler.
       - name: Keine feste App-Version
         run: bash tool/check_fixed_versions.sh
 
-      # #129: dependency_overrides only with a documented reason.
+      # Dependency_overrides only with a documented reason.
       - name: Dependency overrides documented
         run: bash tool/check_dependency_overrides.sh
 
@@ -74,7 +74,7 @@ jobs:
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfigurationsordner pruefen (config/, Issue #91)
+      - name: Konfigurationsordner pruefen (config/)
         run: dart run tool/check_config.dart
 
       # Golden-Tests (*_golden_test.dart, Tag "golden") haengen von der Rasterung des

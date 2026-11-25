@@ -1,6 +1,6 @@
 name: Release-Tag und pubspec-Platzhalter pruefen
 description: >
-  #104: Die Version kommt aus dem Release, nicht aus pubspec.yaml. Prueft, dass
+  Die Version kommt aus dem Release, nicht aus pubspec.yaml. Prueft, dass
   der Tag eine SemVer-Version vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N ist und dass
   pubspec.yaml nur den Entwicklungs-Platzhalter 0.0.0-dev traegt (er gelangt nie
   in ein Release; --build-name/--build-number setzt der Workflow). Genutzt von
@@ -26,7 +26,7 @@ runs:
         fi
         pub="$(sed -n 's/^version:[[:space:]]*\([^[:space:]#]*\).*/\1/p' pubspec.yaml | head -n1)"
         if [ "${pub%%+*}" != "0.0.0-dev" ]; then
-          echo "::error::pubspec.yaml muss version: 0.0.0-dev+<n> tragen (gefunden: $pub). Die Version kommt aus dem Release (#104)."
+          echo "::error::pubspec.yaml muss version: 0.0.0-dev+<n> tragen (gefunden: $pub). Die Version kommt aus dem Release."
           exit 1
         fi
         echo "Tag $TAG gueltig, pubspec.yaml traegt den Platzhalter ($pub)." >> "$GITHUB_STEP_SUMMARY"

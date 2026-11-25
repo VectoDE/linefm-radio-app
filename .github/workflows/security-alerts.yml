@@ -1,7 +1,7 @@
 name: Sicherheitsfunde
 
 # Haelt fuer jeden offenen Sicherheits-Alert genau ein Issue mit dem Label
-# typ:sicherheit offen und schliesst es, sobald der Alert zu ist (#115).
+# typ:sicherheit offen und schliesst es, sobald der Alert zu ist.
 # Quellen: Code Scanning (CodeQL, Semgrep, Trivy, zizmor, Scorecard), Dependabot,
 # Secret Scanning.
 #

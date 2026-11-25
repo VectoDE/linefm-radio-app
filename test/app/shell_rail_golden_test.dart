@@ -2,7 +2,7 @@
 library;
 
 // Bildvergleich der Navigation (Seitenleiste bei 1280 dp) in Deutsch und
-// Englisch, Dunkel und Hell (Issue #101). Die Breite der Leiste muss in beiden
+// Englisch, Dunkel und Hell. Die Breite der Leiste muss in beiden
 // Sprachen gleich sein. Referenzbilder entstehen auf dem CI-Runner, siehe
 // docs/ENTWICKLUNG.md ("Goldens aktualisieren").
 import 'package:flutter_test/flutter_test.dart';
@@ -30,7 +30,7 @@ AppHost _host(Brightness brightness) => AppHost(
         : AppThemeMode.light,
   ),
   extra: [
-    // The reference images show the listener count (feature flag, #91).
+    // The reference images show the listener count (feature flag).
     appConfigProvider.overrideWithValue(
       const AppConfig(showListenerCount: true),
     ),

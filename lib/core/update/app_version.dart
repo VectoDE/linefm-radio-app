@@ -1,4 +1,4 @@
-/// Versionsrechnung für Releases und Updater (#104).
+/// Versionsrechnung für Releases und Updater.
 ///
 /// Reines Dart ohne Flutter, damit `tool/release/next_version.dart` es in der
 /// CI ohne Flutter-Engine nutzen kann. Die Version steht nirgends fest im

@@ -6,7 +6,7 @@ rules:
   # engeren Sinn: Unsere lokalen Actions laufen immer nach actions/checkout mit
   # persist-credentials: false aus dem eigenen Commit. Umstellung zurueckgestellt,
   # weil actionlint 1.7.12 (aktuelle Version) die Syntax noch als Fehler meldet
-  # (rhysd/actionlint#711, #732). Umstellen, sobald actionlint sie kennt.
+  # (rhysd/actionlint#711 and rhysd/actionlint#732). Umstellen, sobald actionlint sie kennt.
   self-repository:
     disable: true
   # dangerous-triggers: security-alerts.yml nutzt workflow_run, um nach den

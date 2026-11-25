@@ -86,7 +86,7 @@ class _LinefmAppState extends ConsumerState<LinefmApp> {
             .rescheduleAll(ref.read(alarmProvider)),
       );
     });
-    // Nachgeladene Senderliste (Issue #91): Wecker neu planen, damit
+    // Nachgeladene Senderliste: Wecker neu planen, damit
     // Mitteilungstext und Link einen entfernten Sender durch den Ersatz
     // ersetzen, den der Wecker beim Klingeln spielt.
     ref.listen(stationsCatalogProvider, (previous, next) {

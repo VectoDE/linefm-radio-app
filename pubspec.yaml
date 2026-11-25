@@ -2,7 +2,7 @@ name: linefm_radio
 description: "LINEFM Radio - Live-Radio der LINEFM-Sender (LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM, FobFM)."
 publish_to: 'none'
 # Platzhalter fuer lokale Entwicklung. Die echte Version kommt aus dem Release
-# (release.yml, #104) per --build-name/--build-number; CI prueft den Platzhalter.
+# (release.yml) per --build-name/--build-number; CI prueft den Platzhalter.
 version: 0.0.0-dev+1
 
 environment:
@@ -41,16 +41,16 @@ dependencies:
     sdk: flutter
   audio_service_mpris: ^0.2.1
   smtc_windows: ^1.1.0
-  # Favoriten-Import (Issue #9): Datei-Dialog auf allen Plattformen, im Web
+  # Favoriten-Import: Datei-Dialog auf allen Plattformen, im Web
   # <input type=file> (file_selector_web). Offizielles Paket von flutter.dev.
   file_selector: ^1.1.0
-  # Konfigurationsdateien in config/ sind YAML mit Kommentaren (Issue #91).
+  # Konfigurationsdateien in config/ sind YAML mit Kommentaren.
   # Stand schon transitiv im Lock (3.1.4), offizielles Dart-Paket.
   yaml: ^3.1.3
 # override-reason(flutter_rust_bridge): smtc_windows 1.1.0 (latest) is generated
 # against flutter_rust_bridge 2.11.1 and pins the Rust crate to =2.11.1; newer
 # Dart versions fail the bridge's runtime content-hash check. Remove once
-# smtc_windows ships FRB 2.13 (upstream KRTirtho/frb_plugins#16). See #129.
+# smtc_windows ships FRB 2.13 (upstream KRTirtho/frb_plugins#16).
 dependency_overrides:
   flutter_rust_bridge: 2.11.1
 
@@ -69,7 +69,7 @@ flutter:
   uses-material-design: true
   generate: true
   assets:
-    # Senderliste (Issue #91); die uebrigen Dateien in config/ sind nur
+    # Senderliste; die uebrigen Dateien in config/ sind nur
     # Beispiele bzw. Bauzeit-Werte und gehoeren nicht ins App-Paket.
     - config/stations.yaml
     - assets/images/stations/
@@ -100,7 +100,7 @@ msix_config:
   display_name: LINEFM Radio
   publisher_display_name: LineFM Studios
   identity_name: de.linefm.app
-  # msix_version kommt aus dem Release (build.yml: msix:create --version), #104.
+  # msix_version kommt aus dem Release (build.yml: msix:create --version).
   logo_path: assets/branding/icon_1024.png
   capabilities: internetClient
   # Deep Links linefm://play?station=... (P21); Startargument -> main(args).

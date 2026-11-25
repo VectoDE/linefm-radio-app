@@ -115,7 +115,7 @@ Einige Scorecard-Prüfungen können hier nicht voll punkten, und das schreiben w
 - **Code-Review:** Das Projekt hat einen einzigen Entwickler. Pull Requests laufen durch die Pflicht-Checks, eine zweite Person, die freigibt, gibt es nicht.
 - **Maintained:** Scorecard wertet Repositories unter 90 Tagen Alter ab. Das Repository ist im November 2026 entstanden.
 - **CII-Best-Practices:** hängt am Badge von bestpractices.dev, siehe oben.
-- **Fuzzing:** Scorecard erkennt OSS-Fuzz, ClusterFuzzLite und Fuzz- bzw. Property-Tests in Go, Haskell, JavaScript/TypeScript, Erlang und C#/F#. Für Dart gibt es weder eine passende Fuzzing-Engine noch eine Erkennung. ClusterFuzzLite unterstützt Dart nicht, ein Ersatz-Fuzzer nur für die Hilfsskripte in Python würde die Wertung heben, ohne die App sicherer zu machen. Begründung in Issue #59.
+- **Fuzzing:** Scorecard erkennt OSS-Fuzz, ClusterFuzzLite und Fuzz- bzw. Property-Tests in Go, Haskell, JavaScript/TypeScript, Erlang und C#/F#. Für Dart gibt es weder eine passende Fuzzing-Engine noch eine Erkennung. ClusterFuzzLite unterstützt Dart nicht, ein Ersatz-Fuzzer nur für die Hilfsskripte in Python würde die Wertung heben, ohne die App sicherer zu machen. Die Begründung steht im Repository.
 - **Branch-Protection** und **CI-Tests** steigen mit der Zeit: Seit dem 19.11.2026 schützt das Ruleset `main-schutz` den Branch `main`, jede Änderung läuft als Pull Request durch die Pflicht-Checks. Scorecard bewertet aber auch die älteren Commits.
 
 ## Standards und Konformität
@@ -135,14 +135,14 @@ Stand: 22. November 2026. Status heißt: **erfüllt** = die Prüfung läuft in d
 | Sicherheit | Semgrep CE | teilweise | Läuft bei jedem Pull Request; Dart ist nicht abgedeckt, dort prüft `flutter analyze` ([semgrep.yml](.github/workflows/semgrep.yml)) |
 | Sicherheit | Trivy, OSV, gitleaks | erfüllt | Abhängigkeiten, Konfiguration und Git-Historie, bei jedem Pull Request ([supply-chain.yml](.github/workflows/supply-chain.yml)) |
 | Sicherheit | zizmor (Workflow-Prüfung) | erfüllt | Bei jedem Pull Request ([supply-chain.yml](.github/workflows/supply-chain.yml), Regeln in [zizmor.yml](.github/zizmor.yml)) |
-| Datenschutz | DSGVO | teilweise | Favoriten, Verlauf und Einstellungen bleiben auf dem Gerät ([ADR 0001](docs/adr/0001-kein-backend-keine-konten.md)). Die Datenschutzerklärung ist ein Entwurf mit offenen Platzhaltern ([#58](https://github.com/VectoDE/linefm-radio-app/issues/58)); Prüfung durch einen Anwalt steht aus |
+| Datenschutz | DSGVO | teilweise | Favoriten, Verlauf und Einstellungen bleiben auf dem Gerät ([ADR 0001](docs/adr/0001-kein-backend-keine-konten.md)). Die Datenschutzerklärung ist ein Entwurf mit offenen Platzhaltern; Prüfung durch einen Anwalt steht aus |
 | Datenschutz | TDDDG, Einwilligung | teilweise | Statistik und Reichweitenmessung starten nur nach Einwilligung, Widerruf stoppt sie ([docs/telemetry.md](docs/telemetry.md), Tests `test/features/consent_storage_test.dart`, `google_consent_test.dart`). Rechtliche Prüfung steht aus |
-| Recht | DDG (Impressum) | Ziel | Text als Entwurf vorhanden, die Betreiberangaben sind noch nicht eingetragen ([#58](https://github.com/VectoDE/linefm-radio-app/issues/58), [#98](https://github.com/VectoDE/linefm-radio-app/issues/98)); der Release-Build bricht bis dahin ab |
+| Recht | DDG (Impressum) | Ziel | Text als Entwurf vorhanden, die Betreiberangaben sind noch nicht eingetragen; der Release-Build bricht bis dahin ab |
 | Recht | MStV | Ziel | Angabe der verantwortlichen Person ist als Pflichtfeld vorgesehen, aber noch offen; ob sie nötig ist, klärt ein Anwalt |
 | Qualität | Tests und Pflicht-Checks | erfüllt | Testsuite, Format- und Analyseprüfung bei jedem Pull Request ([ci.yml](.github/workflows/ci.yml)); `main` ist per Ruleset geschützt |
-| Qualität | Coverage | teilweise | Wird in der CI gemessen, eine feste Schwelle gibt es noch nicht; Ziel 100 % in `lib/` ([#106](https://github.com/VectoDE/linefm-radio-app/issues/106)) |
-| Qualität | Golden-Tests | teilweise | Kernkomponenten und einzelne Ansichten in Hell und Dunkel; alle Bildschirme und Breiten stehen in [#106](https://github.com/VectoDE/linefm-radio-app/issues/106) offen |
-| Qualität | Lasttests | Ziel | Es gibt noch keine; geplant gegen eigene Endpunkte ([#106](https://github.com/VectoDE/linefm-radio-app/issues/106)) |
+| Qualität | Coverage | teilweise | Wird in der CI gemessen, eine feste Schwelle gibt es noch nicht; Ziel 100 % in `lib/` |
+| Qualität | Golden-Tests | teilweise | Kernkomponenten und einzelne Ansichten in Hell und Dunkel; alle Bildschirme und Breiten stehen im Tracker offen |
+| Qualität | Lasttests | Ziel | Es gibt noch keine; geplant gegen eigene Endpunkte |
 
 ## Dokumentation
 
@@ -200,11 +200,11 @@ As of 22 November 2026. Status: **met** = the check runs in CI and was green, **
 | Security | Semgrep CE | partly met | Runs on every pull request; Dart is not covered, `flutter analyze` covers it ([semgrep.yml](.github/workflows/semgrep.yml)) |
 | Security | Trivy, OSV, gitleaks | met | Dependencies, configuration and git history, on every pull request ([supply-chain.yml](.github/workflows/supply-chain.yml)) |
 | Security | zizmor (workflow audit) | met | On every pull request ([supply-chain.yml](.github/workflows/supply-chain.yml), rules in [zizmor.yml](.github/zizmor.yml)) |
-| Privacy | GDPR | partly met | Favorites, history and settings stay on the device ([ADR 0001](docs/adr/0001-kein-backend-keine-konten.md)). The privacy policy is a draft with open placeholders ([#58](https://github.com/VectoDE/linefm-radio-app/issues/58)); review by a lawyer is pending |
+| Privacy | GDPR | partly met | Favorites, history and settings stay on the device ([ADR 0001](docs/adr/0001-kein-backend-keine-konten.md)). The privacy policy is a draft with open placeholders; review by a lawyer is pending |
 | Privacy | TDDDG, consent | partly met | Statistics and reach measurement start only after consent, withdrawal stops them ([docs/telemetry.md](docs/telemetry.md), tests `test/features/consent_storage_test.dart`, `google_consent_test.dart`). Legal review is pending |
-| Legal | DDG (legal notice) | target | Draft text exists, the operator details are not filled in yet ([#58](https://github.com/VectoDE/linefm-radio-app/issues/58), [#98](https://github.com/VectoDE/linefm-radio-app/issues/98)); the release build fails until then |
+| Legal | DDG (legal notice) | target | Draft text exists, the operator details are not filled in yet; the release build fails until then |
 | Legal | MStV | target | The responsible person is planned as a required field but still open; a lawyer decides whether it applies |
 | Quality | Tests and required checks | met | Test suite, format and analysis on every pull request ([ci.yml](.github/workflows/ci.yml)); `main` is protected by a ruleset |
-| Quality | Coverage | partly met | Measured in CI, no fixed threshold yet; target 100 % in `lib/` ([#106](https://github.com/VectoDE/linefm-radio-app/issues/106)) |
-| Quality | Golden tests | partly met | Core components and some views in light and dark; all screens and widths are open in [#106](https://github.com/VectoDE/linefm-radio-app/issues/106) |
-| Quality | Load tests | target | None yet; planned against our own endpoints ([#106](https://github.com/VectoDE/linefm-radio-app/issues/106)) |
+| Quality | Coverage | partly met | Measured in CI, no fixed threshold yet; target 100 % in `lib/` |
+| Quality | Golden tests | partly met | Core components and some views in light and dark; all screens and widths are open im Tracker |
+| Quality | Load tests | target | None yet; planned against our own endpoints |

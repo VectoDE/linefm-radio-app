@@ -94,7 +94,7 @@ Die Versionsnummer steht in keiner Datei, `pubspec.yaml` trägt nur den Platzhal
 
 Jeder Merge zählt die letzte Zahl hoch. Eine Stufe fällt nie zurück, auch wenn ein Issue wieder aufgeht. Nach `1.0.0` richtet sich die nächste Nummer nach den Commit-Titeln (`fix:` ergibt 1.0.1, `feat:` 1.1.0, `feat!:` 2.0.0). Die Build-Nummer für die Stores steigt mit jedem Lauf.
 
-Alpha-, Beta- und RC-Versionen sind GitHub-Vorabversionen und gehen in keinen Store. Erst ab `1.0.0` laden die Store-Abläufe zu Google Play, Snap, Microsoft, Apple und Flathub hoch und die Web-Version wird aktualisiert, soweit eingerichtet. Der Windows-Installer kommt mit #110 dazu.
+Alpha-, Beta- und RC-Versionen sind GitHub-Vorabversionen und gehen in keinen Store. Erst ab `1.0.0` laden die Store-Abläufe zu Google Play, Snap, Microsoft, Apple und Flathub hoch und die Web-Version wird aktualisiert, soweit eingerichtet. Der Windows-Installer kommt später dazu.
 
 Eine selbst gebaute App (A2, A6) zeigt unter „Über“ statt einer Nummer „Entwicklungsversion“ mit der Kurz-ID des Commits.
 
@@ -116,7 +116,7 @@ Woran du erkennst, dass es klappt: Das Fenster "LINEFM Radio" öffnet sich mit d
 
 #### Windows: Installer benutzen
 
-Der Installer hat ein eigenes Fenster im Look der App, auf Deutsch oder Englisch (je nach Windows-Sprache) und hell oder dunkel (je nach Windows-Einstellung). Er lässt sich komplett mit der Tastatur bedienen: Tab wechselt zwischen den Feldern, Enter drückt den hervorgehobenen Knopf, Esc fragt, ob du abbrechen willst. Screenreader wie die Sprachausgabe von Windows oder NVDA lesen Schritte, Knöpfe und Fortschritt vor. Geprüft wird das automatisch mit Axe.Windows (Microsoft) und mit Tests der Bildschirmleser-Beschriftungen. Ein Test mit einem echten Screenreader steht noch aus (#131).
+Der Installer hat ein eigenes Fenster im Look der App, auf Deutsch oder Englisch (je nach Windows-Sprache) und hell oder dunkel (je nach Windows-Einstellung). Er lässt sich komplett mit der Tastatur bedienen: Tab wechselt zwischen den Feldern, Enter drückt den hervorgehobenen Knopf, Esc fragt, ob du abbrechen willst. Screenreader wie die Sprachausgabe von Windows oder NVDA lesen Schritte, Knöpfe und Fortschritt vor. Geprüft wird das automatisch mit Axe.Windows (Microsoft) und mit Tests der Bildschirmleser-Beschriftungen. Ein Test mit einem echten Screenreader steht noch aus.
 
 1. Doppelklick auf `...-windows-x64-setup.exe`.
 2. **Willkommen**: zeigt Version, Herausgeber (LineFM Studios), Hersteller (Tim Hauke) und den Platzbedarf. Ist LINEFM Radio schon installiert, steht hier, von welcher auf welche Version aktualisiert wird. Ist eine neuere Version installiert, geht es nicht weiter (kein versehentliches Zurückstufen).

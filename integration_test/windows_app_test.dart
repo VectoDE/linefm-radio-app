@@ -1,4 +1,4 @@
-// Integrationstest auf Windows (Issues #99, #101, #87): die echte App in
+// Integrationstest auf Windows : die echte App in
 // einem echten Fenster, mit Netzwerk-Fakes fuer laut.fm (wie in
 // test/data/live/now_playing_repository_test.dart) und ohne Audio.
 //
@@ -59,7 +59,7 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   setUpAll(() async {
-    // Fixed station list (#91): the tests must not depend on the operator's
+    // Fixed station list: the tests must not depend on the operator's
     // config/stations.yaml. Same content as test/fixtures/stations/stations_6.json.
     installBundledStations(parseStationsConfig(_stationsJson));
     final out = _outDefine.isNotEmpty
@@ -85,10 +85,10 @@ void main() {
     );
   });
 
-  // ---------------------------------------------------------------- #99
+  // ---------------------------------------------------------------- Rapid station switching
 
   testWidgets(
-    'Issue #99: schneller Wechsel zwischen drei Sendern zeigt Titel und '
+    'schneller Wechsel zwischen drei Sendern zeigt Titel und '
     'Sender des zuletzt gewaehlten',
     (tester) async {
       await _setWindowSize(tester, const Size(1000, 680));
@@ -188,9 +188,9 @@ void main() {
     timeout: const Timeout(Duration(minutes: 4)),
   );
 
-  // --------------------------------------------------------------- #101
+  // --------------------------------------------------------------- Language switch
 
-  testWidgets('Issue #101: Sprache de/en umschalten, Rail-Breite bleibt 104', (
+  testWidgets('Sprache de/en umschalten, Rail-Breite bleibt 104', (
     tester,
   ) async {
     expect(LinefmMetrics.railWidth, 104);
@@ -243,9 +243,9 @@ void main() {
     }
   }, timeout: const Timeout(Duration(minutes: 4)));
 
-  // ---------------------------------------------------------------- #87
+  // ---------------------------------------------------------------- Custom title bar
 
-  testWidgets('Issue #87: Titelleiste - Maximieren, Doppelklick, Minimieren, '
+  testWidgets('Titelleiste - Maximieren, Doppelklick, Minimieren, '
       'Schliessen in den Tray, Groesse setzen', (tester) async {
     final desktop = DesktopController.instance;
     expect(

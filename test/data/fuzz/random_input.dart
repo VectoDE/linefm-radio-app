@@ -1,5 +1,5 @@
 // Kleiner, deterministischer Zufallsgenerator fuer Robustheitstests der
-// Parser (Issue #63). Bewusst ohne zusaetzliches Paket: dart:math reicht,
+// Parser. Bewusst ohne zusaetzliches Paket: dart:math reicht,
 // und der feste Seed macht jeden Fehlschlag reproduzierbar.
 import 'dart:convert';
 import 'dart:math';

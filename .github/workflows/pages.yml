@@ -1,6 +1,6 @@
 name: Pages
 
-# Public measurement target while app.linefm.de is not live (issue #132):
+# Public measurement target while app.linefm.de is not live:
 # - build:  own web build for the GitHub Pages sub path (--base-href /linefm-radio-app/),
 #           runs on every trigger, so pull requests prove that the build works.
 # - deploy: actions/deploy-pages into the environment github-pages, only on main and

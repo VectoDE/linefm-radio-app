@@ -1,4 +1,4 @@
-// Prueft den Konfigurationsordner config/ (Issue #91, Aufbau fuer #98).
+// Prueft den Konfigurationsordner config/ (Aufbau auch fuer die Betreiberangaben).
 //
 //   dart run tool/check_config.dart              ganzen Ordner pruefen
 //   dart run tool/check_config.dart datei.yaml   nur diese Datei(en)
@@ -268,7 +268,7 @@ List<String> _checkSchema(
   return errors;
 }
 
-// Set by the build or release workflow, never by the operator (#104, #92).
+// Set by the build or release workflow, never by the operator.
 const Set<String> _injectedKeys = <String>{
   'APP_VERSION',
   'APP_COMMIT',

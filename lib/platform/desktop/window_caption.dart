@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-/// Welche Titelleiste die App selbst zeichnet (Issue #87).
+/// Welche Titelleiste die App selbst zeichnet.
 enum CaptionStyle {
   /// Keine eigene Leiste: Web, Mobil, Tests ohne Desktop-Umsetzung oder
   /// Desktop, wenn das Ausblenden der Systemleiste fehlschlug. Dann bleibt

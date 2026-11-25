@@ -96,7 +96,7 @@ Der Branch-Schutz von `main` verlangt keine Pflicht-Freigabe durch eine zweite P
 - **Fuzzing:** Die Parser werden mit zufallsbasierten Tests geprüft (siehe oben). Scorecard erkennt für Dart keine Fuzzing-Integration.
 - **CII Best Practices:** Der Eintrag bei bestpractices.dev setzt eine Open-Source-Lizenz voraus; die App ist proprietär.
 - **Maintained:** Scorecard vergibt 0 Punkte, solange das Repository jünger als 90 Tage ist. Das erledigt sich mit der Zeit.
-- **SAST und CI-Tests:** Scorecard bewertet die letzten 30 Commits bzw. Pull Requests. Ältere Merges ohne Prüfung fallen nach und nach aus diesem Fenster; seit #28 laufen CodeQL, Semgrep und die CI bei jedem Pull Request.
+- **SAST und CI-Tests:** Scorecard bewertet die letzten 30 Commits bzw. Pull Requests. Ältere Merges ohne Prüfung fallen nach und nach aus diesem Fenster; laufen CodeQL, Semgrep und die CI bei jedem Pull Request.
 
 ## In English
 

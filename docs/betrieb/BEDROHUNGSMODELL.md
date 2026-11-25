@@ -1,6 +1,6 @@
 # Bedrohungsmodell
 
-Eine Betrachtung nach STRIDE entlang der echten Datenflüsse von LINEFM Radio. Stand 25.11.2026 (Pentest-Runde 1, #133), abgeleitet aus dem Quellcode und den Konfigurationen im Repository. Es ist eine Arbeitsgrundlage, kein Gutachten und keine Zusage. Gemeldete Lücken: [../../SECURITY.md](../../SECURITY.md). Vorfälle: [INCIDENT.md](INCIDENT.md).
+Eine Betrachtung nach STRIDE entlang der echten Datenflüsse von LINEFM Radio. Stand 25.11.2026 (Pentest-Runde 1), abgeleitet aus dem Quellcode und den Konfigurationen im Repository. Es ist eine Arbeitsgrundlage, kein Gutachten und keine Zusage. Gemeldete Lücken: [../../SECURITY.md](../../SECURITY.md). Vorfälle: [INCIDENT.md](INCIDENT.md).
 
 STRIDE steht für Spoofing (Vortäuschen einer Identität), Tampering (Manipulation), Repudiation (Abstreiten), Information disclosure (Datenabfluss), Denial of service (Ausfall) und Elevation of privilege (Rechteausweitung).
 
@@ -41,7 +41,7 @@ Die Spalte "Vorhanden" nennt Maßnahmen, die im Repository belegt sind. "Rest" i
 | STRIDE | Bedrohung | Vorhanden | Rest | Stufe |
 |---|---|---|---|---|
 | S | Gefälschte Antworten (Man-in-the-middle) | HTTPS, Zertifikatsprüfung des Systems | Kompromittierte Zertifizierungsstelle oder Nutzergerät | S3 |
-| T | Manipulierte oder unerwartete JSON-Daten: überlange Texte, falsche Typen, Steuerzeichen, Verweise auf fremde Adressen | Parser mit Typprüfung und Fixtures in `test/fixtures/`. Cover und Links werden nur über feste Hosts geladen (CSP im Web). | Robustheitstests mit zufälligen Eingaben fehlen noch (offen in Issue #63) | S3 |
+| T | Manipulierte oder unerwartete JSON-Daten: überlange Texte, falsche Typen, Steuerzeichen, Verweise auf fremde Adressen | Parser mit Typprüfung und Fixtures in `test/fixtures/`. Cover und Links werden nur über feste Hosts geladen (CSP im Web). | Robustheitstests mit zufälligen Eingaben fehlen noch | S3 |
 | I | Abfluss von Nutzerdaten | Die App schickt nur Sender-Kennung, keine Nutzerkennung | laut.fm sieht die IP-Adresse (technisch nötig) | S4 |
 | D | API fällt aus oder liefert langsam | Polling mit HTTP-Cache, Titelanzeige fällt weg, der Stream läuft weiter. WebSocket aus ([ADR 0002](../adr/0002-laut-fm-websocket-aus-polling.md)) | Keine Titelanzeige während des Ausfalls | S3 |
 | E | nicht anwendbar | | | |
@@ -102,7 +102,7 @@ Die Spalte "Vorhanden" nennt Maßnahmen, die im Repository belegt sind. "Rest" i
 
 | STRIDE | Bedrohung | Vorhanden | Rest | Stufe |
 |---|---|---|---|---|
-| T | Manipulierte Importdatei für Favoriten | Dateiauswahl durch den Nutzer, Parser mit Prüfung, Import nur in Favoriten | Parser-Fuzz-Tests fehlen (offen in Issue #63) | S4 |
+| T | Manipulierte Importdatei für Favoriten | Dateiauswahl durch den Nutzer, Parser mit Prüfung, Import nur in Favoriten | Parser-Fuzz-Tests fehlen | S4 |
 | I | Zugriff auf Geräte-Daten durch andere Apps oder Backups | Daten im App-Container. iOS-Sicherung kann sie enthalten (Datenschutzerklärung nennt es). Web: `localStorage` je Origin | Gerät mit Root oder Jailbreak | S4 |
 | I | Export-Datei liegt offen herum | Nutzer wählt den Speicherort selbst | | S4 |
 | D | Voller oder beschädigter Speicher | Standardwerte beim Lesen, Funktion "Speicher löschen" | | S4 |
@@ -121,11 +121,11 @@ Die Spalte "Vorhanden" nennt Maßnahmen, die im Repository belegt sind. "Rest" i
 | STRIDE | Bedrohung | Vorhanden | Rest | Stufe |
 |---|---|---|---|---|
 | T | Manipulierter Abhängigkeitsstand (Pub, Gradle, Actions, Docker) | `pubspec.lock` mit `--enforce-lockfile`, Actions und Images per SHA oder Digest gepinnt, Dependabot mit 7 Tagen Wartezeit, OSV-Scanner und CodeQL | Ein bösartiges Update eines Pakets kann zwischen Veröffentlichung und Fund einrücken. Die Wartezeit mildert das. | S1 |
-| T | Eingeschleuster Code im Release | Release-Dateien tragen GitHub-Attestierung (Provenance) und cosign-Signatur. Prüfanleitung [../RELEASE-VERIFIZIEREN.md](../RELEASE-VERIFIZIEREN.md). Gegenprüfung mit älteren cosign-Versionen offen (#63). | Nutzer müssen die Prüfung selbst ausführen. Die Stores signieren zusätzlich mit eigenen Schlüsseln. | S1 |
+| T | Eingeschleuster Code im Release | Release-Dateien tragen GitHub-Attestierung (Provenance) und cosign-Signatur. Prüfanleitung [../RELEASE-VERIFIZIEREN.md](../RELEASE-VERIFIZIEREN.md). Gegenprüfung mit älteren cosign-Versionen offen. | Nutzer müssen die Prüfung selbst ausführen. Die Stores signieren zusätzlich mit eigenen Schlüsseln. | S1 |
 | S | Gestohlenes GitHub-Konto oder Token | Aktionen mit minimalen `permissions:`, Umgebung `production` mit Genehmiger (Betreiber muss ihn einrichten), Secret-Scan mit gitleaks | Kontosicherheit (2FA, Hardware-Schlüssel) liegt beim Betreiber | S1 |
 | I | Secrets in Code oder Logs | gitleaks, Secret-Gate-Action, keine Secrets im Repository | Fehler im Workflow könnten Secrets ausgeben | S1 |
 | R | Wer hat was veröffentlicht | Git-Verlauf, geschützter Hauptzweig, Workflow-Läufe mit Benutzer und Zeit, Attestierungen | Rulesets und Branch-Schutz müssen aktiv sein (Repo-Einstellung) | S3 |
-| T | Unverankertes Build-Werkzeug im Signier-Job | Der Windows-Installer entsteht mit dem eigenen Packer aus dem Repository (`installer/windows`), es wird kein Fremdwerkzeug nachinstalliert (#133, #88) | Der Axe.Windows-Scanner im Prüflauf ist per Hash gepinnt | S3 |
+| T | Unverankertes Build-Werkzeug im Signier-Job | Der Windows-Installer entsteht mit dem eigenen Packer aus dem Repository (`installer/windows`), es wird kein Fremdwerkzeug nachinstalliert | Der Axe.Windows-Scanner im Prüflauf ist per Hash gepinnt | S3 |
 | E | Fremder Pull Request führt Code mit Rechten aus | Kein privilegierter Job auf `pull_request`, Secrets nur in geschützten Läufen | Fehlkonfiguration bei neuen Workflows. Jeder neue Workflow wird gegen diese Regel geprüft. | S2 |
 
 ### Desktop-Installation (Windows, Linux, macOS)
@@ -146,8 +146,8 @@ Die Spalte "Vorhanden" nennt Maßnahmen, die im Repository belegt sind. "Rest" i
 
 | Punkt | Wo erfasst |
 |---|---|
-| Robustheits- und Fuzz-Tests für Parser (laut.fm-JSON, Favoriten-Import) | Issue #63 (Aufgabe "Fuzz-Tests") |
-| Gegenprüfung der Signaturen mit cosign 2.x und 3.x | Issue #63 (Aufgabe cosign) |
+| Robustheits- und Fuzz-Tests für Parser (laut.fm-JSON, Favoriten-Import) | Aufgabe "Fuzz-Tests" |
+| Gegenprüfung der Signaturen mit cosign 2.x und 3.x | Aufgabe "cosign" |
 | App Links verifizieren (`autoVerify`) | offen, setzt `assetlinks.json` auf dem Server voraus (nach Inbetriebnahme von app.linefm.de) |
 | RadioGruppe-Logo als Asset ins Paket legen statt nachladen | offen, Entscheidung des Betreibers (Entscheidung 47 im Projektverlauf sieht das Nachladen vor) |
 | 2FA und Hardware-Schlüssel für GitHub, Registrar, Stores und Hosting | Betreiber, nicht aus dem Repository prüfbar |

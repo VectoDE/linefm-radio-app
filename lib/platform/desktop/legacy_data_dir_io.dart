@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
 
-/// Company name the Windows runner used before #98 (`windows/runner/Runner.rc`).
+/// Company name the Windows runner used before the data folder rename (`windows/runner/Runner.rc`).
 const String legacyCompanyName = 'de.linefm';
 
 /// Current company name in `Runner.rc`.

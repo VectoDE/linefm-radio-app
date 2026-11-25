@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the macOS installer (#88): "LINEFM Radio Setup.app" (shared setup UI
+# Builds the macOS installer: "LINEFM Radio Setup.app" (shared setup UI
 # from installer/ui with the POSIX engine and the app as payload) inside a
 # designed DMG.
 #

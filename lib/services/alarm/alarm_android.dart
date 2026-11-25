@@ -158,7 +158,7 @@ class AndroidAlarmPlatform implements AlarmPlatform {
 
     final now = _clock.now();
     final limit = now.add(horizon);
-    // Entfernter Sender: der erste der Liste, wie beim Klingeln (#91).
+    // Entfernter Sender: der erste der Liste, wie beim Klingeln.
     final station = alarmStationFor(rule.stationSlug);
     final texts = _texts ?? AlarmTexts.system();
     var cursor = now;

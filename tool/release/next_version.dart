@@ -1,4 +1,4 @@
-// Berechnet die nächste Release-Version (#104). Aufruf aus release.yml:
+// Berechnet die nächste Release-Version. Aufruf aus release.yml:
 //
 //   cd tool/release && dart pub get && dart run next_version.dart \
 //     --tags tags.txt --issues issues.json --subjects subjects.txt

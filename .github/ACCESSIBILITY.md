@@ -29,9 +29,9 @@ Diese Punkte sind offen. Nichts davon ist behoben.
 | Bereich | Lücke | Verweis |
 |---|---|---|
 | Alle Plattformen | Nicht mit echten Screenreadern geprüft (TalkBack, VoiceOver, NVDA). Der Zugriffsbaum ist per Test belegt, das Vorlesen nicht. | [Freigabe-Checkliste](../docs/FREIGABE-CHECKLISTE.md), B10 |
-| Desktop | Die Schaltflächen der eigenen Titelleiste (Minimieren, Maximieren, Schließen) sind per Tab nicht erreichbar. Das ist so gebaut und per Test festgehalten. Ob Fenster-Aktionen per Tastatur über das Systemmenü zuverlässig gehen, ist nicht geprüft. | Issue #87 |
-| Windows-Installer | Die Oberfläche hat Screenreader-Beschriftungen im Code. Mit der UI-Automation-Schnittstelle von Windows oder mit NVDA wurde sie nicht geprüft. | Pull Request #110, Issue #88 |
-| Desktop, Einstellungen | Bei Fensterbreite 880 bricht die Beschriftung „Systemsprache“ mitten im Wort um. | Issue #118 |
+| Desktop | Die Schaltflächen der eigenen Titelleiste (Minimieren, Maximieren, Schließen) sind per Tab nicht erreichbar. Das ist so gebaut und per Test festgehalten. Ob Fenster-Aktionen per Tastatur über das Systemmenü zuverlässig gehen, ist nicht geprüft. | Offen, wird geprüft |
+| Windows-Installer | Die Oberfläche hat Screenreader-Beschriftungen im Code. Mit der UI-Automation-Schnittstelle von Windows oder mit NVDA wurde sie nicht geprüft. | Offen |
+| Desktop, Einstellungen | Bei Fensterbreite 880 bricht die Beschriftung „Systemsprache“ mitten im Wort um. | Offen |
 | Web | Zoom auf 400 Prozent ohne waagerechtes Scrollen ist nicht vollständig geprüft. | [Erklärung](../docs/BARRIEREFREIHEIT.md) |
 | Web | Beim Tabben über das Seitenende hinaus landet der Fokus kurz auf unbeschrifteten Flutter-Elementen. | [Erklärung](../docs/BARRIEREFREIHEIT.md) |
 | App | Ein rotes Herz-Symbol im hellen Schema hat etwa 4,2:1. Das genügt für Bedienelemente (3:1), nicht für Text. | [Erklärung](../docs/BARRIEREFREIHEIT.md) |
@@ -42,7 +42,7 @@ Diese Punkte sind offen. Nichts davon ist behoben.
 
 - Bei jedem Pull Request, bei jedem Push auf `main` und wöchentlich: der Workflow `a11y.yml` baut die Web-Version und lässt axe-core mit den Tags WCAG 2.0 bis 2.2 (A, AA, AAA) und Best Practices laufen. Bei jedem Verstoß, gleich welcher Stufe, und bei jeder nicht erreichbaren Ansicht schlägt der Lauf fehl. Von axe nicht entscheidbare Prüfungen stehen im Bericht und müssen von Hand beurteilt werden.
 - In der normalen Testsuite: Kontrast-, Semantik- und Golden-Tests.
-- Ein Windows-Integrationstest in der CI (Pull Request #114) ist offen und noch nicht auf `main`. Er prüft nach dem Merge die Titelleiste im echten Fenster, aber nicht die Barrierefreiheit insgesamt.
+- Ein Windows-Integrationstest in der CI ist offen und noch nicht auf `main`. Er prüft nach dem Merge die Titelleiste im echten Fenster, aber nicht die Barrierefreiheit insgesamt.
 - Von Hand vor jedem Release: Tastaturdurchlauf, Zoom, Screenreader-Stichprobe ([Freigabe-Checkliste](../docs/FREIGABE-CHECKLISTE.md), B7 und B10). Diese Handprüfung ist noch nicht gelaufen.
 
 Automatische Werkzeuge finden nur einen Teil der Probleme. Ein grüner axe-Lauf sagt nichts über den Screenreader-Ablauf oder die Verständlichkeit.
@@ -89,9 +89,9 @@ These items are open. None of them is fixed.
 | Area | Gap | Reference |
 |---|---|---|
 | All platforms | Not tested with real screen readers (TalkBack, VoiceOver, NVDA). The accessibility tree is covered by tests; spoken output is not. | [Release checklist](../docs/FREIGABE-CHECKLISTE.md), B10 (German) |
-| Desktop | The buttons of the custom title bar (minimize, maximize, close) cannot be reached with Tab. This is by design and pinned by a test. Whether window actions work reliably from the keyboard through the system menu has not been checked. | Issue #87 |
-| Windows installer | The UI has screen reader labels in code. It has not been checked with Windows UI Automation or NVDA. | Pull request #110, issue #88 |
-| Desktop, Settings | At a window width of 880, the label "Systemsprache" breaks in the middle of the word. | Issue #118 |
+| Desktop | The buttons of the custom title bar (minimize, maximize, close) cannot be reached with Tab. This is by design and pinned by a test. Whether window actions work reliably from the keyboard through the system menu has not been checked. | Open, to be checked |
+| Windows installer | The UI has screen reader labels in code. It has not been checked with Windows UI Automation or NVDA. | Offen |
+| Desktop, Settings | At a window width of 880, the label "Systemsprache" breaks in the middle of the word. | Open |
 | Web | Zoom to 400 percent without horizontal scrolling is not fully checked. | [Statement](../docs/BARRIEREFREIHEIT.md) (German) |
 | Web | Tabbing past the end of the page briefly lands focus on unlabeled Flutter elements. | [Statement](../docs/BARRIEREFREIHEIT.md) (German) |
 | App | A red heart icon in the light theme has about 4.2:1. That is enough for controls (3:1), not for text. | [Statement](../docs/BARRIEREFREIHEIT.md) (German) |
@@ -102,7 +102,7 @@ These items are open. None of them is fixed.
 
 - On every pull request, every push to `main` and weekly: the `a11y.yml` workflow builds the web version and runs axe-core with the WCAG 2.0 to 2.2 tags (A, AA, AAA) and best practices. The run fails on any violation of any level and on any view it cannot reach. Checks axe cannot decide appear in the report and need a manual verdict.
 - In the regular test suite: contrast, semantics and golden tests.
-- A Windows integration test in CI (pull request #114) is open and not on `main` yet. After the merge it checks the title bar in a real window, not accessibility as a whole.
+- A Windows integration test in CI is open and not on `main` yet. After the merge it checks the title bar in a real window, not accessibility as a whole.
 - By hand before each release: keyboard walkthrough, zoom, screen reader spot check ([release checklist](../docs/FREIGABE-CHECKLISTE.md), B7 and B10, German). This manual check has not been run yet.
 
 Automatic tools find only part of the problems. A green axe run says nothing about screen reader use or readability.

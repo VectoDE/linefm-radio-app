@@ -312,7 +312,7 @@ void EngineBridge::OnMethodCall(
     }
     result->Success(flutter::EncodableValue(ok));
   } else if (method == "window") {
-    // Custom title bar (#88): move the window with the pressed mouse button
+    // Custom title bar: move the window with the pressed mouse button
     // or minimize it. Only these two fixed actions exist.
     const auto* action = std::get_if<std::string>(call.arguments());
     HWND top = ::GetAncestor(window_, GA_ROOT);

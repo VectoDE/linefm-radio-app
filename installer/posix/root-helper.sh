@@ -1,5 +1,5 @@
 #!/bin/sh
-# Root part of the macOS/Linux installer (#88): "install for everyone".
+# Root part of the macOS/Linux installer: "install for everyone".
 #
 # Started by engine.sh through pkexec (Linux), osascript "with administrator
 # privileges" (macOS) or "sudo -n" (CI test mode). It takes no paths: the
@@ -164,7 +164,7 @@ cmd_install() {
   expected=$(awk '{print $1; exit}' "$TMP/payload.sha256")
   [ -n "$expected" ] && [ "$expected" = "$(sha256_of "$TMP/payload.tar.gz")" ] || finish "$EX_CORRUPT" "Payload damaged"
   log "Payload SHA-256 verified as root"
-  # Progress in bytes of the app (#88): one verbose tar line per entry, in
+  # Progress in bytes of the app: one verbose tar line per entry, in
   # archive order; the engine maps "progress done total" onto its own scale.
   if [ "$OS" = macos ]; then field=5; else field=3; fi
   tar -tzvf "$TMP/payload.tar.gz" 2>/dev/null \

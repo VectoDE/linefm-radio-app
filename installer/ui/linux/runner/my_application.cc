@@ -28,7 +28,7 @@ static gboolean delete_event_cb(GtkWidget* widget, GdkEvent* event,
   return TRUE;
 }
 
-// Custom title bar (#88): Dart asks to move or minimize the window. Only
+// Custom title bar: Dart asks to move or minimize the window. Only
 // these two fixed actions exist.
 static void method_call_cb(FlMethodChannel* channel, FlMethodCall* call,
                            gpointer user_data) {
@@ -65,7 +65,7 @@ static void my_application_activate(GApplication* application) {
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
   // Same client size as the Windows setup window.
   gtk_window_set_default_size(window, 844, 660);
-  // No native title bar: the Flutter UI draws the LINEFM bar (#88).
+  // No native title bar: the Flutter UI draws the LINEFM bar.
   gtk_window_set_decorated(window, FALSE);
   gtk_window_set_resizable(window, FALSE);
 

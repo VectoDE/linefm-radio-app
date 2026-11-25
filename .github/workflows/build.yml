@@ -142,7 +142,7 @@ jobs:
             label="${version#v}"
             app_env=prod
           else
-            # Ohne Release: eindeutig erkennbare Entwicklungsversion mit Commit (#104).
+            # Ohne Release: eindeutig erkennbare Entwicklungsversion mit Commit.
             label="0.0.0-dev+${GITHUB_SHA::7}"
             app_env=dev
           fi
@@ -160,7 +160,7 @@ jobs:
           # laedt auch Vorabversionen (vX.Y.Z-rc.N) zu Google Play und Snap hoch, also
           # gilt dieselbe Bedingung wie fuer die Store-Uploads. Dev-Builds melden
           # offene Platzhalter nur.
-          # #104: Vorabversionen (alpha, beta, rc) gehen in keinen Store.
+          # Vorabversionen (alpha, beta, rc) gehen in keinen Store.
           legal_strict=false
           if [ "$app_env" = "prod" ] && ! [[ "$label" =~ -(alpha|beta|rc)\. ]]; then legal_strict=true; fi
 
@@ -512,7 +512,7 @@ jobs:
           tar -C build/linux/x64/release/bundle -czf "dist/linefm-radio-${LABEL}-linux-x64.tar.gz" .
           ls -la dist
 
-      # Installer (#88): the shared setup UI (installer/ui) as an AppImage with
+      # Installer: the shared setup UI (installer/ui) as an AppImage with
       # the POSIX engine (installer/posix) and the app bundle as payload.
       - name: Installer tools (xvfb, pinned appimagetool)
         run: |
@@ -600,7 +600,7 @@ jobs:
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 
-      # Installer (#88): Engine (C++, CMake/MSVC) und eigene Setup-Oberflaeche
+      # Installer: Engine (C++, CMake/MSVC) und eigene Setup-Oberflaeche
       # (Flutter, installer/ui) zuerst, damit Fehler frueh auffallen.
       - name: Setup-Oberflaeche pruefen (analyze, Tests, Bildschirmfotos)
         shell: bash
@@ -694,7 +694,7 @@ jobs:
           }
           dart @msixArgs
           if ($LASTEXITCODE -ne 0) { throw 'msix:create fehlgeschlagen' }
-          # #94: ohne .msix-Datei ist der Schritt fehlgeschlagen.
+          # Ohne .msix-Datei ist der Schritt fehlgeschlagen.
           $msix = Get-ChildItem dist -Filter *.msix
           if (-not $msix) { throw 'msix:create hat keine .msix-Datei erzeugt' }
           $msix | Select-Object Name, Length | Format-Table | Out-String | Write-Host
@@ -747,7 +747,7 @@ jobs:
       - name: Installer testen (Installation, Start, Update, Deinstallation)
         shell: pwsh
         run: |
-          $old = '0.0.0-0'  # lowest valid SemVer, below every generated version (#113)
+          $old = '0.0.0-0'  # lowest valid SemVer, below every generated version
           ./installer/windows/build.ps1 -Stage pack -Version $old -Out build/installer/setup-old.exe
           ./installer/windows/test-installer.ps1 -Setup "dist/linefm-radio-$env:LABEL-windows-x64-setup.exe" `
             -OldSetup build/installer/setup-old.exe -OldVersion $old -Version $env:LABEL -ArtifactDir build/installer-test
@@ -878,7 +878,7 @@ jobs:
             --sign "$identity" "$APP_PATH"
           codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 
-      # Installer (#88): shared setup UI (installer/ui) as "LINEFM Radio
+      # Installer: shared setup UI (installer/ui) as "LINEFM Radio
       # Setup.app" with the POSIX engine and the app as payload, in a
       # designed DMG (dmgbuild, pinned by hash).
       - name: Installer tools (dmgbuild)
@@ -951,7 +951,7 @@ jobs:
           codesign --force --timestamp --sign "Developer ID Application" "$dmg"
           xcrun notarytool submit "$dmg" --key "$key" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" --wait
           xcrun stapler staple "$dmg"
-          # Installer DMG (#88), already signed by installer/macos/build.sh.
+          # Installer DMG, already signed by installer/macos/build.sh.
           setup="dist/linefm-radio-${LABEL}-macos-setup.dmg"
           xcrun notarytool submit "$setup" --key "$key" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" --wait
           xcrun stapler staple "$setup"
@@ -1022,7 +1022,7 @@ jobs:
         run: flutter build ios $FLUTTER_BUILD_FLAGS --no-codesign --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
       # Belegt, dass die von Hand gepflegten Teile des Xcode-Projekts wirklich im
-      # Bundle landen (Issue #25): Widget-Erweiterung eingebettet, Info.plist-
+      # Bundle landen: Widget-Erweiterung eingebettet, Info.plist-
       # Schluessel gesetzt, Privacy-Manifeste kopiert, native Kanaele gelinkt.
       - name: App-Bundle pruefen
         shell: bash

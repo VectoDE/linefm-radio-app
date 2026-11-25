@@ -1,4 +1,4 @@
-// Web-Messung mit Playwright (Issue #92): Laden kalt/warm, Bedienung, Ton.
+// Web-Messung mit Playwright: Laden kalt/warm, Bedienung, Ton.
 //
 // Aufruf (Server mit Kompression und Cache-Headern wie in deploy/ laeuft,
 // z. B. der nginx-Container aus deploy/traefik/Dockerfile):

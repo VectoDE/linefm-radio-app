@@ -39,7 +39,7 @@ void main() {
   final lofi = stationBySlug('linefmlofi')!;
   final fob = stationBySlug('fobfm')!;
 
-  group('BrowseTree (Auto-Menue, Issue #42)', () {
+  group('BrowseTree (Auto-Menue)', () {
     test('Wurzel: immer drei Ordner in fester Reihenfolge', () {
       final root = BrowseTree.children(BrowseTree.rootId);
       expect(root.map((e) => e.id), <String>[

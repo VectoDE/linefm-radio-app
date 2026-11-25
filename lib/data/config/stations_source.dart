@@ -10,7 +10,7 @@ import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/stations_config.dart';
 
-/// Mitgelieferte Senderliste (einzige Quelle, Issue #91).
+/// Mitgelieferte Senderliste (einzige Quelle).
 const String stationsAssetPath = 'config/stations.yaml';
 
 /// Laedt die mitgelieferte Senderliste. main() wartet darauf, bevor Audio,
@@ -48,7 +48,7 @@ enum StationsUpdateOutcome {
 /// Holt die Senderliste beim Start von der festen Adresse `STATIONS_URL`
 /// (zur Bauzeit gesetzt) und wendet sie an, wenn sie die Pruefung besteht.
 ///
-/// Sicherheit (Issue #91):
+/// Sicherheit:
 /// - Nur https, Host exakt der konfigurierte, keine Weiterleitungen (auch
 ///   nicht auf denselben Host; die Datei liegt fest unter der Adresse).
 /// - Groesse vor (Content-Length) und beim Lesen (gestreamt) begrenzt.

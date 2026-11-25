@@ -615,9 +615,21 @@ std::vector<std::wstring> UserDataDirs(const Product& product,
   std::vector<std::wstring> dirs;
   const std::wstring roaming = KnownFolder(FOLDERID_RoamingAppData);
   const std::wstring local = KnownFolder(FOLDERID_LocalAppData);
-  if (!roaming.empty()) dirs.push_back(JoinPath(roaming, sub));
+  // Frueherer Firmenname (Migration #98): alten Ordner beim Loeschen mitnehmen.
+  const std::wstring legacy_company = SanitizeComponent(product.data_company_legacy);
+  const std::wstring legacy_sub =
+      legacy_company.empty() ? std::wstring() : JoinPath(legacy_company, name);
+  if (!roaming.empty()) {
+    dirs.push_back(JoinPath(roaming, sub));
+    if (!legacy_sub.empty() && legacy_sub != sub) {
+      dirs.push_back(JoinPath(roaming, legacy_sub));
+    }
+  }
   if (!local.empty()) {
     dirs.push_back(JoinPath(local, sub));
+    if (!legacy_sub.empty() && legacy_sub != sub) {
+      dirs.push_back(JoinPath(local, legacy_sub));
+    }
     dirs.push_back(JoinPath(local, stem));  // sentry-native-Ersatzordner
   }
   return dirs;

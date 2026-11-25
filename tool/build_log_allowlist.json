@@ -68,5 +68,11 @@
     "job": "OWASP.dependency-check",
     "expires": "2027-02-28",
     "reason": "Lucene inside dependency-check prints this notice when the incubator vector module is off; enabling it makes the JVM print 'Using incubator modules' instead. Ends when dependency-check ships a Lucene/JDK combination without the incubator module."
+  },
+  {
+    "pattern": "^\\[WARN\\] dependency skipped: node module @oxc-parser/binding-[a-z0-9-]+ seems optional and not installed$",
+    "job": "OWASP.dependency-check",
+    "expires": "2027-02-28",
+    "reason": "oxc-parser (dev tooling of tool/perf, pulled in by lighthouse through @sentry/node) ships one optional native binding per platform; npm installs only the linux-x64 one, even with --force. dependency-check 13.0.0 warns for every uninstalled optional package without a switch to turn it off (NodePackageAnalyzer.shouldSkipDependency). The bindings are builds of the same oxc-parser version, which is installed and analyzed, so no coverage is lost. An upstream request for a quieter log level is still to be filed."
   }
 ]

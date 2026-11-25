@@ -23,6 +23,7 @@ Der Installer hat eine eigene Oberfläche im App-Design (Bedienung: `docs/BAUEN-
 | `scheme` | Link-Schema ohne `://` |
 | `dir_name` | Ordnername unter `Programs` bzw. `Program Files` |
 | `data_company`, `data_product` | Ersatz für den Datenordner, falls die EXE keine Versionsangaben hat |
+| `data_company_legacy` | früherer Firmenordner, wird beim Löschen der Nutzerdaten mit entfernt |
 | `default_scope` | `user` oder `machine` |
 | `default_desktop_shortcut`, `default_start_menu`, `default_autostart` | Vorauswahl `1`/`0` |
 

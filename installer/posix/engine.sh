@@ -476,6 +476,21 @@ write_record() {
 
 # --- install -----------------------------------------------------------------
 
+# --- progress (#88) -----------------------------------------------------------
+# Units are bytes of the app: a fixed share for the hash check, the bytes of
+# every extracted file, a fixed share for shortcuts and clean-up. 100 % is
+# only reported right before the result.
+plan_progress() {
+  sizes="$WORK/sizes"
+  if [ "$OS" = macos ]; then field=5; else field=3; fi
+  tar -tzvf "$PAYLOAD" 2>/dev/null | awk -v f="$field" '{ s = $f; if (s !~ /^[0-9]+$/) s = 0; print s }' > "$sizes"
+  BYTES=$(awk '{ t += $1 } END { printf "%d", t }' "$sizes")
+  [ "${BYTES:-0}" -gt 0 ] 2>/dev/null || BYTES=1
+  HASH_W=$((BYTES / 50 + 1))
+  FIN_W=$((BYTES / 50 + 1))
+  GRAND=$((HASH_W + BYTES + FIN_W))
+}
+
 cmd_install() {
   SCOPE=user; DIR=""; DESKTOP=1; STARTMENU=1; AUTOSTART=0
   while [ $# -gt 0 ]; do
@@ -533,6 +548,8 @@ cmd_install() {
     finish "$EX_CORRUPT" "Payload damaged"
   fi
   log "Payload SHA-256 verified"
+  plan_progress
+  emit "progress $HASH_W $GRAND"
 
   mkdir -p "$PARENT" "$STATE_DIR" || finish "$EX_BADTARGET" "Cannot create $PARENT"
   chmod 700 "$STATE_DIR"
@@ -552,18 +569,17 @@ cmd_install() {
   BACKUP="$PARENT/.$base.lfold.$$"
   rm -rf "$STAGING"
   mkdir -m 700 "$STAGING" || finish "$EX_FAILED" "Cannot create staging folder"
-  total=$(tar -tzf "$PAYLOAD" | wc -l | tr -d ' ')
-  emit "progress 0 $total"
-  tar -xzvf "$PAYLOAD" -C "$STAGING" 2>&1 | {
-    n=0
-    while IFS= read -r _; do
-      n=$((n + 1))
-      if [ $((n % 25)) -eq 0 ]; then
-        emit "progress $n $total"
-        cancel_requested && break
-      fi
-    done
-  }
+  # One verbose line per extracted entry, in archive order: add its size.
+  tar -xzvf "$PAYLOAD" -C "$STAGING" 2>&1 | awk -v base="$HASH_W" -v grand="$GRAND" \
+      -v sizes="$WORK/sizes" -v ctl="$CTL" '
+    BEGIN { while ((getline l < sizes) > 0) sz[++n] = l }
+    {
+      i++; done += sz[i]
+      if (i % 20 == 0) {
+        printf "progress %d %d\n", base + done, grand; fflush()
+        if (system("grep -qx cancel \"" ctl "\"") == 0) exit
+      }
+    }' 
   if cancel_requested; then
     emit "phase rollback"
     rm -rf "$STAGING"
@@ -574,7 +590,7 @@ cmd_install() {
     rm -rf "$STAGING"
     finish "$EX_CORRUPT" "Payload incomplete"
   fi
-  emit "progress $total $total"
+  emit "progress $((HASH_W + BYTES)) $GRAND"
   [ "$OS" = linux ] && : > "$NEW/$MARKER"
   # The app itself stays user-writable only for its owner.
   chmod 755 "$NEW"
@@ -604,6 +620,7 @@ cmd_install() {
 
   emit "phase finalizing"
   rm -rf "$BACKUP" "$STAGING"
+  emit "progress $GRAND $GRAND"
   log "Installation finished"
   finish "$EX_OK" "$DIR"
 }
@@ -667,8 +684,9 @@ run_root() { # VERB [FLAGS...]
     tr '\r' '\n' < "$out" > "$out.n" && mv "$out.n" "$out"
   fi
   code=$(cat "$rc")
-  # Forward the helper's log and progress, keep its result for us.
-  grep -E '^(log|progress) ' "$out" | while IFS= read -r line; do emit "$line"; done
+  # Forward the helper's log (progress units are the engine's), keep its
+  # result for us.
+  grep -E '^log ' "$out" | while IFS= read -r line; do emit "$line"; done
   result=$(grep -E '^result [0-9]+' "$out" | tail -n 1 | awk '{print $2}')
   if [ -z "$result" ]; then
     # No result line: the prompt was dismissed or polkit has no agent.
@@ -683,10 +701,13 @@ install_machine() {
   expected=$(awk '{print $1; exit}' "$PAYLOAD_SUM")
   [ -n "$expected" ] && [ "$expected" = "$(sha256_of "$PAYLOAD")" ] || finish "$EX_CORRUPT" "Payload damaged"
   log "Destination: $DIR (everyone)"
+  plan_progress
+  emit "progress $HASH_W $GRAND"
   ensure_not_running
   cancel_requested && finish "$EX_CANCELLED" "Cancelled"
   emit "phase copying"
   run_root install --desktop-entry "$STARTMENU" --autostart "$AUTOSTART" --desktop "$DESKTOP"
+  emit "progress $((HASH_W + BYTES)) $GRAND"
   emit "phase registry"
   # Per-user parts stay with the user: desktop shortcut on Linux; desktop
   # alias, Dock and login item on macOS.
@@ -702,6 +723,7 @@ install_machine() {
     fi
   fi
   emit "phase finalizing"
+  emit "progress $GRAND $GRAND"
   finish "$EX_OK" "$DIR"
 }
 
@@ -743,22 +765,36 @@ cmd_uninstall() {
   log "Uninstalling from $DIR"
   ensure_not_running
   emit "phase removing"
-  emit "progress 0 3"
+  # Units: one per file of the app, plus one each for the entries and the
+  # user data.
+  files=0
+  is_ours "$DIR" && files=$(find "$DIR" | wc -l | tr -d ' ')
+  total=$((files + 2))
+  emit "progress 0 $total"
   remove_integration "$DIR"
-  emit "progress 1 3"
+  emit "progress 1 $total"
   if [ -e "$DIR" ]; then
     if is_ours "$DIR"; then
+      # Delete file by file (depth first) so progress follows real work.
+      find "$DIR" -depth -print | {
+        n=0
+        while IFS= read -r f; do
+          if [ -d "$f" ] && [ ! -L "$f" ]; then rmdir "$f" 2>/dev/null; else rm -f "$f"; fi
+          n=$((n + 1))
+          [ $((n % 20)) -eq 0 ] && emit "progress $((1 + n)) $total"
+        done
+      }
       rm -rf "$DIR" || finish "$EX_FAILED" "Cannot remove $DIR"
     else
       log "Folder does not belong to $P_NAME, left in place: $DIR"
     fi
   fi
-  emit "progress 2 3"
+  emit "progress $((files + 1)) $total"
   [ "$DELETE_DATA" = 1 ] && delete_user_data
   # The record folder holds this uninstaller; deleting it while it runs is
   # fine on POSIX systems.
   rm -rf "$STATE_DIR"
-  emit "progress 3 3"
+  emit "progress $total $total"
   log "Uninstall finished"
   finish "$EX_OK" ""
 }

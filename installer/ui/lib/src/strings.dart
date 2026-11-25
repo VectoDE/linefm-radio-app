@@ -43,6 +43,8 @@ class S {
   String windowTitle(String product) => _t('$product Setup', '$product Setup');
   String uninstallTitle(String product) =>
       _t('$product deinstallieren', 'Uninstall $product');
+  String get windowMinimize => _t('Minimieren', 'Minimise');
+  String get windowClose => _t('Schließen', 'Close');
   String get stepWelcome => _t('Willkommen', 'Welcome');
   String get stepLicense => _t('Lizenz', 'Licence');
   String get stepOptions => _t('Optionen', 'Options');
@@ -230,6 +232,30 @@ class S {
     _ => _t('Bitte warten …', 'Please wait …'),
   };
   String percent(int value) => _t('$value Prozent', '$value percent');
+
+  String _clockText(Duration d) {
+    final m = d.inMinutes;
+    final sec = (d.inSeconds % 60).toString().padLeft(2, '0');
+    return '$m:$sec';
+  }
+
+  String elapsed(Duration d) =>
+      _t('Bisher ${_clockText(d)}', 'Elapsed ${_clockText(d)}');
+
+  String remaining(Duration? d) {
+    if (d == null) {
+      return _t('Restzeit wird berechnet …', 'Estimating time left …');
+    }
+    if (d.inSeconds < 60) {
+      return _t('Noch weniger als eine Minute', 'Less than a minute left');
+    }
+    final minutes = (d.inSeconds / 60).ceil();
+    return _t(
+      'Noch etwa $minutes ${minutes == 1 ? 'Minute' : 'Minuten'}',
+      'About $minutes ${minutes == 1 ? 'minute' : 'minutes'} left',
+    );
+  }
+
   String get waitingForWindows => _t(
     'Warte auf die Bestätigung in ${_os('Windows', 'macOS', 'Linux')} …',
     'Waiting for confirmation in ${_os('Windows', 'macOS', 'Linux')} …',

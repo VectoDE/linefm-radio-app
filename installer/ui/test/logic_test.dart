@@ -406,4 +406,43 @@ void main() {
       );
     });
   });
+  group('Progress', () {
+    test('monotonic, 100 % only with the result, smoothed time left', () async {
+      var now = DateTime(2026);
+      final p = FakePlatform();
+      final c = SetupController(
+        context: installContext(),
+        platform: p,
+        exit: (_) {},
+        clock: () => now,
+      );
+      c.goTo(SetupStep.options);
+      await c.next();
+      p.emit('progress 10 100');
+      expect(c.progress, closeTo(0.10, 1e-9));
+      now = now.add(const Duration(seconds: 3));
+      p.emit('progress 40 100');
+      expect(c.remaining, const Duration(seconds: 6));
+      p.emit('progress 20 100');
+      expect(c.progress, closeTo(0.40, 1e-9), reason: 'never goes back');
+      p.emit('progress 100 100');
+      expect(c.progress, 0.99, reason: '100 % only after the result');
+      p.emit('result 0 done');
+      expect(c.progress, 1);
+      expect(c.elapsed, const Duration(seconds: 3));
+    });
+
+    test('time texts', () {
+      expect(S.english.remaining(null), 'Estimating time left …');
+      expect(
+        S.english.remaining(const Duration(seconds: 20)),
+        'Less than a minute left',
+      );
+      expect(
+        S.german.remaining(const Duration(seconds: 130)),
+        'Noch etwa 3 Minuten',
+      );
+      expect(S.english.elapsed(const Duration(seconds: 75)), 'Elapsed 1:15');
+    });
+  });
 }

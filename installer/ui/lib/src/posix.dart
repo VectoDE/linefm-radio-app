@@ -168,6 +168,15 @@ class ProcessSetupPlatform implements SetupPlatform {
   }
 
   @override
+  Future<void> windowAction(String action) async {
+    try {
+      await _channel.invokeMethod<void>('window', action);
+    } on Object {
+      // Runner without the method: nothing to do.
+    }
+  }
+
+  @override
   Future<bool> openUrl(String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null || (uri.scheme != 'https' && uri.scheme != 'http')) {

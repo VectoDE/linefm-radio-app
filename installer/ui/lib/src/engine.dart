@@ -123,6 +123,10 @@ abstract class SetupPlatform {
   Future<bool> launch(String exe);
 
   Future<bool> openUrl(String url);
+
+  /// Window actions of the custom title bar: `startDrag` (move the window
+  /// with the pressed mouse button) and `minimize`.
+  Future<void> windowAction(String action);
 }
 
 /// Echte Verbindung über den MethodChannel `linefm_setup/native`
@@ -201,4 +205,13 @@ class NativeSetupPlatform implements SetupPlatform {
   @override
   Future<bool> openUrl(String url) async =>
       await _channel.invokeMethod<bool>('openUrl', url) ?? false;
+
+  @override
+  Future<void> windowAction(String action) async {
+    try {
+      await _channel.invokeMethod<void>('window', action);
+    } on Object {
+      // Older runner without the custom title bar: nothing to do.
+    }
+  }
 }

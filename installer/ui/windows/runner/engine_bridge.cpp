@@ -311,6 +311,18 @@ void EngineBridge::OnMethodCall(
                SW_SHOWNORMAL)) > 32;
     }
     result->Success(flutter::EncodableValue(ok));
+  } else if (method == "window") {
+    // Custom title bar (#88): move the window with the pressed mouse button
+    // or minimize it. Only these two fixed actions exist.
+    const auto* action = std::get_if<std::string>(call.arguments());
+    HWND top = ::GetAncestor(window_, GA_ROOT);
+    if (action != nullptr && *action == "startDrag") {
+      ::ReleaseCapture();
+      ::PostMessageW(top, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+    } else if (action != nullptr && *action == "minimize") {
+      ::ShowWindow(top, SW_MINIMIZE);
+    }
+    result->Success();
   } else {
     result->NotImplemented();
   }

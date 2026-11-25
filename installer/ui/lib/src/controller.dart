@@ -16,7 +16,9 @@ class SetupController extends ChangeNotifier {
     required this.platform,
     required this.exit,
     this.licenseText,
-  }) : step = context.mode == SetupMode.uninstall
+    DateTime Function()? clock,
+  }) : _clock = clock ?? DateTime.now,
+       step = context.mode == SetupMode.uninstall
            ? SetupStep.confirm
            : SetupStep.welcome {
     final existing = context.installed;
@@ -61,6 +63,30 @@ class SetupController extends ChangeNotifier {
   String phase = 'prepare';
   int progressDone = 0;
   int progressTotal = 0;
+
+  final DateTime Function() _clock;
+  DateTime? _started;
+  double _shown = 0;
+  DateTime? _sampleAt;
+  double _sampleFraction = 0;
+  double? _rate;
+
+  /// Time since the engine was started.
+  Duration get elapsed =>
+      _started == null ? Duration.zero : _clock().difference(_started!);
+
+  /// Estimated time left from the smoothed progress rate; null while the
+  /// estimate is not yet reliable (first seconds, first 2 percent).
+  Duration? get remaining {
+    final rate = _rate;
+    final f = progress;
+    if (rate == null || rate <= 0 || f == null || f < 0.02) return null;
+    if (elapsed < const Duration(seconds: 2)) return null;
+    final seconds = (1 - f) / rate;
+    if (!seconds.isFinite || seconds > 24 * 3600) return null;
+    return Duration(seconds: seconds.ceil());
+  }
+
   final List<String> log = [];
 
   /// Laufende Programme, zu denen die Engine eine Antwort erwartet.
@@ -96,8 +122,35 @@ class SetupController extends ChangeNotifier {
 
   int get stepIndex => steps.indexOf(step);
 
-  double? get progress =>
-      progressTotal <= 0 ? null : (progressDone / progressTotal).clamp(0, 1);
+  /// Share of the real work done (bytes copied plus small fixed weights,
+  /// reported by the engine). Never goes back, and shows 100 % only once
+  /// the engine reported its result.
+  double? get progress {
+    if (progressTotal <= 0) return resultCode == null ? null : 1;
+    if (resultCode != null && resultCode == ExitCode.ok) return 1;
+    return _shown >= 1 ? 0.99 : _shown;
+  }
+
+  void _sample(int done, int total) {
+    if (total <= 0) return;
+    final f = (done / total).clamp(0.0, 1.0);
+    if (f < _shown) return; // monotonic
+    _shown = f;
+    final now = _clock();
+    final last = _sampleAt;
+    if (last == null) {
+      _sampleAt = now;
+      _sampleFraction = f;
+      return;
+    }
+    final dt = now.difference(last).inMilliseconds / 1000;
+    if (dt < 0.5) return;
+    final inst = (f - _sampleFraction) / dt;
+    // Exponential smoothing keeps the estimate calm.
+    _rate = _rate == null ? inst : 0.3 * inst + 0.7 * _rate!;
+    _sampleAt = now;
+    _sampleFraction = f;
+  }
 
   bool get succeeded => resultCode == ExitCode.ok;
 
@@ -257,6 +310,11 @@ class SetupController extends ChangeNotifier {
     phase = 'prepare';
     progressDone = 0;
     progressTotal = 0;
+    _started = _clock();
+    _shown = 0;
+    _sampleAt = null;
+    _sampleFraction = 0;
+    _rate = null;
     resultCode = null;
     resultMessage = '';
     waitingForElevation = needsElevation;
@@ -286,6 +344,7 @@ class SetupController extends ChangeNotifier {
       case ProgressEvent(:final done, :final total):
         progressDone = done;
         progressTotal = total;
+        _sample(done, total);
       case RunningEvent(:final apps):
         runningApps = apps.isEmpty ? const ['LINEFM Radio'] : apps;
       case LogEvent(:final text):

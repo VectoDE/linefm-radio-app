@@ -110,6 +110,13 @@ run_engine running-close "$setup_dir" $'close\n' install --scope "$scope" --desk
 check "running app, close: update exits 0 (got $code)" test "$code" = 0
 check "app closed for the update" sh -c '! pgrep -x linefm_radio >/dev/null && ! pgrep -x "LINEFM Radio" >/dev/null'
 check "update keeps the folder" test "$(rec DIR)" = "$dir"
+# Progress (#88): monotonic, more than a handful of steps, 100 % only as the
+# last progress line, just before the result.
+progress_ok() { # LOG
+  awk '/^progress /{ d=$2; t=$3; if (t<=0 || d>t || (n && d/t < last)) bad=1; last=d/t; n++ }
+       END { exit !(n >= 5 && !bad && last == 1) }' "$1"
+}
+check "update progress is monotonic and ends at 100 %" progress_ok "$art/logs/running-close.log"
 if [ "$os" = macos ]; then
   check "login item" test -f "$home/Library/LaunchAgents/de.linefm.app.autostart.plist"
 else
@@ -188,6 +195,7 @@ check "everyone: record root-owned" sh -c "test -f '$mstate/installed.env' && ! 
 check "context shows the everyone install" grep -q '"machine":{"version"' "$art/logs/context-machine.json"
 LF_SETUP_ELEVATE=sudo run_engine machine-uninstall "$setup_dir" "" uninstall --target "$mdir"; code=$?
 check "everyone uninstall: exit 0 (got $code)" test "$code" = 0
+check "everyone install progress is monotonic and ends at 100 %" progress_ok "$art/logs/machine-install.log"
 check "everyone: app removed" test ! -e "$mdir"
 check "everyone: record removed" test ! -e "$mstate"
 if [ "$os" = linux ]; then

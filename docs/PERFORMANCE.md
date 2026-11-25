@@ -143,6 +143,18 @@ After each deploy the job "Web quality gate" checks the live URL:
 - Thresholds (`tool/perf/pagespeed_gate.mjs`): performance >= 95, accessibility, best practices and SEO = 100.
   Below that the job fails. Reports are in the artifact `web-gate-<sha>`.
 
+Engine start on intent (`web/flutter_bootstrap.js`). A first-time visitor gets the static shell
+in `web/index.html` (headline, station list, legal links, button "Radio starten"). The Flutter
+loader is evaluated and the Wasm engine is downloaded and started only on the first pointer, touch
+or key input outside a link. Returning visitors (`localStorage` key `linefm.started`), deep links
+below the base path and the installed app start the engine right away. Reason: downloading,
+compiling and initialising the engine blocks the main thread for seconds on a throttled phone
+(PageSpeed mobile: Total Blocking Time 3.9 to 18 s, performance 61); no split of the engine start
+gets that under the 200 ms needed for 95. Lighthouse and PageSpeed therefore measure the shell,
+which is what a first-time visitor sees before the first tap. Playback needs a user gesture in
+any case. `tool/perf/web_perf.mjs` sets the returning-visitor key, so its numbers still describe
+the engine start and the app itself.
+
 Seobility (https://www.seobility.net/de/seocheck/) and WebsiteScorer (https://websitescorer.com/)
 offer no free API. They are run by hand against the Pages URL after a deploy that changes the
 web output; the scores and findings go into the tracker.

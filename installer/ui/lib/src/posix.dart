@@ -250,6 +250,12 @@ class SetupAutopilot {
             await c.answerRunningApps(close: true);
           }
           await _waitWhile(() => c.step == SetupStep.progress);
+          if (c.step == SetupStep.progress) {
+            // Step timeout: a hanging progress page (#147) fails the test
+            // instead of waiting forever.
+            await _capture('progress-timeout');
+            exit(124);
+          }
           continue;
         case SetupStep.done:
           c.setLaunchAfter(false);
@@ -263,7 +269,7 @@ class SetupAutopilot {
   }
 
   Future<void> _waitWhile(bool Function() condition) async {
-    final until = DateTime.now().add(const Duration(minutes: 10));
+    final until = DateTime.now().add(const Duration(minutes: 5));
     while (condition() && DateTime.now().isBefore(until)) {
       await Future<void>.delayed(const Duration(milliseconds: 200));
     }

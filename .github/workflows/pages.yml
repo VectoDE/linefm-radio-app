@@ -82,6 +82,7 @@ jobs:
           trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
+          features-json: ${{ vars.FEATURES_JSON }}
 
       - name: Build web (Wasm)
         run: >-

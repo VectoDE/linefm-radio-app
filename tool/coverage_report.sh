@@ -38,7 +38,47 @@ filtered="$out/lcov.filtered.info"
 } | awk -v ex="$exclude_re" '
   /^SF:/ { drop = ($0 ~ ex) }
   { if (!drop) print }
-  /^end_of_record/ { drop = 0 }' >"$filtered"
+  /^end_of_record/ { drop = 0 }' | awk '
+  # Konsistenz je Datei (Dart-lcov mit --branch-coverage meldet Zweige (BRDA) auch fuer
+  # Zeilen ohne Zeilendatensatz (DA), z. B. in mehrzeiligen Ausdruecken; genhtml bricht
+  # dann mit "branchcov but no linecov" ab). Zweige ohne DA-Zeile werden verworfen, die
+  # Summen LF/LH/BRF/BRH aus den verbleibenden Zeilen neu berechnet.
+  function keep(ln) {
+    # Zweig behalten nur, wenn Zeile und Zweige zueinander passen: genhtml verwirft
+    # "Zeile getroffen, aber kein Zweig ausgewertet" und "Zweig getroffen, Zeile nicht".
+    if (!(ln in da)) return 0
+    if (da[ln] > 0 && !(taken[ln] > 0)) return 0
+    if (da[ln] == 0 && taken[ln] > 0) return 0
+    return 1
+  }
+  function flush(   i, l, a, ln, brf, brh, lf, lh) {
+    for (i = 1; i <= n; i++) {
+      l = buf[i]
+      if (l ~ /^DA:/) { split(substr(l, 4), a, ","); da[a[1] + 0] = a[2] + 0; lf++; if (a[2] + 0 > 0) lh++ }
+      else if (l ~ /^BRDA:/) { split(substr(l, 6), a, ","); if (a[4] != "-" && a[4] + 0 > 0) taken[a[1] + 0]++ }
+    }
+    for (i = 1; i <= n; i++) {
+      l = buf[i]
+      if (l ~ /^BRDA:/) {
+        split(substr(l, 6), a, ",")
+        if (!keep(a[1] + 0)) continue
+        brf++; if (a[4] != "-" && a[4] + 0 > 0) brh++
+      }
+    }
+    for (i = 1; i <= n; i++) {
+      l = buf[i]
+      if (l ~ /^BRDA:/) { split(substr(l, 6), a, ","); if (!keep(a[1] + 0)) continue }
+      if (l ~ /^(LF|LH|BRF|BRH):/) continue
+      if (l == "end_of_record") {
+        if (brf > 0) { print "BRF:" brf; print "BRH:" brh + 0 }
+        print "LF:" lf + 0; print "LH:" lh + 0
+      }
+      print l
+    }
+    n = 0; delete da; delete taken; delete buf
+  }
+  { buf[++n] = $0 }
+  /^end_of_record/ { flush() }' >"$filtered"
 
 # Tabelle je Datei, aufsteigend nach Zeilenabdeckung.
 rows="$out/rows.tmp"

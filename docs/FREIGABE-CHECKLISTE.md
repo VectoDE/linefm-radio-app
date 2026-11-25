@@ -136,7 +136,7 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 - [ ] Chrome, Firefox, Safari und Edge auf Windows, macOS, Android, iOS.
 - [ ] Wiedergabe startet nach Klick. Blockiert der Browser Autoplay, muss ein Knopf zum Starten erscheinen. Die Mediensteuerung des Browsers zeigt den Titel.
 - [ ] Installation als App (PWA, eine Web-App, die sich wie eine App installieren lässt) möglich.
-- [ ] Lighthouse (Geschwindigkeits- und Qualitätsprüfung von Google) und axe (automatische Barrierefreiheitsprüfung): keine kritischen Befunde. Der aktuelle Stand mit bekannten Grenzen steht in [BARRIEREFREIHEIT.md](BARRIEREFREIHEIT.md).
+- [ ] Lighthouse (Geschwindigkeits- und Qualitätsprüfung von Google) und axe (automatische Barrierefreiheitsprüfung): keine kritischen Befunde. Der aktuelle Stand mit bekannten Grenzen steht in [BARRIEREFREIHEIT.md](BARRIEREFREIHEIT.md) und in der Kurzfassung [ACCESSIBILITY.md](../.github/ACCESSIBILITY.md).
 - [ ] HTTP-Header (Sicherheits- und Cache-Einstellungen, die der Server mitschickt) nach dem Ausrollen prüfen (siehe [hosting-uebersicht.md](hosting-uebersicht.md)).
 - [ ] Teilen und Links `https://app.linefm.de/?station=...` öffnen den richtigen Sender.
 

@@ -14,6 +14,7 @@ import 'package:linefm_radio/platform/carplay_bridge.dart';
 import 'package:linefm_radio/platform/deep_links.dart';
 import 'package:linefm_radio/platform/desktop/desktop_controller.dart';
 import 'package:linefm_radio/platform/desktop/desktop_init.dart';
+import 'package:linefm_radio/platform/desktop/legacy_data_dir.dart';
 import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
 import 'package:linefm_radio/services/audio/audio_backend.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
@@ -33,6 +34,8 @@ Future<void> main(List<String> args) async {
   // Messpunkte (#92) nur mit --dart-define=LINEFM_PERF_MARKS=true, sonst entfernt.
   perfMark('main');
   WidgetsFlutterBinding.ensureInitialized();
+  // Before anything opens SharedPreferences (#98: data folder renamed).
+  await migrateLegacyDataDir();
   registerFontLicenses();
   registerNativeLicenses();
   final appConfig = AppConfig.fromEnvironment();

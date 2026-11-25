@@ -72,9 +72,13 @@ class _FakeSocket implements SongChangeSocket {
 class _FakeArtwork implements ArtworkService {
   final List<String> lookups = <String>[];
 
+  /// Titles without an iTunes hit.
+  final Set<String> misses = <String>{};
+
   @override
   Future<ArtworkResult?> lookup(Track track, {bool priority = false}) async {
     lookups.add('${track.title}:$priority');
+    if (misses.contains(track.title)) return null;
     return ArtworkResult(artworkUrl: 'https://cover/${track.title}.jpg');
   }
 }
@@ -604,6 +608,53 @@ void main() {
       }
       r.dispose();
     });
+  });
+
+  test('Issue #5: every history entry gets its own cover, misses keep the '
+      'station logo fallback', () async {
+    artwork.misses.addAll(<String>{'alt2', 'alt5'});
+    final r = repo();
+    List<HistoryEntry>? history;
+    final sub = r.watchHistory(main).listen((v) => history = v);
+    await _settle();
+
+    final past = history!.where((h) => !h.isLive).toList();
+    expect(past, hasLength(10));
+    for (final entry in past) {
+      final title = entry.track.title;
+      if (artwork.misses.contains(title)) {
+        expect(entry.track.artworkUrl, isNull, reason: title);
+      } else {
+        expect(
+          entry.track.artworkUrl,
+          'https://cover/$title.jpg',
+          reason: title,
+        );
+      }
+    }
+    // No two entries share an image.
+    final urls = past.map((e) => e.track.artworkUrl).whereType<String>();
+    expect(urls.toSet(), hasLength(urls.length));
+    // The live entry keeps its own cover, not one from the history.
+    expect(history!.first.track.artworkUrl, 'https://cover/linefm-1.jpg');
+
+    await sub.cancel();
+    r.dispose();
+  });
+
+  test('Issue #5: a reloaded history keeps covers already found', () async {
+    final r = repo();
+    List<HistoryEntry>? history;
+    final sub = r.watchHistory(main).listen((v) => history = v);
+    await _settle();
+    artwork.misses.add('alt1');
+    await sched.advance(const Duration(minutes: 2));
+
+    final alt1 = history!.firstWhere((h) => h.track.title == 'alt1');
+    expect(alt1.track.artworkUrl, 'https://cover/alt1.jpg');
+
+    await sub.cancel();
+    r.dispose();
   });
 }
 

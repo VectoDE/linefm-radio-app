@@ -445,11 +445,11 @@ jobs:
           retention-days: 14
 
   linux:
-    name: Linux (x64 tar.gz)
+    name: Linux (x64 tar.gz, installer)
     needs: meta
     if: needs.meta.outputs.run == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     permissions:
       contents: read
     env:
@@ -511,6 +511,43 @@ jobs:
           # Inhalt des Bundles liegt direkt im Archiv-Wurzelverzeichnis (Flatpak/Snap entpacken dorthin).
           tar -C build/linux/x64/release/bundle -czf "dist/linefm-radio-${LABEL}-linux-x64.tar.gz" .
           ls -la dist
+
+      # Installer (#88): the shared setup UI (installer/ui) as an AppImage with
+      # the POSIX engine (installer/posix) and the app bundle as payload.
+      - name: Installer tools (xvfb, pinned appimagetool)
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y -q --no-install-recommends xvfb xauth desktop-file-utils shellcheck
+          bash installer/linux/fetch-appimagetool.sh build/installer/tools
+
+      - name: Check the installer engine (shellcheck)
+        run: shellcheck -s sh installer/posix/engine.sh installer/posix/root-helper.sh && shellcheck installer/posix/test-installer.sh installer/linux/*.sh installer/macos/*.sh
+
+      - name: Build the Linux installer (AppImage)
+        run: |
+          bash installer/linux/build.sh --version "$LABEL" --app build/linux/x64/release/bundle \
+            --out "dist/linefm-radio-${LABEL}-linux-x64-setup.AppImage"
+
+      - name: Test the Linux installer (install, update, downgrade, uninstall)
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: |
+          set -euo pipefail
+          setup="$PWD/dist/linefm-radio-${LABEL}-linux-x64-setup.AppImage"
+          mkdir -p build/installer/extract
+          (cd build/installer/extract && "$setup" --appimage-extract >/dev/null)
+          xvfb-run -a -s '-screen 0 1280x900x24' bash installer/posix/test-installer.sh --os linux \
+            --setup "$setup" --setup-dir build/installer/extract/squashfs-root/usr/lib/linefm-setup/setup \
+            --artifacts build/installer-test
+
+      - name: Upload installer screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: installer-test-linux
+          path: build/installer-test/
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Hochladen
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -841,6 +878,46 @@ jobs:
             --sign "$identity" "$APP_PATH"
           codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 
+      # Installer (#88): shared setup UI (installer/ui) as "LINEFM Radio
+      # Setup.app" with the POSIX engine and the app as payload, in a
+      # designed DMG (dmgbuild, pinned by hash).
+      - name: Installer tools (dmgbuild)
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/dmgvenv"
+          "$RUNNER_TEMP/dmgvenv/bin/pip" install --quiet --require-hashes --no-deps -r installer/macos/requirements-dmg.txt
+          echo "$RUNNER_TEMP/dmgvenv/bin" >> "$GITHUB_PATH"
+
+      - name: Build the macOS installer (DMG)
+        env:
+          SIGN: ${{ needs.meta.outputs.sign_macos }}
+        run: |
+          set -euo pipefail
+          identity="-"
+          [ "$SIGN" = "true" ] && identity="Developer ID Application"
+          bash installer/macos/build.sh --version "$LABEL" --app "$APP_PATH" --identity "$identity" \
+            --out "dist/linefm-radio-${LABEL}-macos-setup.dmg"
+
+      - name: Test the macOS installer (install, update, downgrade, uninstall)
+        run: |
+          set -euo pipefail
+          mnt="$RUNNER_TEMP/setup-dmg"
+          hdiutil attach -nobrowse -readonly -mountpoint "$mnt" "dist/linefm-radio-${LABEL}-macos-setup.dmg"
+          trap 'hdiutil detach "$mnt" -force >/dev/null 2>&1 || true' EXIT
+          app="$mnt/LINEFM Radio Setup.app"
+          bash installer/posix/test-installer.sh --os macos \
+            --setup "$app/Contents/MacOS/LINEFM Radio Setup" --setup-dir "$app/Contents/Resources/setup" \
+            --artifacts build/installer-test
+
+      - name: Upload installer screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: installer-test-macos
+          path: build/installer-test/
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: DMG erstellen
         run: |
           set -euo pipefail
@@ -874,6 +951,10 @@ jobs:
           codesign --force --timestamp --sign "Developer ID Application" "$dmg"
           xcrun notarytool submit "$dmg" --key "$key" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" --wait
           xcrun stapler staple "$dmg"
+          # Installer DMG (#88), already signed by installer/macos/build.sh.
+          setup="dist/linefm-radio-${LABEL}-macos-setup.dmg"
+          xcrun notarytool submit "$setup" --key "$key" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" --wait
+          xcrun stapler staple "$setup"
           rm -f "$key"
           echo "- macOS: signiert und notarisiert" >> "$GITHUB_STEP_SUMMARY"
 

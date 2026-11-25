@@ -84,6 +84,8 @@ Diese Signaturen gibt es nur, wenn beim Build die passenden Secrets gesetzt ware
 | Android `*.aab` | `jarsigner -verify linefm-radio-X.Y.Z-android.aab` (der Upload-Schlüssel; Google signiert für die Auslieferung neu). |
 | Windows (`*.exe` im ZIP und der Installer `*-windows-x64-setup.exe`) | `signtool verify /pa /v <datei>` oder Eigenschaften > Digitale Signaturen. |
 | macOS `*.dmg` | `spctl -a -t open --context context:primary-signature -v linefm-radio-X.Y.Z-macos.dmg` und `xcrun stapler validate linefm-radio-X.Y.Z-macos.dmg` (signiert und notarisiert). |
+| macOS-Installer `*-macos-setup.dmg` | Wie das DMG oben. Zusätzlich nach dem Einbinden `codesign --verify --deep --strict -v "/Volumes/LINEFM Radio Setup/LINEFM Radio Setup.app"`. Ohne Apple-Entwicklerkonto ist der Installer nur ad hoc signiert und nicht notarisiert. Dann gelten nur die Schritte 1 bis 3 (Prüfsumme, cosign, Herkunft). |
+| Linux-Installer `*-linux-x64-setup.AppImage` | Keine Plattform-Signatur. Prüfung über die Schritte 1 bis 3 (Prüfsumme, cosign, Herkunft). Die Engine prüft beim Installieren zusätzlich den SHA-256 der enthaltenen App. |
 
 ## Was wir nicht versprechen
 

@@ -8,6 +8,7 @@ import 'controller.dart';
 import 'engine.dart';
 import 'strings.dart';
 import 'theme.dart';
+import 'title_bar.dart';
 
 /// Wurzel der Setup-Oberfläche. Sprache und Hell/Dunkel folgen Windows.
 class SetupApp extends StatefulWidget {
@@ -68,7 +69,7 @@ class _SetupAppState extends State<SetupApp> {
   Widget build(BuildContext context) {
     final dispatcher = WidgetsBinding.instance.platformDispatcher;
     final locale = widget.locale ?? dispatcher.locale;
-    final strings = S.forLocale(locale);
+    final strings = S.forLocale(locale, widget.controller.context.os);
     final highContrast = dispatcher.accessibilityFeatures.highContrast;
     final c = widget.controller;
     return MaterialApp(
@@ -85,9 +86,29 @@ class _SetupAppState extends State<SetupApp> {
       darkTheme: buildTheme(Brightness.dark, highContrast: highContrast),
       home: SetupScope(
         strings: strings,
-        child: SetupShell(
-          controller: c,
-          onClose: () => unawaited(_onCloseRequested()),
+        child: Column(
+          children: [
+            Builder(
+              builder: (context) => SetupTitleBar(
+                title: c.isUninstall
+                    ? strings.uninstallTitle(c.context.productName)
+                    : strings.windowTitle(c.context.productName),
+                minimizeLabel: strings.windowMinimize,
+                closeLabel: strings.windowClose,
+                onDragStart: () =>
+                    unawaited(c.platform.windowAction('startDrag')),
+                onMinimize: () =>
+                    unawaited(c.platform.windowAction('minimize')),
+                onClose: () => unawaited(_onCloseRequested()),
+              ),
+            ),
+            Expanded(
+              child: SetupShell(
+                controller: c,
+                onClose: () => unawaited(_onCloseRequested()),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -826,12 +847,13 @@ class _OptionsPageState extends State<OptionsPage> {
       String title,
       String hint, {
       bool shield = false,
+      bool available = true,
     }) {
       return RadioListTile<Scope>(
         value: value,
         contentPadding: EdgeInsets.zero,
         dense: true,
-        enabled: !locked,
+        enabled: !locked && available,
         title: Row(
           children: [
             Flexible(
@@ -881,6 +903,7 @@ class _OptionsPageState extends State<OptionsPage> {
                 s.scopeMachine,
                 s.scopeMachineHint,
                 shield: !c.context.elevated,
+                available: c.context.machineScopeAvailable,
               ),
             ],
           ),
@@ -958,20 +981,44 @@ class _Label extends StatelessWidget {
   );
 }
 
-class ProgressPage extends StatelessWidget {
+class ProgressPage extends StatefulWidget {
   const ProgressPage({super.key, required this.controller});
 
   final SetupController controller;
 
   @override
+  State<ProgressPage> createState() => _ProgressPageState();
+}
+
+class _ProgressPageState extends State<ProgressPage> {
+  Timer? _tick;
+
+  @override
+  void initState() {
+    super.initState();
+    // Elapsed and remaining time move on even between engine messages.
+    _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final s = SetupScope.of(context);
-    final c = controller;
+    final c = widget.controller;
     final value = c.progress;
-    final percent = value == null ? null : (value * 100).round();
+    final percent = value == null ? null : (value * 100).floor();
     final status = c.waitingForElevation
         ? s.waitingForWindows
         : s.phase(c.cancelRequested ? 'rollback' : c.phase);
+    final remaining = s.remaining(c.remaining);
+    final elapsed = s.elapsed(c.elapsed);
     return PageFrame(
       heading: c.isUninstall
           ? s.removingHeading(c.context.productName)
@@ -982,12 +1029,29 @@ class ProgressPage extends StatelessWidget {
         const SizedBox(height: 14),
         Semantics(
           label: status,
-          value: percent == null ? null : s.percent(percent),
+          value: percent == null ? null : '${s.percent(percent)}, $remaining',
           child: LinearProgressIndicator(value: value),
         ),
         const SizedBox(height: 10),
-        if (percent != null)
-          ExcludeSemantics(child: BodyText('$percent %', muted: true)),
+        ExcludeSemantics(
+          child: Row(
+            children: [
+              SizedBox(
+                width: 64,
+                child: BodyText(
+                  percent == null ? '' : '$percent %',
+                  muted: true,
+                ),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: BodyText('$remaining · $elapsed', muted: true),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

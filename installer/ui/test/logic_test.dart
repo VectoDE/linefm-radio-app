@@ -321,4 +321,128 @@ void main() {
       expect(S.german.formatBytes(1572864), '1,5 MB');
     });
   });
+  group('macOS and Linux', () {
+    SetupController make(HostOs os, FakePlatform p) => SetupController(
+      context: installContext(os: os),
+      platform: p,
+      exit: (_) {},
+    );
+
+    test('context.json carries os and dirName, Windows is the default', () {
+      expect(SetupContext.parse(installJson).os, HostOs.windows);
+      final json = installJson.replaceFirst(
+        '"mode":"install"',
+        '"os":"linux","mode":"install"',
+      );
+      expect(SetupContext.parse(json).os, HostOs.linux);
+      expect(HostOs.parse('macos'), HostOs.macos);
+      expect(HostOs.parse('beos'), HostOs.windows);
+    });
+
+    test('POSIX paths are validated without drive letters', () {
+      final c = make(HostOs.linux, FakePlatform());
+      expect(c.validateDir('/home/a/.local/share/linefm-radio'), isNull);
+      expect(c.validateDir(r'C:\Programs\LINEFM Radio'), 'invalid');
+      expect(c.validateDir('relative/path'), 'invalid');
+      expect(c.validateDir('/home/a/../b/x'), 'invalid');
+      expect(c.validateDir(r'/home/a/$HOME'), 'invalid');
+      expect(c.validateDir('/home/a/x"y'), 'invalid');
+      expect(c.validateDir('/x'), 'invalid');
+      final m = make(HostOs.macos, FakePlatform());
+      expect(m.validateDir('/Applications/LINEFM Radio.app'), isNull);
+      expect(m.validateDir('/Applications/LINEFM Radio'), 'invalid');
+    });
+
+    test('everyone is available on Linux, the engine asks for rights', () {
+      final c = make(HostOs.linux, FakePlatform());
+      c.setScope(Scope.machine);
+      expect(c.scope, Scope.machine);
+      expect(c.dir, '/opt/linefm-radio');
+      expect(c.needsElevation, isFalse);
+      final m = make(HostOs.macos, FakePlatform());
+      m.setScope(Scope.machine);
+      expect(m.scope, Scope.machine);
+      expect(m.dir, '/Applications/LINEFM Radio.app');
+      expect(m.needsElevation, isFalse);
+    });
+
+    test('browse appends the folder name with slashes', () async {
+      final p = FakePlatform()..folder = '/home/a/apps/';
+      final c = make(HostOs.linux, p);
+      await c.browse('x');
+      expect(c.dir, '/home/a/apps/linefm-radio');
+      p.folder = '/Users/a/Apps';
+      final m = make(HostOs.macos, p);
+      await m.browse('x');
+      expect(m.dir, '/Users/a/Apps/LINEFM Radio.app');
+    });
+
+    test('installed app path per OS', () {
+      final p = FakePlatform();
+      final c = make(HostOs.linux, p)
+        ..dir = '/home/a/.local/share/linefm-radio';
+      expect(c.installedExe, '/home/a/.local/share/linefm-radio/linefm_radio');
+      final m = make(HostOs.macos, p)..dir = '/Applications/LINEFM Radio.app';
+      expect(m.installedExe, '/Applications/LINEFM Radio.app');
+    });
+
+    test('texts name the right OS, steps stay the same', () {
+      const de = Locale('de');
+      const en = Locale('en');
+      final win = S.forLocale(en);
+      final mac = S.forLocale(en, HostOs.macos);
+      final lin = S.forLocale(de, HostOs.linux);
+      expect(win.phase('registry'), 'Setting up Windows …');
+      expect(mac.phase('registry'), 'Setting up macOS …');
+      expect(lin.phase('registry'), 'Desktop wird eingerichtet …');
+      expect(mac.startMenuShortcut, 'Keep in the Dock');
+      expect(mac.scopeMachine, 'Everyone on this Mac');
+      expect(lin.startMenuShortcut, 'Eintrag im App-Menü');
+      expect(mac.stepOptions, win.stepOptions);
+      expect(S.forLocale(de, HostOs.linux).stepWelcome, S.german.stepWelcome);
+      expect(
+        make(HostOs.macos, FakePlatform()).steps,
+        make(HostOs.windows, FakePlatform()).steps,
+      );
+    });
+  });
+  group('Progress', () {
+    test('monotonic, 100 % only with the result, smoothed time left', () async {
+      var now = DateTime(2026);
+      final p = FakePlatform();
+      final c = SetupController(
+        context: installContext(),
+        platform: p,
+        exit: (_) {},
+        clock: () => now,
+      );
+      c.goTo(SetupStep.options);
+      await c.next();
+      p.emit('progress 10 100');
+      expect(c.progress, closeTo(0.10, 1e-9));
+      now = now.add(const Duration(seconds: 3));
+      p.emit('progress 40 100');
+      expect(c.remaining, const Duration(seconds: 6));
+      p.emit('progress 20 100');
+      expect(c.progress, closeTo(0.40, 1e-9), reason: 'never goes back');
+      p.emit('progress 100 100');
+      expect(c.progress, 0.99, reason: '100 % only after the result');
+      p.emit('result 0 done');
+      expect(c.progress, 1);
+      expect(c.elapsed, const Duration(seconds: 3));
+    });
+
+    test('time texts', () {
+      expect(S.english.remaining(null), 'Estimating time left …');
+      expect(
+        S.english.remaining(const Duration(seconds: 20)),
+        'Less than a minute left',
+      );
+      expect(
+        S.german.remaining(const Duration(seconds: 130)),
+        'Noch etwa 3 Minuten',
+      );
+      expect(S.english.elapsed(const Duration(seconds: 75)), 'Elapsed 1:15');
+    });
+  });
 }

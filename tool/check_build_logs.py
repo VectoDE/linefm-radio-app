@@ -67,6 +67,9 @@ RULES: list[tuple[str, re.Pattern[str]]] = [
 
 TIMESTAMP = re.compile(r"^﻿?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z ?")
 ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+# JSON key/value dumps (tools printing results, SARIF, commit metadata) are
+# data, not diagnostics: `"message": "ci: warning gate ..."`.
+JSON_KV = re.compile(r'^\s*"[A-Za-z0-9_.$@-]+":\s*["\[{0-9tfn-]')
 # Lines the runner prints for the script it is about to execute are shown in
 # cyan; they contain our own `echo "::error::..."` source, not output.
 SCRIPT_ECHO = "\x1b[36;1m"
@@ -105,6 +108,8 @@ def scan(job: str, text: str, allow: list[dict]) -> list[str]:
         # Runner markers repeat the step source (including our own
         # `echo "::warning::..."` lines), not its output.
         if line.startswith(("##[group]", "##[endgroup]", "##[start-action", "##[end-action", "[command]")):
+            continue
+        if JSON_KV.match(line):
             continue
         rule = next((name for name, rx in RULES if rx.search(line)), None)
         if rule is None:

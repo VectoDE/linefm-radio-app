@@ -63,8 +63,16 @@ class RuleTest(unittest.TestCase):
             "added 120 packages in 3s",
             "error_reporting: enabled",
             '        "markdown": "Some features are deprecated in older runners"',
+            '      "message": "ci: warning gate in every workflow: Warning: x is deprecated",',
+            '    "message": "fix: Warning: handle ERROR: cases",',
         ]
         self.assertEqual(hits(*clean), [])
+
+    def test_json_dump_lines_pass_but_real_shapes_still_fail(self) -> None:
+        self.assertEqual(hits('  "message": "ci: warning gate in every workflow ...",'), [])
+        self.assert_caught("##[warning]\"message\": x", "annotation")
+        self.assert_caught("npm warn deprecated \"a\": \"b\"", "npm")
+        self.assert_caught("W: \"a\": \"b\"", "apt")
 
     def test_runner_echo_of_script_source_is_ignored(self) -> None:
         lines = [

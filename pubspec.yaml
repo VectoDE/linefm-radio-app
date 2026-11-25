@@ -1,7 +1,9 @@
 name: linefm_radio
 description: "LINEFM Radio - Live-Radio der LINEFM-Sender (LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM, FobFM)."
 publish_to: 'none'
-version: 1.0.0+1
+# Platzhalter fuer lokale Entwicklung. Die echte Version kommt aus dem Release
+# (release.yml, #104) per --build-name/--build-number; CI prueft den Platzhalter.
+version: 0.0.0-dev+1
 
 environment:
   sdk: ^3.14.0
@@ -42,13 +44,19 @@ dependencies:
   # Favoriten-Import (Issue #9): Datei-Dialog auf allen Plattformen, im Web
   # <input type=file> (file_selector_web). Offizielles Paket von flutter.dev.
   file_selector: ^1.1.0
-# smtc_windows (Windows-Mediensteuerung) ist gegen flutter_rust_bridge 2.11.1
-# generiert; neuere Versionen brechen die Laufzeitpruefung der Bruecke.
+# override-reason(flutter_rust_bridge): smtc_windows 1.1.0 (latest) is generated
+# against flutter_rust_bridge 2.11.1 and pins the Rust crate to =2.11.1; newer
+# Dart versions fail the bridge's runtime content-hash check. Remove once
+# smtc_windows ships FRB 2.13 (upstream KRTirtho/frb_plugins#16). See #129.
 dependency_overrides:
   flutter_rust_bridge: 2.11.1
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  # Integrationstest auf Windows (integration_test/, Workflow
+  # itest-windows.yml). SDK-Paket, keine zusaetzliche Fremdabhaengigkeit.
+  integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
@@ -86,7 +94,7 @@ msix_config:
   display_name: LINEFM Radio
   publisher_display_name: LINEFM
   identity_name: de.linefm.app
-  msix_version: 1.0.0.0
+  # msix_version kommt aus dem Release (build.yml: msix:create --version), #104.
   logo_path: assets/branding/icon_1024.png
   capabilities: internetClient
   # Deep Links linefm://play?station=... (P21); Startargument -> main(args).

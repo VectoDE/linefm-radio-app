@@ -14,7 +14,7 @@ setup.exe = [setup_stub.exe][Archiv][Fußzeile 64 Byte][Authenticode-Signatur]
 |---|---|---|
 | Stub und Engine | `engine/src/stub`, `engine/src/common` | C++17, statisch gelinkt (`/MT`). Prüft die Nutzlast, entpackt die Oberfläche in einen privaten Temp-Ordner, installiert und deinstalliert (Dateien, Registry, Verknüpfungen) mit vollständigem Rückbau bei Fehler oder Abbruch. Dieselbe Binärdatei ist auch `uninstall.exe`. |
 | Packer | `engine/src/packer` | `lfpack.exe`, nur Build: hängt App, Oberfläche, Lizenzen und `packaging/windows/installer.ini` als LZMS-Archiv mit SHA-256 je Datei und über das ganze Archiv an den Stub. |
-| Oberfläche | `ui` | Flutter-App `linefm_setup.exe`: Schritte Willkommen, Lizenz, Optionen, Fortschritt, Fertig bzw. Bestätigen, Entfernen, Fertig. Deutsch/Englisch, Hell/Dunkel nach Windows, DPI pro Monitor, Tastatur, Screenreader, Kontrastmodus. |
+| Oberfläche | `../ui` (shared with macOS and Linux) | Flutter-App `linefm_setup.exe`: Schritte Willkommen, Lizenz, Optionen, Fortschritt, Fertig bzw. Bestätigen, Entfernen, Fertig. Deutsch/Englisch, Hell/Dunkel nach Windows, DPI pro Monitor, Tastatur, Screenreader, Kontrastmodus. |
 | Bau | `build.ps1` | `-Stage prepare` (Engine + Oberfläche), `-Stage pack` (setup.exe). |
 | Test | `test-installer.ps1` | Installation, Start, Update mit laufender App, Downgrade-Sperre, Oberfläche per UI Automation, Deinstallation, alle Benutzer. Läuft im Windows-Job von `build.yml`. |
 

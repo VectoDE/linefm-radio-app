@@ -64,6 +64,11 @@ class FakePlatform implements SetupPlatform {
 
   @override
   Future<bool> openUrl(String url) async => true;
+
+  final List<String> windowActions = [];
+
+  @override
+  Future<void> windowAction(String action) async => windowActions.add(action);
 }
 
 const String installJson = '''
@@ -78,48 +83,82 @@ const String installJson = '''
  "elevated":false,"sizeBytes":73400320,"target":""}
 ''';
 
+/// Paths of the test contexts per OS (Windows keeps the original values).
+({String engine, String exe, String userDir, String machineDir, String dirName})
+pathsFor(HostOs os) => switch (os) {
+  HostOs.windows => (
+    engine: r'C:\Users\a\Downloads\setup.exe',
+    exe: 'linefm_radio.exe',
+    userDir: r'C:\Users\a\AppData\Local\Programs\LINEFM Radio',
+    machineDir: r'C:\Program Files\LINEFM Radio',
+    dirName: '',
+  ),
+  HostOs.macos => (
+    engine: '/Volumes/LINEFM Radio/LINEFM Radio Setup.app/Contents/Resources/setup/engine.sh',
+    exe: '',
+    userDir: '/Users/a/Applications/LINEFM Radio.app',
+    machineDir: '/Applications/LINEFM Radio.app',
+    dirName: 'LINEFM Radio.app',
+  ),
+  HostOs.linux => (
+    engine: '/tmp/.mount_linefm/usr/lib/linefm-setup/setup/engine.sh',
+    exe: 'linefm_radio',
+    userDir: '/home/a/.local/share/linefm-radio',
+    machineDir: '/opt/linefm-radio',
+    dirName: 'linefm-radio',
+  ),
+};
+
 SetupContext installContext({
   Installed? user,
   Installed? machine,
   bool elevated = false,
+  HostOs os = HostOs.windows,
 }) {
   final base = SetupContext.parse(installJson);
+  final paths = pathsFor(os);
   return SetupContext(
     mode: SetupMode.install,
-    engine: base.engine,
+    os: os,
+    dirName: paths.dirName,
+    engine: os == HostOs.windows ? base.engine : paths.engine,
     productName: base.productName,
     version: base.version,
     publisher: base.publisher,
     manufacturer: base.manufacturer,
-    exeName: base.exeName,
+    exeName: paths.exe,
     url: base.url,
     installedUser: user,
     installedMachine: machine,
     defaultScope: base.defaultScope,
-    userDir: base.userDir,
-    machineDir: base.machineDir,
+    userDir: paths.userDir,
+    machineDir: paths.machineDir,
     defaultDesktop: base.defaultDesktop,
     defaultStartMenu: base.defaultStartMenu,
     defaultAutostart: base.defaultAutostart,
-    elevated: elevated,
+    elevated: elevated || os != HostOs.windows,
     sizeBytes: base.sizeBytes,
     target: base.target,
   );
 }
 
-SetupContext uninstallContext() {
-  const installed = Installed(
+SetupContext uninstallContext({HostOs os = HostOs.windows}) {
+  final installed = Installed(
     version: '1.2.0',
     scope: Scope.user,
-    dir: r'C:\Users\a\AppData\Local\Programs\LINEFM Radio',
+    dir: pathsFor(os).userDir,
     desktop: true,
     startMenu: true,
     autostart: false,
   );
-  final base = installContext(user: installed);
+  final base = installContext(user: installed, os: os);
   return SetupContext(
     mode: SetupMode.uninstall,
-    engine: r'C:\Users\a\AppData\Local\Temp\linefm-uninstall-1\uninstall.exe',
+    os: os,
+    dirName: base.dirName,
+    engine: os == HostOs.windows
+        ? r'C:\Users\a\AppData\Local\Temp\linefm-uninstall-1\uninstall.exe'
+        : base.engine,
     productName: base.productName,
     version: base.version,
     publisher: base.publisher,
@@ -134,7 +173,7 @@ SetupContext uninstallContext() {
     defaultDesktop: true,
     defaultStartMenu: true,
     defaultAutostart: false,
-    elevated: false,
+    elevated: os != HostOs.windows,
     sizeBytes: 0,
     target: installed.dir,
   );

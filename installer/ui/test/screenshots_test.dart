@@ -46,9 +46,10 @@ void main() {
     SetupController Function(FakePlatform p) build, {
     required Locale locale,
     required ThemeMode mode,
+    required HostOs os,
     Future<void> Function(SetupController c, FakePlatform p)? after,
   }) async {
-    tester.view.physicalSize = const Size(844 * 1.25, 620 * 1.25);
+    tester.view.physicalSize = const Size(844 * 1.25, 660 * 1.25);
     tester.view.devicePixelRatio = 1.25;
     addTearDown(tester.view.reset);
     final platform = FakePlatform();
@@ -80,20 +81,42 @@ void main() {
     });
     out.createSync(recursive: true);
     final suffix = '${locale.languageCode}-${mode.name}';
-    File('${out.path}/$name-$suffix.png').writeAsBytesSync(bytes!);
+    // Windows keeps the original file names; macOS and Linux get a prefix
+    // so the three OS can be compared side by side.
+    final prefix = os == HostOs.windows ? '' : '${os.name}-';
+    File('${out.path}/$prefix$name-$suffix.png').writeAsBytesSync(bytes!);
   }
 
+  for (final os in HostOs.values) {
+    _cases(os, shoot);
+  }
+}
+
+void _cases(
+  HostOs os,
+  Future<void> Function(
+    WidgetTester tester,
+    String name,
+    SetupController Function(FakePlatform p) build, {
+    required Locale locale,
+    required ThemeMode mode,
+    required HostOs os,
+    Future<void> Function(SetupController c, FakePlatform p)? after,
+  })
+  shoot,
+) {
+  final paths = pathsFor(os);
   SetupController install(FakePlatform p, {Installed? user}) => SetupController(
-    context: installContext(user: user),
+    context: installContext(user: user, os: os),
     platform: p,
     exit: (_) {},
     licenseText: licenseSample,
   );
 
-  const old = Installed(
+  final old = Installed(
     version: '1.1.0',
     scope: Scope.user,
-    dir: r'C:\Users\a\AppData\Local\Programs\LINEFM Radio',
+    dir: paths.userDir,
     desktop: true,
     startMenu: true,
     autostart: false,
@@ -146,7 +169,7 @@ void main() {
           (c, p) async {
             c.goTo(SetupStep.options);
             await c.next();
-            p.emit(r'result 0 C:\Users\a\AppData\Local\Programs\LINEFM Radio');
+            p.emit('result 0 ${paths.userDir}');
             p.exitsCtrl.add(0);
           },
         ),
@@ -155,7 +178,7 @@ void main() {
           (c, p) async {
             c.goTo(SetupStep.options);
             await c.next();
-            p.emit('log Ziel: C:\\Users\\a\\AppData\\Local\\Programs');
+            p.emit('log Ziel: ${paths.userDir}');
             p.emit('result 11 Nicht genug Speicherplatz auf dem Laufwerk.');
             p.exitsCtrl.add(11);
           },
@@ -163,7 +186,7 @@ void main() {
         '08-update': ((p) => install(p, user: old), null),
         '09-deinstallieren': (
           (p) => SetupController(
-            context: uninstallContext(),
+            context: uninstallContext(os: os),
             platform: p,
             exit: (_) {},
           ),
@@ -174,19 +197,21 @@ void main() {
   for (final entry in cases.entries) {
     for (final locale in const [Locale('de'), Locale('en')]) {
       for (final mode in const [ThemeMode.dark, ThemeMode.light]) {
-        testWidgets('${entry.key} ${locale.languageCode} ${mode.name}', (
-          tester,
-        ) async {
-          await shoot(
-            tester,
-            entry.key,
-            entry.value.$1,
-            locale: locale,
-            mode: mode,
-            after: entry.value.$2,
-          );
-          expect(tester.takeException(), isNull);
-        });
+        testWidgets(
+          '${os.name} ${entry.key} ${locale.languageCode} ${mode.name}',
+          (tester) async {
+            await shoot(
+              tester,
+              entry.key,
+              entry.value.$1,
+              locale: locale,
+              mode: mode,
+              os: os,
+              after: entry.value.$2,
+            );
+            expect(tester.takeException(), isNull);
+          },
+        );
       }
     }
   }

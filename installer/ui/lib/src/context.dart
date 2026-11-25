@@ -1,5 +1,24 @@
 import 'dart:convert';
 
+/// Operating system the installer runs on. Selects OS-specific wording,
+/// path rules and the available options; design and steps stay the same.
+enum HostOs {
+  windows,
+  macos,
+  linux;
+
+  static HostOs parse(Object? value) => switch (value) {
+    'macos' => HostOs.macos,
+    'linux' => HostOs.linux,
+    _ => HostOs.windows,
+  };
+
+  bool get isPosix => this != HostOs.windows;
+
+  /// Path separator of the OS.
+  String get separator => isPosix ? '/' : '\\';
+}
+
 /// Installationsbereich.
 enum Scope {
   /// Nur für den angemeldeten Benutzer, ohne Administratorrechte.
@@ -69,6 +88,8 @@ class SetupContext {
     required this.elevated,
     required this.sizeBytes,
     required this.target,
+    this.os = HostOs.windows,
+    this.dirName = '',
   });
 
   factory SetupContext.fromJson(Map<String, Object?> json) {
@@ -97,6 +118,8 @@ class SetupContext {
       elevated: json['elevated'] == true,
       sizeBytes: json['sizeBytes'] is int ? json['sizeBytes']! as int : 0,
       target: _string(json['target']),
+      os: HostOs.parse(json['os']),
+      dirName: _string(product['dirName']),
     );
   }
 
@@ -137,6 +160,19 @@ class SetupContext {
 
   /// Deinstallation: Installationsordner.
   final String target;
+
+  /// Operating system (`os` in the context, Windows when missing).
+  final HostOs os;
+
+  /// Name of the installation folder that "Browse" appends to the picked
+  /// folder (`LINEFM Radio.app` on macOS). Empty means [productName].
+  final String dirName;
+
+  String get folderName => dirName.isEmpty ? productName : dirName;
+
+  /// Whether "everyone on this computer" can be chosen (all OS; macOS and
+  /// Linux ask for administrator rights through the system prompt).
+  bool get machineScopeAvailable => true;
 
   /// Vorhandene Installation (Benutzer vor Rechner, wie die Engine).
   Installed? get installed => installedUser ?? installedMachine;

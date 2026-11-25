@@ -9,7 +9,7 @@ import 'package:linefm_radio/ui/widgets/focus_ring.dart';
 import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Masse der eigenen Titelleiste (Issue #87).
+/// Masse der eigenen Titelleiste.
 abstract final class TitleBarMetrics {
   /// Windows und Linux: 40 dp. Liegt im 8-dp-Raster (5 x 8), ist genau die
   /// Haelfte des App-Headers (80) und so hoch wie die Leisten von Windows-11-
@@ -52,7 +52,7 @@ abstract final class TitleBarMetrics {
 /// Quelle), daher kein neues Motiv.
 const String titleBarLogoAsset = 'assets/images/stations/main.png';
 
-/// Eigene Fenster-Titelleiste der Desktop-App (Issue #87): Logo, Name in der
+/// Eigene Fenster-Titelleiste der Desktop-App: Logo, Name in der
 /// Markenschrift, Farben aus den Tokens (Dunkel und Hell), dieselbe Flaeche
 /// wie der Header darunter (`background`, keine Linie dazwischen).
 ///

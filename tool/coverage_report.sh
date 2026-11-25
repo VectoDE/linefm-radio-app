@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Coverage-Auswertung fuer die CI (Issue #106).
+# Coverage-Auswertung fuer die CI.
 #
 # Aufruf (im Repo-Root):  tool/coverage_report.sh <lcov-basis> <lcov-zusatz|""> <ausgabeordner>
 #

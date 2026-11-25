@@ -99,7 +99,7 @@ class WindowManagerDesktopWindow with WindowListener implements DesktopWindow {
   }
 
   /// true, wenn die Systemleiste ausgeblendet ist und die App ihre eigene
-  /// zeichnet (`DesktopTitleBar`, Issue #87).
+  /// zeichnet (`DesktopTitleBar`).
   bool get customTitleBar => _customTitleBar;
 
   /// Blendet die Titelleiste des Systems aus. Windows behaelt Rahmen,
@@ -188,7 +188,7 @@ class WindowManagerDesktopWindow with WindowListener implements DesktopWindow {
     await _saveMini(onTop: await _wm.isAlwaysOnTop());
     _mini = false;
     await _wm.setAlwaysOnTop(alwaysOnTop);
-    // Zurueck zur eigenen Leiste (Issue #87); setAsFrameless des
+    // Zurueck zur eigenen Leiste; setAsFrameless des
     // Mini-Fensters hebt erst der neue Stil auf.
     if (_customTitleBar) {
       await _applyHiddenTitleBar();

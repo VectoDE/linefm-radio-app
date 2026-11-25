@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/domain/stations_config.dart';
 
-/// Pruefung der Senderliste (Issue #91): echte Datei, Hinzufuegen,
+/// Pruefung der Senderliste: echte Datei, Hinzufuegen,
 /// Entfernen, Umsortieren und typische Tippfehler.
 void main() {
   Map<String, Object?> sender(String slug, {Map<String, Object?>? extra}) =>

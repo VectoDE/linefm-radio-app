@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart'
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_config.dart';
 
-/// Aktuelle Senderliste (Issue #91).
+/// Aktuelle Senderliste.
 ///
 /// Quelle ist allein config/stations.yaml: main() laedt die
 /// mitgelieferte Fassung vor dem ersten Bild (`loadBundledStations`), danach
@@ -48,7 +48,7 @@ Station? stationBySlug(String slug) {
 
 /// Sender fuer einen Wecker: der eingestellte, sonst (entfernt oder
 /// ausgeblendet) der erste der Liste. Ein Wecker soll in jedem Fall wecken;
-/// die Wecker-Seite zeigt dazu einen Hinweis (Issue #91).
+/// die Wecker-Seite zeigt dazu einen Hinweis.
 Station alarmStationFor(String slug) =>
     stationBySlug(slug) ?? _catalog.value.first;
 

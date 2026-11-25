@@ -5,7 +5,7 @@ import 'package:linefm_radio/domain/favorites/favorite_stations_logic.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/services/audio/audio_handler.dart';
 
-/// Favoriten-Sender (Issue #42): per Stern auf der Stationskarte gemerkte
+/// Favoriten-Sender: per Stern auf der Stationskarte gemerkte
 /// Sender, getrennt von den Song-Favoriten ([favoritesProvider]).
 ///
 /// - Gespeichert wird ueber den [PrefsStore] unter eigenem Schluessel und

@@ -1,7 +1,7 @@
 name: CodeQL
 
 # Dart wird von CodeQL nicht unterstuetzt (dafuer flutter analyze in ci.yml).
-# Analysiert: GitHub-Actions-Workflows (jeder PR/Push), Android-Kotlin/Java (woechentlich
+# Analysiert: GitHub-Actions-Workflows (jede Aenderung/jeder Push), Android-Kotlin/Java (woechentlich
 # oder manuell), Swift (nur manuell, macOS-Minuten zaehlen im privaten Repo 10-fach).
 # Ohne Code Scanning (privates Repo ohne GitHub Advanced Security) werden die SARIF-
 # Ergebnisse als Artefakt abgelegt und Befunde lassen den Job scheitern. Mit

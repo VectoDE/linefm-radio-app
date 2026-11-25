@@ -1,4 +1,4 @@
-// Eine Flutter-Version fuer alle Stellen (Issue #63). Quelle der Wahrheit ist
+// Eine Flutter-Version fuer alle Stellen. Quelle der Wahrheit ist
 // .fvmrc. Dieser Test findet jede Abweichung: CI (setup-flutter), Dev-Container,
 // pubspec.yaml und die Entwicklungsdoku. Ein Flutter-Update aendert alle Stellen
 // zusammen, sonst schlaegt der Test fehl.

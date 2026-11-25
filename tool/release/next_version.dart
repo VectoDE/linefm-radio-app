@@ -1,11 +1,11 @@
-// Berechnet die nächste Release-Version (#104). Aufruf aus release.yml:
+// Berechnet die nächste Release-Version. Aufruf aus release.yml:
 //
 //   cd tool/release && dart pub get && dart run next_version.dart \
-//     --tags tags.txt --issues issues.json --subjects subjects.txt
+//     --tags tags.txt --items items.json --subjects subjects.txt
 //
 // --tags      bisherige Release-Tags, einer je Zeile (leer: noch kein Release);
 //             der hoechste nach SemVer gilt als letztes Release
-// --issues    Ausgabe von `gh issue list --state open --json labels`
+// --items     Ausgabe von `gh issue list --state open --json labels`
 // --subjects  Commit-Betreffzeilen seit dem letzten Release, eine je Zeile
 //
 // Ausgabe (für $GITHUB_OUTPUT): version=…, tag=…, stage=…, prerelease=…
@@ -27,17 +27,17 @@ void main(List<String> args) {
       : File(tagsPath).readAsLinesSync();
   final last = latestRelease(tags);
 
-  final issuesPath = opts['issues'];
-  if (issuesPath == null) {
-    stderr.writeln('--issues fehlt.');
+  final itemsPath = opts['items'];
+  if (itemsPath == null) {
+    stderr.writeln('--items fehlt.');
     exit(2);
   }
-  final raw = jsonDecode(File(issuesPath).readAsStringSync()) as List<dynamic>;
+  final raw = jsonDecode(File(itemsPath).readAsStringSync()) as List<dynamic>;
   final open = raw.map((e) {
     final labels = ((e as Map<String, dynamic>)['labels'] as List<dynamic>)
         .map((l) => (l as Map<String, dynamic>)['name'] as String)
         .toSet();
-    return OpenIssue(labels);
+    return OpenItem(labels);
   });
 
   final subjectsPath = opts['subjects'];
@@ -45,7 +45,7 @@ void main(List<String> args) {
       ? const <String>[]
       : File(subjectsPath).readAsLinesSync();
 
-  final allowed = stageFromIssues(open);
+  final allowed = stageFromItems(open);
   final next = nextVersion(
     last: last,
     allowed: allowed,

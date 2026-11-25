@@ -1,6 +1,6 @@
 # Verhaltenskodex
 
-Für Issues, Discussions, Pull Requests und alle anderen Orte dieses Projekts gilt der Contributor Covenant in Version 2.1. Hier steht er auf Deutsch.
+Für Tickets, Discussions, Änderungsvorschläge und alle anderen Orte dieses Projekts gilt der Contributor Covenant in Version 2.1. Hier steht er auf Deutsch.
 
 ## Unsere Verpflichtung
 
@@ -30,7 +30,7 @@ Beispiele für inakzeptables Verhalten:
 
 Die Verantwortlichen der Community sorgen dafür, dass diese Standards klar sind und eingehalten werden. Sie reagieren angemessen und fair auf Verhalten, das sie für unangemessen, bedrohlich, beleidigend oder schädlich halten.
 
-Sie dürfen Kommentare, Commits, Code, Wiki-Einträge, Issues und andere Beiträge entfernen, bearbeiten oder ablehnen, die nicht zu diesem Verhaltenskodex passen, und begründen solche Entscheidungen, wo es angebracht ist.
+Sie dürfen Kommentare, Commits, Code, Wiki-Einträge, Tickets und andere Beiträge entfernen, bearbeiten oder ablehnen, die nicht zu diesem Verhaltenskodex passen, und begründen solche Entscheidungen, wo es angebracht ist.
 
 ## Geltungsbereich
 

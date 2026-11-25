@@ -229,7 +229,7 @@ void main() {
     });
   });
 
-  group('Issue #101: Navigation bleibt beim Sprachwechsel gleich breit', () {
+  group('Navigation bleibt beim Sprachwechsel gleich breit', () {
     for (final width in <double>[1280, 1600]) {
       testWidgets('Seitenleiste bei $width dp: Deutsch = Englisch', (
         tester,

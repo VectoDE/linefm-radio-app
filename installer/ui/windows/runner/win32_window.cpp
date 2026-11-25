@@ -162,7 +162,7 @@ bool Win32Window::Create(const std::wstring& title,
 
   UpdateTheme(window);
 
-  // Custom title bar (#88): the client area covers the whole window, the
+  // Custom title bar: the client area covers the whole window, the
   // Flutter UI draws its own bar. A 1 px DWM frame keeps the system shadow
   // and the rounded corners on Windows 11.
   MARGINS margins = {0, 0, 1, 0};

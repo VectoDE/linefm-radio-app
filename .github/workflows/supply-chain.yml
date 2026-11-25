@@ -19,7 +19,7 @@ name: Supply Chain
 #   Begruendete Einzelausnahmen gehoeren nach .trivyignore.yaml.
 # - Workflow-Pruefung: zizmor (SARIF an Code Scanning, Konfiguration in
 #   .github/zizmor.yml) und actionlint (CLI mit fester SHA-256).
-# SARIF-Uploads laufen nur, wenn der Token schreiben darf (nicht bei PRs aus Forks).
+# SARIF-Uploads laufen nur, wenn der Token schreiben darf (nicht bei Änderungsvorschlägen aus Forks).
 
 on:
   push:
@@ -292,7 +292,7 @@ jobs:
 
       # zizmor aus hash-gepruefter Wheel-Datei (die Action pinnt jede Version per
       # Hash). Mit Schreibrecht als SARIF an Code Scanning, sonst als Klartext mit
-      # Exit-Code (PRs aus Forks).
+      # Exit-Code (Änderungsvorschläge aus Forks).
       - name: zizmor
         id: zizmor
         uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1

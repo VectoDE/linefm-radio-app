@@ -173,7 +173,7 @@ if ($Ziel -eq 'web' -and $Oeffnen) {
 
 $defineArgs = @()
 # config\app.yaml und config\features.yaml (YAML mit Kommentaren) werden
-# geprueft und als Bauwerte nach config\app.json geschrieben (Issue #91).
+# geprueft und als Bauwerte nach config\app.json geschrieben.
 if ((Test-Path (Join-Path $repo 'config\app.yaml')) -or (Test-Path (Join-Path $repo 'config\features.yaml'))) {
   Write-Host 'config\app.yaml bzw. features.yaml gefunden, Bauwerte werden erzeugt.'
   Push-Location $repo
@@ -186,7 +186,7 @@ if (Test-Path (Join-Path $repo 'config\app.json')) {
 } else {
   Write-Host 'Keine config\app.json, die App baut mit Standardwerten.'
 }
-# Lokale Builds zeigen "Entwicklungsversion" mit Commit-Kurz-ID (#104).
+# Lokale Builds zeigen "Entwicklungsversion" mit Commit-Kurz-ID.
 $commit = ''
 try { $commit = (& git -C $repo rev-parse --short HEAD 2>$null) } catch { $commit = '' }
 if ($commit) { $defineArgs += "--dart-define=APP_COMMIT=$commit" }

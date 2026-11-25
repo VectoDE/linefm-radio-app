@@ -22,8 +22,8 @@ Die Senderliste ist fest in der App. Ändert sich ein Stream-Link bei laut.fm, h
 
 Der Workflow `.github/workflows/uptime.yml` prüft alle 30 Minuten die Web-Version und `api.laut.fm`. Er läuft nur, wenn die Repository-Variable `WEB_BASE_URL` gesetzt ist (Einstellungen > Secrets and variables > Actions > Variables, Wert `https://app.linefm.de`). Ohne die Variable überspringt er sich mit einem Hinweis.
 
-- Bei einem Fehler legt der Workflow ein Issue mit dem Label `uptime` an. Gibt es schon ein offenes Uptime-Issue, kommentiert er dort, statt ein neues anzulegen.
-- Das Issue schließt der Betreiber von Hand, wenn die Störung behoben ist. Der Workflow schließt nichts.
+- Bei einem Fehler legt der Workflow ein Ticket mit dem Label `uptime` an. Gibt es schon ein offenes Uptime-Ticket, kommentiert er dort, statt ein neues anzulegen.
+- Das Ticket schließt der Betreiber von Hand, wenn die Störung behoben ist. Der Workflow schließt nichts.
 - GitHub benachrichtigt über die üblichen Wege (E-Mail, Mobile App), wenn man das Repository beobachtet.
 - Grenzen: GitHub führt geplante Workflows nicht auf die Minute genau aus und kann sie bei hoher Last verzögern. Das ist ein Hinweisgeber, kein Dienst mit Zusage. Wer eine Alarmierung per SMS oder Anruf will, braucht einen eigenen Monitor-Dienst. Das ist eine Entscheidung des Betreibers und nicht eingerichtet.
 
@@ -52,7 +52,7 @@ Jedes Release bleibt im GitHub-Release erhalten. Der universelle Weg ist deshalb
 | Cloudflare Pages | Im Dashboard unter Workers & Pages > linefm-app > Deployments ein früheres Deployment wählen und "Rollback to this deployment". | Sekunden |
 | Plesk | Kein Schnellweg. Der Dokumentstamm wird überschrieben. Workflow mit altem Tag starten. Wer es schneller braucht, legt vor jedem Deploy ein Plesk-Backup an. | Minuten |
 
-Nach dem Rollback die Prüfbefehle von oben ausführen. Danach ein Issue für die Ursache anlegen (Vorlage in [INCIDENT.md](INCIDENT.md)). Beim Zurücknehmen auf eine Version, die andere Header-Dateien braucht, die Header-Dateien aus `build/hosting/` derselben Version einspielen. Die Content-Security-Policy ist an die Telemetrie-Einstellungen der jeweiligen Version gebunden.
+Nach dem Rollback die Prüfbefehle von oben ausführen. Danach ein Ticket für die Ursache anlegen (Vorlage in [INCIDENT.md](INCIDENT.md)). Beim Zurücknehmen auf eine Version, die andere Header-Dateien braucht, die Header-Dateien aus `build/hosting/` derselben Version einspielen. Die Content-Security-Policy ist an die Telemetrie-Einstellungen der jeweiligen Version gebunden.
 
 ## Wiederherstellung (Disaster Recovery)
 
@@ -84,6 +84,6 @@ Ablauf und Prüfung der Signaturen: [../RELEASE-VERIFIZIEREN.md](../RELEASE-VERI
 | Wann | Was |
 |---|---|
 | bei jeder Meldung des Uptime-Monitors | [INCIDENT.md](INCIDENT.md) |
-| monatlich | Offene Dependabot-Pull-Requests ansehen, Security-Meldungen im Reiter Security lesen |
+| monatlich | Offene Dependabot-Änderungsvorschläge ansehen, Security-Meldungen im Reiter Security lesen |
 | quartalsweise | Zertifikatsablauf, die laut.fm-Schnittstelle prüfen (`flutter test tool/dev/now_playing_probe.dart`, macht echte Anfragen, Dauer über `PROBE_MINUTES`), Wiederherstellungsübung |
 | bei jedem Flutter-Update | `dart run tool/fetch_font_fallback.dart --check-sdk`, siehe [../hosting-uebersicht.md](../hosting-uebersicht.md) |

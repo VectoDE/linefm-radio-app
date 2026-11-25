@@ -1,7 +1,7 @@
 import CarPlay
 import UIKit
 
-/// CarPlay-Audio-App (Spec 2.2, Issue #13, Entscheidung 49): drei Tabs
+/// CarPlay-Audio-App (Spec 2.2, Entscheidung 49): drei Tabs
 /// Favoriten-Sender, Stationen, Zuletzt gehoert. Antippen startet den Sender
 /// in Dart und zeigt den Now-Playing-Bildschirm (Steuerung ueber
 /// audio_service/MPRemoteCommandCenter).

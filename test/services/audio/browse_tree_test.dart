@@ -43,6 +43,13 @@ void main() {
   final fob = stationBySlug('fobfm')!;
 
   group('BrowseTree (Auto-Menue)', () {
+    test('station art outside the web is the logo from the network', () {
+      // The web branch (bundled logo from the own origin) needs kIsWeb and
+      // is covered by the browser run; on the VM the CDN logo stays.
+      expect(BrowseTree.defaultArt(main), Uri.parse(main.logoUrl));
+      expect(BrowseTree.stationItem(main).artUri, Uri.parse(main.logoUrl));
+    });
+
     test('Wurzel: immer drei Ordner in fester Reihenfolge', () {
       final root = BrowseTree.children(BrowseTree.rootId);
       expect(root.map((e) => e.id), <String>[

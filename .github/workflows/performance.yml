@@ -1,6 +1,6 @@
 name: Performance
 
-# Reproduzierbare Performance-Messung (Issue #92). Nur messen und berichten:
+# Reproduzierbare Performance-Messung. Nur messen und berichten:
 # kein Schritt bricht wegen eines Messwerts ab (Budgets folgen spaeter).
 #
 # - web:      Wasm-Build wie ci.yml (web-smoke), ausgeliefert vom nginx-Container

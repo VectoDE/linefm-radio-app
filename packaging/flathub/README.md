@@ -8,7 +8,7 @@ LINEFM Radio steht unter einer proprietären Lizenz (`LicenseRef-proprietary`). 
 
 - "All content hosted on Flathub must allow legal redistribution." Proprietäre Apps sind erlaubt, wenn Flathub sie weitergeben darf. Das muss der Rechteinhaber ausdrücklich erlauben.
 - Nicht weitergebbare Quellen müssen den Quelltyp `extra-data` nutzen (Download beim Nutzer). Reicht der Entwickler die App selbst ein, ist das in der Regel nicht nötig, weil die Weitergabe damit implizit erlaubt ist.
-- Source-available-Software muss vollständig aus Quellcode gebaut werden, Ausnahmen gibt es nur für bekannte Hersteller. Unser Manifest installiert ein **vorgebautes Binär-Tarball**. Das wird ohne Ausnahme voraussichtlich abgelehnt oder verlangt `extra-data`. Vor der Einreichung mit den Flathub-Betreuern klären (Issue im Repo `flathub/flathub`), ob Binär-Tarball erlaubt ist.
+- Source-available-Software muss vollständig aus Quellcode gebaut werden, Ausnahmen gibt es nur für bekannte Hersteller. Unser Manifest installiert ein **vorgebautes Binär-Tarball**. Das wird ohne Ausnahme voraussichtlich abgelehnt oder verlangt `extra-data`. Vor der Einreichung mit den Flathub-Betreuern klären (Ticket im Repo `flathub/flathub`), ob Binär-Tarball erlaubt ist.
 - Für die Lizenz verlangt Flathub `LicenseRef-proprietary` mit Link auf den Lizenztext: `<project_license>LicenseRef-proprietary=https://...</project_license>`. Das steht in der Metainfo, der Link ist noch ein Platzhalter. Die Lizenzdatei muss nach `/app/share/licenses/de.linefm.app/` installiert werden (TODO im Manifest).
 - Die Domain `linefm.de` muss per `https://linefm.de/.well-known/org.flathub.VerifiedApps.txt` bestätigt werden (App-ID `de.linefm.app`). Das erledigt der Betreiber.
 - Runtimes müssen zum Einreichungszeitpunkt aktuell sein. Das Manifest nutzt `org.gnome.Platform//50`, vor der Einreichung auf die dann neueste Version prüfen (`flatpak remote-info flathub org.gnome.Platform`).
@@ -27,6 +27,6 @@ Wenn Flathub ablehnt, bleiben Snap Store und der GitHub-Release-Tarball. Rechtli
 ## Update-Ablauf
 
 1. Release `vX.Y.Z` erzeugt `linefm-radio-X.Y.Z-linux-x64.tar.gz`.
-2. `flathub-prep.yml` ersetzt URL und SHA256 in den mit `# release-tarball` markierten Zeilen und legt einen PR an.
+2. `flathub-prep.yml` ersetzt URL und SHA256 in den mit `# release-tarball` markierten Zeilen und legt eine Einreichung an.
 3. Manuell testen: siehe Kopf des Manifests.
-4. Einreichung: PR gegen `flathub/flathub` (Branch `new-pr`), danach pflegt ein eigenes Repo `flathub/de.linefm.app` das Manifest.
+4. Einreichung: Änderungsvorschlag gegen `flathub/flathub` (Branch `new-pr`), danach pflegt ein eigenes Repo `flathub/de.linefm.app` das Manifest.

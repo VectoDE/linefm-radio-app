@@ -4,7 +4,7 @@ import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/platform/deep_links.dart';
 
-/// Entfernte Sender (Issue #91): Favoriten, Wecker und Deep Links auf einen
+/// Entfernte Sender: Favoriten, Wecker und Deep Links auf einen
 /// Sender, der nicht mehr in der Liste steht, fuehren zu keinem Fehler.
 void main() {
   late List<Station> original;

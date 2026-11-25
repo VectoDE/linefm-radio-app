@@ -615,7 +615,7 @@ std::vector<std::wstring> UserDataDirs(const Product& product,
   std::vector<std::wstring> dirs;
   const std::wstring roaming = KnownFolder(FOLDERID_RoamingAppData);
   const std::wstring local = KnownFolder(FOLDERID_LocalAppData);
-  // Frueherer Firmenname (Migration #98): alten Ordner beim Loeschen mitnehmen.
+  // Frueherer Firmenname (Migration): alten Ordner beim Loeschen mitnehmen.
   const std::wstring legacy_company = SanitizeComponent(product.data_company_legacy);
   const std::wstring legacy_sub =
       legacy_company.empty() ? std::wstring() : JoinPath(legacy_company, name);
@@ -930,7 +930,7 @@ int RunInstall(Payload& payload, const Product& product,
   reporter.Phase("copying");
   // Progress is real work: bytes written, plus a small fixed share for the
   // registration and clean-up after copying, so 100 % only appears once
-  // everything is finished (#88).
+  // everything is finished.
   const uint64_t finish_share = total / 50 + 1;
   const uint64_t grand = total + finish_share;
   uint64_t done = 0;

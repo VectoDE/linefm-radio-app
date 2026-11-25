@@ -33,7 +33,7 @@ String tickerFor(StationLive live) {
 /// - Ziehen zum Aktualisieren, Long-Press auf eine Karte oeffnet das Menue
 ///   "Sender teilen".
 /// - Der Stern auf jeder Karte merkt den Sender als Favoriten-Sender
-///   (Issue #42, getrennt von den Song-Favoriten).
+///   (getrennt von den Song-Favoriten).
 class StationsScreen extends ConsumerWidget {
   const StationsScreen({
     super.key,

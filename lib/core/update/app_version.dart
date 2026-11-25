@@ -1,9 +1,9 @@
-/// Versionsrechnung für Releases und Updater (#104).
+/// Versionsrechnung für Releases und Updater.
 ///
 /// Reines Dart ohne Flutter, damit `tool/release/next_version.dart` es in der
 /// CI ohne Flutter-Engine nutzen kann. Die Version steht nirgends fest im
 /// Repository; der Release-Workflow berechnet sie bei jedem Merge auf main aus
-/// dem letzten Release und dem Stand der offenen Issues.
+/// dem letzten Release und dem Stand der offenen Tickets.
 library;
 
 /// Release-Stufen in aufsteigender Reife. Ein Release fällt nie auf eine
@@ -113,21 +113,21 @@ class SemVer implements Comparable<SemVer> {
   int get hashCode => Object.hash(major, minor, patch, preRelease);
 }
 
-/// Ein offenes Issue, reduziert auf seine Labels.
-class OpenIssue {
-  const OpenIssue(this.labels);
+/// Ein offenes Ticket, reduziert auf seine Labels.
+class OpenItem {
+  const OpenItem(this.labels);
   final Set<String> labels;
 }
 
 const String featureLabel = 'typ:feature';
 const String ownerOnlyLabel = 'nur-noch:jaybelife';
 
-/// Stufe, die der Stand der offenen Issues erlaubt:
-/// - offene Feature-Issues -> alpha,
-/// - keine Feature-Issues mehr, aber andere offen -> beta,
-/// - nur noch Issues mit `nur-noch:jaybelife` offen -> rc,
+/// Stufe, die der Stand der offenen Tickets erlaubt:
+/// - offene Feature-Tickets -> alpha,
+/// - keine Feature-Tickets mehr, aber andere offen -> beta,
+/// - nur noch Tickets mit `nur-noch:jaybelife` offen -> rc,
 /// - nichts mehr offen -> stabil (1.0.0).
-ReleaseStage stageFromIssues(Iterable<OpenIssue> open) {
+ReleaseStage stageFromItems(Iterable<OpenItem> open) {
   final list = open.toList();
   if (list.isEmpty) return ReleaseStage.stable;
   if (list.every((i) => i.labels.contains(ownerOnlyLabel))) {
@@ -142,7 +142,7 @@ ReleaseStage stageFromIssues(Iterable<OpenIssue> open) {
 /// Art der Änderung nach Conventional Commits, nur für Releases nach 1.0.0.
 enum ChangeKind { patch, minor, major }
 
-/// Liest die Änderungsart aus Commit- bzw. PR-Titeln.
+/// Liest die Änderungsart aus Commit- bzw. Titeln der Änderungen.
 ChangeKind changeKindOf(Iterable<String> subjects) {
   var kind = ChangeKind.patch;
   final breaking = RegExp(r'^[a-z]+(\([^)]*\))?!:');

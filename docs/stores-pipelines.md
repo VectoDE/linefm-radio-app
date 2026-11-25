@@ -7,7 +7,7 @@ Alle Abläufe laden die Dateien aus dem GitHub-Release (gebaut, geprüft und att
 | `store-google.yml` | Google Play, Spur `internal` oder `alpha` (geschlossener Test) | jeder Release-Tag, manuell | `PLAY_SERVICE_ACCOUNT_JSON` gesetzt und AAB signiert |
 | `store-microsoft.yml` | Microsoft Store (MSIX mit Store-Identität, `msstore`) | Endversionen, manuell | `MS_STORE_*` gesetzt |
 | `store-snap.yml` | Snap Store, Kanal `edge` | jeder Release-Tag, manuell | `SNAPCRAFT_STORE_CREDENTIALS` gesetzt |
-| `flathub-prep.yml` | Artefakt mit gefülltem Flatpak-Manifest und PR-Vorlage | Endversionen, manuell | immer (keine Secrets nötig). Reicht **nichts** bei Flathub ein |
+| `flathub-prep.yml` | Artefakt mit gefülltem Flatpak-Manifest und Einreichungsvorlage | Endversionen, manuell | immer (keine Secrets nötig). Reicht **nichts** bei Flathub ein |
 | `store-apple.yml` | TestFlight (iOS), Mac App Store | Endversionen, manuell | `APPLE_PUBLISHING_ENABLED=true` und alle Apple-Secrets |
 | `deploy-web.yml` | Cloudflare Pages, SSH (nginx/Traefik), Plesk | Endversionen, manuell | Ziel in `WEB_DEPLOY_TARGETS` bzw. Eingabe `targets`, Secrets vollständig, Umgebung `production` freigegeben |
 

@@ -173,7 +173,7 @@ class WebSocketSongChangeSocket implements SongChangeSocket {
   final Uri uri;
 
   /// Kuerzel, deren Titelwechsel zaehlen: fest (Tests) oder die aktuelle
-  /// Senderliste (Issue #91, nachgeladene Sender eingeschlossen).
+  /// Senderliste (nachgeladene Sender eingeschlossen).
   Set<String> get slugs {
     final fixed = _fixedSlugs;
     if (fixed != null) return fixed;

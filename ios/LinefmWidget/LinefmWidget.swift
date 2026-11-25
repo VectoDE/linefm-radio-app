@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 import WidgetKit
 
-/// Homescreen-Widget (Spec 2.2, Issue #15): Senderlogo bzw. Cover, Sender,
+/// Homescreen-Widget (Spec 2.2): Senderlogo bzw. Cover, Sender,
 /// Titel und Kuenstler. Daten schreibt die App ueber home_widget in die App
 /// Group (`lib/services/widgets/home_widget_sync.dart`, `HomeWidgetKeys`).
 /// Antippen oeffnet `linefm://play?station=<slug>`.

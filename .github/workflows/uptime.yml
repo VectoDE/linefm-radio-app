@@ -5,10 +5,10 @@ name: Uptime
 # Variable wie beim Web-Build, z. B. https://app.linefm.de). Ohne sie
 # ueberspringt sich der Lauf mit einem Hinweis.
 #
-# Bei einem Fehler entsteht ein Issue mit dem Label "uptime". Gibt es schon ein
-# offenes Uptime-Issue, kommentiert der Lauf dort (hoechstens alle 6 Stunden)
-# statt ein neues anzulegen. Er schliesst nie ein Issue. Das macht der Betreiber.
-# Wird alles wieder erreichbar, steht einmal ein Hinweis im offenen Issue.
+# Bei einem Fehler entsteht ein Ticket mit dem Label "uptime". Gibt es schon ein
+# offenes Uptime-Ticket, kommentiert der Lauf dort (hoechstens alle 6 Stunden)
+# statt ein neues anzulegen. Er schliesst nie ein Ticket. Das macht der Betreiber.
+# Wird alles wieder erreichbar, steht einmal ein Hinweis im offenen Ticket.
 #
 # GitHub fuehrt geplante Laeufe nicht minutengenau aus und kann sie bei hoher
 # Last verzoegern. Das ist ein Hinweisgeber, keine Betriebszusage. Doku:
@@ -86,7 +86,7 @@ jobs:
             if [ -s failures.txt ]; then cat failures.txt; else echo "Alle Adressen antworten mit HTTP 200."; fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Issue anlegen oder kommentieren
+      - name: Ticket anlegen oder kommentieren
         if: steps.probe.outputs.failed == 'true'
         run: |
           set -euo pipefail
@@ -123,7 +123,7 @@ jobs:
             fi
           fi
 
-      - name: Entwarnung im offenen Issue vermerken
+      - name: Entwarnung im offenen Ticket vermerken
         if: steps.probe.outputs.failed == 'false'
         run: |
           set -euo pipefail
@@ -134,6 +134,6 @@ jobs:
           lastbody="$(gh issue view "$number" --repo "$REPO" --json comments             --jq '(.comments | last | .body) // ""')"
           if grep -q "uptime-recovered" <<< "$lastbody"; then exit 0; fi
           # Nur einmal melden: Ist der letzte Kommentar schon die Entwarnung, passiert nichts.
-          printf '%s\nAlle Adressen antworten wieder mit HTTP 200 (%s UTC). Das Issue schliesst der Betreiber, wenn die Ursache geklaert ist.\n\nLauf: %s\n' \
+          printf '%s\nAlle Adressen antworten wieder mit HTTP 200 (%s UTC). Das Ticket schliesst der Betreiber, wenn die Ursache geklaert ist.\n\nLauf: %s\n' \
             "$marker" "$(date -u '+%d.%m.%Y %H:%M')" "$RUN_URL" > ok.md
           gh issue comment "$number" --repo "$REPO" --body-file ok.md

@@ -251,7 +251,7 @@ class SetupAutopilot {
           }
           await _waitWhile(() => c.step == SetupStep.progress);
           if (c.step == SetupStep.progress) {
-            // Step timeout: a hanging progress page (#147) fails the test
+            // Step timeout: a hanging progress page fails the test
             // instead of waiting forever.
             await _capture('progress-timeout');
             exit(124);

@@ -1,4 +1,4 @@
-// Web-Messung mit Playwright (Issue #92): Laden kalt/warm, Bedienung, Ton.
+// Web-Messung mit Playwright: Laden kalt/warm, Bedienung, Ton.
 //
 // Aufruf (Server mit Kompression und Cache-Headern wie in deploy/ laeuft,
 // z. B. der nginx-Container aus deploy/traefik/Dockerfile):
@@ -189,6 +189,16 @@ async function newContext(browser, profile, { seed = false } = {}) {
     locale: 'de-DE',
   });
   await context.addInitScript(INIT);
+  // First-time visitors see the static shell until they interact; this tool
+  // measures the app itself, so every context behaves like a returning
+  // visitor and the engine starts on load (web/flutter_bootstrap.js).
+  await context.addInitScript(() => {
+    try {
+      localStorage.setItem('linefm.started', '1');
+    } catch {
+      /* no storage */
+    }
+  });
   if (seed) await context.addInitScript(SEED);
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);

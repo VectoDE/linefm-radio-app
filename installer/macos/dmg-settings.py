@@ -1,4 +1,4 @@
-# dmgbuild settings for the macOS installer DMG (#88). build.sh passes the
+# dmgbuild settings for the macOS installer DMG. build.sh passes the
 # paths with -D app=... -D background=... (dmgbuild provides `defines`).
 import os.path
 

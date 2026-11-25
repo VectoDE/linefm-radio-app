@@ -158,7 +158,7 @@ class _DesktopHostState extends ConsumerState<DesktopHost> {
     );
   }
 
-  /// Eigene Titelleiste ueber der App (Issue #87). Der Baum um [app] bleibt
+  /// Eigene Titelleiste ueber der App. Der Baum um [app] bleibt
   /// in jedem Zustand gleich (Leiste nur ein-/ausgeblendet, Griffe nur
   /// abgeschaltet), damit Navigator und App-Zustand nie neu entstehen.
   ///

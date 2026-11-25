@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests the macOS or Linux installer on a throwaway CI runner (#88):
+# Tests the macOS or Linux installer on a throwaway CI runner:
 # graphical install through the real setup UI (autopilot, screenshots of
 # every step), installed files and desktop integration, app start, update,
 # running-app protection, downgrade protection, damaged payload, unsafe
@@ -110,7 +110,7 @@ run_engine running-close "$setup_dir" $'close\n' install --scope "$scope" --desk
 check "running app, close: update exits 0 (got $code)" test "$code" = 0
 check "app closed for the update" sh -c '! pgrep -x linefm_radio >/dev/null && ! pgrep -x "LINEFM Radio" >/dev/null'
 check "update keeps the folder" test "$(rec DIR)" = "$dir"
-# Progress (#88): monotonic, more than a handful of steps, 100 % only as the
+# Progress: monotonic, more than a handful of steps, 100 % only as the
 # last progress line, just before the result.
 progress_ok() { # LOG
   awk '/^progress /{ d=$2; t=$3; if (t<=0 || d>t || (n && d/t < last)) bad=1; last=d/t; n++ }

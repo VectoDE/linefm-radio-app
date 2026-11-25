@@ -10,7 +10,7 @@ import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Senderfarben aus der echten Senderliste (config/stations.yaml, einzige
-/// Quelle der Farben, Issue #91): Jeder dort eingetragene Sender muss die
+/// Quelle der Farben): Jeder dort eingetragene Sender muss die
 /// Kontrastregeln erfuellen.
 List<Station> _configStations() {
   final result = parseStationsConfig(

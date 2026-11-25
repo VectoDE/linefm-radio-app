@@ -313,7 +313,7 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   /// Android Auto zeigt nur lokale Bilder, dort die gebuendelten Logos.
   static Uri _browseArt(Station station) => _isAndroid
       ? BrowseTree.androidResourceArt(station)
-      : BrowseTree.remoteArt(station);
+      : BrowseTree.defaultArt(station);
 
   static bool _sameStations(List<Station> a, List<Station> b) {
     if (a.length != b.length) return false;

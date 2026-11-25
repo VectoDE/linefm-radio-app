@@ -4,7 +4,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Fragen zur App, zum Bauen oder zur Einrichtung. Fehler bitte als Issue melden, Sicherheitslücken vertraulich wie in SECURITY.md beschrieben.
+        Fragen zur App, zum Bauen oder zur Einrichtung. Fehler bitte als Ticket melden, Sicherheitslücken vertraulich wie in SECURITY.md beschrieben.
   - type: textarea
     id: frage
     attributes:

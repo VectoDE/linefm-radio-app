@@ -1,7 +1,7 @@
 name: Flathub-Vorbereitung
 
 # Fuellt das Flatpak-Manifest mit Tarball-URL und sha256 aus dem Release und legt es als
-# Artefakt samt PR-Vorlage ab. Reicht NICHTS bei Flathub ein und legt keinen PR an.
+# Artefakt samt Einreichungsvorlage ab. Reicht NICHTS bei Flathub ein und legt keine Einreichung an.
 # Ausloeser: release.yml (nur Endversionen) oder manuell mit Tag.
 # Braucht keine Secrets. Voraussetzung fuer Flathub: oeffentliches Repository (die
 # Download-URL muss ohne Anmeldung erreichbar sein), siehe packaging/flathub/README.md.
@@ -73,14 +73,14 @@ jobs:
           sed -E -i "s|^([[:space:]]*sha256: ).*( # release-tarball)\$|\1'${sha}'\2|" "$out"
           grep -qF "url: ${url} # release-tarball" "$out" || { echo "::error::URL-Zeile nicht ersetzt"; exit 1; }
           grep -qF "sha256: '${sha}' # release-tarball" "$out" || { echo "::error::sha256-Zeile nicht ersetzt"; exit 1; }
-          # Version kommt nur aus dem Release (#104): Platzhalter vX.Y.Z bzw. 0.0.0-dev ersetzen.
+          # Version kommt nur aus dem Release: Platzhalter vX.Y.Z bzw. 0.0.0-dev ersetzen.
           sed -E -i "s|/vX\.Y\.Z/(.*) # release-tag\$|/${TAG}/\1|" "$out"
           grep -q 'vX\.Y\.Z' "$out" && { echo "::error::Platzhalter vX.Y.Z im Manifest uebrig"; exit 1; }
           cp linux/de.linefm.app.metainfo.xml flathub/
           sed -i "s|<release version=\"0.0.0-dev\" date=\"[0-9-]*\">|<release version=\"${LABEL}\" date=\"$(date -u +%F)\">|" flathub/de.linefm.app.metainfo.xml
           grep -qF "<release version=\"${LABEL}\"" flathub/de.linefm.app.metainfo.xml || { echo "::error::Release-Version in metainfo nicht gesetzt"; exit 1; }
           {
-            echo "# PR-Vorlage fuer flathub/flathub (Version ${LABEL})"
+            echo "# Einreichungsvorlage fuer flathub/flathub (Version ${LABEL})"
             echo ""
             echo "Titel: Add de.linefm.app"
             echo ""
@@ -89,11 +89,11 @@ jobs:
             echo "- Pruefen vor dem Einreichen: packaging/flathub/README.md (proprietaere Lizenz, Binaer-Tarball,"
             echo "  Verified-Domain linefm.de, Screenshots, OARS, Repository oeffentlich)."
             echo "- Einreichung nur durch den Inhaber, Branch new-pr gegen flathub/flathub."
-          } > flathub/PR-VORLAGE.md
+          } > flathub/EINREICHUNGSVORLAGE.md
           {
             echo "### Flathub-Vorbereitung"
             echo "- Version: ${LABEL}, sha256: \`${sha}\`"
-            echo "- Artefakt \`flathub-manifest-${LABEL}\` enthaelt Manifest und PR-Vorlage. **Nichts wurde eingereicht.**"
+            echo "- Artefakt \`flathub-manifest-${LABEL}\` enthaelt Manifest und Einreichungsvorlage. **Nichts wurde eingereicht.**"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Artefakt hochladen

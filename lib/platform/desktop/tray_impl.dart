@@ -38,7 +38,7 @@ class TrayManagerTrayController with TrayListener implements TrayController {
       _tray.addListener(this);
       await _tray.setIcon(trayIconDataUri);
       _available = true;
-      // Nachgeladene Senderliste (Issue #91): Untermenue neu aufbauen.
+      // Nachgeladene Senderliste: Untermenue neu aufbauen.
       stationsCatalogListenable.addListener(() => unawaited(refresh()));
       await refresh();
     } on Object catch (e) {

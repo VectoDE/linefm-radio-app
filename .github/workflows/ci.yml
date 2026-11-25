@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
-  # Woechentlich, damit neue Fehler auch ohne Commit auffallen (#115).
+  # Woechentlich, damit neue Fehler auch ohne Commit auffallen.
   schedule:
     - cron: "11 4 * * 5"
   workflow_dispatch:
@@ -33,11 +33,15 @@ jobs:
         with:
           persist-credentials: false
 
-      # #104: Die App-Version kommt nur aus dem Release; feste Nummern sind ein Fehler.
+      # Die App-Version kommt nur aus dem Release; feste Nummern sind ein Fehler.
       - name: Keine feste App-Version
         run: bash tool/check_fixed_versions.sh
 
-      # #129: dependency_overrides only with a documented reason.
+      # Files describe behaviour in words; no tracker numbers or tracker words.
+      - name: No tracker references
+        run: python3 tool/check_no_issue_refs.py
+
+      # dependency_overrides only with a documented reason.
       - name: Dependency overrides documented
         run: bash tool/check_dependency_overrides.sh
 
@@ -74,7 +78,7 @@ jobs:
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfigurationsordner pruefen (config/, Issue #91)
+      - name: Konfigurationsordner pruefen (config/)
         run: dart run tool/check_config.dart
 
       # Golden-Tests (*_golden_test.dart, Tag "golden") haengen von der Rasterung des
@@ -150,7 +154,7 @@ jobs:
           fi
           base=$(sed -n 's/^lines=//p' coverage/base/report/total.txt)
           echo "main (Lauf ${found}): ${base} %, dieser Lauf: ${cur} %"
-          echo "**Coverage-Vergleich:** main ${base} %, dieser PR ${cur} %." >> "$GITHUB_STEP_SUMMARY"
+          echo "**Coverage-Vergleich:** main ${base} %, dieser Stand ${cur} %." >> "$GITHUB_STEP_SUMMARY"
           if awk -v c="$cur" -v b="$base" 'BEGIN { exit !(c + 0.10 < b) }'; then
             echo "::error::Coverage gesunken: ${base} % auf main, ${cur} % hier. Tests fuer neuen Code ergaenzen."
             exit 1

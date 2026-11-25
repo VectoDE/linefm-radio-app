@@ -6,7 +6,7 @@ import 'package:material_ui/material_ui.dart';
 
 /// Zeigt einen Hinweis, wenn ein Link (geteilter Link, Widget, Wecker-
 /// Mitteilung) einen Sender oeffnen will, der nicht mehr in der Senderliste
-/// steht (Issue #91). Gehoert unterhalb von `MaterialApp` (im `builder`).
+/// steht. Gehoert unterhalb von `MaterialApp` (im `builder`).
 class StationUnavailableNotice extends StatefulWidget {
   const StationUnavailableNotice({super.key, required this.child, this.links});
 

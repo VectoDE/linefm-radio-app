@@ -7,7 +7,7 @@
 	<!-- Export-Rueckfall in ~/Downloads (P21), falls Teilen nicht geht. -->
 	<key>com.apple.security.files.downloads.read-write</key>
 	<true/>
-	<!-- Favoriten-Import (Issue #9): vom Nutzer gewaehlte Datei lesen. -->
+	<!-- Favoriten-Import: vom Nutzer gewaehlte Datei lesen. -->
 	<key>com.apple.security.files.user-selected.read-only</key>
 	<true/>
 	<key>com.apple.security.network.client</key>

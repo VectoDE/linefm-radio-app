@@ -1,4 +1,4 @@
-// Messpunkte fuer die Performance-Messung in der CI (Issue #92).
+// Messpunkte fuer die Performance-Messung in der CI.
 //
 // Standardmaessig AUS: `kPerfMarks` ist eine Compile-Zeit-Konstante, ohne
 // `--dart-define=LINEFM_PERF_MARKS=true` entfernt der Compiler jeden Aufruf

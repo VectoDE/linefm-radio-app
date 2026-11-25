@@ -265,6 +265,21 @@ void main() {
       },
     );
 
+    test('Autoplay waits until the app is in the foreground', () async {
+      final c = _Ctx(lastStation: 'linefmlofi');
+      addTearDown(c.dispose);
+      final foreground = Completer<void>();
+      final started = c.controller.startup(
+        web: false,
+        untilForeground: foreground.future,
+      );
+      await _flush();
+      expect(c.playback.plays, isEmpty);
+      foreground.complete();
+      await started;
+      expect(c.playback.calls, contains('play:linefmlofi'));
+    });
+
     test('Autoplay aus: nichts startet', () async {
       final c = _Ctx(settings: const AppSettings(autoplay: false));
       addTearDown(c.dispose);

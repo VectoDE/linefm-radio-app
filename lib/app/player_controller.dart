@@ -156,7 +156,17 @@ class PlayerController {
 
   /// Einmal beim Start der Shell. [launchUri]: Start-Link (Web `Uri.base`),
   /// [web]: Autoplay erst nach der ersten Nutzeraktion.
-  Future<void> startup({Uri? launchUri, required bool web}) async {
+  ///
+  /// [untilForeground] completes once the app UI is in the foreground.
+  /// Android Auto can start the app without its activity (media browser
+  /// service); autoplay must then wait until the user opens the app, because
+  /// car media apps must not start playback on their own (Android for Cars
+  /// app quality, MA-1).
+  Future<void> startup({
+    Uri? launchUri,
+    required bool web,
+    Future<void>? untilForeground,
+  }) async {
     if (_startedUp) return;
     _startedUp = true;
     final settings = _ref.read(settingsProvider);
@@ -176,6 +186,10 @@ class PlayerController {
     });
 
     if (!settings.autoplay) return;
+    if (untilForeground != null) {
+      await untilForeground;
+      if (_userStarted || !_ref.read(settingsProvider).autoplay) return;
+    }
     final state = _service.state;
     if (state.isPlaying || state.isBusy) return;
     if (web) {

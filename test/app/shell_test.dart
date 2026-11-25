@@ -247,9 +247,26 @@ void main() {
       useSize(tester, 390, 844);
       final host = AppHost();
       await host.prefs.writeLastStation('linefmlofi');
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await pumpApp(tester, host);
       expect(host.playback.state.isPlaying, isTrue);
       expect(host.playback.state.station?.slug, 'linefmlofi');
+      await disposeApp(tester, host);
+    });
+
+    testWidgets('Autoplay waits while Android Auto runs the app headless', (
+      tester,
+    ) async {
+      useSize(tester, 390, 844);
+      final host = AppHost();
+      await host.prefs.writeLastStation('linefmlofi');
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.detached);
+      await pumpApp(tester, host);
+      expect(host.playback.state.isPlaying, isFalse);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await settleApp(tester);
+      expect(host.playback.state.station?.slug, 'linefmlofi');
+      expect(host.playback.state.isPlaying, isTrue);
       await disposeApp(tester, host);
     });
 

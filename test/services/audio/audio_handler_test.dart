@@ -431,4 +431,17 @@ void main() {
       expect(h.state.status, PlayerStatus.idle);
     });
   });
+
+  group('car display error text', () {
+    test('is the localized stream error, not the exception', () {
+      expect(
+        LinefmAudioHandler.userErrorMessage('de'),
+        'Stream konnte nicht gestartet werden.',
+      );
+      expect(
+        LinefmAudioHandler.userErrorMessage('en'),
+        'Couldn’t start the stream.',
+      );
+    });
+  });
 }

@@ -228,4 +228,8 @@ void main() {
       expect(changes, hasLength(1));
     });
   });
+
+  test('root extras advertise search to Android Auto', () {
+    expect(BrowseTree.rootExtras[BrowseTree.searchSupportedKey], isTrue);
+  });
 }

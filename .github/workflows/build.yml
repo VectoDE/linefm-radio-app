@@ -650,7 +650,9 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $iscc = Get-Command iscc.exe -ErrorAction SilentlyContinue
           if (-not $iscc) {
-            choco install innosetup -y --no-progress | Out-Null
+            # Fallback only. Pinned so a new package version cannot run in a job that holds the signing PFX (#133).
+            choco install innosetup --version=6.7.1 -y --no-progress | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw 'choco install innosetup failed' }
             $iscc = Get-Item "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           }
           $iss = Get-ChildItem 'packaging/windows/*.iss' | Select-Object -First 1

@@ -529,7 +529,7 @@
   "settingArtworkTitle": "Cover laden",
   "settingArtworkBody": "Sucht zum laufenden Titel das Albumcover bei Apple. Aus: keine Anfragen an Apple, die App zeigt das Cover von laut.fm oder das Senderlogo. Diese Einstellung bleibt auch ohne bestätigten Speicher-Hinweis und nach „Speicher löschen“ gespeichert.",
   "settingShortcutsTitle": "Tastenkürzel mit einer Taste",
-  "settingShortcutsBody": "F merkt den Song, S spielt einen zufälligen Sender, 1 bis 6 wählen einen Sender.",
+  "settingShortcutsBody": "F merkt den Song, S spielt einen zufälligen Sender, 1 bis 6 wählen die ersten sechs Sender der Liste.",
   "playerSleepTimer": "Sleeptimer einstellen",
   "alarmEnabledAt": "Wecker {time} aktiv",
   "@alarmEnabledAt": {
@@ -543,6 +543,19 @@
   "@alarmDeleteAt": {
     "placeholders": {
       "time": {
+        "type": "String"
+      }
+    }
+  },
+  "stationUnavailable": "Dieser Sender ist in der App nicht mehr verfügbar.",
+  "@stationUnavailable": {
+    "description": "Hinweis, wenn ein Link einen Sender öffnen will, der aus der Senderliste entfernt oder ausgeblendet wurde"
+  },
+  "alarmStationUnavailable": "Der gewählte Sender ist nicht mehr verfügbar. Der Wecker spielt {station}.",
+  "@alarmStationUnavailable": {
+    "description": "Hinweis im Wecker, wenn dessen Sender entfernt wurde; der Wecker weckt mit dem ersten Sender der Liste",
+    "placeholders": {
+      "station": {
         "type": "String"
       }
     }

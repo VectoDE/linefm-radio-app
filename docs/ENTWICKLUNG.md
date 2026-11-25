@@ -90,16 +90,17 @@ git worktree remove --force C:\lf29
 
 ## Konfiguration: `--dart-define-from-file`
 
-Alle Laufzeiteinstellungen kommen beim Build über `--dart-define-from-file=config/app.json`. Vorlage: `config/app.example.json`. Die Datei `config/app.json` ist in `.gitignore` und wird nicht eingecheckt.
+Alle Laufzeiteinstellungen kommen beim Build über `--dart-define-from-file=config/app.json`. Die Datei entsteht aus `config/app.yaml` und `config/features.yaml` (Vorlagen `*.example.yaml`) mit `dart run tool/check_config.dart --defines config/app.json`. Alle drei sind in `.gitignore`. Siehe [Konfiguration](KONFIGURATION.md).
 
 ```bash
-cp config/app.example.json config/app.json
+cp config/app.example.yaml config/app.yaml
+dart run tool/check_config.dart --defines config/app.json
 flutter run -d windows --dart-define-from-file=config/app.json
 ```
 
 | Schlüssel | Bedeutung |
 |---|---|
-| `APP_ENV`, `APP_VERSION` | Umgebung und angezeigte Version |
+| `APP_ENV` | Umgebung (die Version kommt aus dem Release, #104) |
 | `WEB_BASE_URL` | Basis für Share-Links und kanonische URL, Standard `https://app.linefm.de` |
 | `UMAMI_URL`, `UMAMI_WEBSITE_ID`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT`, `FIREBASE_*` | Telemetrie, siehe [telemetry.md](telemetry.md) |
 | `WS_ENABLED` | laut.fm-WebSocket, Standard `false` (siehe unten) |
@@ -119,7 +120,7 @@ Die Werte sind im Binary lesbar. Keine Geheimnisse hinein. Ohne Telemetrie-Werte
 | Linux, macOS, iOS | `flutter build linux`, `macos`, `ipa` (ungetestet) |
 
 - Android signiert nur, wenn `android/key.properties` existiert, sonst entsteht ein unsigniertes Release. Details: [packaging/android/SIGNING.md](../packaging/android/SIGNING.md).
-- Verpackung für die Verteilung (Inno Setup, MSIX, Flatpak, Snap, DMG, iOS-Export): [packaging/README.md](../packaging/README.md).
+- Verpackung für die Verteilung (eigener Windows-Installer in `installer/windows`, MSIX, Flatpak, Snap, DMG, iOS-Export): [packaging/README.md](../packaging/README.md).
 - `flutter build` schreibt `lib/l10n/gen/*` mit anderen Zeilenenden neu. Diese Änderungen nicht committen, zurücksetzen.
 - App-Icons entstehen aus einer Quelle mit `tool/generate_icons.sh` (Quelle `assets/branding/source/`). Das Icon wird technisch skaliert, nicht verändert.
 - Übersetzungen: `lib/l10n/app_de.arb` ist die Vorlage, `app_en.arb` die zweite Sprache. `flutter gen-l10n` erzeugt `lib/l10n/gen/`. Jeder Schlüssel muss in beiden Sprachen stehen (CI-Job und `test/app/language_test.dart` prüfen das). Neue sichtbare Texte kommen immer in die ARB-Dateien, nie als Literal in den Code. Texte ohne BuildContext (Wecker, Tray, Auto-Menü) holen `systemLocalizations()` aus `lib/l10n/system_l10n.dart`; das berücksichtigt die in den Einstellungen gewählte Sprache.

@@ -19,6 +19,12 @@ String stationInitials(String displayName) {
 /// Senderlogo auf Senderfarben-Verlauf. Bis das Logo geladen ist (oder wenn
 /// es fehlt) steht das Kuerzel da; das Logo blendet in 200 ms ein.
 ///
+/// Mitgelieferte Sender nutzen das Logo aus dem App-Paket. Nachgeladene
+/// Sender ohne mitgeliefertes Logo (Issue #91) laden es von ihrer
+/// Logo-Adresse (nur erlaubte Hosts, siehe stations_config.dart); bis dahin
+/// und bei Fehlern bleibt der Platzhalter in Senderfarbe, in beiden Themes
+/// derselbe wie bei mitgelieferten Sendern.
+///
 /// Das Logo ist rein dekorativ (Name steht daneben), deshalb ohne Semantik.
 class StationArt extends StatelessWidget {
   const StationArt({
@@ -69,29 +75,50 @@ class StationArt extends StatelessWidget {
                     ),
                   ),
                 ),
-                Image.asset(
-                  station.logoAsset,
-                  fit: BoxFit.cover,
-                  // Nur in Anzeigegroesse dekodieren (P30-10): die Logos
-                  // liegen gross vor, in Liste und Ticker reichen 48 dp.
-                  cacheWidth: cachePx,
-                  excludeFromSemantics: true,
-                  filterQuality: FilterQuality.medium,
-                  frameBuilder: (context, child, frame, sync) => sync
-                      ? child
-                      : AnimatedOpacity(
-                          opacity: frame == null ? 0 : 1,
-                          duration: LinefmMetrics.fast,
-                          child: child,
-                        ),
-                  errorBuilder: (context, error, stack) =>
-                      const SizedBox.shrink(),
-                ),
+                ?_logo(station, cachePx),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  /// Logo-Bild oder null (dann bleibt nur der Platzhalter).
+  static Widget? _logo(Station station, int cachePx) {
+    Widget fade(BuildContext context, Widget child, int? frame, bool sync) =>
+        sync
+        ? child
+        : AnimatedOpacity(
+            opacity: frame == null ? 0 : 1,
+            duration: LinefmMetrics.fast,
+            child: child,
+          );
+    Widget hide(BuildContext context, Object error, StackTrace? stack) =>
+        const SizedBox.shrink();
+    final asset = station.logoAsset;
+    if (asset != null) {
+      return Image.asset(
+        asset,
+        fit: BoxFit.cover,
+        // Nur in Anzeigegroesse dekodieren (P30-10): die Logos liegen gross
+        // vor, in Liste und Ticker reichen 48 dp.
+        cacheWidth: cachePx,
+        excludeFromSemantics: true,
+        filterQuality: FilterQuality.medium,
+        frameBuilder: fade,
+        errorBuilder: hide,
+      );
+    }
+    if (station.logoUrl.isEmpty) return null;
+    return Image.network(
+      station.logoUrl,
+      fit: BoxFit.cover,
+      cacheWidth: cachePx,
+      excludeFromSemantics: true,
+      filterQuality: FilterQuality.medium,
+      frameBuilder: fade,
+      errorBuilder: hide,
     );
   }
 }

@@ -1,6 +1,6 @@
 # Bedrohungsmodell
 
-Eine Betrachtung nach STRIDE entlang der echten Datenflüsse von LINEFM Radio. Stand 21.11.2026, abgeleitet aus dem Quellcode und den Konfigurationen im Repository. Es ist eine Arbeitsgrundlage, kein Gutachten und keine Zusage. Gemeldete Lücken: [../../SECURITY.md](../../SECURITY.md). Vorfälle: [INCIDENT.md](INCIDENT.md).
+Eine Betrachtung nach STRIDE entlang der echten Datenflüsse von LINEFM Radio. Stand 25.11.2026 (Pentest-Runde 1, #133), abgeleitet aus dem Quellcode und den Konfigurationen im Repository. Es ist eine Arbeitsgrundlage, kein Gutachten und keine Zusage. Gemeldete Lücken: [../../SECURITY.md](../../SECURITY.md). Vorfälle: [INCIDENT.md](INCIDENT.md).
 
 STRIDE steht für Spoofing (Vortäuschen einer Identität), Tampering (Manipulation), Repudiation (Abstreiten), Information disclosure (Datenabfluss), Denial of service (Ausfall) und Elevation of privilege (Rechteausweitung).
 
@@ -125,7 +125,16 @@ Die Spalte "Vorhanden" nennt Maßnahmen, die im Repository belegt sind. "Rest" i
 | S | Gestohlenes GitHub-Konto oder Token | Aktionen mit minimalen `permissions:`, Umgebung `production` mit Genehmiger (Betreiber muss ihn einrichten), Secret-Scan mit gitleaks | Kontosicherheit (2FA, Hardware-Schlüssel) liegt beim Betreiber | S1 |
 | I | Secrets in Code oder Logs | gitleaks, Secret-Gate-Action, keine Secrets im Repository | Fehler im Workflow könnten Secrets ausgeben | S1 |
 | R | Wer hat was veröffentlicht | Git-Verlauf, geschützter Hauptzweig, Workflow-Läufe mit Benutzer und Zeit, Attestierungen | Rulesets und Branch-Schutz müssen aktiv sein (Repo-Einstellung) | S3 |
+| T | Unverankertes Build-Werkzeug im Signier-Job | Der Windows-Installer entsteht mit dem eigenen Packer aus dem Repository (`installer/windows`), es wird kein Fremdwerkzeug nachinstalliert (#133, #88) | Der Axe.Windows-Scanner im Prüflauf ist per Hash gepinnt | S3 |
 | E | Fremder Pull Request führt Code mit Rechten aus | Kein privilegierter Job auf `pull_request`, Secrets nur in geschützten Läufen | Fehlkonfiguration bei neuen Workflows. Jeder neue Workflow wird gegen diese Regel geprüft. | S2 |
+
+### Desktop-Installation (Windows, Linux, macOS)
+
+| STRIDE | Bedrohung | Vorhanden | Rest | Stufe |
+|---|---|---|---|---|
+| T | Austausch von Programmdateien nach der Installation | Windows: Installation pro Benutzer (`PrivilegesRequired=lowest`), Programmdateien liegen im Benutzerprofil und laufen ohne erhöhte Rechte. Signierte EXE (sobald Zertifikat gesetzt). | Wer schon als derselbe Benutzer Code ausführt, kann die Dateien ändern. Das ist keine neue Grenze. | S4 |
+| E | Schema-Handler `linefm://` startet die App mit fremdem Argument | Argument wird nur als URI gelesen, nur `linefm://play?station=<slug>` mit Slug aus der festen Senderliste wirkt (`lib/platform/deep_links.dart`) | Ein Link kann höchstens einen bekannten Sender starten | S4 |
+| T | Manipuliertes Update | Kein In-App-Updater. Updates kommen über Stores, Paketquellen oder einen neuen Installer mit Signatur und Provenance | | S4 |
 
 ## Nicht im Umfang
 

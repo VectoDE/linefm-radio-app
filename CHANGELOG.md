@@ -23,9 +23,14 @@ Erste Version. Noch in keinem Store veröffentlicht, das Datum wird beim Release
 - Pipelines für Build, Release und Store-Upload (GitHub Actions).
 - Anleitung [Bauen und Starten](docs/BAUEN-UND-STARTEN.md) für Betreiber: Bau über GitHub Actions, lokal bauen, Ergebnisse öffnen. Start-Skripte `tool/bauen.ps1` und `tool/bauen.sh`.
 
+- Konfigurationsordner `config/`: thematisch getrennte YAML-Dateien mit Kommentar über jedem Schlüssel, im Repository nur als vollständige `*.example.yaml` (Ausnahme: die Senderliste). Prüfwerkzeug `tool/check_config.dart`, läuft in der CI. Anleitung [Konfiguration](docs/KONFIGURATION.md).
+- Schalter `showListenerCount` in `config/features.yaml`: Die Hörerzahl im Player ist optional und standardmäßig aus.
+
 ### Geändert
 
 - iOS braucht mindestens iOS 16 (geplant war iOS 13). Das Google Cast SDK für Chromecast verlangt ab Version 4.8.6 iOS 16. Bis das Cast-Plugin das selbst erklärt, ist das SDK auf 4.8.4 festgelegt.
+- Die Senderliste steht in einer einzigen Datei, `config/stations.yaml`, statt im Code. Die App lädt beim Start im Hintergrund die aktuelle Fassung von einer festen eigenen Adresse (`STATIONS_URL`) nach; ist sie nicht erreichbar, gilt die mitgelieferte Liste. Favoriten, Wecker und Links auf einen entfernten Sender führen zu keinem Fehler. Anleitung [Sender verwalten](docs/SENDER-VERWALTEN.md), Entscheidung in [ADR 0008](docs/adr/0008-senderliste-als-konfigurationsdatei.md).
+
 - Der Web-Postbuild entfernt Sourcemaps, Debug-Symbole und ungenutzte Engine-Varianten. Der Ausrollordner schrumpft von 49,5 auf 33,3 MB, der Startsatz bleibt gleich.
 - Der Service Worker legt beide Caches pro Build an und räumt alte Caches beim Update ab.
 - Manifest-Dateien (`AssetManifest.*`, `FontManifest.json`, `NOTICES`) werden nicht mehr einen Tag gecacht, sondern bei jedem Aufruf geprüft.

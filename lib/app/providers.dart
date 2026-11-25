@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:http/http.dart' as http;
 import 'package:linefm_radio/app/navigation.dart';
 import 'package:linefm_radio/app/player_controller.dart';
+import 'package:linefm_radio/app/stations_provider.dart';
 import 'package:linefm_radio/app/user_activation.dart';
 import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
@@ -223,6 +224,14 @@ final stationsProvider = StreamProvider<List<StationLive>>(
 class ActiveStationNotifier extends Notifier<Station> {
   @override
   Station build() {
+    // Nachgeladene Senderliste (Issue #91): geaenderte Angaben des aktiven
+    // Senders (Name, Farbe, Logo) uebernehmen. Wurde er entfernt, bleibt er
+    // aktiv, bis der Nutzer wechselt; eine laufende Wiedergabe reisst nicht
+    // ab.
+    ref.listen(stationsCatalogProvider, (_, next) {
+      final updated = stationBySlug(state.slug);
+      if (updated != null && !updated.sameAs(state)) state = updated;
+    });
     final slug = ref.read(prefsProvider).readLastStation();
     return (slug == null ? null : stationBySlug(slug)) ?? stationsCatalog.first;
   }
@@ -269,7 +278,12 @@ final historyProvider = StreamProvider<List<HistoryEntry>>((ref) {
   return ref.watch(nowPlayingRepositoryProvider).watchHistory(station);
 });
 
+/// Hoererzahl der aktiven Station; null (und kein Abruf), solange
+/// `showListenerCount` in config/features.yaml nicht true ist.
 final listenersProvider = StreamProvider<int?>((ref) {
+  if (!ref.watch(appConfigProvider).showListenerCount) {
+    return Stream<int?>.value(null);
+  }
   final station = ref.watch(activeStationProvider);
   return ref.watch(nowPlayingRepositoryProvider).watchListeners(station);
 });
@@ -493,6 +507,7 @@ List<Override> productionOverrides({
       activeStation: ref.read(activeStationProvider),
       socket: config.wsEnabled ? WebSocketSongChangeSocket() : null,
     );
+    ref.listen(stationsCatalogProvider, (_, _) => repo.stationsChanged());
     bindNowPlayingRepository(ref, repo);
     return repo;
   }),

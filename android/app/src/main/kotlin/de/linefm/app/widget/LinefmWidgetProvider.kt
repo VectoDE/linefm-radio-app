@@ -113,7 +113,7 @@ class LinefmWidgetProvider : HomeWidgetProvider() {
         if (cover != null) {
             views.setImageViewBitmap(R.id.widget_logo, cover)
         } else {
-            views.setImageViewResource(R.id.widget_logo, StationLogos.drawableFor(state.stationSlug))
+            views.setImageViewResource(R.id.widget_logo, StationLogos.drawableFor(context, state.stationSlug))
         }
 
         views.setTextViewText(R.id.widget_station, state.stationName)
@@ -258,14 +258,22 @@ internal class WidgetState(
     }
 }
 
-/** Gebuendelte Senderlogos (auch fuer Android Auto, siehe keep.xml). */
+/**
+ * Gebuendelte Senderlogos (auch fuer Android Auto, siehe keep.xml).
+ *
+ * Keine eigene Senderliste (Issue #91): Die Senderliste steht nur in
+ * config/stations.yaml. Hier wird nur das Format des Kuerzels geprueft
+ * und das Drawable `auto_station_<kuerzel>` per Name gesucht; fehlt es (Sender
+ * erst nachgeladen), erscheint das LINEFM-Logo.
+ */
 internal object StationLogos {
-    fun drawableFor(slug: String?): Int = when (slug) {
-        "linefmrap" -> R.drawable.auto_station_linefmrap
-        "linefmgaming" -> R.drawable.auto_station_linefmgaming
-        "linefmlofi" -> R.drawable.auto_station_linefmlofi
-        "radio3fm" -> R.drawable.auto_station_radio3fm
-        "fobfm" -> R.drawable.auto_station_fobfm
-        else -> R.drawable.auto_station_linefm
+    private val SLUG = Regex("^[a-z0-9_-]{1,64}$")
+
+    fun drawableFor(context: Context, slug: String?): Int {
+        if (slug == null || !SLUG.matches(slug)) return R.drawable.auto_station_linefm
+        val name = "auto_station_" + slug.replace(Regex("[^a-z0-9]"), "")
+        @Suppress("DiscouragedApi") // Name kommt aus der Senderliste, nicht aus R.
+        val id = context.resources.getIdentifier(name, "drawable", context.packageName)
+        return if (id != 0) id else R.drawable.auto_station_linefm
     }
 }

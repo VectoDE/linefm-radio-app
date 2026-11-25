@@ -22,6 +22,8 @@ on:
       - pubspec.yaml
       - pubspec.lock
       - packaging/**
+      - installer/**
+      - LICENSE
       - .github/workflows/build.yml
       - .github/actions/**
   workflow_dispatch:
@@ -276,6 +278,7 @@ jobs:
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
           legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
           sentry-dsn: ${{ vars.SENTRY_DSN }}
@@ -381,6 +384,7 @@ jobs:
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
           legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
           sentry-dsn: ${{ vars.SENTRY_DSN }}
@@ -485,6 +489,7 @@ jobs:
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
           legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
           sentry-dsn: ${{ vars.SENTRY_DSN }}
@@ -520,7 +525,7 @@ jobs:
     needs: meta
     if: needs.meta.outputs.run == 'true'
     runs-on: windows-latest
-    timeout-minutes: 60
+    timeout-minutes: 80
     permissions:
       contents: read
     env:
@@ -558,6 +563,21 @@ jobs:
       - name: Flutter einrichten
         uses: ./.github/actions/setup-flutter
 
+      # Installer (#88): Engine (C++, CMake/MSVC) und eigene Setup-Oberflaeche
+      # (Flutter, installer/windows/ui) zuerst, damit Fehler frueh auffallen.
+      - name: Setup-Oberflaeche pruefen (analyze, Tests, Bildschirmfotos)
+        shell: bash
+        working-directory: installer/windows/ui
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter analyze --fatal-infos
+          flutter test
+
+      - name: Installer-Engine und Setup-Oberflaeche bauen
+        shell: pwsh
+        run: ./installer/windows/build.ps1 -Stage prepare -Version $env:LABEL
+
       - name: Konfiguration schreiben
         uses: ./.github/actions/write-config
         with:
@@ -566,6 +586,7 @@ jobs:
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
           legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
           sentry-dsn: ${{ vars.SENTRY_DSN }}
@@ -601,7 +622,10 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName -Descending | Select-Object -First 1
-          $files = Get-ChildItem 'build/windows/x64/runner/Release' -Recurse -Include *.exe
+          # App, Setup-Stub (wird auch uninstall.exe) und Setup-Oberflaeche.
+          $files = @(Get-ChildItem 'build/windows/x64/runner/Release' -Recurse -Include *.exe) +
+                   @(Get-Item 'build/installer/engine/Release/setup_stub.exe') +
+                   @(Get-ChildItem 'installer/windows/ui/build/windows/x64/runner/Release' -Recurse -Include *.exe)
           foreach ($f in $files) {
             & $signtool.FullName sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $env:PFX_PATH /p $env:PFX_PASSWORD $f.FullName
             if ($LASTEXITCODE -ne 0) { throw "signtool fehlgeschlagen fuer $($f.Name)" }
@@ -627,11 +651,16 @@ jobs:
           if ($env:PFX_PATH) {
             $msixArgs += @('--certificate-path', $env:PFX_PATH, '--certificate-password', $env:PFX_PASSWORD)
           } else {
-            $msixArgs += @('--sign-msix', 'false')
+            # Unsigniert verlangt msix eine Publisher-Identitaet; mit Zertifikat kommt sie aus dem Zertifikat.
+            $msixArgs += @('--sign-msix', 'false', '--publisher', 'CN=LineFM Studios', '--publisher-display-name', 'LineFM Studios')
             "- Windows: MSIX **unsigniert** (kein Code-Signing-Zertifikat), Sideload erst nach Signatur" | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
           }
-          dart @args
+          dart @msixArgs
           if ($LASTEXITCODE -ne 0) { throw 'msix:create fehlgeschlagen' }
+          # #94: ohne .msix-Datei ist der Schritt fehlgeschlagen.
+          $msix = Get-ChildItem dist -Filter *.msix
+          if (-not $msix) { throw 'msix:create hat keine .msix-Datei erzeugt' }
+          $msix | Select-Object Name, Length | Format-Table | Out-String | Write-Host
 
       - name: MSIX-Hinweis
         if: hashFiles('assets/branding/icon_1024.png') == ''
@@ -639,30 +668,14 @@ jobs:
         run: |
           echo "- Windows: MSIX uebersprungen, assets/branding/icon_1024.png fehlt noch (P05)" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Installer erstellen (Inno Setup)
-        if: hashFiles('packaging/windows/*.iss') != ''
+      - name: Installer packen (eigene Oberflaeche)
         shell: pwsh
         run: |
-          $ErrorActionPreference = 'Stop'
-          $iscc = Get-Command iscc.exe -ErrorAction SilentlyContinue
-          if (-not $iscc) {
-            choco install innosetup -y --no-progress | Out-Null
-            $iscc = Get-Item "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-          }
-          $iss = Get-ChildItem 'packaging/windows/*.iss' | Select-Object -First 1
-          # Vertrag mit packaging/windows (P26): Defines AppVersion, SourceDir, OutputDir, OutputBaseFilename.
-          & $iscc.Source "/DAppVersion=$env:BUILD_NAME" "/DSourceDir=$((Resolve-Path 'build/windows/x64/runner/Release').Path)" `
-            "/DOutputDir=$((Resolve-Path 'dist').Path)" "/DOutputBaseFilename=linefm-radio-$env:LABEL-windows-x64-setup" $iss.FullName
-          if ($LASTEXITCODE -ne 0) { throw 'ISCC fehlgeschlagen' }
-
-      - name: Installer-Hinweis
-        if: hashFiles('packaging/windows/*.iss') == ''
-        shell: bash
-        run: |
-          echo "- Windows: Installer uebersprungen, packaging/windows/*.iss fehlt noch (P26)" >> "$GITHUB_STEP_SUMMARY"
+          ./installer/windows/build.ps1 -Stage pack -Version $env:LABEL `
+            -Out "dist/linefm-radio-$env:LABEL-windows-x64-setup.exe"
 
       - name: Installer signieren
-        if: needs.meta.outputs.sign_windows == 'true' && hashFiles('packaging/windows/*.iss') != ''
+        if: needs.meta.outputs.sign_windows == 'true'
         shell: pwsh
         env:
           PFX_PATH: ${{ steps.cert.outputs.path }}
@@ -673,7 +686,45 @@ jobs:
           Get-ChildItem dist -Filter *-setup.exe | ForEach-Object {
             & $signtool.FullName sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $env:PFX_PATH /p $env:PFX_PASSWORD $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "signtool fehlgeschlagen fuer $($_.Name)" }
+            & $signtool.FullName verify /pa $_.FullName
+            if ($LASTEXITCODE -ne 0) { throw "Signatur ungueltig: $($_.Name)" }
           }
+
+      # Installation, Start, Update (laufende App, Einstellungen bleiben),
+      # Downgrade-Sperre, Oberflaeche per UI-Automation, Deinstallation und
+      # "alle Benutzer" auf dem Runner. Fuer das Update entsteht eine zweite
+      # setup.exe mit einer kleineren Version aus denselben Dateien (nur fuer den Test).
+      # Axe.Windows CLI (Microsoft, MIT) scans the setup window for
+      # accessibility issues; pinned release, verified by SHA-256.
+      - name: Fetch Axe.Windows CLI
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP 'axe.zip'
+          Invoke-WebRequest -Uri 'https://github.com/microsoft/axe-windows/releases/download/v2.4.2/AxeWindowsCLI-2.4.2.zip' -OutFile $zip
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne 'aeca43f41c89b3ffb1db84011539e609ecd7cb3badd6e78fada2ada327d10a64') { throw "Axe.Windows hash mismatch: $hash" }
+          $dir = Join-Path $env:RUNNER_TEMP 'axe'
+          Expand-Archive $zip -DestinationPath $dir -Force
+          "AXE_CLI=$(Join-Path $dir 'AxeWindowsCLI.exe')" >> $env:GITHUB_ENV
+
+      - name: Installer testen (Installation, Start, Update, Deinstallation)
+        shell: pwsh
+        run: |
+          $old = '0.0.0-0'  # lowest valid SemVer, below every generated version (#113)
+          ./installer/windows/build.ps1 -Stage pack -Version $old -Out build/installer/setup-old.exe
+          ./installer/windows/test-installer.ps1 -Setup "dist/linefm-radio-$env:LABEL-windows-x64-setup.exe" `
+            -OldSetup build/installer/setup-old.exe -OldVersion $old -Version $env:LABEL -ArtifactDir build/installer-test
+
+      - name: Installer-Bildschirmfotos und Protokolle hochladen
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: installer-test-windows
+          path: |
+            build/installer-test/
+            installer/windows/ui/build/screenshots/
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Zertifikat entfernen
         if: always()
@@ -742,6 +793,7 @@ jobs:
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
           legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
           umami-url: ${{ vars.UMAMI_URL }}
           umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
           sentry-dsn: ${{ vars.SENTRY_DSN }}
@@ -883,6 +935,7 @@ jobs:
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
           legal-strict: ${{ needs.meta.outputs.legal_strict }}
           web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
 
       - name: iOS bauen (no-codesign)
         run: flutter build ios $FLUTTER_BUILD_FLAGS --no-codesign --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"

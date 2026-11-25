@@ -397,9 +397,11 @@ jobs:
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
 
       - name: Web bauen
-        run: >-
-          flutter build web $FLUTTER_BUILD_FLAGS --wasm --no-web-resources-cdn --base-href /
-          --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER" $(bash tool/web_define_passthrough.sh)
+        shell: bash
+        run: |
+          mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
+          # shellcheck disable=SC2086 # FLUTTER_BUILD_FLAGS is a flag list
+          flutter build web $FLUTTER_BUILD_FLAGS --wasm --no-web-resources-cdn --base-href /             --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER" "${web_defines[@]}"
 
       - name: Ersatzschriften selbst hosten (L14)
         run: |

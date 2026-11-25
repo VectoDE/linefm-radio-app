@@ -334,9 +334,10 @@ jobs:
           app-env: dev
 
       - name: Web bauen
-        run: >-
-          flutter build web --release --wasm --no-web-resources-cdn
-          --dart-define-from-file=config/app.json --base-href / $(bash tool/web_define_passthrough.sh)
+        shell: bash
+        run: |
+          mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
+          flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file=config/app.json --base-href / "${web_defines[@]}"
 
       - name: Ersatzschriften selbst hosten (L14)
         run: |

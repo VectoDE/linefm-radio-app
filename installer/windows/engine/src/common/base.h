@@ -128,6 +128,7 @@ struct Product {
   std::wstring dir_name;      // Ordnername unter Programs/Program Files
   std::wstring data_company;  // Ersatzwert, falls die EXE keine Angabe hat
   std::wstring data_product;  // Ersatzwert, falls die EXE keine Angabe hat
+  std::wstring data_company_legacy;  // frueherer Firmenordner (wird mit entfernt)
   std::wstring default_scope = L"user";
   bool default_desktop = true;
   bool default_start_menu = true;

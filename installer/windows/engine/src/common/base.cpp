@@ -535,6 +535,7 @@ bool ParseProduct(const std::string& ini_text, Product* out,
     else if (key == L"dir_name") p.dir_name = value;
     else if (key == L"data_company") p.data_company = value;
     else if (key == L"data_product") p.data_product = value;
+    else if (key == L"data_company_legacy") p.data_company_legacy = value;
     else if (key == L"default_scope") p.default_scope = Lower(value);
     else if (key == L"default_desktop_shortcut") flag(&p.default_desktop);
     else if (key == L"default_start_menu") flag(&p.default_start_menu);

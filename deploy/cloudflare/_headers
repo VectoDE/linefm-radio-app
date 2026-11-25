@@ -10,6 +10,8 @@
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
   X-Frame-Options: DENY
+  # Pages sends Access-Control-Allow-Origin: * by default; the app needs no cross-origin reads (#133).
+  ! Access-Control-Allow-Origin
 
 /
   Cache-Control: no-cache

@@ -8,7 +8,7 @@ name: DAST
 # Report only: findings do not fail the job; triage happens in the tracker.
 
 on:
-  # Changes to this workflow are tested in their own PR (no secrets on forks).
+  # Changes to this workflow are tested in their own proposed change (no secrets on forks).
   pull_request:
     paths:
       - .github/workflows/dast.yml

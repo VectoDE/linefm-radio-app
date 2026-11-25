@@ -12,6 +12,11 @@ Flagged patterns (case-insensitive where noted):
             entity, e.g. a number in parentheses or after "see"
   url       a link to /issues/<n> or /pull/<n> of this repository
 
+  word      the concepts themselves ("issue", "pull request", "PR") are not
+            used in files either; write "ticket", "proposed change" or
+            describe the behaviour. Case-insensitive except "PR", whole words
+            only, so "PRNG" or "express" do not match.
+
 Allow-list (false positives, each with its reason):
   - repeated-digit shorthand colors such as #111, #333, #999 (CSS/SVG/YAML)
   - HTML/XML character references such as &#10; or &#39; (the "&" precedes)
@@ -20,6 +25,15 @@ Allow-list (false positives, each with its reason):
     to this repository's tracker (the "bare" pattern needs a non-word
     character before "#", so "repo#16" never matches)
   - tool/font_fallback.lock.json: generated data, not prose
+  - lib/l10n/gen/: output of the localizations tool, text comes from Flutter
+  - LICENSE files of third parties (verbatim legal text)
+  - machine-required GitHub identifiers, matched per line (see WORD_ALLOW):
+    the "issues:" and "pull-requests:" permission keys and "issues:" trigger,
+    "gh issue ..." and "gh api ..." calls, "github.event.issue", API paths
+    "repos/.../issues", the web path "/issues/new" of the new-report form, and
+    Dependabot's "open-pull-requests-limit". They cannot be renamed. The
+    identifiers pull_request, pull_request_target and ISSUE_TEMPLATE contain
+    an underscore and are not words, so they need no entry.
 
 Usage: python3 tool/check_no_issue_refs.py   (exit 1 on any finding)
 """
@@ -38,6 +52,22 @@ PATTERNS = {
     "bare": re.compile(r"(?<![\w&/#])#\d{1,4}\b"),
     "url": re.compile(OWN_REPO + r"/(?:issues|pull)/\d+"),
 }
+WORD_CASE = re.compile(r"\bPRs?\b")  # "PR" is matched case-sensitively
+WORD_NOCASE = re.compile(r"\b(?:issues?|pull[ -]requests?)\b", re.IGNORECASE)
+WORD_ALLOW = [
+    re.compile(p)
+    for p in (
+        r"^\s*issues:\s*(?:read|write)?\s*$",
+        r"^\s*pull-requests:",
+        r"github\.event\.issue",
+        r"\bgh (?:issue|api)\b",
+        r"repos/\S*/issues",
+        r"/issues/new",
+        r"open-pull-requests-limit",
+    )
+]
+# This file documents the words it forbids.
+WORD_SKIP_PREFIXES = ("lib/l10n/gen/", "tool/check_no_issue_refs.py")
 SHORTHAND_COLOR = re.compile(r"#(\d)\1\1\b")
 SKIP_FILES = {"tool/font_fallback.lock.json"}
 
@@ -62,6 +92,15 @@ def main():
             continue
         for number, line in enumerate(text.splitlines(), 1):
             scrubbed = SHORTHAND_COLOR.sub("", line)
+            if (
+                not path.startswith(WORD_SKIP_PREFIXES)
+                and "LICENSE" not in path
+                and not any(a.search(line) for a in WORD_ALLOW)
+                and (WORD_NOCASE.search(line) or WORD_CASE.search(line))
+            ):
+                print(f"{path}:{number}: [word] {line.strip()[:120]}")
+                findings += 1
+                continue
             for name, pattern in PATTERNS.items():
                 if pattern.search(scrubbed):
                     print(f"{path}:{number}: [{name}] {line.strip()[:120]}")

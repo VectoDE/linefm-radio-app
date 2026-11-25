@@ -61,7 +61,7 @@ UTF-8, eine Nachricht pro Zeile.
 - **Zielordner**: Längen-, Zeichen- und Reparse-Point-Prüfung. Bei "Alle Benutzer" darf kein normaler Benutzer den Ordner oder seine Elternordner ändern können; neue Ordner außerhalb von `Program Files` bekommen eine geschützte DACL.
 - **Gequotete Pfade** in `UninstallString`, `QuietUninstallString`, Link-Schema (`"...exe" "%1"`), Autostart und allen Kommandozeilen (Quoting nach `CommandLineToArgvW`).
 - **Härtung** beim Kompilieren: `/guard:cf`, `/Qspectre`, `/sdl`, `/GS`, ASLR (`/DYNAMICBASE /HIGHENTROPYVA`), DEP, CET (`/CETCOMPAT`), `/W4 /WX`.
-- **Signatur**: Die CI signiert `setup_stub.exe` (damit auch `uninstall.exe`), `linefm_setup.exe` und die fertige `setup.exe` mit dem vorhandenen Zertifikat (`WINDOWS_CERT_*`) und prüft sie mit `signtool verify`. Ohne Zertifikat (PRs, fehlende Secrets) bleibt alles unsigniert, SmartScreen warnt dann.
+- **Signatur**: Die CI signiert `setup_stub.exe` (damit auch `uninstall.exe`), `linefm_setup.exe` und die fertige `setup.exe` mit dem vorhandenen Zertifikat (`WINDOWS_CERT_*`) und prüft sie mit `signtool verify`. Ohne Zertifikat (Änderungsvorschläge, fehlende Secrets) bleibt alles unsigniert, SmartScreen warnt dann.
 
 ## Grenzen
 

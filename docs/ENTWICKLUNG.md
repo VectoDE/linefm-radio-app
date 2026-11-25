@@ -25,7 +25,7 @@ flutter run -d chrome        # oder windows, android, ...
 
 ### Flutter-Version: eine Quelle
 
-Die Version steht in `.fvmrc` (`3.50.0`). FVM liest die Datei, wenn du es nutzt (`fvm use`, optional, nicht nötig). Dieselbe Version steht an vier weiteren Stellen: im Standardwert von `.github/actions/setup-flutter/action.yml` (CI), in `.devcontainer/Dockerfile`, als Untergrenze in `pubspec.yaml` und in der Tabelle oben. Der Test `test/tool/flutter_version_test.dart` schlägt fehl, sobald eine Stelle abweicht, und prüft auch, dass kein Workflow eine eigene Version setzt. Ein Flutter-Update ändert alle Stellen in einem Pull Request. Bei dem neuen Dockerfile zusätzlich die Prüfsumme aus `https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json` übernehmen (Feld `sha256` der Version).
+Die Version steht in `.fvmrc` (`3.50.0`). FVM liest die Datei, wenn du es nutzt (`fvm use`, optional, nicht nötig). Dieselbe Version steht an vier weiteren Stellen: im Standardwert von `.github/actions/setup-flutter/action.yml` (CI), in `.devcontainer/Dockerfile`, als Untergrenze in `pubspec.yaml` und in der Tabelle oben. Der Test `test/tool/flutter_version_test.dart` schlägt fehl, sobald eine Stelle abweicht, und prüft auch, dass kein Workflow eine eigene Version setzt. Ein Flutter-Update ändert alle Stellen in einem Änderungsvorschlag. Bei dem neuen Dockerfile zusätzlich die Prüfsumme aus `https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json` übernehmen (Feld `sha256` der Version).
 
 ### Aufgaben-Starter: `tool/task.dart`
 
@@ -153,7 +153,7 @@ Referenzbilder hängen von der Rasterung der Plattform ab. Sie gelten deshalb nu
 
 ### Windows-Integrationstest
 
-`integration_test/windows_app_test.dart` startet die echte App in einem echten Windows-Fenster (Netzwerk-Fakes für laut.fm, kein Audio) und prüft Senderwechsel, Sprachwechsel mit fester Rail-Breite und die eigene Titelleiste (Maximieren, Doppelklick, Minimieren, Schließen in den Tray, Größe setzen). Er läuft nur in der CI (Workflow `itest-windows.yml`, bei Pull Request und manuell), nicht lokal. Die Bilder je Schritt liegen im Artifact `windows-itest-screens`: `gh run download <run-id> -n windows-itest-screens -D tmp-itest`. Nicht geprüft werden Ziehen, Andocken und Snap-Layouts (echte Mauseingaben des Betriebssystems).
+`integration_test/windows_app_test.dart` startet die echte App in einem echten Windows-Fenster (Netzwerk-Fakes für laut.fm, kein Audio) und prüft Senderwechsel, Sprachwechsel mit fester Rail-Breite und die eigene Titelleiste (Maximieren, Doppelklick, Minimieren, Schließen in den Tray, Größe setzen). Er läuft nur in der CI (Workflow `itest-windows.yml`, bei Änderungsvorschlag und manuell), nicht lokal. Die Bilder je Schritt liegen im Artifact `windows-itest-screens`: `gh run download <run-id> -n windows-itest-screens -D tmp-itest`. Nicht geprüft werden Ziehen, Andocken und Snap-Layouts (echte Mauseingaben des Betriebssystems).
 
 ### Coverage
 
@@ -162,7 +162,7 @@ Der Job „Tests“ der CI misst Zeilen- und Zweigabdeckung (`flutter test --cov
 - **Gefiltert:** `lib/l10n/gen/*` zählt nicht mit. Der Code kommt aus `flutter gen-l10n` und wird im Job „Uebersetzungen pruefen“ auf Aktualität geprüft; Tests dafür testen den Generator, nicht die App.
 - **Ungeladene Dateien** meldet `flutter test` von sich aus nicht. Ein Import-Lauf (`test/zz_coverage_all_test.dart`, wird nur in der CI erzeugt) holt sie mit 0 % in den Wert. Dateien mit Web-Bibliotheken (`*_web.dart`) lassen sich auf der VM nicht laden; sie stehen im Bericht unter „Ohne Messdaten“ und brauchen Browser-Tests.
 - **Bericht:** Tabelle je Datei in der Job-Zusammenfassung, HTML-Bericht im Artifact `coverage-html`, Rohdaten und Zusammenfassung in `coverage-lcov` (`report/summary.md`, `report/total.txt`).
-- **Check „Coverage darf nicht sinken“:** Auf Pull Requests vergleicht der Job die Zeilenabdeckung mit dem letzten erfolgreichen main-Lauf (Toleranz 0,10 Prozentpunkte). Ein Pflicht-Check mit 100 % folgt, sobald das erreicht ist.
+- **Check „Coverage darf nicht sinken“:** Auf Änderungsvorschläge vergleicht der Job die Zeilenabdeckung mit dem letzten erfolgreichen main-Lauf (Toleranz 0,10 Prozentpunkte). Ein Pflicht-Check mit 100 % folgt, sobald das erreicht ist.
 - Auswertung lokal nachstellen (mit einer vorhandenen `lcov.info`): `bash tool/coverage_report.sh coverage/lcov.info "" coverage/report`.
 
 - Schwere Builds (APK, Windows, Web) laufen nicht parallel zu `flutter test`, das braucht viel Arbeitsspeicher.

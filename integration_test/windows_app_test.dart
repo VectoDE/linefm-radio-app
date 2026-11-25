@@ -7,7 +7,7 @@
 //
 // Die Fenster-Funktionen (window_manager) sind die echten; Tray und
 // Tastenkuerzel laufen mit. Nicht geprueft werden hier Ziehen, Andocken und
-// Snap-Layouts (siehe Bericht im PR).
+// Snap-Layouts (siehe Bericht zur Änderung).
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async';

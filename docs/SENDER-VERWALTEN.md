@@ -29,7 +29,7 @@ Die Stream-Adresse trägst du nicht ein. Die App nimmt immer `https://stream.lau
 2. Kopiere einen vorhandenen Sender ab der Zeile mit `- kuerzel:` bis vor den nächsten und setze ihn an die gewünschte Stelle unter `sender:`.
 3. Achte auf die Einrückung: `- kuerzel` mit zwei Leerzeichen davor, die übrigen Felder mit vier. Keine Tabs.
 4. Trage Kürzel, Namen, Farbe und Logo-Adresse ein. Lass `logoDatei` weg, wenn es kein mitgeliefertes Logo gibt.
-5. Unten „Propose changes“ bzw. einen Pull Request anlegen. Die Prüfung („Konfigurationsordner pruefen“) zeigt dir sofort, ob die Datei stimmt, mit Zeilennummer und Hinweis.
+5. Unten „Propose changes“ bzw. einen Änderungsvorschlag anlegen. Die Prüfung („Konfigurationsordner pruefen“) zeigt dir sofort, ob die Datei stimmt, mit Zeilennummer und Hinweis.
 
 ## Sender entfernen
 

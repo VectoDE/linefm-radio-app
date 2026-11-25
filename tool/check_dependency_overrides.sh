@@ -2,7 +2,7 @@
 # Every entry under `dependency_overrides:` in pubspec.yaml needs a
 # documented reason. The line directly above the entry (or above the
 # `dependency_overrides:` key for its first entry) must be a comment of the form
-#   # override-reason(<package>): <why, with issue reference>
+#   # override-reason(<package>): <why, with the upstream cause>
 # Usage: bash tool/check_dependency_overrides.sh [pubspec.yaml]
 set -euo pipefail
 

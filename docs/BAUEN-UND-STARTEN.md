@@ -61,7 +61,7 @@ Was in welchem Artefakt liegt, abgeglichen mit dem Lauf vom 21.11.2026 ([Lauf 44
 | `dist-linux` | `...-linux-x64.tar.gz` | 14 MB |
 | `dist-macos` | `...-macos.dmg` (nur mit dem Haken bei macOS und iOS) | 29 MB |
 
-Stand dieses Laufs: Android, Web, Windows, Linux und macOS waren grün. Die iOS-Prüfung war rot. Sie ist eine reine Kompilierprüfung und liefert keine Datei (siehe A6). Der Fehler wird in einem eigenen Pull Request behoben, die Version dafür ist iOS 16 als Mindestversion. Ob sie danach grün ist, siehst du in der Lauf-Liste unter Actions.
+Stand dieses Laufs: Android, Web, Windows, Linux und macOS waren grün. Die iOS-Prüfung war rot. Sie ist eine reine Kompilierprüfung und liefert keine Datei (siehe A6). Der Fehler wird in einem eigenen Änderungsvorschlag behoben, die Version dafür ist iOS 16 als Mindestversion. Ob sie danach grün ist, siehst du in der Lauf-Liste unter Actions.
 
 Windows-MSIX: `build.yml` legt eine MSIX-Datei ins Artefakt (belegt im [Lauf 44953548872](https://github.com/VectoDE/linefm-radio-app/actions/runs/44953548872)). Fehlt sie, schlägt der Schritt fehl. Ohne Signatur lässt sie sich aber nicht installieren (siehe unten). Nimm den Installer (`...-setup.exe`) oder die ZIP.
 
@@ -80,19 +80,19 @@ Ersetze `apple=true` durch `apple=false`, wenn du keinen Mac-Bau brauchst. `gh r
 
 ### A4 Der Weg über ein Release
 
-Jeder Merge auf `main` erzeugt automatisch ein Release (`release.yml`). Du setzt dafür keinen Tag. Der Ablauf baut alle Plattformen und legt die Dateien mit Prüfsummen (`SHA256SUMS.txt`), cosign-Signaturen (`*.sigstore.json`), Herkunftsnachweis und SBOM (SPDX und CycloneDX) in ein GitHub-Release. Die Release Notes entstehen aus den Titeln der gemergten Pull Requests. Wie du Release-Dateien auf Echtheit prüfst, steht in [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).
+Jeder Merge auf `main` erzeugt automatisch ein Release (`release.yml`). Du setzt dafür keinen Tag. Der Ablauf baut alle Plattformen und legt die Dateien mit Prüfsummen (`SHA256SUMS.txt`), cosign-Signaturen (`*.sigstore.json`), Herkunftsnachweis und SBOM (SPDX und CycloneDX) in ein GitHub-Release. Die Release Notes entstehen aus den Titeln der gemergten Änderungsvorschläge. Wie du Release-Dateien auf Echtheit prüfst, steht in [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).
 
-Die Versionsnummer steht in keiner Datei, `pubspec.yaml` trägt nur den Platzhalter `0.0.0-dev`. Der Ablauf berechnet sie aus dem letzten Release und den offenen Issues:
+Die Versionsnummer steht in keiner Datei, `pubspec.yaml` trägt nur den Platzhalter `0.0.0-dev`. Der Ablauf berechnet sie aus dem letzten Release und den offenen Tickets:
 
-| Stand der offenen Issues | Stufe | Beispiel |
+| Stand der offenen Tickets | Stufe | Beispiel |
 | --- | --- | --- |
 | noch kein Release | Start | `0.1.0-alpha.1` |
-| mindestens ein Issue mit `typ:feature` offen | Alpha | `0.1.0-alpha.2`, `0.1.0-alpha.3` |
+| mindestens ein Ticket mit `typ:feature` offen | Alpha | `0.1.0-alpha.2`, `0.1.0-alpha.3` |
 | kein `typ:feature` mehr offen | Beta | `0.1.0-beta.1` |
-| nur noch Issues mit `nur-noch:jaybelife` offen | Release-Kandidat | `1.0.0-rc.1` |
-| kein Issue mehr offen | Stabil | `1.0.0` |
+| nur noch Tickets mit `nur-noch:jaybelife` offen | Release-Kandidat | `1.0.0-rc.1` |
+| kein Ticket mehr offen | Stabil | `1.0.0` |
 
-Jeder Merge zählt die letzte Zahl hoch. Eine Stufe fällt nie zurück, auch wenn ein Issue wieder aufgeht. Nach `1.0.0` richtet sich die nächste Nummer nach den Commit-Titeln (`fix:` ergibt 1.0.1, `feat:` 1.1.0, `feat!:` 2.0.0). Die Build-Nummer für die Stores steigt mit jedem Lauf.
+Jeder Merge zählt die letzte Zahl hoch. Eine Stufe fällt nie zurück, auch wenn ein Ticket wieder aufgeht. Nach `1.0.0` richtet sich die nächste Nummer nach den Commit-Titeln (`fix:` ergibt 1.0.1, `feat:` 1.1.0, `feat!:` 2.0.0). Die Build-Nummer für die Stores steigt mit jedem Lauf.
 
 Alpha-, Beta- und RC-Versionen sind GitHub-Vorabversionen und gehen in keinen Store. Erst ab `1.0.0` laden die Store-Abläufe zu Google Play, Snap, Microsoft, Apple und Flathub hoch und die Web-Version wird aktualisiert, soweit eingerichtet. Der Windows-Installer kommt später dazu.
 
@@ -453,7 +453,7 @@ flutter run -d <gerät-aus-der-liste>
 
 Mit eigener Konfiguration: `flutter run -d windows --dart-define-from-file=config/app.json`.
 
-Vor einem Pull Request laufen diese drei Prüfungen (Entwickler, siehe [ENTWICKLUNG.md](ENTWICKLUNG.md)):
+Vor einem Änderungsvorschlag laufen diese drei Prüfungen (Entwickler, siehe [ENTWICKLUNG.md](ENTWICKLUNG.md)):
 
 ```bash
 dart format --set-exit-if-changed .

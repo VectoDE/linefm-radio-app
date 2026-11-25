@@ -47,7 +47,7 @@ In der CI gibt es keine echten Dateien. Die Werte kommen aus den Repository-Eins
 
 ## Prüfung in der CI
 
-Jeder Pull Request führt `dart run tool/check_config.dart` aus. Geprüft wird:
+Jeder Änderungsvorschlag führt `dart run tool/check_config.dart` aus. Geprüft wird:
 
 - Über jedem Schlüssel steht ein Kommentar.
 - Jede Beispieldatei enthält alle Schlüssel ihres Schemas, keine unbekannten, mit dem richtigen Typ und genau dem Standardwert.

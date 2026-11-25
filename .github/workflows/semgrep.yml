@@ -12,7 +12,7 @@ name: Semgrep
 # - --metrics=off: keine Nutzungsdaten an Semgrep.
 # - CE analysiert nur innerhalb einer Funktion (keine Cross-File-Analyse, die
 #   gibt es nur im kostenpflichtigen Semgrep Code).
-# SARIF geht an Code Scanning (nicht bei PRs aus Forks). Jeder Fund laesst den
+# SARIF geht an Code Scanning (nicht bei Änderungsvorschlägen aus Forks). Jeder Fund laesst den
 # Job scheitern; begruendete Ausnahmen per "nosemgrep: <regel-id>" mit Kommentar.
 
 on:

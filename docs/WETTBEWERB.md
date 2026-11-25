@@ -42,7 +42,7 @@ Die Spalte LINEFM Radio nennt den Code-Stand, nicht den Stand eines Stores. Die 
 
 ## Lücken und Chancen (Vorschlagsliste)
 
-Das sind Vorschläge für Planung und Entscheidung durch jaybelife. Es wurden keine Issues dafür angelegt.
+Das sind Vorschläge für Planung und Entscheidung durch jaybelife. Es wurden keine Tickets dafür angelegt.
 
 | Nr. | Vorschlag | Beleg | Aufwand | Hinweis |
 |---|---|---|---|---|

@@ -40,7 +40,7 @@ Diese Punkte sind offen. Nichts davon ist behoben.
 
 ### Wie wir prüfen
 
-- Bei jedem Pull Request, bei jedem Push auf `main` und wöchentlich: der Workflow `a11y.yml` baut die Web-Version und lässt axe-core mit den Tags WCAG 2.0 bis 2.2 (A, AA, AAA) und Best Practices laufen. Bei jedem Verstoß, gleich welcher Stufe, und bei jeder nicht erreichbaren Ansicht schlägt der Lauf fehl. Von axe nicht entscheidbare Prüfungen stehen im Bericht und müssen von Hand beurteilt werden.
+- Bei jedem Änderungsvorschlag, bei jedem Push auf `main` und wöchentlich: der Workflow `a11y.yml` baut die Web-Version und lässt axe-core mit den Tags WCAG 2.0 bis 2.2 (A, AA, AAA) und Best Practices laufen. Bei jedem Verstoß, gleich welcher Stufe, und bei jeder nicht erreichbaren Ansicht schlägt der Lauf fehl. Von axe nicht entscheidbare Prüfungen stehen im Bericht und müssen von Hand beurteilt werden.
 - In der normalen Testsuite: Kontrast-, Semantik- und Golden-Tests.
 - Ein Windows-Integrationstest in der CI ist offen und noch nicht auf `main`. Er prüft nach dem Merge die Titelleiste im echten Fenster, aber nicht die Barrierefreiheit insgesamt.
 - Von Hand vor jedem Release: Tastaturdurchlauf, Zoom, Screenreader-Stichprobe ([Freigabe-Checkliste](../docs/FREIGABE-CHECKLISTE.md), B7 und B10). Diese Handprüfung ist noch nicht gelaufen.
@@ -100,7 +100,7 @@ These items are open. None of them is fixed.
 
 ### How we test
 
-- On every pull request, every push to `main` and weekly: the `a11y.yml` workflow builds the web version and runs axe-core with the WCAG 2.0 to 2.2 tags (A, AA, AAA) and best practices. The run fails on any violation of any level and on any view it cannot reach. Checks axe cannot decide appear in the report and need a manual verdict.
+- On every proposed change, every push to `main` and weekly: the `a11y.yml` workflow builds the web version and runs axe-core with the WCAG 2.0 to 2.2 tags (A, AA, AAA) and best practices. The run fails on any violation of any level and on any view it cannot reach. Checks axe cannot decide appear in the report and need a manual verdict.
 - In the regular test suite: contrast, semantics and golden tests.
 - A Windows integration test in CI is open and not on `main` yet. After the merge it checks the title bar in a real window, not accessibility as a whole.
 - By hand before each release: keyboard walkthrough, zoom, screen reader spot check ([release checklist](../docs/FREIGABE-CHECKLISTE.md), B7 and B10, German). This manual check has not been run yet.

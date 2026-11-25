@@ -1,10 +1,10 @@
 name: Release
 
 # Jeder Merge auf main erzeugt ein Release. Der Job "version" berechnet die
-# Version aus dem hoechsten bisherigen Release-Tag und den offenen Issues
+# Version aus dem hoechsten bisherigen Release-Tag und den offenen Tickets
 # (tool/release/next_version.dart, Logik in lib/core/update/app_version.dart):
 # Start 0.1.0-alpha.1, jeder Merge zaehlt die Vorabnummer hoch; beta, sobald kein
-# Issue mit typ:feature mehr offen ist; rc (1.0.0-rc.N), sobald nur noch Issues mit
+# Ticket mit typ:feature mehr offen ist; rc (1.0.0-rc.N), sobald nur noch Tickets mit
 # nur-noch:jaybelife offen sind; 1.0.0, wenn nichts mehr offen ist. Die Version steht
 # nirgends fest; pubspec.yaml traegt nur den Platzhalter 0.0.0-dev.
 # Baut alle Plattformen ueber build.yml. Der Job "sign" erzeugt SHA256SUMS.txt und
@@ -12,7 +12,7 @@ name: Release
 # SBOM) an und signiert jede Release-Datei plus SHA256SUMS.txt keyless mit cosign
 # (Sigstore, Bundles *.sigstore.json). "publish" signiert SHA256SUMS.txt optional mit
 # GPG (Secrets GPG_PRIVATE_KEY, GPG_PASSPHRASE; ohne sie uebersprungen), schreibt die
-# Release Notes aus den Commit- bzw. PR-Titeln und legt das GitHub-Release samt Tag
+# Release Notes aus den Commit- bzw. Titeln der Änderungen und legt das GitHub-Release samt Tag
 # auf dem gemergten Commit an. Android (APK/AAB), Windows (EXE) und macOS (DMG)
 # tragen ihre Plattform-Signatur nur mit gesetzten Signier-Secrets.
 # Pruefen: docs/RELEASE-VERIFIZIEREN.md.
@@ -88,22 +88,22 @@ jobs:
             exit 0
           fi
           git tag --list 'v*' > "$dir/tags.txt"
-          gh issue list --repo "$GITHUB_REPOSITORY" --state open --limit 1000             --json labels > "$dir/issues.json"
-          (cd tool/release && dart run next_version.dart --tags "$dir/tags.txt"             --issues "$dir/issues.json") > "$dir/pre.txt"
+          gh issue list --repo "$GITHUB_REPOSITORY" --state open --limit 1000             --json labels > "$dir/items.json"
+          (cd tool/release && dart run next_version.dart --tags "$dir/tags.txt"             --items "$dir/items.json") > "$dir/pre.txt"
           last="$(sed -n 's/^last=//p' "$dir/pre.txt")"
           if [ -n "$last" ]; then
             git log --format=%s "$last..HEAD" > "$dir/subjects.txt"
           else
             git log -1 --format=%s > "$dir/subjects.txt"
           fi
-          (cd tool/release && dart run next_version.dart --tags "$dir/tags.txt"             --issues "$dir/issues.json" --subjects "$dir/subjects.txt") > "$dir/out.txt"
+          (cd tool/release && dart run next_version.dart --tags "$dir/tags.txt"             --items "$dir/items.json" --subjects "$dir/subjects.txt") > "$dir/out.txt"
           cat "$dir/out.txt"
           { echo "skip=false"; cat "$dir/out.txt"; } >> "$GITHUB_OUTPUT"
           cp "$dir/subjects.txt" subjects.txt
           {
             echo "### Release $(sed -n 's/^tag=//p' "$dir/out.txt")"
             echo "- Stufe: $(sed -n 's/^stage=//p' "$dir/out.txt"), vorher: ${last:-keins}"
-            echo "- offene Issues: $(jq length "$dir/issues.json")"
+            echo "- offene Tickets: $(jq length "$dir/items.json")"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Tag und pubspec-Platzhalter pruefen
@@ -394,9 +394,9 @@ jobs:
           name: release-subjects
           path: ${{ runner.temp }}/subjects
 
-      # Deutsche Release Notes aus den Commit- bzw. PR-Titeln seit dem letzten
-      # Release. Angehaengte Nummern von Squash-Merges und Verweise auf Issues
-      # oder Pull Requests werden entfernt: Release Notes beschreiben nur.
+      # Deutsche Release Notes aus den Commit- bzw. Titeln der Änderungen seit dem letzten
+      # Release. Angehaengte Nummern von Squash-Merges und Verweise auf Tickets
+      # oder Änderungsvorschläge werden entfernt: Release Notes beschreiben nur.
       - name: Release Notes schreiben
         env:
           STAGE: ${{ needs.version.outputs.stage }}
@@ -417,7 +417,7 @@ jobs:
             echo ""
             echo "### Aenderungen"
             echo ""
-            grep -v '^[[:space:]]*$' "$RUNNER_TEMP/subjects/subjects.txt"               | sed -E 's/[[:space:]]*\((PR |pull request |issue )?#[0-9]+\)//Ig; s/[[:space:]]*(refs|fixes|closes|resolves)[[:space:]]+#[0-9]+//Ig'               | sed 's/^/- /'
+            grep -v '^[[:space:]]*$' "$RUNNER_TEMP/subjects/subjects.txt"               | sed -E 's/[[:space:]]*\(([[:alpha:]]+ )?#[0-9]+\)//Ig; s/[[:space:]]*(refs|fixes|closes|resolves)[[:space:]]+#[0-9]+//Ig'               | sed 's/^/- /'
             echo ""
             if [ -n "$LAST" ]; then
               echo "Alle Aenderungen: https://github.com/${GITHUB_REPOSITORY}/compare/${LAST}...${TAG}"

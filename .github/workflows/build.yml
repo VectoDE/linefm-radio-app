@@ -2,8 +2,8 @@ name: Build
 
 # Baut alle sechs Plattformen und legt die Ergebnisse als Artefakte "dist-<plattform>" ab.
 # macOS/iOS laufen (wegen 10-facher Actions-Minuten im privaten Repo) nur bei Release-Tags,
-# bei manuellem Start mit apple=true oder in PRs mit dem Label "ci:apple".
-# Signaturschritte laufen nur ausserhalb von PRs und nur, wenn die Secrets gesetzt sind;
+# bei manuellem Start mit apple=true oder in Änderungsvorschlägen mit dem Label "ci:apple".
+# Signaturschritte laufen nur ausserhalb von Änderungsvorschlägen und nur, wenn die Secrets gesetzt sind;
 # ohne Secrets entstehen unsignierte Artefakte und die Zusammenfassung nennt, was fehlt.
 
 on:
@@ -178,7 +178,7 @@ jobs:
             echo "### Build $label"
             echo "- build-name: \`$build_name\`, build-number: \`$build_number\`, APP_ENV: \`$app_env\`"
             echo "- macOS/iOS: $apple"
-            echo "- Signieren erlaubt (kein PR): $may_sign"
+            echo "- Signieren erlaubt (kein Änderungsvorschlag): $may_sign"
             echo "- Rechtstexte strikt (Pflicht-Platzhalter muessen gefuellt sein): $legal_strict"
             echo ""
             echo "#### Signatur-Gates"
@@ -331,7 +331,7 @@ jobs:
           if [ "$SIGNED" = "true" ]; then
             echo "- Android: mit Upload-Key signiert" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "- Android: **unsigniert** (kein Upload-Key bzw. PR-Build)" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Android: **unsigniert** (kein Upload-Key bzw. Build eines Änderungsvorschlags)" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Hochladen
@@ -732,7 +732,7 @@ jobs:
       # "alle Benutzer" auf dem Runner. Fuer das Update entsteht eine zweite
       # setup.exe mit einer kleineren Version aus denselben Dateien (nur fuer den Test).
       # Axe.Windows CLI (Microsoft, MIT) scans the setup window for
-      # accessibility issues; pinned release, verified by SHA-256.
+      # accessibility problems; pinned release, verified by SHA-256.
       - name: Fetch Axe.Windows CLI
         shell: pwsh
         run: |
@@ -776,7 +776,7 @@ jobs:
           if [ "$SIGNED" = "true" ]; then
             echo "- Windows: EXE/Installer signiert" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "- Windows: **unsigniert** (kein Zertifikat bzw. PR-Build), SmartScreen-Warnung moeglich" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Windows: **unsigniert** (kein Zertifikat bzw. Build eines Änderungsvorschlags), SmartScreen-Warnung moeglich" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Hochladen
@@ -961,7 +961,7 @@ jobs:
       - name: Signatur-Hinweis
         if: needs.meta.outputs.sign_macos != 'true'
         run: |
-          echo "- macOS: **unsigniert, nicht notarisiert** (Gate APPLE_PUBLISHING_ENABLED/Apple-Secrets bzw. PR-Build); Oeffnen per Rechtsklick > Oeffnen" >> "$GITHUB_STEP_SUMMARY"
+          echo "- macOS: **unsigniert, nicht notarisiert** (Gate APPLE_PUBLISHING_ENABLED/Apple-Secrets bzw. Build eines Änderungsvorschlags); Oeffnen per Rechtsklick > Oeffnen" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Keychain entfernen
         if: always()

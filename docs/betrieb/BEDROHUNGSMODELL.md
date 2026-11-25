@@ -126,7 +126,7 @@ Die Spalte "Vorhanden" nennt Maßnahmen, die im Repository belegt sind. "Rest" i
 | I | Secrets in Code oder Logs | gitleaks, Secret-Gate-Action, keine Secrets im Repository | Fehler im Workflow könnten Secrets ausgeben | S1 |
 | R | Wer hat was veröffentlicht | Git-Verlauf, geschützter Hauptzweig, Workflow-Läufe mit Benutzer und Zeit, Attestierungen | Rulesets und Branch-Schutz müssen aktiv sein (Repo-Einstellung) | S3 |
 | T | Unverankertes Build-Werkzeug im Signier-Job | Der Windows-Installer entsteht mit dem eigenen Packer aus dem Repository (`installer/windows`), es wird kein Fremdwerkzeug nachinstalliert | Der Axe.Windows-Scanner im Prüflauf ist per Hash gepinnt | S3 |
-| E | Fremder Pull Request führt Code mit Rechten aus | Kein privilegierter Job auf `pull_request`, Secrets nur in geschützten Läufen | Fehlkonfiguration bei neuen Workflows. Jeder neue Workflow wird gegen diese Regel geprüft. | S2 |
+| E | Fremder Änderungsvorschlag führt Code mit Rechten aus | Kein privilegierter Job auf `pull_request`, Secrets nur in geschützten Läufen | Fehlkonfiguration bei neuen Workflows. Jeder neue Workflow wird gegen diese Regel geprüft. | S2 |
 
 ### Desktop-Installation (Windows, Linux, macOS)
 

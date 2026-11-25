@@ -50,7 +50,7 @@ dependencies:
 # override-reason(flutter_rust_bridge): smtc_windows 1.1.0 (latest) is generated
 # against flutter_rust_bridge 2.11.1 and pins the Rust crate to =2.11.1; newer
 # Dart versions fail the bridge's runtime content-hash check. Remove once
-# smtc_windows ships FRB 2.13 (upstream KRTirtho/frb_plugins#16).
+# smtc_windows ships FRB 2.13 (fix tracked by the plugin authors).
 dependency_overrides:
   flutter_rust_bridge: 2.11.1
 

@@ -41,11 +41,11 @@ Alle Sender in einer App, kostenlos und ohne Konto.
 
 Datenschutz: Favoriten, Verlauf und Einstellungen bleiben auf deinem Gerät. Statistik und Absturzberichte sind nur aktiv, wenn der Betreiber sie einschaltet, und dann nur nach deiner Einwilligung. In der Web-Version kann der Betreiber zusätzlich eine Reichweitenmessung mit Google Analytics einrichten; auch die läuft nur, wenn du gesondert zustimmst. Impressum und Datenschutzerklärung stehen in der App und unter `/impressum/` und `/datenschutz/` auf der Web-Seite.
 
-Fehler melden und Ideen: im Bereich Issues oder Discussions dieses Repositories.
+Fehler melden und Ideen: im Bereich Tickets oder Discussions dieses Repositories.
 
 ## Barrierefreiheit
 
-Die App lässt sich mit Tastatur bedienen, alle Bereiche sind für Screenreader ausgezeichnet, hell und dunkel erreichen die Texte mindestens 4,5:1 Kontrast. Jeder Pull Request lässt axe-core über die Web-Version laufen (Workflow `a11y.yml`); bei einem schweren Fund schlägt der Lauf fehl. Mit echten Screenreadern (TalkBack, VoiceOver, NVDA) ist die App noch nicht geprüft. Was geht, was fehlt und wie du uns erreichst: [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) (Deutsch und Englisch) und die ausführliche [Erklärung zur Barrierefreiheit](docs/BARRIEREFREIHEIT.md).
+Die App lässt sich mit Tastatur bedienen, alle Bereiche sind für Screenreader ausgezeichnet, hell und dunkel erreichen die Texte mindestens 4,5:1 Kontrast. Jeder Änderungsvorschlag lässt axe-core über die Web-Version laufen (Workflow `a11y.yml`); bei einem schweren Fund schlägt der Lauf fehl. Mit echten Screenreadern (TalkBack, VoiceOver, NVDA) ist die App noch nicht geprüft. Was geht, was fehlt und wie du uns erreichst: [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) (Deutsch und Englisch) und die ausführliche [Erklärung zur Barrierefreiheit](docs/BARRIEREFREIHEIT.md).
 
 ## Für Entscheider
 
@@ -75,7 +75,7 @@ Du brauchst [Flutter 3.50](https://docs.flutter.dev/get-started/install) und Git
 1. Repository klonen und im Ordner `flutter pub get` ausführen.
 2. Optional: `config/app.example.yaml` nach `config/app.yaml` kopieren, ausfüllen und mit `dart run tool/check_config.dart --defines config/app.json` die Bauwerte erzeugen. Ohne diesen Schritt startet die App mit Standardwerten, Statistik bleibt aus. Siehe [Konfiguration](docs/KONFIGURATION.md).
 3. `flutter run -d chrome --dart-define-from-file=config/app.json` startet die Web-Version im Browser.
-4. Vor einem Pull Request: `dart format .`, `flutter analyze --fatal-infos` und `flutter test` müssen ohne Fehler durchlaufen.
+4. Vor einem Änderungsvorschlag: `dart format .`, `flutter analyze --fatal-infos` und `flutter test` müssen ohne Fehler durchlaufen.
 
 Hängt etwas, steht die Lösung oft in [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md), sonst frag in den Discussions ([SUPPORT.md](SUPPORT.md)). Wie wir miteinander umgehen: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
@@ -112,11 +112,11 @@ Die App gibt es auf Deutsch und Englisch. Das weicht bewusst vom Hausstandard mi
 
 Einige Scorecard-Prüfungen können hier nicht voll punkten, und das schreiben wir offen hin:
 
-- **Code-Review:** Das Projekt hat einen einzigen Entwickler. Pull Requests laufen durch die Pflicht-Checks, eine zweite Person, die freigibt, gibt es nicht.
+- **Code-Review:** Das Projekt hat einen einzigen Entwickler. Änderungsvorschläge laufen durch die Pflicht-Checks, eine zweite Person, die freigibt, gibt es nicht.
 - **Maintained:** Scorecard wertet Repositories unter 90 Tagen Alter ab. Das Repository ist im November 2026 entstanden.
 - **CII-Best-Practices:** hängt am Badge von bestpractices.dev, siehe oben.
 - **Fuzzing:** Scorecard erkennt OSS-Fuzz, ClusterFuzzLite und Fuzz- bzw. Property-Tests in Go, Haskell, JavaScript/TypeScript, Erlang und C#/F#. Für Dart gibt es weder eine passende Fuzzing-Engine noch eine Erkennung. ClusterFuzzLite unterstützt Dart nicht, ein Ersatz-Fuzzer nur für die Hilfsskripte in Python würde die Wertung heben, ohne die App sicherer zu machen. Die Begründung steht im Repository.
-- **Branch-Protection** und **CI-Tests** steigen mit der Zeit: Seit dem 19.11.2026 schützt das Ruleset `main-schutz` den Branch `main`, jede Änderung läuft als Pull Request durch die Pflicht-Checks. Scorecard bewertet aber auch die älteren Commits.
+- **Branch-Protection** und **CI-Tests** steigen mit der Zeit: Seit dem 19.11.2026 schützt das Ruleset `main-schutz` den Branch `main`, jede Änderung läuft als Änderungsvorschlag durch die Pflicht-Checks. Scorecard bewertet aber auch die älteren Commits.
 
 ## Standards und Konformität
 
@@ -124,22 +124,22 @@ Stand: 22. November 2026. Status heißt: **erfüllt** = die Prüfung läuft in d
 
 | Bereich | Standard oder Praxis | Status | Beleg und offene Punkte |
 |---|---|---|---|
-| Barrierefreiheit | WCAG 2.2 AA | teilweise | axe-core bei jedem Pull Request ohne Verstöße ([a11y.yml](.github/workflows/a11y.yml)). Screenreader-Prüfung und Zoom 400 % fehlen, siehe [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) |
+| Barrierefreiheit | WCAG 2.2 AA | teilweise | axe-core bei jedem Änderungsvorschlag ohne Verstöße ([a11y.yml](.github/workflows/a11y.yml)). Screenreader-Prüfung und Zoom 400 % fehlen, siehe [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) |
 | Barrierefreiheit | EN 301 549 | Ziel | Maßstab, kein Nachweis ([ACCESSIBILITY.md](.github/ACCESSIBILITY.md)) |
 | Barrierefreiheit | BFSG | Ziel | Ob das BFSG für diese App gilt und eine Erklärung Pflicht ist, wird geprüft; Entwurf in [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md). Falls es gilt, ist die MLBF in Magdeburg zuständig ([mlbf-barrierefrei.de](https://www.mlbf-barrierefrei.de)) |
 | Sicherheit | OpenSSF Scorecard | teilweise | Läuft wöchentlich und bei jedem Push auf `main` ([scorecard.yml](.github/workflows/scorecard.yml)); einige Prüfungen können nicht voll punkten, siehe [OpenSSF und Prüfsiegel](#openssf-und-prüfsiegel) |
 | Sicherheit | Signierte Releases (cosign, Sigstore) | Ziel | Der Ablauf steht in [release.yml](.github/workflows/release.yml), es gibt aber noch kein Release; Prüfanleitung: [docs/RELEASE-VERIFIZIEREN.md](docs/RELEASE-VERIFIZIEREN.md) |
 | Sicherheit | Herkunftsnachweis (GitHub-Attestierung, SLSA Build Provenance) | Ziel | Wie oben: erst mit dem ersten Release belegbar. Eine SLSA-Stufe behaupten wir nicht |
 | Sicherheit | SBOM (SPDX, CycloneDX) | Ziel | Wird im Release-Ablauf erzeugt ([release.yml](.github/workflows/release.yml)), noch kein Release |
-| Sicherheit | CodeQL | teilweise | GitHub-Actions-Workflows bei jedem Pull Request, Kotlin und Java wöchentlich; Dart unterstützt CodeQL nicht ([codeql.yml](.github/workflows/codeql.yml)) |
-| Sicherheit | Semgrep CE | teilweise | Läuft bei jedem Pull Request; Dart ist nicht abgedeckt, dort prüft `flutter analyze` ([semgrep.yml](.github/workflows/semgrep.yml)) |
-| Sicherheit | Trivy, OSV, gitleaks | erfüllt | Abhängigkeiten, Konfiguration und Git-Historie, bei jedem Pull Request ([supply-chain.yml](.github/workflows/supply-chain.yml)) |
-| Sicherheit | zizmor (Workflow-Prüfung) | erfüllt | Bei jedem Pull Request ([supply-chain.yml](.github/workflows/supply-chain.yml), Regeln in [zizmor.yml](.github/zizmor.yml)) |
+| Sicherheit | CodeQL | teilweise | GitHub-Actions-Workflows bei jedem Änderungsvorschlag, Kotlin und Java wöchentlich; Dart unterstützt CodeQL nicht ([codeql.yml](.github/workflows/codeql.yml)) |
+| Sicherheit | Semgrep CE | teilweise | Läuft bei jedem Änderungsvorschlag; Dart ist nicht abgedeckt, dort prüft `flutter analyze` ([semgrep.yml](.github/workflows/semgrep.yml)) |
+| Sicherheit | Trivy, OSV, gitleaks | erfüllt | Abhängigkeiten, Konfiguration und Git-Historie, bei jedem Änderungsvorschlag ([supply-chain.yml](.github/workflows/supply-chain.yml)) |
+| Sicherheit | zizmor (Workflow-Prüfung) | erfüllt | Bei jedem Änderungsvorschlag ([supply-chain.yml](.github/workflows/supply-chain.yml), Regeln in [zizmor.yml](.github/zizmor.yml)) |
 | Datenschutz | DSGVO | teilweise | Favoriten, Verlauf und Einstellungen bleiben auf dem Gerät ([ADR 0001](docs/adr/0001-kein-backend-keine-konten.md)). Die Datenschutzerklärung ist ein Entwurf mit offenen Platzhaltern; Prüfung durch einen Anwalt steht aus |
 | Datenschutz | TDDDG, Einwilligung | teilweise | Statistik und Reichweitenmessung starten nur nach Einwilligung, Widerruf stoppt sie ([docs/telemetry.md](docs/telemetry.md), Tests `test/features/consent_storage_test.dart`, `google_consent_test.dart`). Rechtliche Prüfung steht aus |
 | Recht | DDG (Impressum) | Ziel | Text als Entwurf vorhanden, die Betreiberangaben sind noch nicht eingetragen; der Release-Build bricht bis dahin ab |
 | Recht | MStV | Ziel | Angabe der verantwortlichen Person ist als Pflichtfeld vorgesehen, aber noch offen; ob sie nötig ist, klärt ein Anwalt |
-| Qualität | Tests und Pflicht-Checks | erfüllt | Testsuite, Format- und Analyseprüfung bei jedem Pull Request ([ci.yml](.github/workflows/ci.yml)); `main` ist per Ruleset geschützt |
+| Qualität | Tests und Pflicht-Checks | erfüllt | Testsuite, Format- und Analyseprüfung bei jedem Änderungsvorschlag ([ci.yml](.github/workflows/ci.yml)); `main` ist per Ruleset geschützt |
 | Qualität | Coverage | teilweise | Wird in der CI gemessen, eine feste Schwelle gibt es noch nicht; Ziel 100 % in `lib/` |
 | Qualität | Golden-Tests | teilweise | Kernkomponenten und einzelne Ansichten in Hell und Dunkel; alle Bildschirme und Breiten stehen im Tracker offen |
 | Qualität | Lasttests | Ziel | Es gibt noch keine; geplant gegen eigene Endpunkte |
@@ -189,22 +189,22 @@ As of 22 November 2026. Status: **met** = the check runs in CI and was green, **
 
 | Area | Standard or practice | Status | Evidence and open points |
 |---|---|---|---|
-| Accessibility | WCAG 2.2 AA | partly met | axe-core on every pull request with no violations ([a11y.yml](.github/workflows/a11y.yml)). Screen reader testing and 400 % zoom are missing, see [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) |
+| Accessibility | WCAG 2.2 AA | partly met | axe-core on every proposed change with no violations ([a11y.yml](.github/workflows/a11y.yml)). Screen reader testing and 400 % zoom are missing, see [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) |
 | Accessibility | EN 301 549 | target | Yardstick, no proof ([ACCESSIBILITY.md](.github/ACCESSIBILITY.md)) |
 | Accessibility | BFSG | target | Whether the BFSG applies to this app and a statement is mandatory is being reviewed; draft in [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md). If it applies, the MLBF in Magdeburg is the competent body ([mlbf-barrierefrei.de](https://www.mlbf-barrierefrei.de)) |
 | Security | OpenSSF Scorecard | partly met | Runs weekly and on every push to `main` ([scorecard.yml](.github/workflows/scorecard.yml)); some checks cannot score fully, see the German section "OpenSSF und Prüfsiegel" |
 | Security | Signed releases (cosign, Sigstore) | target | The flow is in [release.yml](.github/workflows/release.yml), but no release exists yet; verification guide: [docs/RELEASE-VERIFIZIEREN.md](docs/RELEASE-VERIFIZIEREN.md) |
 | Security | Provenance (GitHub attestation, SLSA build provenance) | target | As above: provable only with the first release. We do not claim a SLSA level |
 | Security | SBOM (SPDX, CycloneDX) | target | Produced in the release flow ([release.yml](.github/workflows/release.yml)), no release yet |
-| Security | CodeQL | partly met | GitHub Actions workflows on every pull request, Kotlin and Java weekly; CodeQL does not support Dart ([codeql.yml](.github/workflows/codeql.yml)) |
-| Security | Semgrep CE | partly met | Runs on every pull request; Dart is not covered, `flutter analyze` covers it ([semgrep.yml](.github/workflows/semgrep.yml)) |
-| Security | Trivy, OSV, gitleaks | met | Dependencies, configuration and git history, on every pull request ([supply-chain.yml](.github/workflows/supply-chain.yml)) |
-| Security | zizmor (workflow audit) | met | On every pull request ([supply-chain.yml](.github/workflows/supply-chain.yml), rules in [zizmor.yml](.github/zizmor.yml)) |
+| Security | CodeQL | partly met | GitHub Actions workflows on every proposed change, Kotlin and Java weekly; CodeQL does not support Dart ([codeql.yml](.github/workflows/codeql.yml)) |
+| Security | Semgrep CE | partly met | Runs on every proposed change; Dart is not covered, `flutter analyze` covers it ([semgrep.yml](.github/workflows/semgrep.yml)) |
+| Security | Trivy, OSV, gitleaks | met | Dependencies, configuration and git history, on every proposed change ([supply-chain.yml](.github/workflows/supply-chain.yml)) |
+| Security | zizmor (workflow audit) | met | On every proposed change ([supply-chain.yml](.github/workflows/supply-chain.yml), rules in [zizmor.yml](.github/zizmor.yml)) |
 | Privacy | GDPR | partly met | Favorites, history and settings stay on the device ([ADR 0001](docs/adr/0001-kein-backend-keine-konten.md)). The privacy policy is a draft with open placeholders; review by a lawyer is pending |
 | Privacy | TDDDG, consent | partly met | Statistics and reach measurement start only after consent, withdrawal stops them ([docs/telemetry.md](docs/telemetry.md), tests `test/features/consent_storage_test.dart`, `google_consent_test.dart`). Legal review is pending |
 | Legal | DDG (legal notice) | target | Draft text exists, the operator details are not filled in yet; the release build fails until then |
 | Legal | MStV | target | The responsible person is planned as a required field but still open; a lawyer decides whether it applies |
-| Quality | Tests and required checks | met | Test suite, format and analysis on every pull request ([ci.yml](.github/workflows/ci.yml)); `main` is protected by a ruleset |
+| Quality | Tests and required checks | met | Test suite, format and analysis on every proposed change ([ci.yml](.github/workflows/ci.yml)); `main` is protected by a ruleset |
 | Quality | Coverage | partly met | Measured in CI, no fixed threshold yet; target 100 % in `lib/` |
 | Quality | Golden tests | partly met | Core components and some views in light and dark; all screens and widths are open im Tracker |
 | Quality | Load tests | target | None yet; planned against our own endpoints |

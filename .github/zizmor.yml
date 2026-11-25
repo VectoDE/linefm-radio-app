@@ -6,13 +6,13 @@ rules:
   # engeren Sinn: Unsere lokalen Actions laufen immer nach actions/checkout mit
   # persist-credentials: false aus dem eigenen Commit. Umstellung zurueckgestellt,
   # weil actionlint 1.7.12 (aktuelle Version) die Syntax noch als Fehler meldet
-  # (rhysd/actionlint#711 and rhysd/actionlint#732). Umstellen, sobald actionlint sie kennt.
+  # (known open parser bugs in actionlint). Umstellen, sobald actionlint sie kennt.
   self-repository:
     disable: true
   # dangerous-triggers: security-alerts.yml nutzt workflow_run, um nach den
   # Scannern auf main die Alerts abzugleichen. Der Job checkt nichts aus, liest
   # keine Artefakte und verwendet keine Daten aus dem ausloesenden Lauf (nur
-  # Alert-APIs und Issues). Faellt, wenn GitHub einen Ausloeser "nach Code-Scanning-
+  # Alert-APIs und Tickets). Faellt, wenn GitHub einen Ausloeser "nach Code-Scanning-
   # Upload" anbietet.
   dangerous-triggers:
     ignore:

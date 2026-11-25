@@ -93,7 +93,7 @@ final Map<String, TaskDef> tasks = <String, TaskDef>{
     ],
   ),
   'check': TaskDef(
-    'Alles, was vor einem Pull Request laufen sollte: Format, Analyzer, Tests',
+    'Alles, was vor einem Änderungsvorschlag laufen sollte: Format, Analyzer, Tests',
     (_) => <Command>[
       ...tasks['format-check']!.build(const <String>[]),
       ...tasks['analyze']!.build(const <String>[]),

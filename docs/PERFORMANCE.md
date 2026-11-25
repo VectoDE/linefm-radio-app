@@ -111,7 +111,7 @@ Nach erwarteter Wirkung sortiert. Belegt heißt: Messwert aus dem Lauf oben und 
 
 ## Maßnahmenplan
 
-Je Maßnahme ein eigener PR mit Vorher/Nachher aus diesem Workflow (gleiche Läufe, gleiche Runner):
+Je Maßnahme ein eigener Änderungsvorschlag mit Vorher/Nachher aus diesem Workflow (gleiche Läufe, gleiche Runner):
 
 1. P92-03 und P92-06: künstliche Wartezeiten (Mindest-Verbindungsdauer, Ladebildschirm). Klein, sofort messbar.
 2. P92-02: Dauer-Animationen im Leerlauf.

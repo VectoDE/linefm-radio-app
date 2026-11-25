@@ -843,9 +843,11 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  macos:
-    name: macOS (DMG)
-    needs: [meta, macos-setup-ui]
+  # App build: compiled and signed here, handed over as a tarball. Runs in
+  # parallel with macos-setup-ui; only the packaging job waits for both.
+  macos-app:
+    name: macOS app
+    needs: meta
     if: needs.meta.outputs.run == 'true' && needs.meta.outputs.apple == 'true'
     runs-on: macos-latest
     timeout-minutes: 60
@@ -946,6 +948,88 @@ jobs:
           codesign --force --deep --options runtime --timestamp --entitlements "$ent" \
             --sign "$identity" "$APP_PATH"
           codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+
+      - name: Hand over the app
+        run: |
+          set -euo pipefail
+          # tar keeps the framework symlinks that upload-artifact would flatten.
+          tar -C "$(dirname "$APP_PATH")" -czf "$RUNNER_TEMP/macos-app.tar.gz" "$(basename "$APP_PATH")"
+
+      - name: Upload the app
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos-app
+          path: ${{ runner.temp }}/macos-app.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Keychain entfernen
+        if: always()
+        run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" 2>/dev/null || true
+
+  # Packaging: setup UI + signed app into the installer DMG and the plain DMG.
+  # Needs no Flutter, so it starts as soon as both builds are done.
+  macos:
+    name: macOS (DMG)
+    needs: [meta, macos-app, macos-setup-ui]
+    if: needs.meta.outputs.run == 'true' && needs.meta.outputs.apple == 'true'
+    runs-on: macos-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      LABEL: ${{ needs.meta.outputs.label }}
+      APP_PATH: build/macos/Build/Products/Release/LINEFM Radio.app
+    steps:
+      - name: Runner haerten
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+
+      - name: Download the app
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: macos-app
+          path: ${{ runner.temp }}/macos-app
+
+      - name: Unpack the app
+        env:
+          SIGN: ${{ needs.meta.outputs.sign_macos }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$(dirname "$APP_PATH")"
+          tar -C "$(dirname "$APP_PATH")" -xzf "$RUNNER_TEMP/macos-app/macos-app.tar.gz"
+          codesign --verify --deep --strict "$APP_PATH" || [ "$SIGN" != "true" ]
+
+      - name: Developer-ID-Zertifikat importieren
+        if: needs.meta.outputs.sign_macos == 'true'
+        env:
+          CERT_P12_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_CERT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          kc="$RUNNER_TEMP/signing.keychain-db"
+          kcpw="$(openssl rand -hex 24)"
+          echo "$CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/devid.p12"
+          security create-keychain -p "$kcpw" "$kc"
+          security set-keychain-settings -lut 21600 "$kc"
+          security unlock-keychain -p "$kcpw" "$kc"
+          security import "$RUNNER_TEMP/devid.p12" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$kc"
+          security set-key-partition-list -S apple-tool:,apple: -k "$kcpw" "$kc" >/dev/null
+          # Bewusst ungequotet: jede vorhandene Keychain wird ein eigenes Argument
+          # (Pfade unter ~/Library/Keychains ohne Leerzeichen).
+          # shellcheck disable=SC2046
+          security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
+          rm -f "$RUNNER_TEMP/devid.p12"
 
       # Installer: shared setup UI (installer/ui) as "LINEFM Radio
       # Setup.app" with the POSIX engine and the app as payload, in a
@@ -1135,18 +1219,19 @@ jobs:
         run: |
           echo "- iOS: Kompilierpruefung erfolgreich (unsigniert, kein Release-Artefakt; Store-Upload ueber store-apple.yml)" >> "$GITHUB_STEP_SUMMARY"
 
-  # Zero-warning rule: any warning or error line in a job log fails the run,
-  # including third-party output. Fix the cause; tool/build_log_allowlist.json
-  # holds the few documented exceptions, each with an expiry date.
+  # Zero-warning rule: any warning or error in a job log or a check-run
+  # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented upstream exceptions, each with an expiry date.
   log-gate:
     name: Build log gate
-    needs: [meta, android, web, linux, windows, macos-setup-ui, macos, ios]
+    needs: [meta, android, web, linux, windows, macos-setup-ui, macos-app, macos, ios]
     if: always() && needs.meta.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
       actions: read
+      checks: read
     steps:
       - name: Runner haerten
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
@@ -1158,13 +1243,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Scan job logs for warnings and errors
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          logs="$RUNNER_TEMP/job-logs"
-          bash tool/fetch_job_logs.sh "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$logs" "Build log gate"
-          shopt -s nullglob
-          files=("$logs"/*.log)
-          [ "${#files[@]}" -gt 0 ] || { echo "::error::no job logs downloaded"; exit 1; }
-          python3 -I tool/check_build_logs.py "${files[@]}"
+      - name: Scan job logs and annotations
+        uses: ./.github/actions/log-gate
+        with:
+          job-name: Build log gate
+          token: ${{ github.token }}

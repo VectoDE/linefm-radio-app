@@ -57,9 +57,10 @@ jobs:
           app-env: dev
 
       - name: Web bauen
-        run: >-
-          flutter build web --release --wasm --no-web-resources-cdn
-          --dart-define-from-file=config/app.json --base-href /
+        run: |
+          set -euo pipefail
+          mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
+          flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file=config/app.json --base-href / "${web_defines[@]}"
 
       - name: Ersatzschriften und Postbuild
         run: |
@@ -97,8 +98,9 @@ jobs:
       - name: Web mit Test-IDs bauen (GTM-TEST000, G-TEST000000)
         run: |
           set -euo pipefail
+          mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
           jq '.GTM_ID = "GTM-TEST000" | .GA4_MEASUREMENT_ID = "G-TEST000000"' config/app.json > "$RUNNER_TEMP/app_ga.json"
-          flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file="$RUNNER_TEMP/app_ga.json" --base-href / --output build/web_ga
+          flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file="$RUNNER_TEMP/app_ga.json" --base-href / --output build/web_ga "${web_defines[@]}"
           dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web_ga --strict
           dart run "$RUNNER_TEMP/web_postbuild.dart" build/web_ga --config "$RUNNER_TEMP/app_ga.json"             --hosting-out build/hosting_ga
           grep -q "https://www.googletagmanager.com" build/hosting_ga/nginx/snippets/linefm-headers.conf
@@ -133,3 +135,33 @@ jobs:
           path: tool/a11y/out/
           retention-days: 30
           if-no-files-found: warn
+
+  # Zero-warning rule: any warning or error in a job log or a check-run
+  # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented upstream exceptions, each with an expiry date.
+  log-gate:
+    name: Log gate
+    needs: [axe]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan job logs and annotations
+        uses: ./.github/actions/log-gate
+        with:
+          job-name: Log gate
+          token: ${{ github.token }}

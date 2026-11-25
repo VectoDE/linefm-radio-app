@@ -218,7 +218,12 @@ switch ($Ziel) {
   }
   'web' {
     Write-Schritt 'Web bauen'
-    Invoke-Programm 'flutter' (@('build', 'web', '--release', '--wasm', '--no-web-resources-cdn') + $defineArgs) 'flutter build web'
+    # Unausgefuellte Rechtstext-Platzhalter auf sich selbst abbilden, sonst warnt flutter build web.
+    $webDefines = @(Get-ChildItem -Path (Join-Path $repo 'web') -Recurse -Filter 'index.html' |
+      Select-String -Pattern '\{\{([A-Z][A-Z0-9_]*)\}\}' -AllMatches |
+      ForEach-Object { $_.Matches } | ForEach-Object { $_.Groups[1].Value } |
+      Sort-Object -Unique | ForEach-Object { '--web-define=' + $_ + '={{' + $_ + '}}' })
+    Invoke-Programm 'flutter' (@('build', 'web', '--release', '--wasm', '--no-web-resources-cdn') + $defineArgs + $webDefines) 'flutter build web'
 
     # Wie in der CI: die Werkzeuge ausserhalb des Pakets starten, sonst baut "dart run"
     # zusaetzlich die Native-Asset-Hooks des Projekts.

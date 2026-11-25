@@ -206,7 +206,11 @@ case "$ziel" in
     ;;
   web)
     schritt "Web bauen"
-    flutter build web --release --wasm --no-web-resources-cdn ${define_args[@]+"${define_args[@]}"} || fehler "flutter build web ist fehlgeschlagen. Die Meldung steht oben." 1
+    # Unausgefuellte Rechtstext-Platzhalter auf sich selbst abbilden, sonst warnt flutter build web
+    # (Schleife statt mapfile, weil macOS nur Bash 3.2 mitbringt).
+    web_defines=()
+    while IFS= read -r arg; do web_defines+=("$arg"); done < <(bash "$repo/tool/web_define_passthrough.sh")
+    flutter build web --release --wasm --no-web-resources-cdn ${define_args[@]+"${define_args[@]}"} ${web_defines[@]+"${web_defines[@]}"} || fehler "flutter build web ist fehlgeschlagen. Die Meldung steht oben." 1
     # Wie in der CI: die Werkzeuge ausserhalb des Pakets starten, sonst baut "dart run"
     # zusaetzlich die Native-Asset-Hooks des Projekts (unter Linux braucht das GTK).
     tmp="$(mktemp -d)"

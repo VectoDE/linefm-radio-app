@@ -7,10 +7,16 @@ notices about outdated or overridden packages. This script scans job logs and
 exits non-zero when any log that contains any such line that is not covered
 by an active entry in tool/build_log_allowlist.json.
 
+It also fails on check-run annotations of level warning or failure (the
+notices GitHub shows on the run page, such as "Node.js 20 actions are
+deprecated"), which never appear in the job log itself.
+
 Usage:
   check_build_logs.py FILE [FILE ...]
 The script never touches the network; tool/fetch_job_logs.sh downloads the
-logs of a workflow run first (one file per job, named after the job).
+logs of a workflow run first (one file per job, named after the job, suffix
+.log) and tool/fetch_run_annotations.sh the annotations (suffix .annotations,
+one "LEVEL<TAB>TITLE: MESSAGE" per line). Both kinds can be passed together.
 
 Allow-list entries (JSON list): {"pattern": regex, "job": optional regex,
 "expires": "YYYY-MM-DD", "reason": text}. An expired entry fails the check so
@@ -45,7 +51,18 @@ RULES: list[tuple[str, re.Pattern[str]]] = [
     ("pub-outdated", re.compile(r"^!?\s*[a-z0-9_]+ \S+ (\(overridden\) )?\(\S+ available\)$")),
     ("pub-summary", re.compile(r"packages? ha(s|ve) newer versions incompatible")),
     ("pub-discontinued", re.compile(r"\(discontinued")),
-    ("npm", re.compile(r"^npm (WARN|warn|ERR!)")),
+    ("npm", re.compile(r"^npm (WARN|warn|ERR!|error)\b")),
+    # Tools that prefix their own output, such as nikto ("+ ERROR: ...").
+    ("prefixed", re.compile(r"^[+*>|-] (Warning|WARNING|WARN|Error|ERROR):? ")),
+    ("warn", re.compile(r"^\[?(WARN|WARNING|ERROR)\]?[: ]")),
+    ("perl", re.compile(r"^(Use of uninitialized value|.+ is deprecated)\b.* at \S+ line \d+\b")),
+    ("apt", re.compile(r"^[EW]: ")),
+    ("warning-mid-line", re.compile(r"\b(Warning|WARNING|DeprecationWarning|UserWarning):\s")),
+    # Not for quoted JSON values: SARIF dumps quote rule help texts.
+    ("deprecated", re.compile(
+        r"^(?!\s*\")(?=.*(\b(is|are|has been|was) deprecated\b|\bDEPRECATED\b|\bdeprecation warning\b))",
+        re.I,
+    )),
 ]
 
 TIMESTAMP = re.compile(r"^﻿?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z ?")
@@ -85,7 +102,9 @@ def scan(job: str, text: str, allow: list[dict]) -> list[str]:
         if SCRIPT_ECHO in raw:
             continue
         line = ANSI.sub("", TIMESTAMP.sub("", raw)).rstrip()
-        if line.startswith(("##[group]", "##[endgroup]", "[command]")):
+        # Runner markers repeat the step source (including our own
+        # `echo "::warning::..."` lines), not its output.
+        if line.startswith(("##[group]", "##[endgroup]", "##[start-action", "##[end-action", "[command]")):
             continue
         rule = next((name for name, rx in RULES if rx.search(line)), None)
         if rule is None:
@@ -99,6 +118,26 @@ def scan(job: str, text: str, allow: list[dict]) -> list[str]:
     return hits
 
 
+# Annotation levels that fail the check; "notice" is informational.
+FAILING_ANNOTATION_LEVELS = {"warning", "failure"}
+
+
+def scan_annotations(job: str, text: str, allow: list[dict]) -> list[str]:
+    hits: list[str] = []
+    for raw in text.splitlines():
+        level, sep, message = raw.partition("	")
+        if not sep or level not in FAILING_ANNOTATION_LEVELS:
+            continue
+        message = message.strip()
+        if any(
+            e["_re"].search(message) and (e["_job"] is None or e["_job"].search(job))
+            for e in allow
+        ):
+            continue
+        hits.append(f"[{job}] annotation-{level}: {message[:300]}")
+    return hits
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Fail on warning or error lines in CI job logs.")
     ap.add_argument("files", nargs="*", type=Path)
@@ -108,20 +147,22 @@ def main() -> int:
     allow, problems = load_allowlist(args.allowlist)
     if not args.files:
         ap.error("give one or more log files")
-    # The job name is the file name without .log (see tool/fetch_job_logs.sh).
-    sources = ((f.stem, f.read_text(encoding="utf-8", errors="replace")) for f in args.files)
-
     hits: list[str] = []
     scanned = 0
-    for job, text in sources:
+    for f in args.files:
+        # The job name is the file name without its suffix (see the fetch scripts).
+        text = f.read_text(encoding="utf-8", errors="replace")
         scanned += 1
-        hits.extend(scan(job, text, allow))
+        if f.suffix == ".annotations":
+            hits.extend(scan_annotations(f.stem, text, allow))
+        else:
+            hits.extend(scan(f.stem, text, allow))
 
     for p in problems:
         print(f"::error::{p}")
     for h in hits:
         print(h)
-    print(f"Scanned {scanned} log(s): {len(hits)} warning/error line(s), "
+    print(f"Scanned {scanned} file(s): {len(hits)} warning/error line(s), "
           f"{len(problems)} allow-list problem(s).")
     return 1 if hits or problems else 0
 

@@ -155,7 +155,19 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
     _errorMessage = null;
     mediaItem.add(BrowseTree.stationItem(station, track: _knownTrack(station)));
     _connectStartedAt = DateTime.now();
+    final wasStreaming = _state.status != PlayerStatus.idle;
     _emit(_state.copyWith(status: PlayerStatus.connecting, station: station));
+    // Issue #99: silence the previous station right away instead of letting
+    // it run until the new stream is loaded (URL lookup can take seconds,
+    // and a failing load would leave the old stream playing for good).
+    if (wasStreaming) {
+      try {
+        await _player.stop();
+      } on Object catch (e) {
+        _errorMessage = '$e';
+      }
+      if (gen != _generation) return;
+    }
     await _connect(station, gen);
   }
 
@@ -426,7 +438,12 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
     try {
       final url = await streamUrlResolver(station);
       if (gen != _generation) return;
-      await _player.open(url);
+      await _player.load(url);
+      // Issue #99: a newer switch (or stop) happened while this stream was
+      // loading. Starting it now would play the old station under the UI of
+      // the new one.
+      if (gen != _generation) return;
+      await _player.play();
     } on Object catch (e) {
       if (gen == _generation) _onFailure('$e');
     }

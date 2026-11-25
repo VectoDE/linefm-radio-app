@@ -25,8 +25,16 @@ enum RadioSignal {
 abstract interface class RadioPlayer {
   Stream<RadioSignal> get signals;
 
-  /// Laedt [url] und startet die Wiedergabe. Wirft bei Ladefehlern.
-  Future<void> open(Uri url);
+  /// Loads [url] without starting playback. Throws on load errors.
+  ///
+  /// Issue #99: loading and starting are separate so the handler can check,
+  /// after the (possibly slow) load, that this station is still the one the
+  /// user wants before any sound starts.
+  Future<void> load(Uri url);
+
+  /// Starts playback of the loaded stream. Returns without waiting for the
+  /// end of playback.
+  Future<void> play();
 
   /// Gibt den Stream frei (Live-Radio: Stop statt Pause).
   Future<void> stop();
@@ -90,10 +98,14 @@ class JustAudioRadioPlayer implements RadioPlayer {
   }
 
   @override
-  Future<void> open(Uri url) async {
+  Future<void> load(Uri url) async {
     _last = null;
     await _player.setAudioSource(AudioSource.uri(url), preload: true);
-    // play() endet erst beim naechsten Stop/Pause, deshalb nicht abwarten.
+  }
+
+  @override
+  Future<void> play() async {
+    // play() completes only on the next stop/pause, so do not await it.
     unawaited(
       _player.play().catchError((Object _) => _emit(RadioSignal.error)),
     );

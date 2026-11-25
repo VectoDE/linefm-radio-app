@@ -1,5 +1,7 @@
 #include "flutter_window.h"
 
+#include <dwmapi.h>
+
 #include <optional>
 #include <string>
 
@@ -34,6 +36,10 @@ bool FlutterWindow::OnCreate() {
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
+    // The callback fires once the frame is rasterised, not composited. Wait
+    // for the desktop compositor so the first visible frame is the loader,
+    // not an empty (white) child surface.
+    DwmFlush();
     this->Show();
   });
 

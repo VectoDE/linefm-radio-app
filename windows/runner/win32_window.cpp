@@ -97,7 +97,9 @@ const wchar_t* WindowClassRegistrar::GetWindowClass() {
     window_class.hInstance = GetModuleHandle(nullptr);
     window_class.hIcon =
         LoadIcon(window_class.hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
-    window_class.hbrBackground = 0;
+    // Same ink as the native splash and the in-app loader (#0F1221), so the
+    // window is never white while the first Flutter frame is on its way.
+    window_class.hbrBackground = CreateSolidBrush(RGB(0x0F, 0x12, 0x21));
     window_class.lpszMenuName = nullptr;
     window_class.lpfnWndProc = Win32Window::WndProc;
     RegisterClass(&window_class);
@@ -212,6 +214,15 @@ Win32Window::MessageHandler(HWND hwnd,
         SetFocus(child_content_);
       }
       return 0;
+
+    case WM_ERASEBKGND: {
+      RECT rect;
+      GetClientRect(hwnd, &rect);
+      HBRUSH brush = CreateSolidBrush(RGB(0x0F, 0x12, 0x21));
+      FillRect(reinterpret_cast<HDC>(wparam), &rect, brush);
+      DeleteObject(brush);
+      return 1;
+    }
 
     case WM_DWMCOLORIZATIONCOLORCHANGED:
       UpdateTheme(hwnd);

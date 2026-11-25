@@ -15,11 +15,10 @@ set -euo pipefail
 repo=$1 run_id=$2 attempt=$3 out=$4 skip=${5:-}
 mkdir -p "$out"
 
-esc=()
-if gh api --help 2>/dev/null | grep -q -- '--allow-escape-sequences'; then
-  # Newer gh refuses raw logs with ANSI colour codes without this flag.
-  esc=(--allow-escape-sequences)
-fi
+# Newer gh refuses raw logs with ANSI colour codes unless this flag is given.
+# Pass it always and drop it only if this gh rejects it as unknown (older gh),
+# instead of guessing from `gh api --help`, which proved unreliable on runners.
+esc=(--allow-escape-sequences)
 
 jobs=$(gh api --paginate \
   "repos/$repo/actions/runs/$run_id/attempts/$attempt/jobs?per_page=100" \
@@ -39,6 +38,10 @@ while IFS=$'\t' read -r id name; do
     if err=$(gh api "${esc[@]}" "repos/$repo/actions/jobs/$id/logs" 2>&1 >"$file"); then
       ok=1
       break
+    fi
+    if [ "${#esc[@]}" -gt 0 ] && grep -q 'unknown flag' <<<"$err"; then
+      esc=()
+      continue
     fi
     if grep -q 'HTTP 410' <<<"$err"; then
       echo "::error::log of job '$name' has expired (410)"

@@ -21,14 +21,14 @@ that it gets reviewed instead of lingering.
 from __future__ import annotations
 
 import argparse
+import http.client
 import datetime as dt
 import json
 import os
 import re
 import sys
 import time
-import urllib.error
-import urllib.request
+import urllib.parse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -104,55 +104,77 @@ def scan(job: str, text: str, allow: list[dict]) -> list[str]:
     return hits
 
 
-def fetch(url: str, token: str) -> bytes:
-    req = urllib.request.Request(
-        url,
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-        },
-    )
-    data = b""
+API_HOST = "api.github.com"
+
+
+class LogMissing(Exception):
+    """The API has no log for a job (404 after retries, or 410 expired)."""
+
+
+def _get(host: str, path: str, headers: dict[str, str]) -> http.client.HTTPResponse:
+    conn = http.client.HTTPSConnection(host, timeout=120)
+    conn.request("GET", path, headers={"User-Agent": "build-log-gate", **headers})
+    return conn.getresponse()
+
+
+def gh_api(path: str) -> bytes:
+    """GET https://api.github.com/<path>, following one redirect by hand.
+
+    The job-log endpoint answers with a 302 to a pre-signed storage URL. That
+    URL must be fetched without the Authorization header (the storage service
+    rejects it with 401), so redirects are not followed automatically.
+    """
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or ""
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
     for attempt in range(6):
-        try:
-            with urllib.request.urlopen(req, timeout=120) as resp:  # noqa: S310 (fixed host)
-                data = resp.read()
-            break
-        except urllib.error.HTTPError as err:
+        resp = _get(API_HOST, "/" + path, headers)
+        if resp.status in (301, 302, 303, 307, 308):
+            target = urllib.parse.urlsplit(resp.getheader("Location", ""))
+            resp.read()
+            if target.scheme != "https" or not target.hostname:
+                sys.exit(f"{path}: unexpected redirect target")
+            query = f"?{target.query}" if target.query else ""
+            resp = _get(target.hostname, (target.path or "/") + query, {})
+        body = resp.read()
+        if resp.status == 200:
+            return body
+        if resp.status == 410:
+            raise LogMissing(f"{path}: log expired (410)")
+        if resp.status == 404:
             # A finished job's log can take a moment to become available.
-            if err.code != 404 or attempt == 5:
-                raise
-            time.sleep(10)
-    return data
+            if attempt < 5:
+                time.sleep(10)
+                continue
+            raise LogMissing(f"{path}: no log (404)")
+        sys.exit(f"GET {path} failed with HTTP {resp.status}: {body[:300]!r}")
+    raise LogMissing(path)
 
 
-def api_json(url: str, token: str) -> dict:
-    return json.loads(fetch(url, token))
-
-
-def api_text(url: str, token: str) -> str:
-    return fetch(url, token).decode("utf-8", errors="replace")
-
-
-def run_logs(repo: str, run_id: str, attempt: str, skip: list[str]):
-    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
-    if not token:
+def run_logs(repo: str, run_id: str, attempt: str, skip: list[str], problems: list[str]):
+    if not (os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")):
         sys.exit("GH_TOKEN or GITHUB_TOKEN is required to read job logs")
-    base = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}"
     page = 1
     while True:
-        data = api_json(f"{base}/attempts/{attempt}/jobs?per_page=100&page={page}", token)
+        data = json.loads(
+            gh_api(f"repos/{repo}/actions/runs/{run_id}/attempts/{attempt}/jobs?per_page=100&page={page}")
+        )
         for job in data["jobs"]:
             name = job["name"]
             if any(name == s or name.endswith(f" / {s}") for s in skip):
                 continue
-            if job["status"] != "completed" or job["conclusion"] == "skipped":
+            if job["status"] != "completed" or job["conclusion"] in ("skipped", "cancelled"):
                 continue
-            yield name, api_text(
-                f"https://api.github.com/repos/{repo}/actions/jobs/{job['id']}/logs",
-                token,
-            )
+            try:
+                text = gh_api(f"repos/{repo}/actions/jobs/{job['id']}/logs")
+            except LogMissing as err:
+                # An unreadable log cannot be shown to be clean.
+                problems.append(f"[{name}] {err}")
+                continue
+            yield name, text.decode("utf-8", errors="replace")
         if len(data["jobs"]) < 100:
             return
         page += 1
@@ -172,7 +194,7 @@ def main() -> int:
     if args.run_id:
         if not args.repo:
             ap.error("--run-id needs --repo")
-        sources = run_logs(args.repo, args.run_id, args.attempt, args.skip_job)
+        sources = run_logs(args.repo, args.run_id, args.attempt, args.skip_job, problems)
     elif args.files:
         sources = ((str(f), f.read_text(encoding="utf-8", errors="replace")) for f in args.files)
     else:

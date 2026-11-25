@@ -1,0 +1,27 @@
+# Telemetrie getrennt von app.yaml.
+# Stand: nur das Schema. Die App liest diese Datei noch nicht; heute stehen
+# die Werte in app.yaml (UMAMI_*, SENTRY_*, FIREBASE_ENABLED).
+# Anleitung: docs/KONFIGURATION.md
+
+# Umami-Server.
+# Optional. Format: https-URL. Standard: leer (aus).
+# Beispiel: "https://stats.linefm.de"
+umamiUrl: ""
+
+# Website-ID in Umami.
+# Optional. Format: UUID. Standard: leer.
+# Beispiel: "1b2c3d4e-0000-0000-0000-000000000000"
+umamiWebsiteId: ""
+
+# DSN für Absturzberichte (GlitchTip/Sentry).
+# Optional. Format: https-URL. Standard: leer (aus).
+# Beispiel: "https://abc123@errors.linefm.de/1"
+sentryDsn: ""
+
+# Umgebungsname in den Absturzberichten.
+# Optional. Text. Standard: leer. Beispiel: "production"
+sentryEnvironment: ""
+
+# Firebase einschalten.
+# Optional. Werte: true oder false. Standard: false. Beispiel: true
+firebaseEnabled: false

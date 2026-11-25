@@ -90,16 +90,17 @@ git worktree remove --force C:\lf29
 
 ## Konfiguration: `--dart-define-from-file`
 
-Alle Laufzeiteinstellungen kommen beim Build über `--dart-define-from-file=config/app.json`. Vorlage: `config/app.example.json`. Die Datei `config/app.json` ist in `.gitignore` und wird nicht eingecheckt.
+Alle Laufzeiteinstellungen kommen beim Build über `--dart-define-from-file=config/app.json`. Die Datei entsteht aus `config/app.yaml` und `config/features.yaml` (Vorlagen `*.example.yaml`) mit `dart run tool/check_config.dart --defines config/app.json`. Alle drei sind in `.gitignore`. Siehe [Konfiguration](KONFIGURATION.md).
 
 ```bash
-cp config/app.example.json config/app.json
+cp config/app.example.yaml config/app.yaml
+dart run tool/check_config.dart --defines config/app.json
 flutter run -d windows --dart-define-from-file=config/app.json
 ```
 
 | Schlüssel | Bedeutung |
 |---|---|
-| `APP_ENV`, `APP_VERSION` | Umgebung und angezeigte Version |
+| `APP_ENV` | Umgebung (die Version kommt aus dem Release, #104) |
 | `WEB_BASE_URL` | Basis für Share-Links und kanonische URL, Standard `https://app.linefm.de` |
 | `UMAMI_URL`, `UMAMI_WEBSITE_ID`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT`, `FIREBASE_*` | Telemetrie, siehe [telemetry.md](telemetry.md) |
 | `WS_ENABLED` | laut.fm-WebSocket, Standard `false` (siehe unten) |

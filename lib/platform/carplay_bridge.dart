@@ -130,6 +130,7 @@ class AudioHandlerCarPlayHost implements CarPlayHost {
       onListen: () {
         for (final id in <String>[
           BrowseTree.favoriteStationsId,
+          BrowseTree.stationsId,
           BrowseTree.recentId,
         ]) {
           subs.add(

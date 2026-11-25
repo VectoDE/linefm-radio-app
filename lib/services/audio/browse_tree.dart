@@ -44,7 +44,7 @@ class AutoMenuFolder {
           'id': s.id,
           'slug': s.slug,
           'title': s.displayName,
-          'logoAsset': s.logoAsset,
+          'logoAsset': s.logoAsset ?? '',
           'logoUrl': s.logoUrl,
         },
     ],
@@ -113,8 +113,16 @@ class BrowseTree {
   );
 
   /// Name des Drawables eines Senders (nur Kleinbuchstaben und Ziffern).
+  /// Sender ohne mitgeliefertes Logo (erst nachgeladen, Issue #91) zeigen
+  /// das LINEFM-Logo wie das Homescreen-Widget; Android Auto kann keine
+  /// Bilder aus dem Netz anzeigen.
   static String androidDrawableName(Station station) =>
-      'auto_station_${station.slug.toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '')}';
+      hasNativeStationLogo(station)
+      ? 'auto_station_${station.slug.toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '')}'
+      : fallbackDrawableName;
+
+  /// Ersatz-Drawable fuer Sender ohne eigenes Logo.
+  static const String fallbackDrawableName = 'auto_station_linefm';
 
   /// Senderlogo aus dem Netz (iOS, Web, Benachrichtigung).
   static Uri remoteArt(Station station) => Uri.parse(station.logoUrl);

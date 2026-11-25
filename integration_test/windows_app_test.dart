@@ -28,6 +28,7 @@ import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
+import 'package:linefm_radio/domain/stations_config.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/features/loader/app_loader.dart';
 import 'package:linefm_radio/features/player/player_screen.dart';
@@ -58,6 +59,9 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   setUpAll(() async {
+    // Fixed station list (#91): the tests must not depend on the operator's
+    // config/stations.yaml. Same content as test/fixtures/stations/stations_6.json.
+    installBundledStations(parseStationsConfig(_stationsJson));
     final out = _outDefine.isNotEmpty
         ? _outDefine
         : (Platform.environment['ITEST_OUT'] ??
@@ -730,3 +734,6 @@ $bmp.Dispose()
     print('Bildschirmaufnahme nicht moeglich: $e');
   }
 }
+
+const String _stationsJson =
+    r'''{"hinweis": "Senderliste der App. Anleitung: docs/SENDER-VERWALTEN.md", "schemaVersion": 1, "sender": [{"kuerzel": "linefm", "name": "LineFM +MAIN", "farbe": "#4B4B7D", "logo": "https://cdn.linefm.de/images/icons/main.png", "logoDatei": "assets/images/stations/main.png"}, {"kuerzel": "linefmrap", "name": "LineFM +RAP", "farbe": "#FF0084", "logo": "https://cdn.linefm.de/images/icons/rap.png", "logoDatei": "assets/images/stations/rap.png"}, {"kuerzel": "linefmgaming", "name": "LineFM +GAMING", "farbe": "#4BBD71", "logo": "https://cdn.linefm.de/images/icons/gaming.png", "logoDatei": "assets/images/stations/gaming.png"}, {"kuerzel": "linefmlofi", "name": "LineFM +LOFI", "farbe": "#546E7A", "logo": "https://cdn.linefm.de/images/icons/lofi.png", "logoDatei": "assets/images/stations/lofi.png"}, {"kuerzel": "radio3fm", "name": "Radio3FM", "farbe": "#177D29", "logo": "https://cdn.linefm.de/images/icons/radio3fm.png", "logoDatei": "assets/images/stations/radio3fm.png"}, {"kuerzel": "fobfm", "name": "FobFM", "farbe": "#04FFF7", "logo": "https://cdn.linefm.de/images/icons/fobfm.png", "logoDatei": "assets/images/stations/fobfm.png"}]}''';

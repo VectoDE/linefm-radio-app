@@ -277,16 +277,6 @@ abstract final class LinefmPalette {
   static const Color scrim = Color(0x8A000000);
 }
 
-/// Senderfarben des Katalogs (Quelle: streams.json).
-abstract final class LinefmStationColors {
-  static const Color main = Color(0xFF4B4B7D);
-  static const Color rap = Color(0xFFFF0084);
-  static const Color gaming = Color(0xFF4BBD71);
-  static const Color lofi = Color(0xFF546E7A);
-  static const Color radio3fm = Color(0xFF177D29);
-  static const Color fobfm = Color(0xFF04FFF7);
-}
-
 /// Masse, Radien und Zeiten der Web-App (Spec 4.4) und der nativen
 /// Verfeinerung.
 abstract final class LinefmMetrics {

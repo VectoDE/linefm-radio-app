@@ -45,5 +45,11 @@
     "job": "iOS",
     "expires": "2027-11-30",
     "reason": "The iOS job is an unsigned compile check by design (no signing secrets outside releases); Flutter prints this notice for every --no-codesign build."
+  },
+  {
+    "pattern": "^Warning: 'no file associated with this alert' is not a valid URI in 'instance\\.runs\\[\\d+\\]\\.results\\[\\d+\\]\\.locations\\[0\\]\\.physicalLocation\\.artifactLocation\\.uri'\\.$",
+    "job": "Scorecard",
+    "expires": "2027-02-28",
+    "reason": "ossf/scorecard writes this placeholder URI for repository-level findings and github/codeql-action warns while uploading the SARIF (upstream: ossf/scorecard issue 3063, closed but still emitted by scorecard-action 2.5.0). The findings are uploaded; only the file location is dropped."
   }
 ]

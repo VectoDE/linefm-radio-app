@@ -154,7 +154,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   final ArtworkService _artwork;
   final Clock _clock;
 
-  /// Feste Liste (Tests); sonst die aktuelle Senderliste (Issue #91).
+  /// Feste Liste (Tests); sonst die aktuelle Senderliste.
   final List<Station>? _fixedStations;
 
   List<Station> get _stations => _fixedStations ?? stationsCatalog;
@@ -162,7 +162,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   Station _active;
 
   /// Zaehlt Stationswechsel; Antworten, die fuer eine fruehere aktive
-  /// Station angefordert wurden, planen keinen Timer mehr (Issue #99).
+  /// Station angefordert wurden, planen keinen Timer mehr.
   int _activeGeneration = 0;
   bool _foreground;
   bool _playing;
@@ -209,7 +209,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     return controller.stream;
   }
 
-  /// Die Senderliste hat sich geaendert (Issue #91): Liste neu melden und
+  /// Die Senderliste hat sich geaendert: Liste neu melden und
   /// neue Sender beim naechsten Abruf mitnehmen.
   void stationsChanged() {
     if (_disposed) return;
@@ -258,7 +258,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     if (_disposed || station == _active) return;
     _active = station;
     _activeGeneration++;
-    // Issue #99: Ein gemerkter Titel, dessen Ende schon vorbei ist, stammt
+    // Ein gemerkter Titel, dessen Ende schon vorbei ist, stammt
     // aus einem frueheren Abruf (im Hintergrund werden nur die aktive
     // Station und im Vordergrund alle 60 s abgefragt). Statt ihn bis zur
     // Antwort stehen zu lassen, sofort neutral (Sendername) anzeigen.
@@ -396,8 +396,60 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
       bypassGap: bypassGap,
     );
     if (list == null || _disposed) return;
-    _last[slug] = list.value;
+    // Keep covers already resolved for the same song; the API
+    // list usually carries none.
+    final previous = _last[slug] ?? const <Track>[];
+    _last[slug] = <Track>[
+      for (final t in list.value) _withKnownCover(t, previous),
+    ];
     _emit();
+    if (slug == _active.slug) _lookupHistoryCovers(slug);
+  }
+
+  /// [track] with the cover of the same song from [known], if it has none.
+  static Track _withKnownCover(Track track, List<Track> known) {
+    if (track.artworkUrl != null) return track;
+    for (final k in known) {
+      if (k.artworkUrl != null && _sameSong(k, track)) {
+        return track.copyWith(artworkUrl: k.artworkUrl);
+      }
+    }
+    return track;
+  }
+
+  /// Every history entry gets its own cover, looked up by its own
+  /// artist and title (cached by the artwork service). Entries without a
+  /// hit keep `artworkUrl == null`, so the UI falls back to the station logo.
+  void _lookupHistoryCovers(String slug) {
+    for (final t in _last[slug] ?? const <Track>[]) {
+      if (t.artworkUrl == null) unawaited(_lookupEntryCover(slug, t));
+    }
+  }
+
+  Future<void> _lookupEntryCover(String slug, Track track) async {
+    final result = await _artwork.lookup(track);
+    final url = result?.artworkUrl;
+    if (url == null || _disposed) return;
+    if (_patchHistoryCover(slug, track, url)) _emit();
+  }
+
+  /// Sets [url] on the history entry of [slug] that is the same song as
+  /// [track] (and has no cover yet). Returns whether something changed.
+  bool _patchHistoryCover(String slug, Track track, String url) {
+    final last = _last[slug];
+    if (last == null) return false;
+    var changed = false;
+    final next = <Track>[];
+    for (final t in last) {
+      if (t.artworkUrl == null && _sameSong(t, track)) {
+        next.add(t.copyWith(artworkUrl: url));
+        changed = true;
+      } else {
+        next.add(t);
+      }
+    }
+    if (changed) _last[slug] = next;
+    return changed;
   }
 
   Future<void> _fetchListeners(String slug, {bool bypassGap = false}) async {
@@ -523,7 +575,12 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     final url = result?.artworkUrl;
     if (url == null || _disposed) return;
     final current = _current[slug];
-    if (current == null || !_sameSong(current, track)) return;
+    if (current == null || !_sameSong(current, track)) {
+      // The song ended before its cover arrived: it is in the history now
+      // and keeps its own cover there.
+      if (_patchHistoryCover(slug, track, url)) _emit();
+      return;
+    }
     _current[slug] = current.copyWith(artworkUrl: url);
     _emit();
   }

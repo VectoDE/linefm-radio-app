@@ -19,7 +19,10 @@ class _SilentPlayer implements RadioPlayer {
   Stream<RadioSignal> get signals => _signals.stream;
 
   @override
-  Future<void> open(Uri url) async {}
+  Future<void> load(Uri url) async {}
+
+  @override
+  Future<void> play() async {}
 
   @override
   Future<void> stop() async {}

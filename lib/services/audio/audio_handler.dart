@@ -69,7 +69,7 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   /// "recent", Play ohne Auswahl).
   Station? _recent;
 
-  /// Favoriten-Sender fuer das Auto-Menue (Issue #42).
+  /// Favoriten-Sender fuer das Auto-Menue.
   List<Station> _favoriteStations = const <Station>[];
 
   /// Letzter bekannter Titel je Station (Slug).
@@ -114,10 +114,10 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   List<Station> get favoriteStations => _favoriteStations;
 
   /// Zuletzt gemeldete Favoriten-Slugs (auch fuer gerade nicht gelistete
-  /// Sender, Issue #91).
+  /// Sender).
   Set<String> _favoriteSlugs = const <String>{};
 
-  /// Die Senderliste hat sich geaendert (nachgeladene Fassung, Issue #91):
+  /// Die Senderliste hat sich geaendert (nachgeladene Fassung):
   /// Auto-Menue (Android Auto, CarPlay) neu laden, Favoriten neu zuordnen.
   /// Eine laufende Wiedergabe bleibt unberuehrt, auch wenn ihr Sender
   /// entfernt wurde.
@@ -155,7 +155,19 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
     _errorMessage = null;
     mediaItem.add(BrowseTree.stationItem(station, track: _knownTrack(station)));
     _connectStartedAt = DateTime.now();
+    final wasStreaming = _state.status != PlayerStatus.idle;
     _emit(_state.copyWith(status: PlayerStatus.connecting, station: station));
+    // Silence the previous station right away instead of letting
+    // it run until the new stream is loaded (URL lookup can take seconds,
+    // and a failing load would leave the old stream playing for good).
+    if (wasStreaming) {
+      try {
+        await _player.stop();
+      } on Object catch (e) {
+        _errorMessage = '$e';
+      }
+      if (gen != _generation) return;
+    }
     await _connect(station, gen);
   }
 
@@ -183,7 +195,7 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   @override
   Future<void> updateNowPlaying(Station station, Track? track) async {
     _tracks[station.slug] = track;
-    // Issue #99: Laeuft nichts, zeigt die Benachrichtigung den in der App
+    // Laeuft nichts, zeigt die Benachrichtigung den in der App
     // gewaehlten Sender (_recent), nicht den zuletzt gespielten
     // (_state.station); sonst bliebe dort der Titel des alten Senders stehen.
     final current = _desired ?? _recent ?? _state.station;
@@ -211,7 +223,7 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   /// Gemerkter Titel der Station, aber nur, solange er laut `endsAt` noch
   /// laeuft. Ein abgelaufener Titel (z. B. Wechsel per Medientaste auf einen
   /// lange nicht gewaehlten Sender) wird nicht gezeigt; die App meldet den
-  /// aktuellen nach (Issue #99).
+  /// aktuellen nach.
   Track? _knownTrack(Station station) {
     final track = _tracks[station.slug];
     final endsAt = track?.endsAt;
@@ -426,7 +438,12 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
     try {
       final url = await streamUrlResolver(station);
       if (gen != _generation) return;
-      await _player.open(url);
+      await _player.load(url);
+      // A newer switch (or stop) happened while this stream was
+      // loading. Starting it now would play the old station under the UI of
+      // the new one.
+      if (gen != _generation) return;
+      await _player.play();
     } on Object catch (e) {
       if (gen == _generation) _onFailure('$e');
     }

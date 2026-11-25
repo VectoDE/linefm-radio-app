@@ -16,7 +16,7 @@
   flutter build windows --release
 
 .EXAMPLE
-  pwsh installer/windows/build.ps1 -Version 1.2.3 -Out dist/linefm-radio-1.2.3-windows-x64-setup.exe
+  pwsh installer/windows/build.ps1 -Version X.Y.Z -Out dist/linefm-radio-X.Y.Z-windows-x64-setup.exe
 #>
 [CmdletBinding()]
 param(

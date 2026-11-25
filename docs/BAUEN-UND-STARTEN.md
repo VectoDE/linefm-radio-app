@@ -137,9 +137,9 @@ Was der Installer einrichtet: einen Eintrag unter **Einstellungen > Apps > Insta
 
 ```powershell
 # Nur für den angemeldeten Benutzer, ohne Fenster
-.\linefm-radio-1.2.3-windows-x64-setup.exe /S
+.\linefm-radio-X.Y.Z-windows-x64-setup.exe /S
 # Für alle Benutzer (Administrator-Konsole), ohne Desktop-Verknüpfung, mit Protokoll
-.\linefm-radio-1.2.3-windows-x64-setup.exe /S /ALLUSERS /DESKTOPSHORTCUT=0 /LOG="C:\Temp\linefm-setup.log"
+.\linefm-radio-X.Y.Z-windows-x64-setup.exe /S /ALLUSERS /DESKTOPSHORTCUT=0 /LOG="C:\Temp\linefm-setup.log"
 # Still deinstallieren (steht auch in der Registry als QuietUninstallString)
 & "$env:LOCALAPPDATA\Programs\LINEFM Radio\uninstall.exe" /S
 ```

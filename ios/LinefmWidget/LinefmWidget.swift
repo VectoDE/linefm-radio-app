@@ -109,7 +109,7 @@ struct LinefmWidgetView: View {
           .resizable()
           .aspectRatio(contentMode: .fit)
           .padding(12)
-          .foregroundColor(Color.white.opacity(0.8))
+          .foregroundColor(Color("widget_muted"))
       }
     }
     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -138,7 +138,7 @@ struct LinefmWidgetView: View {
             .font(.caption.weight(.semibold))
             .lineLimit(1)
           if let line = trackLine {
-            Text(line).font(.caption2).lineLimit(2).opacity(0.8)
+            Text(line).font(.caption2).lineLimit(2).foregroundColor(Color("widget_muted"))
           }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -152,21 +152,23 @@ struct LinefmWidgetView: View {
             Text(trackLine ?? entry.idleText)
               .font(.subheadline)
               .lineLimit(2)
-              .opacity(0.8)
+              .foregroundColor(Color("widget_muted"))
           }
           Spacer(minLength: 0)
         }
       }
     }
-    .foregroundColor(.white)
+    .foregroundColor(Color("widget_text"))
     .widgetURL(entry.url)
     .modifier(LinefmBackground())
   }
 }
 
-/// Dunkler Hintergrund wie die App (Token surface #0F1221).
+/// Hintergrund folgt dem System (Hell/Dunkel) ueber das Farb-Asset
+/// `widget_background` (Token surface, Appearances Any/Dark in
+/// `Shared/StationLogos.xcassets`).
 private struct LinefmBackground: ViewModifier {
-  private let color = Color(red: 0x0F / 255, green: 0x12 / 255, blue: 0x21 / 255)
+  private let color = Color("widget_background")
 
   @ViewBuilder
   func body(content: Content) -> some View {

@@ -172,9 +172,8 @@ void main() {
     });
     test('description and station list are visually hidden, not removed', () {
       final shell = html.substring(html.indexOf('<main id="static-shell">'));
-      final hidden = RegExp(
-        r'<div class="visually-hidden">([\s\S]*?)</div>',
-      ).firstMatch(shell);
+      final hidden = RegExp(r'<div class="visually-hidden">([\s\S]*?)</div>')
+          .firstMatch(shell);
       expect(hidden, isNotNull);
       expect(hidden!.group(1), contains('<h1>'));
       expect(hidden.group(1), contains('<li>LineFM +MAIN</li>'));

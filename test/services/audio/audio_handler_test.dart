@@ -18,8 +18,15 @@ class FakeRadioPlayer implements RadioPlayer {
   double? volume;
   bool failOpen = false;
 
-  /// Meldet nach open() automatisch "playing".
+  /// Meldet nach play() automatisch "playing".
   bool autoPlay = true;
+
+  /// Streams that actually started (what the user hears).
+  final List<Uri> played = <Uri>[];
+  Uri? _loaded;
+
+  /// When set, load() waits for this completer (slow network).
+  final Map<Uri, Completer<void>> loadGates = <Uri, Completer<void>>{};
 
   @override
   Stream<RadioSignal> get signals => _signals.stream;
@@ -27,9 +34,17 @@ class FakeRadioPlayer implements RadioPlayer {
   void emit(RadioSignal s) => _signals.add(s);
 
   @override
-  Future<void> open(Uri url) async {
+  Future<void> load(Uri url) async {
     opened.add(url);
+    _loaded = url;
+    final gate = loadGates[url];
+    if (gate != null) await gate.future;
     if (failOpen) throw Exception('open failed');
+  }
+
+  @override
+  Future<void> play() async {
+    played.add(_loaded!);
     if (autoPlay) {
       emit(RadioSignal.buffering);
       emit(RadioSignal.playing);
@@ -39,6 +54,7 @@ class FakeRadioPlayer implements RadioPlayer {
   @override
   Future<void> stop() async {
     stops++;
+    _loaded = null;
     emit(RadioSignal.idle);
   }
 
@@ -219,7 +235,7 @@ void main() {
     final player = FakeRadioPlayer();
     final h = _handler(player);
 
-    // Immer drei Ordner (Issue #42), ohne Daten sind zwei davon leer.
+    // Immer drei Ordner, ohne Daten sind zwei davon leer.
     final root = await h.getChildren(AudioService.browsableRootId);
     expect(root.map((e) => e.id), <String>[
       BrowseTree.favoriteStationsId,
@@ -289,7 +305,7 @@ void main() {
     );
   });
 
-  test('Issue #99: gestoppt, neuer Sender gewaehlt -> Benachrichtigung zeigt '
+  test('gestoppt, neuer Sender gewaehlt -> Benachrichtigung zeigt '
       'dessen Titel', () async {
     final player = FakeRadioPlayer();
     final h = _handler(player);
@@ -310,23 +326,109 @@ void main() {
     expect(h.mediaItem.value?.title, 'Neuer Sender');
   });
 
-  test(
-    'Issue #99: Wechsel per Medientaste zeigt keinen abgelaufenen Titel',
-    () async {
+  test('Wechsel per Medientaste zeigt keinen abgelaufenen Titel', () async {
+    final player = FakeRadioPlayer();
+    final h = _handler(player);
+    await h.updateNowPlaying(
+      rap,
+      Track(
+        artist: 'Alt',
+        title: 'Laengst vorbei',
+        endsAt: DateTime.now().subtract(const Duration(minutes: 30)),
+      ),
+    );
+    await h.playStation(main);
+    await h.skipToNext();
+    expect(h.state.station, rap);
+    expect(h.mediaItem.value?.title, isNot('Laengst vorbei'));
+  });
+
+  group('station switch', () {
+    test('switch while playing stops the old stream before the new one '
+        'starts', () async {
       final player = FakeRadioPlayer();
       final h = _handler(player);
-      await h.updateNowPlaying(
-        rap,
-        Track(
-          artist: 'Alt',
-          title: 'Laengst vorbei',
-          endsAt: DateTime.now().subtract(const Duration(minutes: 30)),
-        ),
-      );
       await h.playStation(main);
-      await h.skipToNext();
+      await _settle();
+      expect(h.state.status, PlayerStatus.playing);
+      final stopsBefore = player.stops;
+
+      await h.playStation(rap);
+      await _settle();
+
+      expect(player.stops, greaterThan(stopsBefore));
+      expect(player.played.last.toString(), rap.fallbackStreamUrl);
       expect(h.state.station, rap);
-      expect(h.mediaItem.value?.title, isNot('Laengst vorbei'));
-    },
-  );
+      expect(h.state.status, PlayerStatus.playing);
+    });
+
+    test('switch while the old stream is still loading: the old stream '
+        'never starts', () async {
+      final player = FakeRadioPlayer();
+      final h = _handler(player);
+      final slow = Uri.parse(main.fallbackStreamUrl);
+      player.loadGates[slow] = Completer<void>();
+
+      unawaited(h.playStation(main));
+      await _settle(5);
+      await h.playStation(rap);
+      // The slow load of the first station finishes after the switch.
+      player.loadGates[slow]!.complete();
+      await _settle();
+
+      expect(player.played.map((u) => u.toString()), <String>[
+        rap.fallbackStreamUrl,
+      ]);
+      expect(h.state.station, rap);
+      expect(h.state.status, PlayerStatus.playing);
+    });
+
+    test('rapid double switch with slow URL lookups: only the last '
+        'station plays', () async {
+      final player = FakeRadioPlayer();
+      final gates = <String, Completer<Uri>>{};
+      final h = _handler(player)
+        ..streamUrlResolver = (station) {
+          final c = Completer<Uri>();
+          gates[station.slug] = c;
+          return c.future;
+        };
+      final third = stationsCatalog[2];
+
+      unawaited(h.playStation(main));
+      unawaited(h.playStation(rap));
+      unawaited(h.playStation(third));
+      await _settle(5);
+      // The first lookup was already running; superseded switches may skip
+      // theirs. Lookups resolve in reverse order (worst case).
+      expect(gates, contains(main.slug));
+      gates[third.slug]!.complete(Uri.parse(third.fallbackStreamUrl));
+      await _settle(5);
+      gates[rap.slug]?.complete(Uri.parse(rap.fallbackStreamUrl));
+      gates[main.slug]?.complete(Uri.parse(main.fallbackStreamUrl));
+      await _settle();
+
+      expect(player.played.map((u) => u.toString()), <String>[
+        third.fallbackStreamUrl,
+      ]);
+      expect(h.state.station, third);
+      expect(h.state.status, PlayerStatus.playing);
+    });
+
+    test('stop during a slow load: nothing starts afterwards', () async {
+      final player = FakeRadioPlayer();
+      final h = _handler(player);
+      final slow = Uri.parse(main.fallbackStreamUrl);
+      player.loadGates[slow] = Completer<void>();
+
+      unawaited(h.playStation(main));
+      await _settle(5);
+      await h.stopPlayback();
+      player.loadGates[slow]!.complete();
+      await _settle();
+
+      expect(player.played, isEmpty);
+      expect(h.state.status, PlayerStatus.idle);
+    });
+  });
 }

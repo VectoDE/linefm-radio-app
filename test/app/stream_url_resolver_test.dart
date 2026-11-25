@@ -19,7 +19,10 @@ class _SilentPlayer implements RadioPlayer {
   Stream<RadioSignal> get signals => _signals.stream;
 
   @override
-  Future<void> open(Uri url) async {}
+  Future<void> load(Uri url) async {}
+
+  @override
+  Future<void> play() async {}
 
   @override
   Future<void> stop() async {}
@@ -76,7 +79,7 @@ void main() {
     return (first, second, api);
   }
 
-  group('Stream-URL (PlayerController, #92)', () {
+  group('Stream-URL (PlayerController)', () {
     test('https-URL aus der API wird genommen und gemerkt', () async {
       final (a, b, api) = await resolveTwice(
         () async => 'https://linefmrap.stream.laut.fm/linefmrap',

@@ -18,7 +18,10 @@ class _SilentPlayer implements RadioPlayer {
   Stream<RadioSignal> get signals => _signals.stream;
 
   @override
-  Future<void> open(Uri url) async {
+  Future<void> load(Uri url) async {}
+
+  @override
+  Future<void> play() async {
     _signals
       ..add(RadioSignal.buffering)
       ..add(RadioSignal.playing);
@@ -39,7 +42,7 @@ void main() {
   final lofi = stationBySlug('linefmlofi')!;
   final fob = stationBySlug('fobfm')!;
 
-  group('BrowseTree (Auto-Menue, Issue #42)', () {
+  group('BrowseTree (Auto-Menue)', () {
     test('Wurzel: immer drei Ordner in fester Reihenfolge', () {
       final root = BrowseTree.children(BrowseTree.rootId);
       expect(root.map((e) => e.id), <String>[

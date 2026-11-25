@@ -308,7 +308,7 @@ abstract class AppLocalizations {
   /// **'Hör mal rein: {station} bei LINEFM. {url}'**
   String stationShareText(String station, String url);
 
-  /// Stern auf der Stationskarte (Screenreader/Tooltip), Issue #42
+  /// Stern auf der Stationskarte (Screenreader/Tooltip)
   ///
   /// In de, this message translates to:
   /// **'{station} als Favoriten-Sender merken'**
@@ -542,7 +542,7 @@ abstract class AppLocalizations {
   /// **'Der Export hat nicht geklappt. Versuche es noch einmal.'**
   String get favoritesExportFailed;
 
-  /// Knopf/Tooltip: Favoriten aus einer eigenen Export-Datei (CSV oder Text) einlesen, Issue #9
+  /// Knopf/Tooltip: Favoriten aus einer eigenen Export-Datei (CSV oder Text) einlesen
   ///
   /// In de, this message translates to:
   /// **'Favoriten importieren'**
@@ -1376,7 +1376,7 @@ abstract class AppLocalizations {
   /// **'Wiedergabe'**
   String get notificationChannelName;
 
-  /// Ordner im Auto-Menü (Android Auto/CarPlay): gemerkte Sender, Issue #42
+  /// Ordner im Auto-Menü (Android Auto/CarPlay): gemerkte Sender
   ///
   /// In de, this message translates to:
   /// **'Favoriten-Sender'**

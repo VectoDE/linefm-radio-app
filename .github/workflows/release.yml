@@ -395,7 +395,8 @@ jobs:
           path: ${{ runner.temp }}/subjects
 
       # Deutsche Release Notes aus den Commit- bzw. PR-Titeln seit dem letzten
-      # Release (Squash-Merges tragen den PR-Titel mit "(#Nummer)").
+      # Release. Angehaengte Nummern von Squash-Merges und Verweise auf Issues
+      # oder Pull Requests werden entfernt: Release Notes beschreiben nur.
       - name: Release Notes schreiben
         env:
           STAGE: ${{ needs.version.outputs.stage }}
@@ -416,7 +417,7 @@ jobs:
             echo ""
             echo "### Aenderungen"
             echo ""
-            grep -v '^[[:space:]]*$' "$RUNNER_TEMP/subjects/subjects.txt" | sed 's/^/- /'
+            grep -v '^[[:space:]]*$' "$RUNNER_TEMP/subjects/subjects.txt"               | sed -E 's/[[:space:]]*\((PR |pull request |issue )?#[0-9]+\)//Ig; s/[[:space:]]*(refs|fixes|closes|resolves)[[:space:]]+#[0-9]+//Ig'               | sed 's/^/- /'
             echo ""
             if [ -n "$LAST" ]; then
               echo "Alle Aenderungen: https://github.com/${GITHUB_REPOSITORY}/compare/${LAST}...${TAG}"

@@ -9,7 +9,7 @@ workflows or Markdown.
 Flagged patterns (case-insensitive where noted):
   keyword   issue/issues/PR/pull request/Refs/Fixes/Closes/Resolves followed by #<number>
   bare      #<number> (1 to 4 digits) that is not part of a longer word or
-            entity, e.g. "(#42)", "# #42:", "see #42"
+            entity, e.g. a number in parentheses or after "see"
   url       a link to /issues/<n> or /pull/<n> of this repository
 
 Allow-list (false positives, each with its reason):

@@ -13,7 +13,7 @@ LINEFM Radio ist ein Projekt von Tim Hauke (VectoDE) für jaybelife. Das Reposit
 1. Für jede Änderung gibt es ein Issue mit einer Aufgabenliste (Checkboxen). Aufgaben werden erst abgehakt, wenn sie erledigt und geprüft sind.
 2. Branch pro Änderung, kurzer Name, zum Beispiel `fix-wecker-zeitzone`.
 3. Kleine, prüfbare Commits im Stil von Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`).
-4. Pull Request gegen `main`, mit `Refs #<Issue>` im Text. Issues werden nicht automatisch geschlossen.
+4. Pull Request gegen `main`. Die Zuordnung zu Issues steht in Commit-Texten, Branch-Namen und der PR-Beschreibung, nie in Dateien. `python3 tool/check_no_issue_refs.py` prüft das, die CI auch. Issues werden nicht automatisch geschlossen.
 
 ## Vor jedem Pull Request
 

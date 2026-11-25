@@ -37,7 +37,11 @@ jobs:
       - name: Keine feste App-Version
         run: bash tool/check_fixed_versions.sh
 
-      # Dependency_overrides only with a documented reason.
+      # Files describe behaviour in words; no issue or pull request numbers.
+      - name: No issue or pull request references
+        run: python3 tool/check_no_issue_refs.py
+
+      # dependency_overrides only with a documented reason.
       - name: Dependency overrides documented
         run: bash tool/check_dependency_overrides.sh
 

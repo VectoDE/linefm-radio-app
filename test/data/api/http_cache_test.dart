@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -202,5 +203,29 @@ void main() {
         isA<LautApiException>().having((e) => e.statusCode, 'status', 404),
       ),
     );
+  });
+
+  test('HttpLautApi.schedule: URL, Parsing, leerer Body und Fehler', () async {
+    final body = File('test/fixtures/laut/linefmrap_schedule.json')
+        .readAsStringSync();
+    final api = HttpLautApi(
+      cache: cacheWith((r) {
+        if (r.url.path == '/station/linefmrap/schedule') {
+          return http.Response(body, 200);
+        }
+        if (r.url.path == '/station/fobfm/schedule') {
+          return http.Response('', 200);
+        }
+        return http.Response('boom', 500);
+      }),
+    );
+    final slots = await api.schedule('linefmrap');
+    expect(slots.first.name, 'Old School Classics');
+    expect(
+      requests.single.url.toString(),
+      'https://api.laut.fm/station/linefmrap/schedule',
+    );
+    expect(await api.schedule('fobfm'), isEmpty);
+    await expectLater(api.schedule('kaputt'), throwsA(isA<LautApiException>()));
   });
 }

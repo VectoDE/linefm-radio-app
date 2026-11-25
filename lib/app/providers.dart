@@ -25,6 +25,7 @@ import 'package:linefm_radio/domain/favorites/favorites_logic.dart';
 import 'package:linefm_radio/domain/history_entry.dart';
 import 'package:linefm_radio/domain/now_playing.dart';
 import 'package:linefm_radio/domain/player_ui_state.dart';
+import 'package:linefm_radio/domain/schedule_slot.dart';
 import 'package:linefm_radio/domain/sleep_timer/sleep_timer_logic.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
@@ -68,6 +69,16 @@ final telemetryProvider = Provider<TelemetryHub>(
 // ------------------------------------------------------------------- Dienste
 
 final lautApiProvider = Provider<LautApi>((ref) => const StubLautApi());
+
+/// Sendeplan einer Station (Slug); leer bei Fehler oder ohne Plan.
+final stationScheduleProvider =
+    FutureProvider.family<List<ScheduleSlot>, String>((ref, slug) async {
+      try {
+        return await ref.watch(lautApiProvider).schedule(slug);
+      } on Exception {
+        return const <ScheduleSlot>[];
+      }
+    });
 
 final artworkProvider = Provider<ArtworkService>(
   (ref) => const NoopArtworkService(),

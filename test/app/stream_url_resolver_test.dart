@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/data/api/laut_api.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
+import 'package:linefm_radio/domain/schedule_slot.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/services/audio/audio_handler.dart';
@@ -49,6 +50,10 @@ class _Api implements LautApi {
 
   @override
   Future<int?> listeners(String slug) async => null;
+
+  @override
+  Future<List<ScheduleSlot>> schedule(String slug) async =>
+      const <ScheduleSlot>[];
 
   @override
   Future<String?> streamUrl(String slug) {

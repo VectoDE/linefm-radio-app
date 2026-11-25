@@ -9,6 +9,7 @@ import 'package:linefm_radio/data/artwork/itunes_artwork.dart';
 import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/domain/history_entry.dart';
 import 'package:linefm_radio/domain/now_playing.dart';
+import 'package:linefm_radio/domain/schedule_slot.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 
@@ -48,6 +49,10 @@ class _FakeApi implements LautApi {
   @override
   Future<int?> listeners(String slug) =>
       _call('listeners:$slug', listenerCount[slug]);
+
+  @override
+  Future<List<ScheduleSlot>> schedule(String slug) async =>
+      const <ScheduleSlot>[];
 
   @override
   Future<String?> streamUrl(String slug) async => null;
@@ -685,6 +690,10 @@ class _GatedApi implements LautApi {
 
   @override
   Future<int?> listeners(String slug) => _call('listeners:$slug', null);
+
+  @override
+  Future<List<ScheduleSlot>> schedule(String slug) async =>
+      const <ScheduleSlot>[];
 
   @override
   Future<String?> streamUrl(String slug) async => null;

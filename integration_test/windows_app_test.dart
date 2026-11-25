@@ -26,6 +26,7 @@ import 'package:linefm_radio/data/api/laut_api.dart';
 import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
+import 'package:linefm_radio/domain/schedule_slot.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/stations_config.dart';
@@ -399,6 +400,10 @@ class _GatedApi implements LautApi {
 
   @override
   Future<int?> listeners(String slug) => _call('listeners:$slug', null);
+
+  @override
+  Future<List<ScheduleSlot>> schedule(String slug) async =>
+      const <ScheduleSlot>[];
 
   @override
   Future<String?> streamUrl(String slug) async => null;

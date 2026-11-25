@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/data/api/laut_parsers.dart';
+import 'package:linefm_radio/domain/schedule_slot.dart';
 
 const _slugs = <String>[
   'linefm',
@@ -248,6 +249,87 @@ void main() {
         'linefmgaming',
       });
       expect(live.every((s) => s.track.endsAt == null), isTrue);
+    });
+  });
+
+  group('parseSchedule', () {
+    test('alle Sender-Fixtures ergeben gueltige Bloecke', () {
+      for (final slug in _slugs) {
+        final raw = File('test/fixtures/laut/${slug}_schedule.json')
+            .readAsStringSync();
+        final json = raw.trim().isEmpty ? null : jsonDecode(raw);
+        final slots = LautParsers.parseSchedule(json);
+        if (slug == 'fobfm') {
+          expect(slots, isEmpty, reason: 'leerer Body');
+          continue;
+        }
+        expect(slots, isNotEmpty, reason: slug);
+        for (final s in slots) {
+          expect(s.name, isNotEmpty);
+          expect(s.startHour, inInclusiveRange(0, 23));
+        }
+      }
+    });
+
+    test('Rap-Plan: Felder und Mitternachtsblock', () {
+      final slots = LautParsers.parseSchedule(
+        _fixture('linefmrap_schedule.json'),
+      );
+      final first = slots.first;
+      expect(first.id, 522428);
+      expect(first.name, 'Old School Classics');
+      expect(first.day, ScheduleDay.mon);
+      expect(first.startHour, 0);
+      expect(first.endHour, 11);
+      expect(first.colorHex, '#795548');
+      expect(first.shuffled, isTrue);
+      expect(first.description, isNull);
+      final overnight = slots.firstWhere(
+        (s) => s.day == ScheduleDay.mon && s.startHour == 21,
+      );
+      expect(overnight.endHour, 11);
+    });
+
+    test('Rund-um-die-Uhr-Sender: end_time null', () {
+      final slots = LautParsers.parseSchedule(_fixture('linefm_schedule.json'));
+      expect(slots, hasLength(1));
+      expect(slots.single.endHour, isNull);
+    });
+
+    test('kaputte Eintraege werden toleriert', () {
+      final slots = LautParsers.parseSchedule(<Object?>[
+        null,
+        'x',
+        <String, Object?>{'name': 'A', 'day': 'xyz', 'hour': 1},
+        <String, Object?>{'name': '', 'day': 'mon', 'hour': 1},
+        <String, Object?>{'name': 'B', 'day': 'mon', 'hour': 24},
+        <String, Object?>{'name': 'C', 'day': 'mon'},
+        <String, Object?>{
+          'name': ' D ',
+          'day': 'SUN',
+          'hour': '7',
+          'end_time': 99,
+          'color': 'rot',
+          'description': '',
+          'shuffled': 'ja',
+        },
+      ]);
+      expect(slots, hasLength(1));
+      final d = slots.single;
+      expect(d.name, 'D');
+      expect(d.day, ScheduleDay.sun);
+      expect(d.day.weekday, DateTime.sunday);
+      expect(d.startHour, 7);
+      expect(d.endHour, isNull);
+      expect(d.colorHex, isNull);
+      expect(d.description, isNull);
+      expect(d.shuffled, isNull);
+    });
+
+    test('Nicht-Liste -> leer', () {
+      for (final v in <Object?>[null, 1, 'x', <String, Object?>{}]) {
+        expect(LautParsers.parseSchedule(v), isEmpty);
+      }
     });
   });
 }

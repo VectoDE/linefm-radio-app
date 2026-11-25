@@ -1,0 +1,26 @@
+HTTP/1.1 200 OK
+Date: Wed, 25 Nov 2026 22:55:23 GMT
+Content-Type: application/json; charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+access-control-allow-credentials: true
+access-control-allow-headers: If-Modified-Since
+access-control-allow-methods: GET, OPTIONS
+access-control-allow-origin: *
+Age: 3025
+cache-control: public, must-revalidate, max-age=4500
+etag: W/"e1cd1bdaad46c3ed1d46955b3ab30ce1"
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+expires: Thu, 26 Nov 2026 00:10:23 GMT
+location: 
+Server: cloudflare
+vary: Accept-Encoding
+via: 1.1 api-frontend-57f55468c6-pxhd2 (Varnish/7.7)
+x-cache: HIT
+x-cache-hits: 1
+x-varnish: 539171356 539299480
+cf-cache-status: REVALIDATED
+Strict-Transport-Security: max-age=0
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=0SvYJnHHyNDCq02NbJyhpw1XnFO8CB1hXo2jXyZ%2FDECrjc4JiHOrSVnXOXLVt%2B5T4pyc7iOXORjq6J3qfJSZZ%2BZuaVG5YTjgBpE4YFSeF%2FrUd8mSqgrje%2Fhx5M5xaAG6lliNZOgiuzaP"}]}
+CF-RAY: a6043d9d7a044ae6-TXL
+

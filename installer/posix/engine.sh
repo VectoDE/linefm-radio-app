@@ -284,15 +284,13 @@ ensure_not_running() {
     *) finish "$EX_RUNNING" "App is running" ;;
   esac
   emit "phase closing"
-  # shellcheck disable=SC2086 # list of numeric PIDs
-  kill -TERM $pids 2>/dev/null
+  echo "$pids" | xargs kill -TERM 2>/dev/null
   i=0
   while [ -n "$(app_pids)" ] && [ $i -lt 50 ]; do sleep 0.2; i=$((i + 1)); done
   pids=$(app_pids)
   if [ -n "$pids" ]; then
     log "App does not respond, forcing it to quit"
-    # shellcheck disable=SC2086
-    kill -KILL $pids 2>/dev/null
+    echo "$pids" | xargs kill -KILL 2>/dev/null
     sleep 1
   fi
   [ -z "$(app_pids)" ] || finish "$EX_RUNNING" "App cannot be closed"
@@ -317,20 +315,20 @@ dock_edit() { # add|remove DIR
   url="file://$(printf '%s' "$2" | sed -e 's/%/%25/g' -e 's/ /%20/g')/"
   pb=/usr/libexec/PlistBuddy
   i=0; found=""
-  while label=$($pb -c "Print :persistent-apps:$i:tile-data:file-data:_CFURLString" "$tmp" 2>/dev/null) || \
-        $pb -c "Print :persistent-apps:$i" "$tmp" >/dev/null 2>&1; do
+  while label=$("$pb" -c "Print :persistent-apps:$i:tile-data:file-data:_CFURLString" "$tmp" 2>/dev/null) || \
+        "$pb" -c "Print :persistent-apps:$i" "$tmp" >/dev/null 2>&1; do
     if [ "$label" = "$url" ]; then found=$i; break; fi
     i=$((i + 1)); label=""
   done
   if [ "$1" = add ] && [ -z "$found" ]; then
-    $pb -c "Add :persistent-apps:$i dict" \
+    "$pb" -c "Add :persistent-apps:$i dict" \
         -c "Add :persistent-apps:$i:tile-type string file-tile" \
         -c "Add :persistent-apps:$i:tile-data dict" \
         -c "Add :persistent-apps:$i:tile-data:file-data dict" \
         -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLString string $url" \
         -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLStringType integer 15" "$tmp" >/dev/null 2>&1 || return 0
   elif [ "$1" = remove ] && [ -n "$found" ]; then
-    $pb -c "Delete :persistent-apps:$found" "$tmp" >/dev/null 2>&1 || return 0
+    "$pb" -c "Delete :persistent-apps:$found" "$tmp" >/dev/null 2>&1 || return 0
   else
     return 0
   fi
@@ -449,7 +447,7 @@ install_uninstaller() { # STAGING
   if [ "$OS" = macos ]; then
     src="$1/uninstaller/$P_UNINSTALLER"
     [ -d "$src" ] || { log "No uninstaller in the payload"; return 0; }
-    rm -rf "$STATE_DIR/$P_UNINSTALLER"
+    rm -rf "${STATE_DIR:?}/${P_UNINSTALLER:?}"
     mv "$src" "$STATE_DIR/$P_UNINSTALLER"
   else
     bundle=$(dirname "$SELF_DIR")
@@ -669,6 +667,7 @@ run_root() { # VERB [FLAGS...]
     /bin/sh "$helper" "$@" > "$out" 2>&1; echo $? > "$rc"
   elif [ "${LF_SETUP_ELEVATE:-}" = sudo ]; then
     # CI test mode (passwordless sudo on the runner).
+    # shellcheck disable=SC2024 # output files stay user-owned on purpose
     sudo -n /bin/sh "$helper" "$@" > "$out" 2>&1; echo $? > "$rc"
   elif [ "$OS" = linux ]; then
     command -v pkexec >/dev/null 2>&1 || finish "$EX_ELEVATION" "pkexec (polkit) is not installed"

@@ -37,6 +37,11 @@ abstract interface class PrefsStore {
   String? readCoverCache();
   Future<void> writeCoverCache(String json);
 
+  /// Zuletzt gueltig nachgeladene Senderliste samt ETag (Issue #91), als
+  /// JSON-Text. Gleiche Regel wie der Cover-Cache: nur mit Bestaetigung.
+  String? readStationsCache();
+  Future<void> writeStationsCache(String json);
+
   /// Speicher loeschen: setzt alles inklusive Bestaetigung zurueck, ausser
   /// "Cover laden: aus" (Datenschutz-Praeferenz, R3-P03).
   Future<void> clearAll();
@@ -58,6 +63,7 @@ class InMemoryPrefsStore implements PrefsStore {
   List<AlarmRule> _alarms = <AlarmRule>[];
   bool? _telemetry;
   String? _coverCache;
+  String? _stationsCache;
 
   @override
   bool get storageConsent => _consent;
@@ -119,6 +125,12 @@ class InMemoryPrefsStore implements PrefsStore {
   Future<void> writeCoverCache(String json) async => _coverCache = json;
 
   @override
+  String? readStationsCache() => _stationsCache;
+
+  @override
+  Future<void> writeStationsCache(String json) async => _stationsCache = json;
+
+  @override
   Future<void> clearAll() async {
     _consent = false;
     _favorites = <Favorite>[];
@@ -130,5 +142,6 @@ class InMemoryPrefsStore implements PrefsStore {
     _alarms = <AlarmRule>[];
     _telemetry = null;
     _coverCache = null;
+    _stationsCache = null;
   }
 }

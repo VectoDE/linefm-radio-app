@@ -1,6 +1,7 @@
 name: Build-Konfiguration schreiben
 description: >
-  Erzeugt config/app.json aus config/app.example.json und ueberschreibt nur die
+  Erzeugt config/app.json (Bauwerte fuer --dart-define-from-file) aus
+  config/app.example.yaml und config/features.example.yaml und ueberschreibt nur die
   Werte, die als Eingabe (aus Repository-Variablen/-Secrets) gesetzt sind.
   Leere Eingaben lassen den Standard aus der Beispieldatei stehen. Alle Werte
   landen im Binary und sind oeffentlich lesbar: nur oeffentliche IDs uebergeben.
@@ -9,6 +10,13 @@ description: >
   Setzt voraus, dass Flutter bereits eingerichtet ist.
 
 inputs:
+  features-json:
+    description: >
+      Inhalt fuer config/features.yaml als JSON (Repository-Variable FEATURES_JSON),
+      z. B. {"showListenerCount": true}. Leer = Werte aus
+      config/features.example.yaml (alles aus).
+    required: false
+    default: ""
   app-env:
     description: dev oder prod
     required: false
@@ -92,9 +100,25 @@ runs:
         CFG_TRUST_GRIDINSOFT_URL: ${{ inputs.trust-gridinsoft-url }}
         CFG_TRUST_TRUSTPILOT_URL: ${{ inputs.trust-trustpilot-url }}
         CFG_FIREBASE_CONFIG_JSON: ${{ inputs.firebase-config-json }}
+        CFG_FEATURES_JSON: ${{ inputs.features-json }}
       run: |
         $ErrorActionPreference = 'Stop'
-        $cfg = Get-Content -Raw -Path 'config/app.example.json' | ConvertFrom-Json -AsHashtable
+        # Flache YAML-Dateien aus config/ lesen (Schluessel: Wert, Kommentare
+        # mit #). Format und Werte prueft tool/check_config.dart in der CI.
+        function Read-FlatYaml([string]$path) {
+          $h = [ordered]@{}
+          foreach ($line in Get-Content -Path $path -Encoding utf8) {
+            if ($line -match '^([A-Za-z_][A-Za-z0-9_]*):\s*(.*?)\s*$') {
+              $k = $Matches[1]; $v = $Matches[2]
+              if ($v -match '^"(.*)"$' -or $v -match "^'(.*)'$") { $v = $Matches[1] }
+              elseif ($v -eq 'true') { $v = $true }
+              elseif ($v -eq 'false') { $v = $false }
+              $h[$k] = $v
+            }
+          }
+          return $h
+        }
+        $cfg = Read-FlatYaml 'config/app.example.yaml'
         $map = [ordered]@{
           'APP_ENV'              = $env:CFG_APP_ENV
           'APP_VERSION'          = $env:CFG_APP_VERSION
@@ -124,6 +148,19 @@ runs:
           $cfg['FIREBASE_ENABLED'] = $true
           $set += 'FIREBASE_ENABLED'
         }
+        # Schalter aus config/features.example.yaml (Standard aus), ueberschrieben
+        # von FEATURES_JSON; nur bekannte Schluessel, nur true/false (Issue #91).
+        $feat = Read-FlatYaml 'config/features.example.yaml'
+        if (-not [string]::IsNullOrWhiteSpace($env:CFG_FEATURES_JSON)) {
+          $over = $env:CFG_FEATURES_JSON | ConvertFrom-Json -AsHashtable
+          foreach ($k in $over.Keys) {
+            if (-not $feat.ContainsKey($k)) { throw "FEATURES_JSON: unbekannter Schluessel $k" }
+            if ($over[$k] -isnot [bool]) { throw "FEATURES_JSON: $k muss true oder false sein" }
+            $feat[$k] = $over[$k]
+            $set += $k
+          }
+        }
+        foreach ($k in $feat.Keys) { $cfg[$k] = $feat[$k] }
         New-Item -ItemType Directory -Force -Path 'config' | Out-Null
         $cfg | ConvertTo-Json -Depth 5 | Set-Content -Path 'config/app.json' -Encoding utf8NoBOM
 

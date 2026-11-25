@@ -145,7 +145,7 @@ void main() {
       ]);
       final favorites = json.first['stations']! as List<Map<String, String>>;
       expect(favorites.single, <String, String>{
-        'id': '6',
+        'id': 'fobfm',
         'slug': 'fobfm',
         'title': 'FobFM',
         'logoAsset': 'assets/images/stations/fobfm.png',

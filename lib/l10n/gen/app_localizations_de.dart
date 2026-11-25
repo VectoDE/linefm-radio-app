@@ -836,7 +836,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingShortcutsBody =>
-      'F merkt den Song, S spielt einen zufälligen Sender, 1 bis 6 wählen einen Sender.';
+      'F merkt den Song, S spielt einen zufälligen Sender, 1 bis 6 wählen die ersten sechs Sender der Liste.';
 
   @override
   String get playerSleepTimer => 'Sleeptimer einstellen';
@@ -849,6 +849,15 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String alarmDeleteAt(String time) {
     return 'Wecker $time löschen';
+  }
+
+  @override
+  String get stationUnavailable =>
+      'Dieser Sender ist in der App nicht mehr verfügbar.';
+
+  @override
+  String alarmStationUnavailable(String station) {
+    return 'Der gewählte Sender ist nicht mehr verfügbar. Der Wecker spielt $station.';
   }
 
   @override

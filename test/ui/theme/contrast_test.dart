@@ -1,11 +1,24 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
+import 'package:linefm_radio/domain/stations_config.dart';
 import 'package:linefm_radio/ui/theme/contrast.dart';
 import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
+
+/// Senderfarben aus der echten Senderliste (config/stations.yaml, einzige
+/// Quelle der Farben, Issue #91): Jeder dort eingetragene Sender muss die
+/// Kontrastregeln erfuellen.
+List<Station> _configStations() {
+  final result = parseStationsConfig(
+    File('config/stations.yaml').readAsStringSync(),
+  );
+  expect(result.ok, isTrue, reason: result.errors.join('; '));
+  return result.active.map(stationFromConfig).toList();
+}
 
 void main() {
   group('Contrast', () {
@@ -182,7 +195,7 @@ void main() {
     });
 
     test('gewaehlter Vordergrund erreicht AA je Groesse', () {
-      for (final s in stationsCatalog) {
+      for (final s in _configStations()) {
         final small = Contrast.onColor(s.color);
         final large = Contrast.onColor(s.color, large: true);
         expect(
@@ -205,7 +218,7 @@ void main() {
           ? LinefmColors.dark
           : LinefmColors.light;
       test('Vordergrund in Header und Mitte lesbar ($brightness)', () {
-        for (final s in stationsCatalog) {
+        for (final s in _configStations()) {
           final g = StationStyle.playerGradient(s.color, c, brightness);
           final top = StationStyle.onPlayerTop(s.color, c, brightness);
           final mid = StationStyle.onPlayerBody(s.color, c, brightness);
@@ -230,7 +243,7 @@ void main() {
 
     test('Kartenrahmen erreicht 3:1 zum Grund (hell und dunkel)', () {
       for (final c in <LinefmColors>[LinefmColors.dark, LinefmColors.light]) {
-        for (final s in stationsCatalog) {
+        for (final s in _configStations()) {
           expect(
             Contrast.ratio(StationStyle.border(s.color, c), c.background),
             greaterThanOrEqualTo(Contrast.aaLarge),

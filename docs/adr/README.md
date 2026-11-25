@@ -8,8 +8,9 @@ Neue Entscheidung: nächste Nummer, Dateiname `NNNN-kurztitel.md`, dieselben Abs
 |---|---|
 | 0001 | [Kein Backend, keine Konten](0001-kein-backend-keine-konten.md) |
 | 0002 | [laut.fm-WebSocket aus, Titel per Polling](0002-laut-fm-websocket-aus-polling.md) |
-| 0003 | [Senderliste fest im Code](0003-senderliste-fest-im-code.md) |
+| 0003 | [Senderliste fest im Code](0003-senderliste-fest-im-code.md) (ersetzt durch 0008) |
 | 0004 | [Zwei Sprachen, Deutsch und Englisch](0004-zwei-sprachen-de-en.md) |
 | 0005 | [Proprietäre Lizenz bei öffentlichem Code](0005-proprietaere-lizenz-bei-oeffentlichem-code.md) |
 | 0006 | [Telemetrie austauschbar und nur mit Einwilligung](0006-telemetrie-austauschbar-mit-einwilligung.md) |
 | 0007 | [Audio mit just_audio und audio_service, media_kit auf dem Desktop](0007-audio-just-audio-audio-service-media-kit.md) |
+| 0008 | [Senderliste als Konfigurationsdatei mit Nachladen](0008-senderliste-als-konfigurationsdatei.md) (ersetzt 0003) |

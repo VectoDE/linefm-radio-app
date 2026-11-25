@@ -1,0 +1,11 @@
+# Hinweis auf neue App-Versionen.
+# Stand: nur das Schema. Die App liest diese Datei noch nicht.
+# Anleitung: docs/KONFIGURATION.md
+
+# Update-Hinweis einschalten.
+# Optional. Werte: true oder false. Standard: false. Beispiel: true
+enabled: false
+
+# Welche Versionen gemeldet werden.
+# Optional. Werte: stable oder beta. Standard: stable. Beispiel: beta
+channel: stable

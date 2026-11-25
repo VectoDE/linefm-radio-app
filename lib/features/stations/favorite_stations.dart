@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/app/stations_provider.dart';
 import 'package:linefm_radio/domain/favorites/favorite_stations_logic.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/services/audio/audio_handler.dart';
@@ -43,5 +44,8 @@ final favoriteStationsProvider =
 
 /// Gemerkte Sender in der Reihenfolge der Senderliste.
 final favoriteStationListProvider = Provider<List<Station>>(
-  (ref) => FavoriteStationsLogic.stations(ref.watch(favoriteStationsProvider)),
+  (ref) => FavoriteStationsLogic.stations(
+    ref.watch(favoriteStationsProvider),
+    catalog: ref.watch(stationsCatalogProvider),
+  ),
 );

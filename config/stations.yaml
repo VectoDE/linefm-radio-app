@@ -1,0 +1,78 @@
+# Senderliste der LINEFM-App (Issue #91).
+# Anleitung Schritt für Schritt: docs/SENDER-VERWALTEN.md
+# Prüfen: dart run tool/check_config.dart
+#
+# Diese Datei ist die einzige echte Datei in config/, die im Repository liegt.
+# Die App bringt sie mit und lädt beim Start zusätzlich die Fassung unter
+# STATIONS_URL (config/app.yaml) nach. Ist diese nicht erreichbar oder
+# fehlerhaft, gilt diese Liste.
+#
+# Regeln für YAML: immer zwei Leerzeichen einrücken, keine Tabs. Text mit
+# "#" (Farben) in Anführungszeichen setzen, sonst gilt der Rest als Kommentar.
+
+# Fassung des Formats.
+# Pflicht. Erlaubter Wert: 1. Standard: keiner. Beispiel: schemaVersion: 1
+schemaVersion: 1
+
+# Liste der Sender. Reihenfolge hier = Reihenfolge in der App.
+# Pflicht. Mindestens ein angezeigter Sender, höchstens 50.
+# Jeder Sender beginnt mit "- " und hat diese Felder:
+#
+#   kuerzel    Kürzel aus der laut.fm-Adresse (laut.fm/<kuerzel>). Darüber
+#              merkt sich die App Favoriten und Wecker, später nicht ändern.
+#              Pflicht. Format: ^[a-z0-9_-]{1,64}$. Beispiel: linefmrap
+#   name       Anzeigename in der App.
+#              Pflicht. Text, höchstens 40 Zeichen. Beispiel: "LineFM +RAP"
+#   farbe      Farbe des Senders.
+#              Pflicht. Format: "#RRGGBB" in Anführungszeichen.
+#              Beispiel: "#FF0084"
+#   logo       Adresse des Logos.
+#              Pflicht. Nur https://cdn.linefm.de/... oder
+#              https://assets.laut.fm/... (fest in der App, nicht änderbar).
+#              Beispiel: https://cdn.linefm.de/images/icons/rap.png
+#   logoDatei  Logo, das die App mitbringt (auch offline, Android Auto,
+#              Widget, CarPlay). Neue Logos brauchen eine neue App-Version.
+#              Optional. Format: assets/images/stations/<name>.png.
+#              Standard: keins (Logo von der Adresse).
+#              Beispiel: assets/images/stations/rap.png
+#   aktiv      Sender anzeigen oder vorübergehend ausblenden.
+#              Optional. Werte: true oder false. Standard: true.
+#              Beispiel: aktiv: false
+#
+# Die Stream-Adresse wird nicht eingetragen: immer stream.laut.fm/<kuerzel>.
+sender:
+  - kuerzel: linefm
+    name: "LineFM +MAIN"
+    farbe: "#4B4B7D"
+    logo: https://cdn.linefm.de/images/icons/main.png
+    logoDatei: assets/images/stations/main.png
+
+  - kuerzel: linefmrap
+    name: "LineFM +RAP"
+    farbe: "#FF0084"
+    logo: https://cdn.linefm.de/images/icons/rap.png
+    logoDatei: assets/images/stations/rap.png
+
+  - kuerzel: linefmgaming
+    name: "LineFM +GAMING"
+    farbe: "#4BBD71"
+    logo: https://cdn.linefm.de/images/icons/gaming.png
+    logoDatei: assets/images/stations/gaming.png
+
+  - kuerzel: linefmlofi
+    name: "LineFM +LOFI"
+    farbe: "#546E7A"
+    logo: https://cdn.linefm.de/images/icons/lofi.png
+    logoDatei: assets/images/stations/lofi.png
+
+  - kuerzel: radio3fm
+    name: "Radio3FM"
+    farbe: "#177D29"
+    logo: https://cdn.linefm.de/images/icons/radio3fm.png
+    logoDatei: assets/images/stations/radio3fm.png
+
+  - kuerzel: fobfm
+    name: "FobFM"
+    farbe: "#04FFF7"
+    logo: https://cdn.linefm.de/images/icons/fobfm.png
+    logoDatei: assets/images/stations/fobfm.png

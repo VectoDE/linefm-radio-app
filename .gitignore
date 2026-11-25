@@ -51,7 +51,14 @@ app.*.map.json
 
 # LINEFM
 /_input/
-/config/app.json
+# config/: im Repo nur *.example.yaml und die Senderliste (Issue #91).
+# Echte Dateien (app.yaml, features.yaml, operator.yaml, ...) und die daraus
+# erzeugten Bauwerte (app.json) bleiben lokal.
+/config/*.json
+/config/*.yaml
+/config/*.yml
+!/config/*.example.yaml
+!/config/stations.yaml
 key.properties
 **/key.properties
 *.jks

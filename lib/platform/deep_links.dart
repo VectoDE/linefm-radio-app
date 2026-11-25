@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:linefm_radio/core/logging.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
+import 'package:linefm_radio/domain/stations_config.dart';
 
 /// Deep Links `linefm://play?station=slug` (App) und
 /// `https://app.linefm.de/?station=slug` (Web, Spec 2.2). Besitzer: P21.
@@ -47,10 +48,32 @@ class DeepLinks {
   /// mit bekanntem Sender.
   static Stream<Uri> get stream => _controller.stream;
 
+  static final StreamController<String> _unavailable =
+      StreamController<String>.broadcast(
+        onListen: () => scheduleMicrotask(_flushUnavailable),
+      );
+  static String? _pendingUnavailable;
+
+  /// Eigene Links auf einen Sender, der nicht (mehr) in der Senderliste
+  /// steht (entfernt oder ausgeblendet, Issue #91). Die App zeigt dazu einen
+  /// Hinweis, spielt aber nichts.
+  static Stream<String> get unavailable => _unavailable.stream;
+
   /// Fuer Plattformcode und Tests. Links ohne bekannten Sender werden
-  /// verworfen.
+  /// verworfen; ist es ein eigener Link mit gueltigem Kuerzel, geht das
+  /// Kuerzel an [unavailable].
   static void dispatch(Uri uri, {DateTime? now}) {
-    if (stationFromUri(uri) == null) return;
+    if (stationFromUri(uri) == null) {
+      final slug = slugFromUri(uri);
+      if (slug != null) {
+        if (_unavailable.hasListener) {
+          _unavailable.add(slug);
+        } else {
+          _pendingUnavailable = slug;
+        }
+      }
+      return;
+    }
     final at = now ?? DateTime.now();
     final last = _last;
     final lastAt = _lastAt;
@@ -79,8 +102,16 @@ class DeepLinks {
   /// Nur fuer Tests: Zustand zuruecksetzen.
   static void resetForTest() {
     _pending.clear();
+    _pendingUnavailable = null;
     _last = null;
     _lastAt = null;
+  }
+
+  static void _flushUnavailable() {
+    final slug = _pendingUnavailable;
+    if (slug == null || !_unavailable.hasListener) return;
+    _pendingUnavailable = null;
+    _unavailable.add(slug);
   }
 
   static void _flushPending() {
@@ -103,6 +134,18 @@ class DeepLinks {
   /// Im Browser zaehlt zusaetzlich der eigene Host der Seite ([ownHost],
   /// Standard `Uri.base.host`), damit Vorschau- und Testumgebungen gehen.
   static Station? stationFromUri(Uri uri, {String? ownHost}) {
+    final slug = slugFromUri(uri, ownHost: ownHost);
+    return slug == null ? null : stationBySlug(slug);
+  }
+
+  /// Kuerzel aus einem eigenen Link (Schema/Host wie [stationFromUri]),
+  /// nur wenn es das laut.fm-Format hat; ob der Sender in der aktuellen
+  /// Liste steht, prueft [stationFromUri]. Diese Pruefung gilt auf allen
+  /// Plattformen: Android (MainActivity.kt) reicht nur Schema und Host
+  /// gefiltert durch, iOS/macOS und Desktop gar nicht vorgefiltert, die
+  /// verbindliche Entscheidung faellt immer hier gegen die aktuell gueltige
+  /// Senderliste.
+  static String? slugFromUri(Uri uri, {String? ownHost}) {
     final scheme = uri.scheme.toLowerCase();
     if (scheme == 'linefm') {
       final target = uri.host.isNotEmpty
@@ -116,21 +159,28 @@ class DeepLinks {
     } else {
       return null;
     }
-    final slug = uri.queryParameters['station'];
-    if (slug == null || slug.isEmpty) return null;
-    return stationBySlug(slug);
+    final String? slug;
+    try {
+      slug = uri.queryParameters['station'];
+    } on FormatException {
+      return null;
+    }
+    if (slug == null || !isValidStationSlug(slug)) return null;
+    return slug;
   }
 }
 
 /// Meldet Routeninformationen des Systems (Link-Intents, URL-Schemata) an
-/// [DeepLinks], solange sie einen LINEFM-Sender enthalten; alles andere bleibt
-/// unberuehrt.
+/// [DeepLinks], solange sie ein LINEFM-Senderkuerzel enthalten; alles andere
+/// bleibt unberuehrt.
 class DeepLinkObserver with WidgetsBindingObserver {
   @override
   Future<bool> didPushRouteInformation(
     RouteInformation routeInformation,
   ) async {
-    if (DeepLinks.stationFromUri(routeInformation.uri) == null) return false;
+    // Eigener Link mit gueltigem Kuerzel: annehmen, auch wenn der Sender
+    // nicht mehr in der Liste steht (dann Hinweis statt Navigation).
+    if (DeepLinks.slugFromUri(routeInformation.uri) == null) return false;
     DeepLinks.dispatch(routeInformation.uri);
     return true;
   }

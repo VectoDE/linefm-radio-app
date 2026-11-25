@@ -353,10 +353,11 @@ void main() {
       expect(m.validateDir('/Applications/LINEFM Radio'), 'invalid');
     });
 
-    test('Linux offers no machine scope and needs no elevation', () {
+    test('everyone is available on Linux, the engine asks for rights', () {
       final c = make(HostOs.linux, FakePlatform());
       c.setScope(Scope.machine);
-      expect(c.scope, Scope.user);
+      expect(c.scope, Scope.machine);
+      expect(c.dir, '/opt/linefm-radio');
       expect(c.needsElevation, isFalse);
       final m = make(HostOs.macos, FakePlatform());
       m.setScope(Scope.machine);

@@ -125,6 +125,7 @@ if [ "$OS" = macos ]; then
   STATE_DIR="$HOME_DIR/Library/Application Support/$P_NAME Setup"
   USER_DIR="$HOME_DIR/Applications/$P_DIR_NAME"
   MACHINE_DIR="/Applications/$P_DIR_NAME"
+  MACHINE_STATE="/Library/Application Support/$P_NAME Setup"
 else
   P_DIR_NAME=${P_DIR_NAME:-linefm-radio}
   DATA_HOME=${XDG_DATA_HOME:-$HOME_DIR/.local/share}
@@ -132,8 +133,12 @@ else
   STATE_DIR="$DATA_HOME/$P_DIR_NAME-setup"
   USER_DIR="$DATA_HOME/$P_DIR_NAME"
   MACHINE_DIR="/opt/$P_DIR_NAME"
+  MACHINE_STATE="/var/lib/$P_DIR_NAME-setup"
 fi
 RECORD="$STATE_DIR/installed.env"
+# "Everyone" installs are written by root-helper.sh to fixed paths; the
+# record there is root-owned and only read here.
+MACHINE_RECORD="$MACHINE_STATE/installed.env"
 MARKER=".linefm-install"
 
 # Directory is inside an allowed root and safe to hand to rm/mv. Prints the
@@ -178,6 +183,8 @@ is_ours() {
 
 # --- install record ----------------------------------------------------------
 
+# Per-user record first (like the Windows engine), then the system-wide one.
+[ -f "$RECORD" ] || RECORD=$MACHINE_RECORD
 R_VERSION=$(kv "$RECORD" VERSION)
 R_SCOPE=$(kv "$RECORD" SCOPE)
 R_DIR=$(kv "$RECORD" DIR)
@@ -502,8 +509,8 @@ cmd_install() {
   fi
   [ -n "$DIR" ] || { if [ "$SCOPE" = machine ]; then DIR=$MACHINE_DIR; else DIR=$USER_DIR; fi; }
 
-  if [ "$OS" = linux ] && [ "$SCOPE" = machine ]; then
-    finish "$EX_ELEVATION" "Linux installs per user only"
+  if [ "$SCOPE" = machine ]; then
+    install_machine
   fi
   if ! why=$(check_dir "$DIR" "$SCOPE"); then
     log "Destination rejected: $why"
@@ -620,6 +627,84 @@ delete_user_data() {
   done
 }
 
+# --- everyone (system-wide) -------------------------------------------------
+
+# Runs root-helper.sh with administrator rights. Only a verb and 0/1 flags
+# are passed; the helper copies the staged files into a root-owned folder,
+# checks the payload hash there and writes only to fixed system paths.
+run_root() { # VERB [FLAGS...]
+  elev="$WORK/elev"
+  rm -rf "$elev"; mkdir -m 755 "$elev" || finish "$EX_FAILED" "Cannot stage"
+  chmod 755 "$WORK"
+  cp "$SELF_DIR/root-helper.sh" "$SELF_DIR/product.env" "$elev/" || finish "$EX_CORRUPT" "Helper missing"
+  if [ "$1" = install ]; then
+    cp "$PAYLOAD" "$PAYLOAD_SUM" "$elev/" || finish "$EX_CORRUPT" "Payload missing"
+    if [ "$OS" = linux ]; then
+      cp -R "$(dirname "$SELF_DIR")" "$elev/uninstaller" || finish "$EX_FAILED" "Cannot stage uninstaller"
+      rm -f "$elev/uninstaller/setup/payload.tar.gz" "$elev/uninstaller/setup/payload.sha256"
+    fi
+  fi
+  chmod -R a+rX "$elev"
+  helper="$elev/root-helper.sh"
+  rc="$WORK/root.rc"; out="$WORK/root.out"
+  emit "phase elevating"
+  if [ "$(id -u)" = 0 ]; then
+    /bin/sh "$helper" "$@" > "$out" 2>&1; echo $? > "$rc"
+  elif [ "${LF_SETUP_ELEVATE:-}" = sudo ]; then
+    # CI test mode (passwordless sudo on the runner).
+    sudo -n /bin/sh "$helper" "$@" > "$out" 2>&1; echo $? > "$rc"
+  elif [ "$OS" = linux ]; then
+    command -v pkexec >/dev/null 2>&1 || finish "$EX_ELEVATION" "pkexec (polkit) is not installed"
+    pkexec /bin/sh "$helper" "$@" > "$out" 2>&1; echo $? > "$rc"
+  else
+    # Standard macOS administrator prompt. Script text is fixed; the helper
+    # path and the flags are passed as arguments and quoted by AppleScript.
+    /usr/bin/osascript -e 'on run argv' \
+      -e 'set cmd to "/bin/sh"' \
+      -e 'repeat with a in argv' -e 'set cmd to cmd & " " & quoted form of (a as text)' -e 'end repeat' \
+      -e 'do shell script cmd with administrator privileges' -e 'end run' \
+      "$helper" "$@" > "$out" 2>&1; echo $? > "$rc"
+    tr '\r' '\n' < "$out" > "$out.n" && mv "$out.n" "$out"
+  fi
+  code=$(cat "$rc")
+  # Forward the helper's log and progress, keep its result for us.
+  grep -E '^(log|progress) ' "$out" | while IFS= read -r line; do emit "$line"; done
+  result=$(grep -E '^result [0-9]+' "$out" | tail -n 1 | awk '{print $2}')
+  if [ -z "$result" ]; then
+    # No result line: the prompt was dismissed or polkit has no agent.
+    log "Elevation failed ($code): $(grep -v -E '^(log|progress|result) ' "$out" | head -n 3 | tr '\n' ' ')"
+    finish "$EX_ELEVATION" "Administrator rights were not granted"
+  fi
+  [ "$result" = 0 ] || finish "$result" "$(grep -E '^result ' "$out" | tail -n 1 | cut -d' ' -f3-)"
+}
+
+install_machine() {
+  [ "$DIR" = "$MACHINE_DIR" ] || finish "$EX_BADTARGET" "Everyone: fixed folder $MACHINE_DIR"
+  expected=$(awk '{print $1; exit}' "$PAYLOAD_SUM")
+  [ -n "$expected" ] && [ "$expected" = "$(sha256_of "$PAYLOAD")" ] || finish "$EX_CORRUPT" "Payload damaged"
+  log "Destination: $DIR (everyone)"
+  ensure_not_running
+  cancel_requested && finish "$EX_CANCELLED" "Cancelled"
+  emit "phase copying"
+  run_root install --desktop-entry "$STARTMENU" --autostart "$AUTOSTART" --desktop "$DESKTOP"
+  emit "phase registry"
+  # Per-user parts stay with the user: desktop shortcut on Linux; desktop
+  # alias, Dock and login item on macOS.
+  STATE_DIR=$MACHINE_STATE
+  if [ "$OS" = macos ]; then
+    add_integration
+  elif [ "$DESKTOP" = 1 ]; then
+    dd=$(desktop_dir)
+    if [ -d "$dd" ]; then
+      linux_entry "$dd/$P_APP_ID.desktop" 0
+      chmod 755 "$dd/$P_APP_ID.desktop"
+      command -v gio >/dev/null 2>&1 && gio set "$dd/$P_APP_ID.desktop" metadata::trusted true >/dev/null 2>&1
+    fi
+  fi
+  emit "phase finalizing"
+  finish "$EX_OK" "$DIR"
+}
+
 cmd_uninstall() {
   TARGET=""; DELETE_DATA=0
   while [ $# -gt 0 ]; do
@@ -635,6 +720,23 @@ cmd_uninstall() {
     finish "$EX_NOTINSTALLED" "Not installed"
   fi
   DIR=$R_DIR
+  if [ "$R_SCOPE" = machine ]; then
+    [ "$DIR" = "$MACHINE_DIR" ] || finish "$EX_BADTARGET" "Unexpected folder"
+    log "Uninstalling from $DIR (everyone)"
+    ensure_not_running
+    emit "phase removing"
+    run_root uninstall
+    if [ "$OS" = macos ]; then
+      remove_integration "$DIR"
+    else
+      f="$(desktop_dir)/$P_APP_ID.desktop"
+      [ -f "$f" ] && rm -f "$f"
+    fi
+    [ "$DELETE_DATA" = 1 ] && delete_user_data
+    rm -rf "$STATE_DIR"
+    log "Uninstall finished"
+    finish "$EX_OK" ""
+  fi
   if ! why=$(check_dir "$DIR" "$R_SCOPE"); then
     finish "$EX_BADTARGET" "$why"
   fi

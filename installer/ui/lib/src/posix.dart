@@ -225,6 +225,11 @@ class SetupAutopilot {
           await _capture('license-accepted');
           await c.next();
         case SetupStep.options:
+          final scope = Platform.environment['LF_SETUP_AUTOPILOT_SCOPE'];
+          if (scope == 'user' || scope == 'machine') {
+            c.setScope(Scope.parse(scope));
+            await _settle();
+          }
           await c.next();
         case SetupStep.confirm:
           c.setDeleteUserData(

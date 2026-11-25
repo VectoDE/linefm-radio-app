@@ -170,9 +170,9 @@ class SetupContext {
 
   String get folderName => dirName.isEmpty ? productName : dirName;
 
-  /// Whether "everyone on this computer" can be chosen. Linux installs per
-  /// user only (no root, no privilege escalation).
-  bool get machineScopeAvailable => os != HostOs.linux;
+  /// Whether "everyone on this computer" can be chosen (all OS; macOS and
+  /// Linux ask for administrator rights through the system prompt).
+  bool get machineScopeAvailable => true;
 
   /// Vorhandene Installation (Benutzer vor Rechner, wie die Engine).
   Installed? get installed => installedUser ?? installedMachine;

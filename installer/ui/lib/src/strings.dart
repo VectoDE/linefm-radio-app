@@ -1,19 +1,41 @@
 import 'dart:ui' show Locale;
 
+import 'context.dart' show HostOs;
+
 /// Texte der Setup-Oberfläche auf Deutsch und Englisch. Sprache folgt der
 /// Windows-Anzeigesprache (Deutsch für `de`, sonst Englisch).
 class S {
-  const S._(this.de);
+  const S._(this.de, [this.os = HostOs.windows]);
 
   static const S german = S._(true);
   static const S english = S._(false);
 
-  static S forLocale(Locale? locale) =>
-      locale?.languageCode == 'de' ? german : english;
+  static S forLocale(Locale? locale, [HostOs os = HostOs.windows]) =>
+      S._(locale?.languageCode == 'de', os);
 
   final bool de;
 
+  /// Operating system; only OS-specific wording differs, never the steps.
+  final HostOs os;
+
+  @override
+  bool operator ==(Object other) =>
+      other is S && other.de == de && other.os == os;
+
+  @override
+  int get hashCode => Object.hash(de, os);
+
   String _t(String german, String english) => de ? german : english;
+
+  /// Picks the Windows, macOS or Linux variant of a text.
+  String _os(String windows, String macos, String linux) => switch (os) {
+    HostOs.windows => windows,
+    HostOs.macos => macos,
+    HostOs.linux => linux,
+  };
+
+  /// "PC", "Mac" or "computer" in running text.
+  String get _device => _os('PC', 'Mac', _t('Computer', 'computer'));
 
   String get languageCode => de ? 'de' : 'en';
 
@@ -48,10 +70,10 @@ class S {
   String welcomeHeading(String product) =>
       _t('$product installieren', 'Install $product');
   String welcomeBody(String product) => _t(
-    'Alle Sender von $product auf deinem PC: live hören, Favoriten '
+    'Alle Sender von $product auf deinem $_device: live hören, Favoriten '
         'speichern, Wecker und Schlaftimer stellen. Das Setup dauert nur '
         'einen Moment.',
-    'All $product stations on your PC: listen live, save favourites, set an '
+    'All $product stations on your $_device: listen live, save favourites, set an '
         'alarm or a sleep timer. Setup only takes a moment.',
   );
   String updateHeading(String product) =>
@@ -69,10 +91,10 @@ class S {
         'settings are kept.',
   );
   String downgradeBody(String installed, String offered) => _t(
-    'Auf diesem PC ist bereits die neuere Version $installed installiert. '
+    'Auf diesem $_device ist bereits die neuere Version $installed installiert. '
         'Dieses Setup enthält Version $offered und wird deshalb nicht '
         'ausgeführt.',
-    'The newer version $installed is already installed on this PC. This '
+    'The newer version $installed is already installed on this $_device. This '
         'setup contains version $offered and will not run.',
   );
   String versionLine(String version) =>
@@ -108,11 +130,26 @@ class S {
     'Empfohlen. Keine Administratorrechte nötig.',
     'Recommended. No administrator rights needed.',
   );
-  String get scopeMachine =>
-      _t('Alle Benutzer dieses PCs', 'Everyone on this PC');
-  String get scopeMachineHint => _t(
-    'Windows fragt nach Administratorrechten.',
-    'Windows will ask for administrator rights.',
+  String get scopeMachine => _os(
+    _t('Alle Benutzer dieses PCs', 'Everyone on this PC'),
+    _t('Alle Benutzer dieses Macs', 'Everyone on this Mac'),
+    _t('Alle Benutzer dieses Computers', 'Everyone on this computer'),
+  );
+  String get scopeMachineHint => _os(
+    _t(
+      'Windows fragt nach Administratorrechten.',
+      'Windows will ask for administrator rights.',
+    ),
+    _t(
+      'Installiert in den Ordner „Programme“. Braucht ein Administratorkonto.',
+      'Installs into the Applications folder. Needs an administrator account.',
+    ),
+    _t(
+      'Unter Linux nicht verfügbar: die App wird ohne Root-Rechte pro '
+          'Benutzer installiert.',
+      'Not available on Linux: the app is installed per user, without root '
+          'rights.',
+    ),
   );
   String get scopeLocked => _t(
     'Beim Aktualisieren bleiben Bereich und Ordner der vorhandenen '
@@ -126,16 +163,32 @@ class S {
     'Bitte einen Zielordner angeben.',
     'Please enter a destination folder.',
   );
-  String get folderInvalid => _t(
-    'Bitte einen vollständigen Pfad mit Laufwerk angeben, z. B. C:\\Programme\\LINEFM Radio.',
-    'Please enter a full path including the drive, e.g. C:\\Program Files\\LINEFM Radio.',
+  String get folderInvalid => _os(
+    _t(
+      'Bitte einen vollständigen Pfad mit Laufwerk angeben, z. B. C:\\Programme\\LINEFM Radio.',
+      'Please enter a full path including the drive, e.g. C:\\Program Files\\LINEFM Radio.',
+    ),
+    _t(
+      'Bitte einen vollständigen Pfad angeben, der auf .app endet, z. B. /Applications/LINEFM Radio.app.',
+      'Please enter a full path ending in .app, e.g. /Applications/LINEFM Radio.app.',
+    ),
+    _t(
+      'Bitte einen vollständigen Pfad in deinem Home-Ordner angeben, z. B. ~/.local/share/linefm-radio.',
+      'Please enter a full path inside your home folder, e.g. ~/.local/share/linefm-radio.',
+    ),
   );
   String get shortcutsLabel =>
       _t('Verknüpfungen und Start', 'Shortcuts and start-up');
-  String get desktopShortcut =>
-      _t('Verknüpfung auf dem Desktop', 'Desktop shortcut');
-  String get startMenuShortcut =>
-      _t('Eintrag im Startmenü', 'Start menu entry');
+  String get desktopShortcut => _os(
+    _t('Verknüpfung auf dem Desktop', 'Desktop shortcut'),
+    _t('Alias auf dem Schreibtisch', 'Alias on the desktop'),
+    _t('Verknüpfung auf dem Desktop', 'Desktop shortcut'),
+  );
+  String get startMenuShortcut => _os(
+    _t('Eintrag im Startmenü', 'Start menu entry'),
+    _t('Im Dock behalten', 'Keep in the Dock'),
+    _t('Eintrag im App-Menü', 'App menu entry'),
+  );
   String get autostart => _t(
     'Beim Anmelden automatisch starten',
     'Start automatically when I sign in',
@@ -146,9 +199,9 @@ class S {
   );
   String get elevationDenied => _t(
     'Ohne Administratorrechte geht die Installation für alle Benutzer nicht. '
-        'Wähle „Nur für mich“ oder bestätige die Windows-Abfrage.',
-    'Installing for everyone needs administrator rights. Choose “Just me” or '
-        'confirm the Windows prompt.',
+        '${_os('Wähle „Nur für mich“ oder bestätige die Windows-Abfrage.', 'Wähle „Nur für mich“ oder melde dich mit einem Administratorkonto an.', 'Wähle „Nur für mich“.')}',
+    'Installing for everyone needs administrator rights. '
+        '${_os('Choose “Just me” or confirm the Windows prompt.', 'Choose “Just me” or sign in with an administrator account.', 'Choose “Just me”.')}',
   );
   String get startFailed => _t(
     'Das Setup konnte nicht starten. Bitte lade die Datei erneut herunter.',
@@ -164,7 +217,11 @@ class S {
     'prepare' => _t('Vorbereiten …', 'Preparing …'),
     'closing' => _t('App wird beendet …', 'Closing the app …'),
     'copying' => _t('Dateien werden kopiert …', 'Copying files …'),
-    'registry' => _t('Windows wird eingerichtet …', 'Setting up Windows …'),
+    'registry' => _os(
+      _t('Windows wird eingerichtet …', 'Setting up Windows …'),
+      _t('macOS wird eingerichtet …', 'Setting up macOS …'),
+      _t('Desktop wird eingerichtet …', 'Setting up the desktop …'),
+    ),
     'finalizing' => _t('Abschließen …', 'Finishing …'),
     'rollback' => _t('Änderungen werden zurückgenommen …', 'Undoing changes …'),
     'removing' => _t('Dateien werden entfernt …', 'Removing files …'),
@@ -172,8 +229,8 @@ class S {
   };
   String percent(int value) => _t('$value Prozent', '$value percent');
   String get waitingForWindows => _t(
-    'Warte auf die Bestätigung in Windows …',
-    'Waiting for confirmation in Windows …',
+    'Warte auf die Bestätigung in ${_os('Windows', 'macOS', 'Linux')} …',
+    'Waiting for confirmation in ${_os('Windows', 'macOS', 'Linux')} …',
   );
 
   // Laufende App
@@ -206,8 +263,10 @@ class S {
   String get launchNow =>
       _t('LINEFM Radio jetzt starten', 'Start LINEFM Radio now');
   String get launchFailed => _t(
-    'Die App ließ sich nicht starten. Du findest sie im Startmenü.',
-    'The app could not be started. You will find it in the Start menu.',
+    'Die App ließ sich nicht starten. Du findest sie '
+        '${_os('im Startmenü', 'im Launchpad und im Ordner „Programme“', 'im App-Menü')}.',
+    'The app could not be started. You will find it '
+        '${_os('in the Start menu', 'in Launchpad and the Applications folder', 'in the app menu')}.',
   );
   String get failedHeading => _t('Das hat nicht geklappt', 'That did not work');
   String get cancelledHeading => _t('Abgebrochen', 'Cancelled');
@@ -265,9 +324,9 @@ class S {
       _t('$product deinstallieren?', 'Uninstall $product?');
   String uninstallBody(String product, String version, String dir) => _t(
     '$product $version wird aus $dir entfernt, dazu die Verknüpfungen und '
-        'die Einträge in Windows.',
+        'die Einträge in ${_os('Windows', 'macOS', 'der Desktop-Umgebung')}.',
     '$product $version will be removed from $dir, together with its '
-        'shortcuts and Windows entries.',
+        'shortcuts and ${_os('Windows entries', 'macOS entries', 'desktop entries')}.',
   );
   String get deleteUserData => _t(
     'Auch meine Einstellungen, Favoriten und Wecker löschen',

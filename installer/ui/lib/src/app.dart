@@ -68,7 +68,7 @@ class _SetupAppState extends State<SetupApp> {
   Widget build(BuildContext context) {
     final dispatcher = WidgetsBinding.instance.platformDispatcher;
     final locale = widget.locale ?? dispatcher.locale;
-    final strings = S.forLocale(locale);
+    final strings = S.forLocale(locale, widget.controller.context.os);
     final highContrast = dispatcher.accessibilityFeatures.highContrast;
     final c = widget.controller;
     return MaterialApp(
@@ -826,12 +826,13 @@ class _OptionsPageState extends State<OptionsPage> {
       String title,
       String hint, {
       bool shield = false,
+      bool available = true,
     }) {
       return RadioListTile<Scope>(
         value: value,
         contentPadding: EdgeInsets.zero,
         dense: true,
-        enabled: !locked,
+        enabled: !locked && available,
         title: Row(
           children: [
             Flexible(
@@ -881,6 +882,7 @@ class _OptionsPageState extends State<OptionsPage> {
                 s.scopeMachine,
                 s.scopeMachineHint,
                 shield: !c.context.elevated,
+                available: c.context.machineScopeAvailable,
               ),
             ],
           ),

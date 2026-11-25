@@ -108,11 +108,27 @@ class SetupController extends ChangeNotifier {
   String? validateDir(String value) {
     final v = value.trim();
     if (v.isEmpty) return 'empty';
+    if (context.os.isPosix) return _validatePosixDir(v);
     final drive = RegExp(r'^[A-Za-z]:\\');
     if (!drive.hasMatch(v) || v.length > 180 || v.contains('..')) {
       return 'invalid';
     }
     if (RegExp(r'[<>"|?*]').hasMatch(v.substring(2))) return 'invalid';
+    return null;
+  }
+
+  /// macOS and Linux: absolute path, no `..`, no control characters, no
+  /// system folder. macOS installs a bundle, so the path ends in `.app`.
+  String? _validatePosixDir(String v) {
+    if (!v.startsWith('/') || v.length > 400 || v.contains('/../')) {
+      return 'invalid';
+    }
+    if (v.endsWith('/..') || RegExp(r'[\x00-\x1f\x7f"`$\\]').hasMatch(v)) {
+      return 'invalid';
+    }
+    final parts = v.split('/').where((p) => p.isNotEmpty).toList();
+    if (parts.length < 2) return 'invalid';
+    if (context.os == HostOs.macos && !v.endsWith('.app')) return 'invalid';
     return null;
   }
 
@@ -129,6 +145,7 @@ class SetupController extends ChangeNotifier {
 
   void setScope(Scope value) {
     if (locationLocked || scope == value) return;
+    if (value == Scope.machine && !context.machineScopeAvailable) return;
     scope = value;
     if (!_dirEdited) dir = _defaultDir(value);
     optionsError = null;
@@ -325,7 +342,10 @@ class SetupController extends ChangeNotifier {
     final base = resultMessage.isNotEmpty && succeeded
         ? resultMessage
         : (existing?.dir ?? dir);
-    final sep = base.endsWith('\\') ? '' : '\\';
+    // macOS: the bundle itself is opened (no executable name).
+    if (context.exeName.isEmpty) return base;
+    final osSep = context.os.separator;
+    final sep = base.endsWith(osSep) ? '' : osSep;
     return '$base$sep${context.exeName}';
   }
 
@@ -337,14 +357,15 @@ class SetupController extends ChangeNotifier {
     if (picked == null || picked.isEmpty) return;
     // Wie bei anderen Setups: Produktordner an den gewählten Ordner hängen,
     // sofern er nicht schon so heisst.
-    final name = context.productName;
-    final trimmed = picked.endsWith('\\')
+    final name = context.folderName;
+    final sep = context.os.separator;
+    final trimmed = picked.length > 1 && picked.endsWith(sep)
         ? picked.substring(0, picked.length - 1)
         : picked;
     setDir(
-      trimmed.toLowerCase().endsWith('\\${name.toLowerCase()}')
+      trimmed.toLowerCase().endsWith('$sep${name.toLowerCase()}')
           ? trimmed
-          : '$trimmed\\$name',
+          : '$trimmed${trimmed.endsWith(sep) ? '' : sep}$name',
     );
   }
 

@@ -89,6 +89,18 @@ class RuleTest(unittest.TestCase):
         self.assertEqual(len(hits("WARN: low disk", allow=allow, job="Web")), 1)
 
 
+class RepositoryAllowListTest(unittest.TestCase):
+    LINE = ("Warning: 'no file associated with this alert' is not a valid URI in "
+            "'instance.runs[2].results[1].locations[0].physicalLocation.artifactLocation.uri'.")
+
+    def test_scorecard_sarif_uri_warning_is_allowed_for_the_real_job_name(self) -> None:
+        allow, problems = cbl.load_allowlist(cbl.DEFAULT_ALLOWLIST)
+        self.assertEqual(problems, [])
+        self.assertEqual(hits(self.LINE, allow=allow, job="Scorecard-Analyse"), [])
+        # Another job (or the file stem of a raw job id) is not covered.
+        self.assertEqual(len(hits(self.LINE, allow=allow, job="Android")), 1)
+
+
 class AnnotationTest(unittest.TestCase):
     def test_levels(self) -> None:
         text = "\n".join([

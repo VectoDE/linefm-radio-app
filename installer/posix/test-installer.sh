@@ -159,6 +159,7 @@ check "user data removed" test ! -e "$data_dir"
 if [ "$os" = macos ]; then
   check "desktop alias removed" test ! -L "$home/Desktop/LINEFM Radio"
   check "Dock entry removed" sh -c "! defaults read com.apple.dock persistent-apps | grep -q 'LINEFM%20Radio.app'"
+  defaults read com.apple.dock persistent-apps 2>/dev/null | grep _CFURLString > "$art/logs/dock-after-uninstall.txt" || true
   check "login item removed" test ! -e "$home/Library/LaunchAgents/de.linefm.app.autostart.plist"
 else
   check "menu entry removed" test ! -e "$data_home/applications/de.linefm.app.desktop"

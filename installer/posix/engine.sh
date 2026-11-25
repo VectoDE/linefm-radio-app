@@ -312,7 +312,7 @@ xml_escape() { printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>
 dock_edit() { # add|remove DIR
   [ "$OS" = macos ] || return 0
   tmp="$WORK/dock.plist"
-  defaults export com.apple.dock "$tmp" 2>/dev/null || return 0
+  defaults export com.apple.dock "$tmp" 2>/dev/null || { log "Dock settings not readable"; return 0; }
   url="file://$(printf '%s' "$2" | sed -e 's/%/%25/g' -e 's/ /%20/g')/"
   # The Dock may rewrite the URL of an entry (for example the resolved
   # path), so entries are matched by the bundle name as well.
@@ -329,6 +329,7 @@ dock_edit() { # add|remove DIR
     "$pb" -c "Add :persistent-apps:$i dict"         -c "Add :persistent-apps:$i:tile-type string file-tile"         -c "Add :persistent-apps:$i:tile-data dict"         -c "Add :persistent-apps:$i:tile-data:file-data dict"         -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLString string $url"         -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLStringType integer 15" "$tmp" >/dev/null 2>&1 || return 0
   elif [ "$1" = remove ] && [ -n "$found" ]; then
     # Highest index first, so the remaining indexes stay valid.
+    log "Dock entries removed: $found"
     for n in $found; do
       "$pb" -c "Delete :persistent-apps:$n" "$tmp" >/dev/null 2>&1 || return 0
     done

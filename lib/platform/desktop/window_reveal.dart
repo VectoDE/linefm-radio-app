@@ -50,9 +50,23 @@ Future<void> _loaderPresented() async {
   final binding = WidgetsBinding.instance;
   await binding.waitUntilFirstFrameRasterized;
   // Frame timings are reported in batches (up to a second apart in release),
-  // so count produced frames instead.
-  for (var i = 0; i < revealAfterRasterizedFrames; i++) {
+  // so count produced frames instead. A window restored maximised is resized
+  // only when it is shown, right after the first frame; the count restarts on
+  // every size change so the reveal waits for frames at the final size.
+  final view = binding.platformDispatcher.implicitView;
+  var size = view?.physicalSize;
+  var stable = 0;
+  final deadline = DateTime.now().add(const Duration(milliseconds: 1500));
+  while (stable < revealAfterRasterizedFrames &&
+      DateTime.now().isBefore(deadline)) {
     binding.scheduleFrame();
     await binding.endOfFrame;
+    final now = view?.physicalSize;
+    if (now == size) {
+      stable++;
+    } else {
+      size = now;
+      stable = 0;
+    }
   }
 }

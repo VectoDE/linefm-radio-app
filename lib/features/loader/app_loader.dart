@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:linefm_radio/features/loader/made_by_credit.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/platform/desktop/window_reveal.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:material_ui/material_ui.dart';
@@ -237,6 +238,16 @@ class _LoaderGateState extends State<LoaderGate> {
     if (loaderShownThisProcess) return;
     loaderShownThisProcess = true;
     _visible = true;
+    final reveal = pendingWindowReveal;
+    if (reveal == null) {
+      _startTimer();
+    } else {
+      unawaited(reveal.then((_) => _startTimer()));
+    }
+  }
+
+  void _startTimer() {
+    if (!mounted) return;
     _timer = Timer(widget.minDuration ?? LoaderGate.defaultMinDuration, () {
       if (!mounted) return;
       setState(() => _fading = true);

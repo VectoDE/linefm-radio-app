@@ -51,6 +51,8 @@ bool FlutterWindow::OnCreate() {
              std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
                  result) {
         if (call.method_name() == "reveal") {
+          // Two compositor passes so the last rasterised frame is on screen.
+          DwmFlush();
           DwmFlush();
           Reveal();
           result->Success();

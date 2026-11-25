@@ -348,6 +348,87 @@ Start-Sleep -Seconds 2
 Check 'Nutzerdaten geloescht' (-not (Test-Path $marker))
 Check 'Autostart entfernt' ($null -eq (RegValue 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' $product))
 
+# --- 9b. UI engine path (named pipe), as the setup UI drives it (#147) ------
+# The silent runs above use the console reporter. The setup UI instead starts
+# "--engine install --pipe <name>" and reads protocol lines from a pipe; that
+# path deadlocked in v0.1.0-alpha.7/8 and no step covered it. This harness
+# plays the UI side (pipe server with a read always pending, like
+# engine_bridge.cpp) and fails if any step stalls: connect, each line, result
+# and process exit all have their own timeout.
+function Invoke-EnginePipe([string]$exe, [string[]]$engineArgs, [string]$label,
+                           [int]$ConnectTimeout = 30, [int]$LineTimeout = 60,
+                           [int]$ExitTimeout = 60) {
+  $name = 'linefm-ci-' + [guid]::NewGuid().ToString('N')
+  $server = New-Object System.IO.Pipes.NamedPipeServerStream($name,
+    [System.IO.Pipes.PipeDirection]::InOut, 1,
+    [System.IO.Pipes.PipeTransmissionMode]::Byte,
+    [System.IO.Pipes.PipeOptions]::Asynchronous)
+  $argLine = @('--engine', $engineArgs[0], '--pipe', $name) + @($engineArgs | Select-Object -Skip 1)
+  $proc = Start-Process -FilePath $exe -ArgumentList $argLine -PassThru -WindowStyle Hidden
+  $lines = [System.Collections.Generic.List[string]]::new()
+  $result = $null
+  $stall = $null
+  try {
+    if (-not $server.WaitForConnectionAsync().Wait($ConnectTimeout * 1000)) {
+      $stall = "no pipe connection within $ConnectTimeout s"
+    } else {
+      $reader = New-Object System.IO.StreamReader($server, [System.Text.Encoding]::UTF8)
+      while ($true) {
+        $task = $reader.ReadLineAsync()
+        if (-not $task.Wait($LineTimeout * 1000)) {
+          $last = if ($lines.Count) { $lines[$lines.Count - 1] } else { '<none>' }
+          $stall = "no line for $LineTimeout s after '$last'"
+          break
+        }
+        $line = $task.Result
+        if ($null -eq $line) { break }
+        $lines.Add($line)
+        if ($line -match '^running') {
+          # Same answer the UI gives after the user confirms.
+          $bytes = [System.Text.Encoding]::UTF8.GetBytes("close`n")
+          $server.Write($bytes, 0, $bytes.Length); $server.Flush()
+        }
+        if ($line -match '^result (\d+)') { $result = [int]$Matches[1] }
+      }
+    }
+    if (-not $stall -and -not $proc.WaitForExit($ExitTimeout * 1000)) {
+      $stall = "engine did not exit within $ExitTimeout s after closing the pipe"
+    }
+  } finally {
+    $lines | Set-Content -Path (Join-Path $logs "pipe-$label.log") -Encoding utf8
+    if (-not $proc.HasExited) {
+      Shot "pipe-$label-stalled"
+      Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+    }
+    $server.Dispose()
+  }
+  return [pscustomobject]@{
+    Stall = $stall; Result = $result; Lines = $lines
+    Exit = $(if ($proc.HasExited) { $proc.ExitCode } else { $null })
+  }
+}
+
+$pipe = Invoke-EnginePipe $Setup @('install', '--scope', 'user', '--desktop', '1',
+  '--startmenu', '1', '--autostart', '0') 'install'
+Check 'UI engine path: install does not stall' ($null -eq $pipe.Stall) "$($pipe.Stall)"
+$hasProtocol = (@($pipe.Lines -match '^hello').Count -gt 0) -and
+  (@($pipe.Lines -match '^phase ').Count -gt 0) -and (@($pipe.Lines -match '^progress ').Count -gt 0)
+Check 'UI engine path: hello, phase and progress lines arrive' $hasProtocol "$($pipe.Lines.Count) lines"
+Check 'UI engine path: install result 0 and exit 0' ($pipe.Result -eq 0 -and $pipe.Exit -eq 0) "result $($pipe.Result), exit $($pipe.Exit)"
+Check 'UI engine path: app installed' (Test-Path (Join-Path $userDir $exeName))
+# The UI runs the uninstaller from a temp copy (phase 2), never from the
+# folder it deletes.
+$uninstCopyDir = Join-Path $env:TEMP ('linefm-ci-uninst-' + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Force -Path $uninstCopyDir | Out-Null
+$uninstCopy = Join-Path $uninstCopyDir 'uninstall.exe'
+Copy-Item (Join-Path $userDir 'uninstall.exe') $uninstCopy
+$pipe = Invoke-EnginePipe $uninstCopy @('uninstall', '--target', $userDir, '--delete-user-data') 'uninstall'
+Check 'UI engine path: uninstall does not stall' ($null -eq $pipe.Stall) "$($pipe.Stall)"
+Check 'UI engine path: uninstall result 0' ($pipe.Result -eq 0) "result $($pipe.Result), exit $($pipe.Exit)"
+Start-Sleep -Seconds 2
+Check 'UI engine path: entry removed' (-not (Test-Path $userKey))
+Remove-Item -Recurse -Force $uninstCopyDir -ErrorAction SilentlyContinue
+
 # --- 10. Alle Benutzer (Admin) ----------------------------------------------
 $admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if ($admin) {

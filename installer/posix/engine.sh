@@ -237,7 +237,11 @@ start_control() {
 }
 
 stop_control() {
-  [ -n "${CTL_PID:-}" ] && kill "$CTL_PID" 2>/dev/null
+  if [ -n "${CTL_PID:-}" ]; then
+    kill "$CTL_PID" 2>/dev/null
+    # Reap it here so the shell prints no job message ("Terminated").
+    wait "$CTL_PID" 2>/dev/null
+  fi
   [ -n "$WORK" ] && rm -rf "$WORK"
 }
 
@@ -336,7 +340,28 @@ dock_edit() { # add|remove DIR
   else
     return 0
   fi
-  defaults import com.apple.dock "$tmp" 2>/dev/null && killall Dock 2>/dev/null
+  # The running Dock keeps its own copy of the list and may write it back
+  # while it quits, which undoes the import. So restart it, wait for the new
+  # Dock, read the setting back and repeat until it holds.
+  if [ "$1" = add ]; then want=1; else want=0; fi
+  try=0
+  while [ $try -lt 5 ]; do
+    try=$((try + 1))
+    old=$(pgrep -x Dock 2>/dev/null | head -n 1)
+    defaults import com.apple.dock "$tmp" 2>/dev/null || return 0
+    killall Dock 2>/dev/null
+    n=0
+    while [ $n -lt 50 ]; do
+      new=$(pgrep -x Dock 2>/dev/null | head -n 1)
+      [ -n "$new" ] && [ "$new" != "$old" ] && break
+      sleep 0.2; n=$((n + 1))
+    done
+    sleep 1
+    if defaults read com.apple.dock persistent-apps 2>/dev/null | grep -qF "$tail"; then has=1; else has=0; fi
+    [ "$has" = "$want" ] && return 0
+    log "Dock did not keep the change yet (attempt $try)"
+  done
+  log "Dock did not keep the change"
   return 0
 }
 

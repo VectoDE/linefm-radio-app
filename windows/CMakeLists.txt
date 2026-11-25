@@ -53,9 +53,14 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 add_subdirectory("runner")
 
 
+# Pinned fixes for warnings printed by third-party build files and sources.
+include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/third_party_patches.cmake")
+third_party_patch_plugins(windows)
+
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
+third_party_patch_sentry_native()
 
 
 # === Installation ===

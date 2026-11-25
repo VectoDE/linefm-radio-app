@@ -10,6 +10,7 @@
 //
 // Thresholds follow the performance standard: performance >= --min-performance
 // (default 95), accessibility, best practices and SEO >= --min-other (default 100).
+// --report-only (competitor comparison) records scores without failing.
 // Exit code 1 if any category in any profile is below its threshold.
 
 import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -23,6 +24,8 @@ const { values: args } = parseArgs({
     'lighthouse-summary': { type: 'string', default: '' },
     'min-performance': { type: 'string', default: '95' },
     'min-other': { type: 'string', default: '100' },
+    'report-only': { type: 'boolean', default: false },
+    name: { type: 'string', default: '' },
   },
 });
 
@@ -40,7 +43,7 @@ async function fromPageSpeed(url, key) {
     const res = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${q}`);
     const body = await res.json();
     if (!res.ok) throw new Error(`PageSpeed API ${strategy}: HTTP ${res.status} ${body?.error?.message ?? ''}`);
-    writeFileSync(join(OUT, `pagespeed-${strategy}.json`), JSON.stringify(body, null, 2));
+    writeFileSync(join(OUT, `${args.name ? `${args.name}-` : ''}pagespeed-${strategy}.json`), JSON.stringify(body, null, 2));
     const cats = body.lighthouseResult.categories;
     result[strategy] = Object.fromEntries(CATEGORIES.map((c) => [c, cats[c]?.score == null ? null : Math.round(cats[c].score * 100)]));
   }
@@ -92,11 +95,11 @@ async function main() {
     ...rows,
     '',
   ].join('\n');
-  writeFileSync(join(OUT, 'gate.json'), JSON.stringify({ url: args.url, source, scores, minPerf, minOther, failures }, null, 2));
-  writeFileSync(join(OUT, 'gate.md'), md);
+  writeFileSync(join(OUT, `${args.name ? `${args.name}-` : ''}gate.json`), JSON.stringify({ url: args.url, source, scores, minPerf, minOther, failures }, null, 2));
+  writeFileSync(join(OUT, `${args.name ? `${args.name}-` : ''}gate.md`), md);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
   console.log(md);
-  if (failures.length) {
+  if (failures.length && !args['report-only']) {
     console.error(`Gate failed:\n${failures.join('\n')}`);
     process.exit(1);
   }

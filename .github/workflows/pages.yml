@@ -29,6 +29,11 @@ on:
       - .github/workflows/pages.yml
       - tool/perf/pagespeed_gate.mjs
   workflow_dispatch:
+    inputs:
+      competitors:
+        description: Also run the PageSpeed comparison against public radio web players (passive, one call per URL and profile)
+        type: boolean
+        default: false
 
 permissions: {}
 
@@ -208,13 +213,60 @@ jobs:
         working-directory: tool/perf
         env:
           PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
-        run: node pagespeed_gate.mjs --url "$PAGES_URL" --out out/gate --lighthouse-summary out/lighthouse/summary.json
+        run: |
+          if [ -n "$PAGESPEED_API_KEY" ]; then echo "::add-mask::$PAGESPEED_API_KEY"; fi
+          node pagespeed_gate.mjs --url "$PAGES_URL" --out out/gate --lighthouse-summary out/lighthouse/summary.json
 
       - name: Upload reports
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: web-gate-${{ github.sha }}
+          path: tool/perf/out/
+          retention-days: 30
+          if-no-files-found: warn
+
+  competitors:
+    name: Competitor comparison (PageSpeed API)
+    if: github.event_name == 'workflow_dispatch' && inputs.competitors
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: PageSpeed for public radio web players
+        working-directory: tool/perf
+        env:
+          PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
+        run: |
+          set -uo pipefail
+          if [ -z "$PAGESPEED_API_KEY" ]; then echo "::error::PAGESPEED_API_KEY missing"; exit 1; fi
+          echo "::add-mask::$PAGESPEED_API_KEY"
+          echo "## Competitor comparison" >> "$GITHUB_STEP_SUMMARY"
+          for entry in linefm=$PAGES_URL radio-de=https://www.radio.de/ tunein=https://tunein.com/ laut-fm=https://laut.fm/ radio-net=https://www.radio.net/; do
+            node pagespeed_gate.mjs --report-only --name "${entry%%=*}" --url "${entry#*=}" --out out/competitors || echo "- ${entry%%=*}: measurement failed" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Upload reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: competitors-${{ github.sha }}
           path: tool/perf/out/
           retention-days: 30
           if-no-files-found: warn

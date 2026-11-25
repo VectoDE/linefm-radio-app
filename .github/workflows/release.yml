@@ -223,6 +223,20 @@ jobs:
           path: dist
           merge-multiple: true
 
+      # #88: the installer with its own setup UI exists for every desktop OS
+      # and is part of every release (checksum, cosign bundle, provenance
+      # follow in the next steps like for every other file).
+      - name: Check the desktop installers
+        run: |
+          set -euo pipefail
+          missing=0
+          for f in "linefm-radio-${LABEL}-windows-x64-setup.exe" \
+                   "linefm-radio-${LABEL}-macos-setup.dmg" \
+                   "linefm-radio-${LABEL}-linux-x64-setup.AppImage"; do
+            if [ -s "dist/$f" ]; then echo "found: $f"; else echo "::error::installer missing: $f"; missing=1; fi
+          done
+          exit "$missing"
+
       - name: Pruefsummen
         run: |
           set -euo pipefail

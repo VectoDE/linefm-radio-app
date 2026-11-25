@@ -314,22 +314,24 @@ dock_edit() { # add|remove DIR
   tmp="$WORK/dock.plist"
   defaults export com.apple.dock "$tmp" 2>/dev/null || return 0
   url="file://$(printf '%s' "$2" | sed -e 's/%/%25/g' -e 's/ /%20/g')/"
+  # The Dock may rewrite the URL of an entry (for example the resolved
+  # path), so entries are matched by the bundle name as well.
+  tail="/$(basename "$2" | sed -e 's/%/%25/g' -e 's/ /%20/g')/"
   pb=/usr/libexec/PlistBuddy
   i=0; found=""
-  while label=$("$pb" -c "Print :persistent-apps:$i:tile-data:file-data:_CFURLString" "$tmp" 2>/dev/null) || \
-        "$pb" -c "Print :persistent-apps:$i" "$tmp" >/dev/null 2>&1; do
-    if [ "$label" = "$url" ]; then found=$i; break; fi
+  while label=$("$pb" -c "Print :persistent-apps:$i:tile-data:file-data:_CFURLString" "$tmp" 2>/dev/null) ||         "$pb" -c "Print :persistent-apps:$i" "$tmp" >/dev/null 2>&1; do
+    case "$label" in
+      "$url"|*"$tail") found="$i $found" ;;
+    esac
     i=$((i + 1)); label=""
   done
   if [ "$1" = add ] && [ -z "$found" ]; then
-    "$pb" -c "Add :persistent-apps:$i dict" \
-        -c "Add :persistent-apps:$i:tile-type string file-tile" \
-        -c "Add :persistent-apps:$i:tile-data dict" \
-        -c "Add :persistent-apps:$i:tile-data:file-data dict" \
-        -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLString string $url" \
-        -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLStringType integer 15" "$tmp" >/dev/null 2>&1 || return 0
+    "$pb" -c "Add :persistent-apps:$i dict"         -c "Add :persistent-apps:$i:tile-type string file-tile"         -c "Add :persistent-apps:$i:tile-data dict"         -c "Add :persistent-apps:$i:tile-data:file-data dict"         -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLString string $url"         -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLStringType integer 15" "$tmp" >/dev/null 2>&1 || return 0
   elif [ "$1" = remove ] && [ -n "$found" ]; then
-    "$pb" -c "Delete :persistent-apps:$found" "$tmp" >/dev/null 2>&1 || return 0
+    # Highest index first, so the remaining indexes stay valid.
+    for n in $found; do
+      "$pb" -c "Delete :persistent-apps:$n" "$tmp" >/dev/null 2>&1 || return 0
+    done
   else
     return 0
   fi

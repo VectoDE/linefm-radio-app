@@ -64,6 +64,11 @@ class FakePlatform implements SetupPlatform {
 
   @override
   Future<bool> openUrl(String url) async => true;
+
+  final List<String> windowActions = [];
+
+  @override
+  Future<void> windowAction(String action) async => windowActions.add(action);
 }
 
 const String installJson = '''

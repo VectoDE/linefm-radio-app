@@ -246,7 +246,8 @@ class PipeReporter : public Reporter {
     for (int attempt = 0; attempt < 50; ++attempt) {
       pipe_ = ::CreateFileW(path.c_str(), GENERIC_READ | GENERIC_WRITE, 0,
                             nullptr, OPEN_EXISTING,
-                            SECURITY_SQOS_PRESENT | SECURITY_IDENTIFICATION,
+                            FILE_FLAG_OVERLAPPED | SECURITY_SQOS_PRESENT |
+                                SECURITY_IDENTIFICATION,
                             nullptr);
       if (pipe_ != INVALID_HANDLE_VALUE) break;
       if (::GetLastError() == ERROR_PIPE_BUSY) {
@@ -270,9 +271,20 @@ class PipeReporter : public Reporter {
       if (c == '\n' || c == '\r') c = ' ';
     }
     data.push_back('\n');
+    // Overlapped write (#147): on a synchronous handle Windows serialises all
+    // I/O on the file object, so this write blocked behind the reader
+    // thread's pending ReadFile until the UI sent something. The engine then
+    // stalled and the progress page never finished.
+    OVERLAPPED ov = {};
+    ov.hEvent = ::CreateEventW(nullptr, TRUE, FALSE, nullptr);
+    if (ov.hEvent == nullptr) return;
     DWORD written = 0;
-    ::WriteFile(pipe_, data.data(), static_cast<DWORD>(data.size()), &written,
-                nullptr);
+    if (!::WriteFile(pipe_, data.data(), static_cast<DWORD>(data.size()),
+                     &written, &ov) &&
+        ::GetLastError() == ERROR_IO_PENDING) {
+      ::GetOverlappedResult(pipe_, &ov, &written, TRUE);
+    }
+    ::CloseHandle(ov.hEvent);
   }
 
   void Phase(const char* name) override {
@@ -324,10 +336,21 @@ class PipeReporter : public Reporter {
   void ReadLoop() {
     std::string buffer;
     char chunk[512];
+    OVERLAPPED ov = {};
+    ov.hEvent = ::CreateEventW(nullptr, TRUE, FALSE, nullptr);
     for (;;) {
       DWORD read = 0;
-      if (!::ReadFile(pipe_, chunk, sizeof(chunk), &read, nullptr) ||
-          read == 0) {
+      BOOL ok = FALSE;
+      if (ov.hEvent != nullptr) {
+        ::ResetEvent(ov.hEvent);
+        ok = ::ReadFile(pipe_, chunk, sizeof(chunk), &read, &ov);
+        if (!ok && ::GetLastError() == ERROR_IO_PENDING) {
+          // Close() cancels this read with CancelIoEx.
+          ok = ::GetOverlappedResult(pipe_, &ov, &read, TRUE);
+        }
+      }
+      if (!ok || read == 0) {
+        if (ov.hEvent != nullptr) ::CloseHandle(ov.hEvent);
         disconnected_ = true;
         ::SetEvent(answer_event_);
         return;

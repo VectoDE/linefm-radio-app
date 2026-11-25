@@ -353,10 +353,11 @@ void main() {
       expect(m.validateDir('/Applications/LINEFM Radio'), 'invalid');
     });
 
-    test('Linux offers no machine scope and needs no elevation', () {
+    test('everyone is available on Linux, the engine asks for rights', () {
       final c = make(HostOs.linux, FakePlatform());
       c.setScope(Scope.machine);
-      expect(c.scope, Scope.user);
+      expect(c.scope, Scope.machine);
+      expect(c.dir, '/opt/linefm-radio');
       expect(c.needsElevation, isFalse);
       final m = make(HostOs.macos, FakePlatform());
       m.setScope(Scope.machine);
@@ -403,6 +404,45 @@ void main() {
         make(HostOs.macos, FakePlatform()).steps,
         make(HostOs.windows, FakePlatform()).steps,
       );
+    });
+  });
+  group('Progress', () {
+    test('monotonic, 100 % only with the result, smoothed time left', () async {
+      var now = DateTime(2026);
+      final p = FakePlatform();
+      final c = SetupController(
+        context: installContext(),
+        platform: p,
+        exit: (_) {},
+        clock: () => now,
+      );
+      c.goTo(SetupStep.options);
+      await c.next();
+      p.emit('progress 10 100');
+      expect(c.progress, closeTo(0.10, 1e-9));
+      now = now.add(const Duration(seconds: 3));
+      p.emit('progress 40 100');
+      expect(c.remaining, const Duration(seconds: 6));
+      p.emit('progress 20 100');
+      expect(c.progress, closeTo(0.40, 1e-9), reason: 'never goes back');
+      p.emit('progress 100 100');
+      expect(c.progress, 0.99, reason: '100 % only after the result');
+      p.emit('result 0 done');
+      expect(c.progress, 1);
+      expect(c.elapsed, const Duration(seconds: 3));
+    });
+
+    test('time texts', () {
+      expect(S.english.remaining(null), 'Estimating time left …');
+      expect(
+        S.english.remaining(const Duration(seconds: 20)),
+        'Less than a minute left',
+      );
+      expect(
+        S.german.remaining(const Duration(seconds: 130)),
+        'Noch etwa 3 Minuten',
+      );
+      expect(S.english.elapsed(const Duration(seconds: 75)), 'Elapsed 1:15');
     });
   });
 }

@@ -28,7 +28,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   // Feste Fenstergroesse in logischen Pixeln; Win32Window skaliert nach DPI
   // und zentriert auf dem Monitor.
   Win32Window::Point origin(10, 10);
-  Win32Window::Size size(860, 660);
+  // Client size incl. the custom 40 px title bar (#88); no native frame.
+  Win32Window::Size size(844, 660);
   if (!window.Create(L"LINEFM Radio Setup", origin, size)) {
     return EXIT_FAILURE;
   }

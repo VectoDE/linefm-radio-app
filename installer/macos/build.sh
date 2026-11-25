@@ -50,6 +50,7 @@ sign() { # BUNDLE
 
 setup_files() { # RESOURCES_SETUP_DIR
   mkdir -p "$1/licenses"
+  install -m 755 "$repo/installer/posix/root-helper.sh" "$1/root-helper.sh"
   install -m 755 "$repo/installer/posix/engine.sh" "$1/engine.sh"
   install -m 644 "$repo/LICENSE" "$1/LICENSE.txt"
   install -m 644 "$repo/assets/fonts/OFL.txt" "$1/licenses/OFL-Poppins.txt"

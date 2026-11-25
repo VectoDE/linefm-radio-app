@@ -43,6 +43,8 @@ class S {
   String windowTitle(String product) => _t('$product Setup', '$product Setup');
   String uninstallTitle(String product) =>
       _t('$product deinstallieren', 'Uninstall $product');
+  String get windowMinimize => _t('Minimieren', 'Minimise');
+  String get windowClose => _t('Schließen', 'Close');
   String get stepWelcome => _t('Willkommen', 'Welcome');
   String get stepLicense => _t('Lizenz', 'Licence');
   String get stepOptions => _t('Optionen', 'Options');
@@ -141,14 +143,12 @@ class S {
       'Windows will ask for administrator rights.',
     ),
     _t(
-      'Installiert in den Ordner „Programme“. Braucht ein Administratorkonto.',
-      'Installs into the Applications folder. Needs an administrator account.',
+      'macOS fragt nach dem Passwort eines Administrators.',
+      'macOS will ask for an administrator password.',
     ),
     _t(
-      'Unter Linux nicht verfügbar: die App wird ohne Root-Rechte pro '
-          'Benutzer installiert.',
-      'Not available on Linux: the app is installed per user, without root '
-          'rights.',
+      'Linux fragt nach dem Passwort eines Administrators.',
+      'Linux will ask for an administrator password.',
     ),
   );
   String get scopeLocked => _t(
@@ -199,9 +199,9 @@ class S {
   );
   String get elevationDenied => _t(
     'Ohne Administratorrechte geht die Installation für alle Benutzer nicht. '
-        '${_os('Wähle „Nur für mich“ oder bestätige die Windows-Abfrage.', 'Wähle „Nur für mich“ oder melde dich mit einem Administratorkonto an.', 'Wähle „Nur für mich“.')}',
+        '${_os('Wähle „Nur für mich“ oder bestätige die Windows-Abfrage.', 'Wähle „Nur für mich“ oder gib das Administratorpasswort ein.', 'Wähle „Nur für mich“ oder gib das Administratorpasswort ein.')}',
     'Installing for everyone needs administrator rights. '
-        '${_os('Choose “Just me” or confirm the Windows prompt.', 'Choose “Just me” or sign in with an administrator account.', 'Choose “Just me”.')}',
+        '${_os('Choose “Just me” or confirm the Windows prompt.', 'Choose “Just me” or enter the administrator password.', 'Choose “Just me” or enter the administrator password.')}',
   );
   String get startFailed => _t(
     'Das Setup konnte nicht starten. Bitte lade die Datei erneut herunter.',
@@ -223,11 +223,39 @@ class S {
       _t('Desktop wird eingerichtet …', 'Setting up the desktop …'),
     ),
     'finalizing' => _t('Abschließen …', 'Finishing …'),
+    'elevating' => _t(
+      'Warte auf die Administratorrechte …',
+      'Waiting for administrator rights …',
+    ),
     'rollback' => _t('Änderungen werden zurückgenommen …', 'Undoing changes …'),
     'removing' => _t('Dateien werden entfernt …', 'Removing files …'),
     _ => _t('Bitte warten …', 'Please wait …'),
   };
   String percent(int value) => _t('$value Prozent', '$value percent');
+
+  String _clockText(Duration d) {
+    final m = d.inMinutes;
+    final sec = (d.inSeconds % 60).toString().padLeft(2, '0');
+    return '$m:$sec';
+  }
+
+  String elapsed(Duration d) =>
+      _t('Bisher ${_clockText(d)}', 'Elapsed ${_clockText(d)}');
+
+  String remaining(Duration? d) {
+    if (d == null) {
+      return _t('Restzeit wird berechnet …', 'Estimating time left …');
+    }
+    if (d.inSeconds < 60) {
+      return _t('Noch weniger als eine Minute', 'Less than a minute left');
+    }
+    final minutes = (d.inSeconds / 60).ceil();
+    return _t(
+      'Noch etwa $minutes ${minutes == 1 ? 'Minute' : 'Minuten'}',
+      'About $minutes ${minutes == 1 ? 'minute' : 'minutes'} left',
+    );
+  }
+
   String get waitingForWindows => _t(
     'Warte auf die Bestätigung in ${_os('Windows', 'macOS', 'Linux')} …',
     'Waiting for confirmation in ${_os('Windows', 'macOS', 'Linux')} …',

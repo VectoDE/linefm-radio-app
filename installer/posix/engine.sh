@@ -125,6 +125,7 @@ if [ "$OS" = macos ]; then
   STATE_DIR="$HOME_DIR/Library/Application Support/$P_NAME Setup"
   USER_DIR="$HOME_DIR/Applications/$P_DIR_NAME"
   MACHINE_DIR="/Applications/$P_DIR_NAME"
+  MACHINE_STATE="/Library/Application Support/$P_NAME Setup"
 else
   P_DIR_NAME=${P_DIR_NAME:-linefm-radio}
   DATA_HOME=${XDG_DATA_HOME:-$HOME_DIR/.local/share}
@@ -132,8 +133,12 @@ else
   STATE_DIR="$DATA_HOME/$P_DIR_NAME-setup"
   USER_DIR="$DATA_HOME/$P_DIR_NAME"
   MACHINE_DIR="/opt/$P_DIR_NAME"
+  MACHINE_STATE="/var/lib/$P_DIR_NAME-setup"
 fi
 RECORD="$STATE_DIR/installed.env"
+# "Everyone" installs are written by root-helper.sh to fixed paths; the
+# record there is root-owned and only read here.
+MACHINE_RECORD="$MACHINE_STATE/installed.env"
 MARKER=".linefm-install"
 
 # Directory is inside an allowed root and safe to hand to rm/mv. Prints the
@@ -178,12 +183,15 @@ is_ours() {
 
 # --- install record ----------------------------------------------------------
 
-R_VERSION=$(kv "$RECORD" VERSION)
-R_SCOPE=$(kv "$RECORD" SCOPE)
-R_DIR=$(kv "$RECORD" DIR)
-R_DESKTOP=$(kv "$RECORD" DESKTOP)
-R_STARTMENU=$(kv "$RECORD" STARTMENU)
-R_AUTOSTART=$(kv "$RECORD" AUTOSTART)
+# Per-user record first (like the Windows engine), then the system-wide one.
+READ_RECORD=$RECORD
+[ -f "$READ_RECORD" ] || READ_RECORD=$MACHINE_RECORD
+R_VERSION=$(kv "$READ_RECORD" VERSION)
+R_SCOPE=$(kv "$READ_RECORD" SCOPE)
+R_DIR=$(kv "$READ_RECORD" DIR)
+R_DESKTOP=$(kv "$READ_RECORD" DESKTOP)
+R_STARTMENU=$(kv "$READ_RECORD" STARTMENU)
+R_AUTOSTART=$(kv "$READ_RECORD" AUTOSTART)
 
 installed_json() {
   if [ -n "$R_VERSION" ] && [ "$R_SCOPE" = "$1" ]; then
@@ -277,15 +285,13 @@ ensure_not_running() {
     *) finish "$EX_RUNNING" "App is running" ;;
   esac
   emit "phase closing"
-  # shellcheck disable=SC2086 # list of numeric PIDs
-  kill -TERM $pids 2>/dev/null
+  echo "$pids" | xargs kill -TERM 2>/dev/null
   i=0
   while [ -n "$(app_pids)" ] && [ $i -lt 50 ]; do sleep 0.2; i=$((i + 1)); done
   pids=$(app_pids)
   if [ -n "$pids" ]; then
     log "App does not respond, forcing it to quit"
-    # shellcheck disable=SC2086
-    kill -KILL $pids 2>/dev/null
+    echo "$pids" | xargs kill -KILL 2>/dev/null
     sleep 1
   fi
   [ -z "$(app_pids)" ] || finish "$EX_RUNNING" "App cannot be closed"
@@ -306,24 +312,27 @@ xml_escape() { printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>
 dock_edit() { # add|remove DIR
   [ "$OS" = macos ] || return 0
   tmp="$WORK/dock.plist"
-  defaults export com.apple.dock "$tmp" 2>/dev/null || return 0
+  defaults export com.apple.dock "$tmp" 2>/dev/null || { log "Dock settings not readable"; return 0; }
   url="file://$(printf '%s' "$2" | sed -e 's/%/%25/g' -e 's/ /%20/g')/"
+  # The Dock may rewrite the URL of an entry (for example the resolved
+  # path), so entries are matched by the bundle name as well.
+  tail="/$(basename "$2" | sed -e 's/%/%25/g' -e 's/ /%20/g')/"
   pb=/usr/libexec/PlistBuddy
   i=0; found=""
-  while label=$($pb -c "Print :persistent-apps:$i:tile-data:file-data:_CFURLString" "$tmp" 2>/dev/null) || \
-        $pb -c "Print :persistent-apps:$i" "$tmp" >/dev/null 2>&1; do
-    if [ "$label" = "$url" ]; then found=$i; break; fi
+  while label=$("$pb" -c "Print :persistent-apps:$i:tile-data:file-data:_CFURLString" "$tmp" 2>/dev/null) ||         "$pb" -c "Print :persistent-apps:$i" "$tmp" >/dev/null 2>&1; do
+    case "$label" in
+      "$url"|*"$tail") found="$i $found" ;;
+    esac
     i=$((i + 1)); label=""
   done
   if [ "$1" = add ] && [ -z "$found" ]; then
-    $pb -c "Add :persistent-apps:$i dict" \
-        -c "Add :persistent-apps:$i:tile-type string file-tile" \
-        -c "Add :persistent-apps:$i:tile-data dict" \
-        -c "Add :persistent-apps:$i:tile-data:file-data dict" \
-        -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLString string $url" \
-        -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLStringType integer 15" "$tmp" >/dev/null 2>&1 || return 0
+    "$pb" -c "Add :persistent-apps:$i dict"         -c "Add :persistent-apps:$i:tile-type string file-tile"         -c "Add :persistent-apps:$i:tile-data dict"         -c "Add :persistent-apps:$i:tile-data:file-data dict"         -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLString string $url"         -c "Add :persistent-apps:$i:tile-data:file-data:_CFURLStringType integer 15" "$tmp" >/dev/null 2>&1 || return 0
   elif [ "$1" = remove ] && [ -n "$found" ]; then
-    $pb -c "Delete :persistent-apps:$found" "$tmp" >/dev/null 2>&1 || return 0
+    # Highest index first, so the remaining indexes stay valid.
+    log "Dock entries removed: $found"
+    for n in $found; do
+      "$pb" -c "Delete :persistent-apps:$n" "$tmp" >/dev/null 2>&1 || return 0
+    done
   else
     return 0
   fi
@@ -442,7 +451,7 @@ install_uninstaller() { # STAGING
   if [ "$OS" = macos ]; then
     src="$1/uninstaller/$P_UNINSTALLER"
     [ -d "$src" ] || { log "No uninstaller in the payload"; return 0; }
-    rm -rf "$STATE_DIR/$P_UNINSTALLER"
+    rm -rf "${STATE_DIR:?}/${P_UNINSTALLER:?}"
     mv "$src" "$STATE_DIR/$P_UNINSTALLER"
   else
     bundle=$(dirname "$SELF_DIR")
@@ -468,6 +477,21 @@ write_record() {
 }
 
 # --- install -----------------------------------------------------------------
+
+# --- progress (#88) -----------------------------------------------------------
+# Units are bytes of the app: a fixed share for the hash check, the bytes of
+# every extracted file, a fixed share for shortcuts and clean-up. 100 % is
+# only reported right before the result.
+plan_progress() {
+  sizes="$WORK/sizes"
+  if [ "$OS" = macos ]; then field=5; else field=3; fi
+  tar -tzvf "$PAYLOAD" 2>/dev/null | awk -v f="$field" '{ s = $f; if (s !~ /^[0-9]+$/) s = 0; print s }' > "$sizes"
+  BYTES=$(awk '{ t += $1 } END { printf "%d", t }' "$sizes")
+  [ "${BYTES:-0}" -gt 0 ] 2>/dev/null || BYTES=1
+  HASH_W=$((BYTES / 50 + 1))
+  FIN_W=$((BYTES / 50 + 1))
+  GRAND=$((HASH_W + BYTES + FIN_W))
+}
 
 cmd_install() {
   SCOPE=user; DIR=""; DESKTOP=1; STARTMENU=1; AUTOSTART=0
@@ -502,8 +526,8 @@ cmd_install() {
   fi
   [ -n "$DIR" ] || { if [ "$SCOPE" = machine ]; then DIR=$MACHINE_DIR; else DIR=$USER_DIR; fi; }
 
-  if [ "$OS" = linux ] && [ "$SCOPE" = machine ]; then
-    finish "$EX_ELEVATION" "Linux installs per user only"
+  if [ "$SCOPE" = machine ]; then
+    install_machine
   fi
   if ! why=$(check_dir "$DIR" "$SCOPE"); then
     log "Destination rejected: $why"
@@ -526,6 +550,8 @@ cmd_install() {
     finish "$EX_CORRUPT" "Payload damaged"
   fi
   log "Payload SHA-256 verified"
+  plan_progress
+  emit "progress $HASH_W $GRAND"
 
   mkdir -p "$PARENT" "$STATE_DIR" || finish "$EX_BADTARGET" "Cannot create $PARENT"
   chmod 700 "$STATE_DIR"
@@ -545,18 +571,17 @@ cmd_install() {
   BACKUP="$PARENT/.$base.lfold.$$"
   rm -rf "$STAGING"
   mkdir -m 700 "$STAGING" || finish "$EX_FAILED" "Cannot create staging folder"
-  total=$(tar -tzf "$PAYLOAD" | wc -l | tr -d ' ')
-  emit "progress 0 $total"
-  tar -xzvf "$PAYLOAD" -C "$STAGING" 2>&1 | {
-    n=0
-    while IFS= read -r _; do
-      n=$((n + 1))
-      if [ $((n % 25)) -eq 0 ]; then
-        emit "progress $n $total"
-        cancel_requested && break
-      fi
-    done
-  }
+  # One verbose line per extracted entry, in archive order: add its size.
+  tar -xzvf "$PAYLOAD" -C "$STAGING" 2>&1 | awk -v base="$HASH_W" -v grand="$GRAND" \
+      -v sizes="$WORK/sizes" -v ctl="$CTL" '
+    BEGIN { while ((getline l < sizes) > 0) sz[++n] = l }
+    {
+      i++; done += sz[i]
+      if (i % 20 == 0) {
+        printf "progress %d %d\n", base + done, grand; fflush()
+        if (system("grep -qx cancel \"" ctl "\"") == 0) exit
+      }
+    }' 
   if cancel_requested; then
     emit "phase rollback"
     rm -rf "$STAGING"
@@ -567,7 +592,7 @@ cmd_install() {
     rm -rf "$STAGING"
     finish "$EX_CORRUPT" "Payload incomplete"
   fi
-  emit "progress $total $total"
+  emit "progress $((HASH_W + BYTES)) $GRAND"
   [ "$OS" = linux ] && : > "$NEW/$MARKER"
   # The app itself stays user-writable only for its owner.
   chmod 755 "$NEW"
@@ -597,6 +622,7 @@ cmd_install() {
 
   emit "phase finalizing"
   rm -rf "$BACKUP" "$STAGING"
+  emit "progress $GRAND $GRAND"
   log "Installation finished"
   finish "$EX_OK" "$DIR"
 }
@@ -620,6 +646,116 @@ delete_user_data() {
   done
 }
 
+# --- everyone (system-wide) -------------------------------------------------
+
+# Runs root-helper.sh with administrator rights. Only a verb and 0/1 flags
+# are passed; the helper copies the staged files into a root-owned folder,
+# checks the payload hash there and writes only to fixed system paths.
+# Runs HELPER [ARGS...] with administrator rights; output to $out, exit code
+# to $rc (written last, so $rc marks completion).
+root_exec() {
+  if [ "$(id -u)" = 0 ]; then
+    /bin/sh "$@" > "$out" 2>&1; c=$?
+  elif [ "${LF_SETUP_ELEVATE:-}" = sudo ]; then
+    # CI test mode (passwordless sudo on the runner).
+    # shellcheck disable=SC2024 # output files stay user-owned on purpose
+    sudo -n /bin/sh "$@" > "$out" 2>&1; c=$?
+  elif [ "$OS" = linux ]; then
+    pkexec /bin/sh "$@" > "$out" 2>&1; c=$?
+  else
+    # Standard macOS administrator prompt. Script text is fixed; the helper
+    # path and the flags are passed as arguments and quoted by AppleScript.
+    # Output arrives only at the end here, so progress jumps on macOS.
+    /usr/bin/osascript -e 'on run argv' \
+      -e 'set cmd to "/bin/sh"' \
+      -e 'repeat with a in argv' -e 'set cmd to cmd & " " & quoted form of (a as text)' -e 'end repeat' \
+      -e 'do shell script cmd with administrator privileges' -e 'end run' \
+      "$@" > "$out.r" 2>&1; c=$?
+    tr '\r' '\n' < "$out.r" > "$out"
+  fi
+  echo "$c" > "$rc"
+}
+
+
+run_root() { # VERB [FLAGS...]
+  elev="$WORK/elev"
+  rm -rf "$elev"; mkdir -m 755 "$elev" || finish "$EX_FAILED" "Cannot stage"
+  chmod 755 "$WORK"
+  cp "$SELF_DIR/root-helper.sh" "$SELF_DIR/product.env" "$elev/" || finish "$EX_CORRUPT" "Helper missing"
+  if [ "$1" = install ]; then
+    cp "$PAYLOAD" "$PAYLOAD_SUM" "$elev/" || finish "$EX_CORRUPT" "Payload missing"
+    if [ "$OS" = linux ]; then
+      cp -R "$(dirname "$SELF_DIR")" "$elev/uninstaller" || finish "$EX_FAILED" "Cannot stage uninstaller"
+      rm -f "$elev/uninstaller/setup/payload.tar.gz" "$elev/uninstaller/setup/payload.sha256"
+    fi
+  fi
+  chmod -R a+rX "$elev"
+  helper="$elev/root-helper.sh"
+  rc="$WORK/root.rc"; out="$WORK/root.out"
+  emit "phase elevating"
+  if [ "$(id -u)" != 0 ] && [ "${LF_SETUP_ELEVATE:-}" != sudo ] && [ "$OS" = linux ]; then
+    command -v pkexec >/dev/null 2>&1 || finish "$EX_ELEVATION" "pkexec (polkit) is not installed"
+  fi
+  : > "$out"; rm -f "$rc"
+  # The helper runs in the background; its byte progress is mapped live onto
+  # our scale (the extraction share between HASH_W and HASH_W + BYTES).
+  root_exec "$helper" "$@" &
+  hp=$!
+  last=""
+  while :; do
+    line=$(grep -E '^progress [0-9]+ [0-9]+$' "$out" 2>/dev/null | tail -n 1 \
+      | awk -v base="${HASH_W:-0}" -v bytes="${BYTES:-0}" -v grand="${GRAND:-0}" \
+          '$3 > 0 && grand > 0 { printf "progress %d %d", base + int(bytes * ($2 / $3)), grand }')
+    if [ -n "$line" ] && [ "$line" != "$last" ]; then emit "$line"; last=$line; fi
+    [ -f "$rc" ] && break
+    kill -0 "$hp" 2>/dev/null || { sleep 0.2; [ -f "$rc" ] || echo 1 > "$rc"; break; }
+    sleep 0.3
+  done
+  wait "$hp" 2>/dev/null
+  code=$(cat "$rc")
+  # Forward the helper's log (progress units are the engine's), keep its
+  # result for us.
+  grep -E '^log ' "$out" | while IFS= read -r line; do emit "$line"; done
+  result=$(grep -E '^result [0-9]+' "$out" | tail -n 1 | awk '{print $2}')
+  if [ -z "$result" ]; then
+    # No result line: the prompt was dismissed or polkit has no agent.
+    log "Elevation failed ($code): $(grep -v -E '^(log|progress|result) ' "$out" | head -n 3 | tr '\n' ' ')"
+    finish "$EX_ELEVATION" "Administrator rights were not granted"
+  fi
+  [ "$result" = 0 ] || finish "$result" "$(grep -E '^result ' "$out" | tail -n 1 | cut -d' ' -f3-)"
+}
+
+install_machine() {
+  [ "$DIR" = "$MACHINE_DIR" ] || finish "$EX_BADTARGET" "Everyone: fixed folder $MACHINE_DIR"
+  expected=$(awk '{print $1; exit}' "$PAYLOAD_SUM")
+  [ -n "$expected" ] && [ "$expected" = "$(sha256_of "$PAYLOAD")" ] || finish "$EX_CORRUPT" "Payload damaged"
+  log "Destination: $DIR (everyone)"
+  plan_progress
+  emit "progress $HASH_W $GRAND"
+  ensure_not_running
+  cancel_requested && finish "$EX_CANCELLED" "Cancelled"
+  emit "phase copying"
+  run_root install --desktop-entry "$STARTMENU" --autostart "$AUTOSTART" --desktop "$DESKTOP"
+  emit "progress $((HASH_W + BYTES)) $GRAND"
+  emit "phase registry"
+  # Per-user parts stay with the user: desktop shortcut on Linux; desktop
+  # alias, Dock and login item on macOS.
+  STATE_DIR=$MACHINE_STATE
+  if [ "$OS" = macos ]; then
+    add_integration
+  elif [ "$DESKTOP" = 1 ]; then
+    dd=$(desktop_dir)
+    if [ -d "$dd" ]; then
+      linux_entry "$dd/$P_APP_ID.desktop" 0
+      chmod 755 "$dd/$P_APP_ID.desktop"
+      command -v gio >/dev/null 2>&1 && gio set "$dd/$P_APP_ID.desktop" metadata::trusted true >/dev/null 2>&1
+    fi
+  fi
+  emit "phase finalizing"
+  emit "progress $GRAND $GRAND"
+  finish "$EX_OK" "$DIR"
+}
+
 cmd_uninstall() {
   TARGET=""; DELETE_DATA=0
   while [ $# -gt 0 ]; do
@@ -635,28 +771,59 @@ cmd_uninstall() {
     finish "$EX_NOTINSTALLED" "Not installed"
   fi
   DIR=$R_DIR
+  if [ "$R_SCOPE" = machine ]; then
+    [ "$DIR" = "$MACHINE_DIR" ] || finish "$EX_BADTARGET" "Unexpected folder"
+    log "Uninstalling from $DIR (everyone)"
+    ensure_not_running
+    emit "phase removing"
+    run_root uninstall
+    if [ "$OS" = macos ]; then
+      remove_integration "$DIR"
+    else
+      f="$(desktop_dir)/$P_APP_ID.desktop"
+      [ -f "$f" ] && rm -f "$f"
+    fi
+    [ "$DELETE_DATA" = 1 ] && delete_user_data
+    rm -rf "$STATE_DIR"
+    log "Uninstall finished"
+    finish "$EX_OK" ""
+  fi
   if ! why=$(check_dir "$DIR" "$R_SCOPE"); then
     finish "$EX_BADTARGET" "$why"
   fi
   log "Uninstalling from $DIR"
   ensure_not_running
   emit "phase removing"
-  emit "progress 0 3"
+  # Units: one per file of the app, plus one each for the entries and the
+  # user data.
+  files=0
+  is_ours "$DIR" && files=$(find "$DIR" | wc -l | tr -d ' ')
+  total=$((files + 2))
+  emit "progress 0 $total"
   remove_integration "$DIR"
-  emit "progress 1 3"
+  emit "progress 1 $total"
   if [ -e "$DIR" ]; then
     if is_ours "$DIR"; then
+      # Delete file by file (depth first) so progress follows real work.
+      find "$DIR" -depth -print | {
+        n=0
+        while IFS= read -r f; do
+          if [ -d "$f" ] && [ ! -L "$f" ]; then rmdir "$f" 2>/dev/null; else rm -f "$f"; fi
+          n=$((n + 1))
+          [ $((n % 20)) -eq 0 ] && emit "progress $((1 + n)) $total"
+        done
+      }
       rm -rf "$DIR" || finish "$EX_FAILED" "Cannot remove $DIR"
     else
       log "Folder does not belong to $P_NAME, left in place: $DIR"
     fi
   fi
-  emit "progress 2 3"
+  emit "progress $((files + 1)) $total"
   [ "$DELETE_DATA" = 1 ] && delete_user_data
   # The record folder holds this uninstaller; deleting it while it runs is
   # fine on POSIX systems.
   rm -rf "$STATE_DIR"
-  emit "progress 3 3"
+  emit "progress $total $total"
   log "Uninstall finished"
   finish "$EX_OK" ""
 }

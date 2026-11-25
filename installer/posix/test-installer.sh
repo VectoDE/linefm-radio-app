@@ -47,7 +47,7 @@ rec() { sed -n "s/^$1=//p" "$record" 2>/dev/null | head -n 1; }
 run_ui() { # NAME EXECUTABLE [extra env...]
   local name=$1 exe=$2; shift 2
   echo "== UI: $name"
-  env LF_SETUP_AUTOPILOT="$art/screenshots/$name" "$@" "$exe" > "$art/logs/$name-ui.log" 2>&1 &
+  env LF_SETUP_AUTOPILOT="$art/screenshots/$name" LF_SETUP_AUTOPILOT_SCOPE=user LF_SETUP_ELEVATE=sudo "$@" "$exe" > "$art/logs/$name-ui.log" 2>&1 &
   local pid=$!
   local waited=0
   while kill -0 "$pid" 2>/dev/null && [ $waited -lt 600 ]; do sleep 1; waited=$((waited + 1)); done
@@ -110,6 +110,13 @@ run_engine running-close "$setup_dir" $'close\n' install --scope "$scope" --desk
 check "running app, close: update exits 0 (got $code)" test "$code" = 0
 check "app closed for the update" sh -c '! pgrep -x linefm_radio >/dev/null && ! pgrep -x "LINEFM Radio" >/dev/null'
 check "update keeps the folder" test "$(rec DIR)" = "$dir"
+# Progress (#88): monotonic, more than a handful of steps, 100 % only as the
+# last progress line, just before the result.
+progress_ok() { # LOG
+  awk '/^progress /{ d=$2; t=$3; if (t<=0 || d>t || (n && d/t < last)) bad=1; last=d/t; n++ }
+       END { exit !(n >= 5 && !bad && last == 1) }' "$1"
+}
+check "update progress is monotonic and ends at 100 %" progress_ok "$art/logs/running-close.log"
 if [ "$os" = macos ]; then
   check "login item" test -f "$home/Library/LaunchAgents/de.linefm.app.autostart.plist"
 else
@@ -152,6 +159,7 @@ check "user data removed" test ! -e "$data_dir"
 if [ "$os" = macos ]; then
   check "desktop alias removed" test ! -L "$home/Desktop/LINEFM Radio"
   check "Dock entry removed" sh -c "! defaults read com.apple.dock persistent-apps | grep -q 'LINEFM%20Radio.app'"
+  defaults read com.apple.dock persistent-apps 2>/dev/null | grep _CFURLString > "$art/logs/dock-after-uninstall.txt" || true
   check "login item removed" test ! -e "$home/Library/LaunchAgents/de.linefm.app.autostart.plist"
 else
   check "menu entry removed" test ! -e "$data_home/applications/de.linefm.app.desktop"
@@ -159,6 +167,42 @@ else
   check "autostart removed" test ! -e "${XDG_CONFIG_HOME:-$home/.config}/autostart/de.linefm.app.desktop"
 fi
 
-ls -R "$art/screenshots" | head -60
+# --- everyone (system-wide) --------------------------------------------------
+# Without a polkit agent (CI) the Linux prompt cannot appear: clear error 7.
+if [ "$os" = linux ]; then
+  run_engine machine-noagent "$setup_dir" "" install --scope machine --desktop 0 --startmenu 1 --autostart 0; code=$?
+  check "everyone without polkit agent: exit 7 (got $code)" test "$code" = 7
+  check "nothing written to /opt" test ! -e /opt/linefm-radio
+fi
+# Test mode: the root helper runs through passwordless sudo on the runner.
+LF_SETUP_ELEVATE=sudo run_engine machine-install "$setup_dir" "" install --scope machine --desktop 1 --startmenu 1 --autostart 1; code=$?
+check "everyone install: exit 0 (got $code)" test "$code" = 0
+if [ "$os" = macos ]; then
+  mdir="/Applications/LINEFM Radio.app"; mstate="/Library/Application Support/LINEFM Radio Setup"
+  check "everyone: bundle in /Applications, owned by root" test "$(stat -f %u "$mdir")" = 0
+  check "everyone: uninstaller kept" test -d "$mstate/Uninstall LINEFM Radio.app"
+else
+  mdir=/opt/linefm-radio; mstate=/var/lib/linefm-radio-setup
+  check "everyone: app in /opt, owned by root" test "$(stat -c %u "$mdir/linefm_radio")" = 0
+  check "everyone: menu entry" test -f /usr/share/applications/de.linefm.app.desktop
+  check "everyone: icon" test -f /usr/share/icons/hicolor/256x256/apps/de.linefm.app.png
+  check "everyone: /usr/local/bin link" test -L /usr/local/bin/linefm-radio
+  check "everyone: system autostart" test -f /etc/xdg/autostart/de.linefm.app.desktop
+  check "everyone: uninstaller kept" test -x "$mstate/uninstaller/linefm_setup"
+  check "everyone: user cannot write the app" sh -c "! touch '$mdir/linefm_radio' 2>/dev/null"
+fi
+check "everyone: record root-owned" sh -c "test -f '$mstate/installed.env' && ! test -w '$mstate/installed.env'"
+/bin/sh "$engine" context > "$art/logs/context-machine.json"
+check "context shows the everyone install" grep -q '"machine":{"version"' "$art/logs/context-machine.json"
+LF_SETUP_ELEVATE=sudo run_engine machine-uninstall "$setup_dir" "" uninstall --target "$mdir"; code=$?
+check "everyone uninstall: exit 0 (got $code)" test "$code" = 0
+check "everyone install progress is monotonic and ends at 100 %" progress_ok "$art/logs/machine-install.log"
+check "everyone: app removed" test ! -e "$mdir"
+check "everyone: record removed" test ! -e "$mstate"
+if [ "$os" = linux ]; then
+  check "everyone: system entries removed" sh -c '! test -e /usr/share/applications/de.linefm.app.desktop && ! test -e /usr/local/bin/linefm-radio && ! test -e /etc/xdg/autostart/de.linefm.app.desktop'
+fi
+
+find "$art/screenshots" -type f | sort | head -60
 echo "failures: $failures"
 [ "$failures" = 0 ]

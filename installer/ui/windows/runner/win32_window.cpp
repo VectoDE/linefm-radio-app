@@ -162,6 +162,15 @@ bool Win32Window::Create(const std::wstring& title,
 
   UpdateTheme(window);
 
+  // Custom title bar (#88): the client area covers the whole window, the
+  // Flutter UI draws its own bar. A 1 px DWM frame keeps the system shadow
+  // and the rounded corners on Windows 11.
+  MARGINS margins = {0, 0, 1, 0};
+  DwmExtendFrameIntoClientArea(window, &margins);
+  SetWindowPos(window, nullptr, 0, 0, 0, 0,
+               SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+                   SWP_NOACTIVATE);
+
   return OnCreate();
 }
 
@@ -195,6 +204,11 @@ Win32Window::MessageHandler(HWND hwnd,
                             WPARAM const wparam,
                             LPARAM const lparam) noexcept {
   switch (message) {
+    case WM_NCCALCSIZE:
+      // No native caption or border: client area = window rectangle.
+      if (wparam == TRUE) return 0;
+      break;
+
     case WM_DESTROY:
       window_handle_ = nullptr;
       Destroy();

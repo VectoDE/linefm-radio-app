@@ -615,9 +615,21 @@ std::vector<std::wstring> UserDataDirs(const Product& product,
   std::vector<std::wstring> dirs;
   const std::wstring roaming = KnownFolder(FOLDERID_RoamingAppData);
   const std::wstring local = KnownFolder(FOLDERID_LocalAppData);
-  if (!roaming.empty()) dirs.push_back(JoinPath(roaming, sub));
+  // Frueherer Firmenname (Migration #98): alten Ordner beim Loeschen mitnehmen.
+  const std::wstring legacy_company = SanitizeComponent(product.data_company_legacy);
+  const std::wstring legacy_sub =
+      legacy_company.empty() ? std::wstring() : JoinPath(legacy_company, name);
+  if (!roaming.empty()) {
+    dirs.push_back(JoinPath(roaming, sub));
+    if (!legacy_sub.empty() && legacy_sub != sub) {
+      dirs.push_back(JoinPath(roaming, legacy_sub));
+    }
+  }
   if (!local.empty()) {
     dirs.push_back(JoinPath(local, sub));
+    if (!legacy_sub.empty() && legacy_sub != sub) {
+      dirs.push_back(JoinPath(local, legacy_sub));
+    }
     dirs.push_back(JoinPath(local, stem));  // sentry-native-Ersatzordner
   }
   return dirs;
@@ -916,8 +928,13 @@ int RunInstall(Payload& payload, const Product& product,
     return rollback(kExitFailed, error);
   }
   reporter.Phase("copying");
+  // Progress is real work: bytes written, plus a small fixed share for the
+  // registration and clean-up after copying, so 100 % only appears once
+  // everything is finished (#88).
+  const uint64_t finish_share = total / 50 + 1;
+  const uint64_t grand = total + finish_share;
   uint64_t done = 0;
-  reporter.Progress(0, total);
+  reporter.Progress(0, grand);
   std::vector<uint8_t> data;
   for (const auto& p : planned) {
     if (reporter.Cancelled()) return rollback(kExitCancelled, L"Abgebrochen");
@@ -955,7 +972,7 @@ int RunInstall(Payload& payload, const Product& product,
       }
       offset += chunk;
       done += chunk;
-      reporter.Progress(done, total);
+      reporter.Progress(done, grand);
     }
     if (write_ok && !cancelled) write_ok = ::FlushFileBuffers(file) != 0;
     const DWORD write_error = ::GetLastError();
@@ -1172,7 +1189,7 @@ int RunInstall(Payload& payload, const Product& product,
     for (const auto& d : dirs) ::RemoveDirectoryW(d.c_str());
   }
   ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
-  reporter.Progress(total, total);
+  reporter.Progress(grand, grand);
   Log::Line(L"Installation abgeschlossen");
   if (message != nullptr) *message = dir;
   return kExitOk;

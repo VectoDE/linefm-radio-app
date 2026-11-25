@@ -168,6 +168,15 @@ class ProcessSetupPlatform implements SetupPlatform {
   }
 
   @override
+  Future<void> windowAction(String action) async {
+    try {
+      await _channel.invokeMethod<void>('window', action);
+    } on Object {
+      // Runner without the method: nothing to do.
+    }
+  }
+
+  @override
   Future<bool> openUrl(String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null || (uri.scheme != 'https' && uri.scheme != 'http')) {
@@ -225,6 +234,11 @@ class SetupAutopilot {
           await _capture('license-accepted');
           await c.next();
         case SetupStep.options:
+          final scope = Platform.environment['LF_SETUP_AUTOPILOT_SCOPE'];
+          if (scope == 'user' || scope == 'machine') {
+            c.setScope(Scope.parse(scope));
+            await _settle();
+          }
           await c.next();
         case SetupStep.confirm:
           c.setDeleteUserData(
@@ -236,11 +250,20 @@ class SetupAutopilot {
             await c.answerRunningApps(close: true);
           }
           await _waitWhile(() => c.step == SetupStep.progress);
+          if (c.step == SetupStep.progress) {
+            // Step timeout: a hanging progress page (#147) fails the test
+            // instead of waiting forever.
+            await _capture('progress-timeout');
+            exit(124);
+          }
           continue;
         case SetupStep.done:
           c.setLaunchAfter(false);
           await _settle();
           await _capture('done-final');
+          // Engine log next to the pictures, for the CI artifact.
+          await File('${outDir.path}/$prefix-engine.log')
+              .writeAsString('${c.log.join('\n')}\n');
           await c.finish();
           return;
       }
@@ -249,7 +272,7 @@ class SetupAutopilot {
   }
 
   Future<void> _waitWhile(bool Function() condition) async {
-    final until = DateTime.now().add(const Duration(minutes: 10));
+    final until = DateTime.now().add(const Duration(minutes: 5));
     while (condition() && DateTime.now().isBefore(until)) {
       await Future<void>.delayed(const Duration(milliseconds: 200));
     }

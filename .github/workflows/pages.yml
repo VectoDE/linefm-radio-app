@@ -1,0 +1,271 @@
+name: Pages
+
+# Public measurement target while app.linefm.de is not live (issue #132):
+# - build:  own web build for the GitHub Pages sub path (--base-href /linefm-radio-app/),
+#           runs on every trigger, so pull requests prove that the build works.
+# - deploy: actions/deploy-pages into the environment github-pages, only on main and
+#           only if Pages is enabled (source: GitHub Actions); otherwise skipped with a note.
+# - gate:   quality gate against the live URL after each deploy. Uses the PageSpeed
+#           Insights API when the secret PAGESPEED_API_KEY exists, otherwise Lighthouse
+#           on the runner (same engine, median of 5 runs). Fails below the thresholds.
+# Seobility and WebsiteScorer have no free API; they are checked manually after a deploy
+# (docs/PERFORMANCE.md, section "Public web quality checks").
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - lib/**
+      - web/**
+      - assets/**
+      - pubspec.yaml
+      - pubspec.lock
+      - tool/web_postbuild.dart
+      - tool/fetch_font_fallback.dart
+      - tool/perf/**
+      - .github/workflows/pages.yml
+  pull_request:
+    paths:
+      - .github/workflows/pages.yml
+      - tool/perf/pagespeed_gate.mjs
+  workflow_dispatch:
+    inputs:
+      competitors:
+        description: Also run the PageSpeed comparison against public radio web players (passive, one call per URL and profile)
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: pages-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PAGES_URL: https://vectode.github.io/linefm-radio-app/
+  BASE_HREF: /linefm-radio-app/
+
+jobs:
+  build:
+    name: Build web for Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set SOURCE_DATE_EPOCH from commit
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+
+      - name: Set up Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Write config
+        uses: ./.github/actions/write-config
+        with:
+          app-env: prod
+          web-base-url: ${{ env.PAGES_URL }}
+          umami-url: ${{ vars.UMAMI_URL }}
+          umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
+          gsc-verification: ${{ vars.GSC_VERIFICATION }}
+          gtm-id: ${{ vars.GTM_ID }}
+          ga4-measurement-id: ${{ vars.GA4_MEASUREMENT_ID }}
+          trust-gridinsoft-url: ${{ vars.TRUST_GRIDINSOFT_URL }}
+          trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
+          legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
+          features-json: ${{ vars.FEATURES_JSON }}
+
+      - name: Build web (Wasm)
+        run: >-
+          flutter build web --release --wasm --no-web-resources-cdn
+          --dart-define-from-file=config/app.json --base-href "$BASE_HREF"
+
+      - name: Self-host fallback fonts and postbuild
+        run: |
+          # Run outside the package (dart: imports only), as in build.yml.
+          cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
+          dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
+          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
+
+      - name: Prepare Pages content
+        run: |
+          set -euo pipefail
+          test -f build/web/index.html
+          grep -q "<base href=\"$BASE_HREF\">" build/web/index.html
+          # Pages ignores .htaccess and _headers; drop dot files except .well-known.
+          find build/web -mindepth 1 -name '.*' -not -path '*/.well-known' -not -path '*/.well-known/*' -prune -exec rm -rf {} +
+          # SPA deep links: Pages serves 404.html for unknown paths.
+          cp build/web/index.html build/web/404.html
+          du -sh build/web
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: build/web
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    outputs:
+      deployed: ${{ steps.deploy.outcome == 'success' }}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Check whether Pages is enabled
+        id: enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          if gh api "repos/$REPO/pages" --jq .build_type > build_type.txt 2>/dev/null; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "- Pages build type: $(cat build_type.txt)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "- GitHub Pages is not enabled (Settings > Pages > Source: GitHub Actions). Deploy skipped." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Configure Pages
+        if: steps.enabled.outputs.ready == 'true'
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Deploy
+        id: deploy
+        if: steps.enabled.outputs.ready == 'true'
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  gate:
+    name: Web quality gate
+    needs: deploy
+    if: needs.deploy.outputs.deployed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      HAS_PSI_KEY: ${{ secrets.PAGESPEED_API_KEY != '' }}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tool/perf/package-lock.json
+
+      - name: Wait for the deployed site
+        run: |
+          for _ in $(seq 1 30); do
+            curl -fsS -o /dev/null "$PAGES_URL" && exit 0
+            sleep 10
+          done
+          echo "::error::$PAGES_URL not reachable"
+          exit 1
+
+      - name: Header dump
+        run: |
+          mkdir -p tool/perf/out/gate
+          curl -sS -o /dev/null -D tool/perf/out/gate/headers.txt -H 'Accept-Encoding: br, gzip' "$PAGES_URL"
+
+      - name: Install Lighthouse (fallback without API key)
+        if: env.HAS_PSI_KEY != 'true'
+        working-directory: tool/perf
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npx --no-install playwright install --with-deps chromium
+
+      - name: Lighthouse on the runner (fallback without API key)
+        if: env.HAS_PSI_KEY != 'true'
+        working-directory: tool/perf
+        timeout-minutes: 30
+        run: node lighthouse.mjs --url "$PAGES_URL" --out out/lighthouse --runs 5
+
+      - name: Gate
+        working-directory: tool/perf
+        env:
+          PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
+        run: |
+          node pagespeed_gate.mjs --url "$PAGES_URL" --out out/gate --lighthouse-summary out/lighthouse/summary.json
+
+      - name: Upload reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: web-gate-${{ github.sha }}
+          path: tool/perf/out/
+          retention-days: 30
+          if-no-files-found: warn
+
+  competitors:
+    name: Competitor comparison (PageSpeed API)
+    if: github.event_name == 'workflow_dispatch' && inputs.competitors
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: PageSpeed for public radio web players
+        working-directory: tool/perf
+        env:
+          PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
+        run: |
+          set -uo pipefail
+          if [ -z "$PAGESPEED_API_KEY" ]; then echo "::error::PAGESPEED_API_KEY missing"; exit 1; fi
+          echo "## Competitor comparison" >> "$GITHUB_STEP_SUMMARY"
+          for entry in linefm=$PAGES_URL radio-de=https://www.radio.de/ tunein=https://tunein.com/ laut-fm=https://laut.fm/ radio-net=https://www.radio.net/; do
+            node pagespeed_gate.mjs --report-only --name "${entry%%=*}" --url "${entry#*=}" --out out/competitors || echo "- ${entry%%=*}: measurement failed" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Upload reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: competitors-${{ github.sha }}
+          path: tool/perf/out/
+          retention-days: 30
+          if-no-files-found: warn

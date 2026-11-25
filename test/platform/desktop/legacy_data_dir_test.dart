@@ -70,4 +70,70 @@ void main() {
     expect(await migrateDataDir(from: from, to: to), DataDirMigration.noSource);
     expect(to.existsSync(), isFalse);
   });
+
+  test(
+    'copies recursively when the rename fails, then removes the source',
+    () async {
+      from.createSync(recursive: true);
+      File('${from.path}/shared_preferences.json').writeAsStringSync('old');
+      Directory('${from.path}/cache/deep').createSync(recursive: true);
+      File('${from.path}/cache/deep/a.txt').writeAsStringSync('x');
+
+      final result = await migrateDataDir(
+        from: from,
+        to: to,
+        rename: (_, _) => throw const FileSystemException('cross-device'),
+      );
+
+      expect(result, DataDirMigration.copied);
+      expect(
+        File('${to.path}/shared_preferences.json').readAsStringSync(),
+        'old',
+      );
+      expect(File('${to.path}/cache/deep/a.txt').readAsStringSync(), 'x');
+      expect(from.existsSync(), isFalse);
+      expect(from.parent.existsSync(), isFalse);
+    },
+  );
+
+  group('migrateLegacyDataDir', () {
+    test('moves the folder below APPDATA on Windows', () async {
+      from.createSync(recursive: true);
+      File('${from.path}/shared_preferences.json').writeAsStringSync('old');
+      await migrateLegacyDataDir(
+        windows: true,
+        environment: <String, String>{'APPDATA': root.path},
+      );
+      expect(File('${to.path}/shared_preferences.json').existsSync(), isTrue);
+      expect(from.existsSync(), isFalse);
+    });
+
+    test('never throws: a blocked target leaves the old folder', () async {
+      from.createSync(recursive: true);
+      File('${root.path}/LineFM Studios').writeAsStringSync('blocker');
+      await migrateLegacyDataDir(
+        windows: true,
+        environment: <String, String>{'APPDATA': root.path},
+      );
+      expect(from.existsSync(), isTrue);
+    });
+
+    test('does nothing outside Windows', () async {
+      from.createSync(recursive: true);
+      await migrateLegacyDataDir(
+        windows: false,
+        environment: <String, String>{'APPDATA': root.path},
+      );
+      expect(from.existsSync(), isTrue);
+    });
+
+    test('does nothing without APPDATA', () async {
+      from.createSync(recursive: true);
+      await migrateLegacyDataDir(
+        windows: true,
+        environment: const <String, String>{},
+      );
+      expect(from.existsSync(), isTrue);
+    });
+  });
 }

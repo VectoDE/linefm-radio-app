@@ -19,14 +19,18 @@ const String productName = 'LINEFM Radio';
 /// the app with empty settings. Runs once, before anything opens
 /// `SharedPreferences`. Does nothing on other platforms, when there is no
 /// old folder, or when the new folder already holds data.
-Future<void> migrateLegacyDataDir() async {
-  if (!Platform.isWindows) return;
-  final appData = Platform.environment['APPDATA'];
+Future<void> migrateLegacyDataDir({
+  @visibleForTesting bool? windows,
+  @visibleForTesting Map<String, String>? environment,
+}) async {
+  if (!(windows ?? Platform.isWindows)) return;
+  final appData = (environment ?? Platform.environment)['APPDATA'];
   if (appData == null || appData.isEmpty) return;
+  final sep = Platform.pathSeparator;
   try {
     await migrateDataDir(
-      from: Directory('$appData\\$legacyCompanyName\\$productName'),
-      to: Directory('$appData\\$companyName\\$productName'),
+      from: Directory('$appData$sep$legacyCompanyName$sep$productName'),
+      to: Directory('$appData$sep$companyName$sep$productName'),
     );
   } on Object catch (e) {
     // Never block the start: the app then runs with fresh settings.
@@ -38,12 +42,13 @@ Future<void> migrateLegacyDataDir() async {
 enum DataDirMigration { noSource, targetHasData, moved, copied }
 
 /// Moves [from] to [to]. Falls back to a recursive copy (then deletes the
-/// source) when a rename is not possible. Leaves both untouched when [to]
-/// already contains files.
+/// source) when a rename is not possible ([rename] replaces the real rename in
+/// tests). Leaves both untouched when [to] already contains files.
 @visibleForTesting
 Future<DataDirMigration> migrateDataDir({
   required Directory from,
   required Directory to,
+  void Function(Directory from, String toPath)? rename,
 }) async {
   if (!from.existsSync()) return DataDirMigration.noSource;
   if (to.existsSync() && to.listSync().isNotEmpty) {
@@ -52,7 +57,7 @@ Future<DataDirMigration> migrateDataDir({
   to.parent.createSync(recursive: true);
   if (to.existsSync()) to.deleteSync();
   try {
-    from.renameSync(to.path);
+    (rename ?? (d, path) => d.renameSync(path))(from, to.path);
     _removeIfEmpty(from.parent);
     return DataDirMigration.moved;
   } on FileSystemException {

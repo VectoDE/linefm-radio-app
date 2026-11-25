@@ -49,7 +49,8 @@ class IosAlarmPlatform implements AlarmPlatform {
       return;
     }
     final texts = _texts ?? AlarmTexts.system();
-    final station = stationBySlug(rule.stationSlug);
+    // Entfernter Sender: wie der Wecker selbst der erste der Liste (#91).
+    final station = alarmStationFor(rule.stationSlug);
     try {
       await _channel.invokeMethod<bool>('requestPermission');
       await _channel.invokeMethod<void>('schedule', <String, Object?>{
@@ -58,8 +59,8 @@ class IosAlarmPlatform implements AlarmPlatform {
         'minute': rule.minute,
         'weekdays': (rule.weekdays.toList()..sort()),
         'title': texts.title,
-        'body': texts.body(station?.displayName ?? 'LINEFM'),
-        'url': 'linefm://play?station=${rule.stationSlug}',
+        'body': texts.body(station.displayName),
+        'url': 'linefm://play?station=${station.slug}',
       });
     } on MissingPluginException {
       debugPrint('Wecker iOS: nativer Kanal $channelName fehlt.');

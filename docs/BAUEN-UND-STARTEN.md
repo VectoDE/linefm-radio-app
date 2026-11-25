@@ -273,14 +273,14 @@ Die App baut auch ohne Konfigurationsdatei mit Standardwerten. Das wurde am 21.1
 Wenn du eigene Werte brauchst, zum Beispiel eine andere Web-Adresse, kopiere die Vorlage:
 
 ```powershell
-copy config\app.example.json config\app.json
+copy config\app.example.yaml config\app.yaml
 ```
 
 ```bash
-cp config/app.example.json config/app.json
+cp config/app.example.yaml config/app.yaml
 ```
 
-Trage dann in `config/app.json` die Werte ein. Was die Schlüssel bedeuten, steht in [ENTWICKLUNG.md](ENTWICKLUNG.md), Abschnitt "Konfiguration". Die Datei bleibt auf deinem Rechner und wird nicht ins Repository hochgeladen. Hänge an jeden Bau-Befehl unten ` --dart-define-from-file=config/app.json` an, wenn du sie nutzen willst. Das Skript aus Teil C erkennt die Datei selbst.
+Trage dann in `config/app.yaml` die Werte ein. Über jedem Schlüssel steht als Kommentar, was er bedeutet, welche Werte erlaubt sind und ein Beispiel; mehr in [Konfiguration](KONFIGURATION.md). Die Datei bleibt auf deinem Rechner und wird nicht ins Repository hochgeladen. Das Skript aus Teil C prüft sie und erzeugt daraus selbst die Bauwerte `config/app.json`. Baust du ohne Skript, erzeuge sie mit `dart run tool/check_config.dart --defines config/app.json` und hänge an jeden Bau-Befehl unten ` --dart-define-from-file=config/app.json` an.
 
 ### B4 Ziele im Überblick
 

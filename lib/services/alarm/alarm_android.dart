@@ -158,7 +158,8 @@ class AndroidAlarmPlatform implements AlarmPlatform {
 
     final now = _clock.now();
     final limit = now.add(horizon);
-    final station = stationBySlug(rule.stationSlug);
+    // Entfernter Sender: der erste der Liste, wie beim Klingeln (#91).
+    final station = alarmStationFor(rule.stationSlug);
     final texts = _texts ?? AlarmTexts.system();
     var cursor = now;
     var slot = 0;
@@ -184,7 +185,7 @@ class AndroidAlarmPlatform implements AlarmPlatform {
           volumeSettings: const VolumeSettings.fixed(),
           notificationSettings: NotificationSettings(
             title: texts.title,
-            body: texts.body(station?.displayName ?? 'LINEFM'),
+            body: texts.body(station.displayName),
             stopButton: texts.stopButton,
             androidSnoozeButton: texts.snoozeButton,
           ),

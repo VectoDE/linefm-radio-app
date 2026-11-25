@@ -6,6 +6,8 @@ library;
 // Sprachen gleich sein. Referenzbilder entstehen auf dem CI-Runner, siehe
 // docs/ENTWICKLUNG.md ("Goldens aktualisieren").
 import 'package:flutter_test/flutter_test.dart';
+import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/core/config/app_config.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/features/settings/platform_info.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
@@ -28,6 +30,10 @@ AppHost _host(Brightness brightness) => AppHost(
         : AppThemeMode.light,
   ),
   extra: [
+    // The reference images show the listener count (feature flag, #91).
+    appConfigProvider.overrideWithValue(
+      const AppConfig(showListenerCount: true),
+    ),
     platformInfoProvider.overrideWithValue(
       const PlatformInfo(isWeb: false, platform: TargetPlatform.windows),
     ),

@@ -274,7 +274,7 @@ class DefaultAlarmCoordinator implements AlarmCoordinator {
       await platform.silence(ring);
       return;
     }
-    final station = stationBySlug(rule.stationSlug) ?? stationsCatalog.first;
+    final station = alarmStationFor(rule.stationSlug);
     final target = rule.volume.clamp(0.1, 1.0);
     final start = rampStart < target ? rampStart : target;
 

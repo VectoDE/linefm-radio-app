@@ -50,8 +50,10 @@ void main() {
       expect(FavoriteStationsLogic.decode('{kaputt'), isEmpty);
       expect(FavoriteStationsLogic.decode('{"a":1}'), isEmpty);
       expect(
-        FavoriteStationsLogic.decode('["linefm", 3, null, "weg", "linefm"]'),
-        <String>{'linefm'},
+        FavoriteStationsLogic.decode('["linefm", 3, null, "weg", "../x"]'),
+        // "weg" ist ein gueltiges Kuerzel und bleibt gespeichert (Sender
+        // evtl. nur ausgeblendet, Issue #91); Ungueltiges faellt weg.
+        <String>{'linefm', 'weg'},
       );
     });
 

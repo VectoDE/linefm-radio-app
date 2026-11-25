@@ -37,13 +37,11 @@ const Size _phone = Size(390, 844);
 /// Sender ohne ladbares Logo: das Kuerzel bleibt sichtbar, das Bild
 /// (asynchron dekodiert) kann das Ergebnis nicht beeinflussen.
 Station _plain(Station s) => Station(
-  id: s.id,
   slug: s.slug,
   displayName: s.displayName,
   color: s.color,
   logoAsset: 'assets/images/golden-ohne-logo.png',
   logoUrl: s.logoUrl,
-  fallbackStreamUrl: s.fallbackStreamUrl,
 );
 
 Future<void> _matches(String name, Brightness brightness) => expectLater(

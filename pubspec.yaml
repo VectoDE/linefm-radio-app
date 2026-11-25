@@ -44,6 +44,9 @@ dependencies:
   # Favoriten-Import (Issue #9): Datei-Dialog auf allen Plattformen, im Web
   # <input type=file> (file_selector_web). Offizielles Paket von flutter.dev.
   file_selector: ^1.1.0
+  # Konfigurationsdateien in config/ sind YAML mit Kommentaren (Issue #91).
+  # Stand schon transitiv im Lock (3.1.4), offizielles Dart-Paket.
+  yaml: ^3.1.3
 # override-reason(flutter_rust_bridge): smtc_windows 1.1.0 (latest) is generated
 # against flutter_rust_bridge 2.11.1 and pins the Rust crate to =2.11.1; newer
 # Dart versions fail the bridge's runtime content-hash check. Remove once
@@ -66,6 +69,9 @@ flutter:
   uses-material-design: true
   generate: true
   assets:
+    # Senderliste (Issue #91); die uebrigen Dateien in config/ sind nur
+    # Beispiele bzw. Bauzeit-Werte und gehoeren nicht ins App-Paket.
+    - config/stations.yaml
     - assets/images/stations/
     - assets/images/brand/
     - assets/audio/

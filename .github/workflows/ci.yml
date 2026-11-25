@@ -395,7 +395,10 @@ jobs:
       - name: Scan job logs for warnings and errors
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >-
-          python3 -I tool/check_build_logs.py
-          --repo "$GITHUB_REPOSITORY" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
-          --skip-job "Build log gate"
+        run: |
+          logs="$RUNNER_TEMP/job-logs"
+          bash tool/fetch_job_logs.sh "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$logs" "Build log gate"
+          shopt -s nullglob
+          files=("$logs"/*.log)
+          [ "${#files[@]}" -gt 0 ] || { echo "::error::no job logs downloaded"; exit 1; }
+          python3 -I tool/check_build_logs.py "${files[@]}"

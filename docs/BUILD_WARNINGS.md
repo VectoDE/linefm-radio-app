@@ -35,7 +35,7 @@ Check a saved log locally:
 ```sh
 python3 tool/check_build_logs.py build.log
 # or a whole run (needs a token with actions:read)
-GH_TOKEN=... python3 tool/check_build_logs.py --repo OWNER/NAME --run-id 123
+GH_TOKEN=... bash tool/fetch_job_logs.sh OWNER/NAME RUN_ID 1 logs && python3 tool/check_build_logs.py logs/*.log
 ```
 
 ## Third-party patches

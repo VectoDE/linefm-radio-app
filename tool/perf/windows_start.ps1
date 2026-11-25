@@ -104,8 +104,8 @@ function Cpu-Sample([Diagnostics.Process]$p, [int]$seconds) {
 
 # Einstellungen vorab: Speicher-Hinweis bestaetigt, Autoplay aus (Leerlauf messbar).
 # Pfad von shared_preferences unter Windows: %APPDATA%\<CompanyName>\<ProductName>
-# (windows/runner/Runner.rc: de.linefm / LINEFM Radio).
-$prefsDir = Join-Path $env:APPDATA 'de.linefm\LINEFM Radio'
+# (windows/runner/Runner.rc: LineFM Studios / LINEFM Radio; the app migrates the old de.linefm folder).
+$prefsDir = Join-Path $env:APPDATA 'LineFM Studios\LINEFM Radio'
 New-Item -ItemType Directory -Force -Path $prefsDir | Out-Null
 $prefsFile = Join-Path $prefsDir 'shared_preferences.json'
 function Write-Prefs {

@@ -791,6 +791,7 @@ Art: S = Secret, V = Variable. "Pflicht" heißt: ohne den Wert fehlt die Funktio
 | `FIREBASE_CONFIG_JSON` | S | Telemetrie (optional) | Firebase, Web-App-Konfiguration | 9.2 |
 | `GSC_VERIFICATION` | V | Search Console | Search Console, "HTML-Tag" | 10.1 |
 | `GTM_ID` | V | GTM (Web) | tagmanager.google.com, Container | 10.2 |
+| `PAGESPEED_API_KEY` | S | Web quality gate (pages.yml), optional; without it Lighthouse runs on the runner | console.cloud.google.com, API key restricted to PageSpeed Insights API | docs/PERFORMANCE.md |
 | `FEATURES_JSON` | V | Funktionsschalter (`showListenerCount`), Standard alles aus, siehe [Konfiguration](KONFIGURATION.md) | z. B. `{"showListenerCount": true}` | – |
 | `GA4_MEASUREMENT_ID` | V | GA4 (Web) | analytics.google.com, Datenstreams | 10.2 |
 | `TRUST_GRIDINSOFT_URL` | V | Vertrauens-Badge | Profil bei Gridinsoft | 11.1 |

@@ -124,6 +124,7 @@ Diese Variablen schreibt die CI in `config/app.json`. Sie landen im fertigen Pro
 | `SENTRY_DSN`, `SENTRY_ENVIRONMENT` | Variable | Sentry/GlitchTip (optional) |
 | `GSC_VERIFICATION` | Variable | Search-Console-Bestätigungscode (optional), Inhalt des Meta-Tags aus „HTML-Tag“; der Web-Postbuild setzt ihn als `google-site-verification` ein, ohne Wert entfällt das Tag |
 | `GTM_ID` | Variable, optional | Google-Tag-Manager-Container, Form `GTM-XXXXXXX` (tagmanager.google.com). Nur Web, wird erst nach Einwilligung geladen. Ohne Wert ist Google komplett aus und die CSP bleibt streng |
+| `PAGESPEED_API_KEY` | Secret, optional | PageSpeed Insights API key for the web quality gate in `pages.yml` (free, console.cloud.google.com, restrict the key to the PageSpeed Insights API). Without it the gate uses Lighthouse on the runner |
 | `GA4_MEASUREMENT_ID` | Variable, optional | GA4-Mess-ID, Form `G-XXXXXXXXXX` (analytics.google.com > Verwaltung > Datenstreams). Ohne `GTM_ID` lädt die Web-Version damit direkt `gtag.js`, mit `GTM_ID` steht sie GTM als Datenschicht-Variable `ga4_measurement_id` zur Verfügung |
 | `TRUST_GRIDINSOFT_URL`, `TRUST_TRUSTPILOT_URL` | Variable | Profil-Links für die Vertrauens-Badges (optional) |
 | `LEGAL_VALUES_JSON` | Variable | JSON mit den Impressums-/Datenschutz-Platzhaltern, siehe EINRICHTUNG Abschnitt 9 |

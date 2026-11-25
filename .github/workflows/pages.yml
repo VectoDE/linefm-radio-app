@@ -85,9 +85,10 @@ jobs:
           features-json: ${{ vars.FEATURES_JSON }}
 
       - name: Build web (Wasm)
-        run: >-
-          flutter build web --release --wasm --no-web-resources-cdn
-          --dart-define-from-file=config/app.json --base-href "$BASE_HREF"
+        run: |
+          set -euo pipefail
+          mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
+          flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file=config/app.json --base-href "$BASE_HREF" "${web_defines[@]}"
 
       - name: Self-host fallback fonts and postbuild
         run: |

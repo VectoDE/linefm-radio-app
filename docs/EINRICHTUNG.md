@@ -1,4 +1,4 @@
-# Einrichtung für jaybelife
+# Einrichtung für LineFM Studios
 
 Diese Liste enthält alles, was du als Betreiber wissen, besorgen und eintragen musst, damit LINEFM Radio in den Stores und im Web erscheint und einwandfrei läuft. Alles andere ist vorbereitet. Du brauchst kein Programmierwissen. Wo ein Entwickler etwas tun muss, steht es dabei.
 
@@ -93,7 +93,7 @@ Abschnitt 2 zuerst anstoßen, weil Antworten von Dritten am längsten dauern. Di
 - **Wo eintragen:** Repository > Settings > Secrets and variables > Actions. Tab "Secrets" > "New repository secret" für geheime Werte. Tab "Variables" > "New repository variable" für nicht geheime. Name exakt übernehmen, Wert einfügen, speichern.
 - **Woher:** Die Bezugsquelle jedes Werts steht im jeweiligen Schritt und gesammelt in Anhang A. Dateien (Schlüssel, Zertifikate) trägst du als Base64 ein: `base64 -w0 datei` (Linux, macOS) oder `[Convert]::ToBase64String([IO.File]::ReadAllBytes("datei"))` (PowerShell).
 - **Prüfschritt:** Der Name erscheint in der Liste. Der Wert eines Secrets ist danach nie mehr sichtbar, nur überschreibbar.
-- Details und die Spalte "Wer" (jaybelife oder Entwickler) stehen in [secrets.md](secrets.md). Den Zusammenhang der Abläufe erklärt [stores-pipelines.md](stores-pipelines.md).
+- Details und die Spalte "Wer" (LineFM Studios oder Entwickler) stehen in [secrets.md](secrets.md). Den Zusammenhang der Abläufe erklärt [stores-pipelines.md](stores-pipelines.md).
 - [ ] erledigt
 
 ### 1.4 Schriftliche Zustimmung zur Veröffentlichung des Quellcodes
@@ -131,7 +131,7 @@ Alle Punkte hier sind Vorprüfung, keine Rechtsberatung. Lass Wortlaut und Folge
 
 ### 2.3 radiogruppe.de
 
-- **Was:** Nutzung des RadioGruppe-Logos bestätigen. Es wird wie in der Web-App von `radiogruppe.de` geladen. Der Hinweis "Ein Angebot von RadioGruppe Deutschland" bleibt, die Formulierung "offizielle App der RadioGruppe" nicht, solange du sie nicht bestätigst.
+- **Was:** Nutzung des RadioGruppe-Logos bestätigen. Es wird wie in der Web-App von `radiogruppe.de` geladen. Der Hinweis "LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe" bleibt, die Formulierung "offizielle App der RadioGruppe" nicht, solange du sie nicht bestätigst.
 - **Wozu:** Markenrecht und ehrliche Aussage in den Stores.
 - **Wo eintragen:** Abschnitt A1 und C der Freigabe-Checkliste.
 - **Woher:** Du als Betreiber oder die RadioGruppe.
@@ -149,10 +149,10 @@ Alle Punkte hier sind Vorprüfung, keine Rechtsberatung. Lass Wortlaut und Folge
 
 ### 2.5 Nutzungsrechtevertrag
 
-- **Was:** Schriftlich regeln, wer die Rechte am Code hat und was jaybelife damit tun darf (Weiterentwicklung durch Dritte, Weitergabe, Übergabe des Repos). Tim Hauke (VectoDE) hat die App unentgeltlich für jaybelife entwickelt. Marke, Logos und App-Icon gehören jaybelife.
+- **Was:** Schriftlich regeln, wer die Rechte am Code hat und was LineFM Studios damit tun darf (Weiterentwicklung durch Dritte, Weitergabe, Übergabe des Repos). Tim Hauke (VectoDE) hat die App unentgeltlich für LineFM Studios entwickelt. Marke, Logos und App-Icon gehören LineFM Studios.
 - **Wozu:** Der Code steht unter "Alle Rechte vorbehalten". Ohne Vertrag bleibt unklar, wer ihn nutzen darf. Flathub und andere Stores verlangen außerdem eine ausdrückliche Erlaubnis zur Weitergabe (Schritt 8.1).
 - **Wo eintragen:** Abschnitt A6 der Freigabe-Checkliste.
-- **Woher:** Vertrag zwischen jaybelife und Tim Hauke, anwaltlich geprüft.
+- **Woher:** Vertrag zwischen LineFM Studios und Tim Hauke, anwaltlich geprüft.
 - **Prüfschritt:** Unterschriebener Vertrag liegt vor. Wartung nach dem Start (wer reagiert auf Fehler und Store-Rückfragen) ist benannt.
 - [ ] erledigt
 
@@ -522,7 +522,7 @@ Das gilt nur für die Web-Version. Alles ist aus, solange du keine Werte einträ
 - **Was:** Eintrag für `app.linefm.de` bei Gridinsoft (gridinsoft.com, Website-Reputation und Sicherheitsprüfung) und das offizielle Badge einbinden.
 - **Wozu:** Vertrauenssignal im Footer oder Vertrauensbereich der Web-App.
 - **Wo eintragen:** Variable `TRUST_GRIDINSOFT_URL` mit dem Link zum Profil.
-- **Woher:** Das Profil legst **du** (jaybelife) bei Gridinsoft an. Das Ergebnis muss echt sein. Ohne Eintrag erscheint kein Badge.
+- **Woher:** Das Profil legst **du** (LineFM Studios) bei Gridinsoft an. Das Ergebnis muss echt sein. Ohne Eintrag erscheint kein Badge.
 - **Prüfschritt:** Nach dem Neubau zeigt die Web-App das Badge, der Link öffnet das Profil.
 - [ ] erledigt
 
@@ -819,7 +819,6 @@ Du schreibst die Werte in `legal_values.json` bzw. die Variable `LEGAL_VALUES_JS
 | `{{REGISTERNUMMER}}` | nein | Impressum | falls eingetragen |
 | `{{USTID}}` | nein | Impressum | USt-IdNr. oder Wirtschafts-IdNr., falls vorhanden |
 | `{{AUFSICHTSBEHOERDE_MEDIEN}}` | ja | Impressum | zuständige Medienanstalt, falls zulassungspflichtig (Bagatellrundfunk prüfen lassen) |
-| `{{APP_AUFTRAGGEBER}}` | ja | Impressum | für wen die App entwickelt wurde, Schreibweise gibt der Inhaber vor |
 | `{{VERANTWORTLICHER_MSTV}}` | ja | Impressum | verantwortliche Person nach § 18 Abs. 2 MStV |
 | `{{DATENSCHUTZBEAUFTRAGTER}}` | ja | Datenschutz | Name und Kontakt oder Hinweis, dass keiner benannt werden muss |
 | `{{AUFSICHTSBEHOERDE_DATENSCHUTZ}}` | ja | Datenschutz | Landesdatenschutzbehörde nach Sitz |

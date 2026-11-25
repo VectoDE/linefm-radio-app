@@ -54,17 +54,17 @@ void main() {
       expect(
         stageFromItems([
           item(['bug']),
-          item(['nur-noch:jaybelife']),
+          item(['nur-noch:linefm-studios']),
         ]),
         ReleaseStage.beta,
       );
     });
 
-    test('nur noch nur-noch:jaybelife offen -> rc', () {
+    test('nur noch nur-noch:linefm-studios offen -> rc', () {
       expect(
         stageFromItems([
-          item(['nur-noch:jaybelife', 'typ:feature']),
-          item(['nur-noch:jaybelife']),
+          item(['nur-noch:linefm-studios', 'typ:feature']),
+          item(['nur-noch:linefm-studios']),
         ]),
         ReleaseStage.rc,
       );

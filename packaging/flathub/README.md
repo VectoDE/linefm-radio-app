@@ -12,7 +12,7 @@ LINEFM Radio steht unter einer proprietären Lizenz (`LicenseRef-proprietary`). 
 - Für die Lizenz verlangt Flathub `LicenseRef-proprietary` mit Link auf den Lizenztext: `<project_license>LicenseRef-proprietary=https://...</project_license>`. Das steht in der Metainfo, der Link ist noch ein Platzhalter. Die Lizenzdatei muss nach `/app/share/licenses/de.linefm.app/` installiert werden (TODO im Manifest).
 - Die Domain `linefm.de` muss per `https://linefm.de/.well-known/org.flathub.VerifiedApps.txt` bestätigt werden (App-ID `de.linefm.app`). Das erledigt der Betreiber.
 - Runtimes müssen zum Einreichungszeitpunkt aktuell sein. Das Manifest nutzt `org.gnome.Platform//50`, vor der Einreichung auf die dann neueste Version prüfen (`flatpak remote-info flathub org.gnome.Platform`).
-- Metainfo muss validieren (`flatpak run org.flathub.flatpak-builder-lint appstream <datei>`), mindestens einen Screenshot, `releases`, `content_rating` (OARS 1.1) und `developer` enthalten. Screenshot-URLs sind Platzhalter (TODO jaybelife).
+- Metainfo muss validieren (`flatpak run org.flathub.flatpak-builder-lint appstream <datei>`), mindestens einen Screenshot, `releases`, `content_rating` (OARS 1.1) und `developer` enthalten. Screenshot-URLs sind Platzhalter (TODO LineFM Studios).
 
 Quellen:
 - https://docs.flathub.org/docs/for-app-authors/requirements

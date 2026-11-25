@@ -8,7 +8,7 @@ Vor dem Einfügen: Die Freigabe in [FREIGABE-CHECKLISTE.md](FREIGABE-CHECKLISTE.
 
 Regeln, an die sich die Texte halten:
 
-- Keine Aussage wie "offizielle App der RadioGruppe". Der Hinweis "Ein Angebot von RadioGruppe Deutschland" entspricht der Web-App.
+- Keine Aussage wie "offizielle App der RadioGruppe". Der Hinweis "LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe" entspricht dem Impressum.
 - Radio3FM und FobFM heißen Partnersender, weil sie keine LINEFM-Sender sind.
 - Kein Wettbewerbsvergleich, keine Superlative, keine Zahlen ohne Beleg.
 - Chromecast nur für Android, Android Auto nur für Android, das Widget nur für Android.
@@ -27,7 +27,7 @@ Regeln, an die sich die Texte halten:
 
 > LineFM live hören, mit Favoriten, Verlauf, Sleeptimer und Radiowecker.
 
-**Beschreibung** (1211 von 4000 Zeichen)
+**Beschreibung** (1275 von 4000 Zeichen)
 
 > Hör LineFM +MAIN, +RAP, +GAMING und +LOFI live, dazu die Partnersender Radio3FM und FobFM. Ohne Konto, ohne Werbung, kostenlos.
 >
@@ -47,7 +47,7 @@ Regeln, an die sich die Texte halten:
 >
 > Hinweis: Das Programm kommt von laut.fm. Je nach Sender können Lieder Kraftausdrücke enthalten. Die Namen und Logos der Sender gehören den jeweiligen Betreibern.
 >
-> Ein Angebot von RadioGruppe Deutschland. Entwickelt von Tim Hauke (VectoDE) für jaybelife.
+> LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Entwickelt von Tim Hauke (VectoDE).
 
 **Neuerungen** (14 von 500 Zeichen)
 
@@ -63,7 +63,7 @@ Regeln, an die sich die Texte halten:
 
 > Listen to LineFM live, with favorites, history, sleep timer and alarm.
 
-**Description** (1158 of 4000 characters)
+**Description** (1227 of 4000 characters)
 
 > Listen to LineFM +MAIN, +RAP, +GAMING and +LOFI live, plus the partner stations Radio3FM and FobFM. No account, no ads, free.
 >
@@ -83,7 +83,7 @@ Regeln, an die sich die Texte halten:
 >
 > Note: The programme comes from laut.fm. Depending on the station, songs may contain strong language. Station names and logos belong to their respective operators.
 >
-> An offering of RadioGruppe Deutschland. Developed by Tim Hauke (VectoDE) for jaybelife.
+> LineFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).
 
 **What's new** (14 of 500 characters)
 
@@ -93,7 +93,7 @@ Regeln, an die sich die Texte halten:
 
 ## App Store (Apple, Entwurf, noch nicht veröffentlicht)
 
-Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf iOS laufen und die oben schon für Android beschrieben sind. Android Auto, Chromecast und das Android-Widget fehlen deshalb. CarPlay, AirPlay, Widget und Wecker fehlen ebenfalls, bis ihre Wirkung auf iOS auf einem echten Gerät geprüft ist (siehe [FREIGABE-CHECKLISTE.md](FREIGABE-CHECKLISTE.md)). Die Schlüsselwörter sind ein Vorschlag von uns und kommen nicht aus den Play-Texten: Sie wiederholen den App-Namen nicht und nennen keine fremden Marken. Die Support-URL zeigt vorläufig auf die Support-Seite im Repository. jaybelife kann sie vor der Abgabe durch eine eigene Adresse ersetzen.
+Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf iOS laufen und die oben schon für Android beschrieben sind. Android Auto, Chromecast und das Android-Widget fehlen deshalb. CarPlay, AirPlay, Widget und Wecker fehlen ebenfalls, bis ihre Wirkung auf iOS auf einem echten Gerät geprüft ist (siehe [FREIGABE-CHECKLISTE.md](FREIGABE-CHECKLISTE.md)). Die Schlüsselwörter sind ein Vorschlag von uns und kommen nicht aus den Play-Texten: Sie wiederholen den App-Namen nicht und nennen keine fremden Marken. Die Support-URL zeigt vorläufig auf die Support-Seite im Repository. LineFM Studios kann sie vor der Abgabe durch eine eigene Adresse ersetzen.
 
 ### Deutsch
 
@@ -105,7 +105,7 @@ Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf
 
 > Live-Radio der LINEFM-Sender
 
-**Beschreibung** (989 von 4000 Zeichen)
+**Beschreibung** (1053 von 4000 Zeichen)
 
 > Hör LineFM +MAIN, +RAP, +GAMING und +LOFI live, dazu die Partnersender Radio3FM und FobFM. Ohne Konto, ohne Werbung, kostenlos.
 >
@@ -122,7 +122,7 @@ Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf
 >
 > Hinweis: Das Programm kommt von laut.fm. Je nach Sender können Lieder Kraftausdrücke enthalten. Die Namen und Logos der Sender gehören den jeweiligen Betreibern.
 >
-> Ein Angebot von RadioGruppe Deutschland. Entwickelt von Tim Hauke (VectoDE) für jaybelife.
+> LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Entwickelt von Tim Hauke (VectoDE).
 
 **Schlüsselwörter** (Bytes, höchstens 100)
 
@@ -154,7 +154,7 @@ Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf
 
 > Live radio of LINEFM stations
 
-**Description** (936 of 4000 characters)
+**Description** (1005 of 4000 characters)
 
 > Listen to LineFM +MAIN, +RAP, +GAMING and +LOFI live, plus the partner stations Radio3FM and FobFM. No account, no ads, free.
 >
@@ -171,7 +171,7 @@ Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf
 >
 > Note: The programme comes from laut.fm. Depending on the station, songs may contain strong language. Station names and logos belong to their respective operators.
 >
-> An offering of RadioGruppe Deutschland. Developed by Tim Hauke (VectoDE) for jaybelife.
+> LineFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).
 
 **Keywords** (bytes, at most 100)
 
@@ -217,7 +217,7 @@ Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf
 >
 > Favoriten, Verlauf und Einstellungen bleiben auf deinem Gerät. Statistik und Absturzberichte gehen nur raus, wenn du zustimmst.
 >
-> Ein Angebot von RadioGruppe Deutschland. Entwickelt von Tim Hauke (VectoDE) für jaybelife.
+> LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Entwickelt von Tim Hauke (VectoDE).
 
 **Neu in dieser Version**
 
@@ -243,7 +243,7 @@ Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf
 >
 > Favorites, history and settings stay on your device. Usage statistics and crash reports are only sent if you agree.
 >
-> An offering of RadioGruppe Deutschland. Developed by Tim Hauke (VectoDE) for jaybelife.
+> LineFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).
 
 **What's new**
 
@@ -265,7 +265,7 @@ Felder in `packaging/snap/snapcraft.yaml`: `summary` (höchstens 78 Zeichen) und
 >
 > Deutsch: LineFM live hören, mit Favoriten, Verlauf, Sleeptimer und Radiowecker. Ohne Konto, ohne Werbung.
 >
-> An offering of RadioGruppe Deutschland.
+> LineFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).
 
 ---
 
@@ -287,7 +287,7 @@ Die Beschreibung steht bereits in der Metainfo (Englisch und Deutsch). Wenn sich
 
 ## Play-Console-Deklarationen
 
-Google verlangt für Apps mit Zielversion Android 14 oder höher zwei Erklärungen: für den Vordergrunddienst (Foreground Service) und für `USE_FULL_SCREEN_INTENT`. Die Texte unten sind für jaybelife zum Einfügen gedacht. Der Entwickler trägt nichts in die Console ein.
+Google verlangt für Apps mit Zielversion Android 14 oder höher zwei Erklärungen: für den Vordergrunddienst (Foreground Service) und für `USE_FULL_SCREEN_INTENT`. Die Texte unten sind für LineFM Studios zum Einfügen gedacht. Der Entwickler trägt nichts in die Console ein.
 
 ### Quellen (abgerufen am 19.11.2026)
 

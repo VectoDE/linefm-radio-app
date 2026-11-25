@@ -43,13 +43,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get loaderSemantics => 'LINEFM wird geladen';
 
   @override
-  String get creditsMadeBy => 'Made by .jaybelife with ♥';
+  String get creditsMadeBy => 'Made by Tim Hauke with ♥';
 
   @override
   String get creditsMadeByLead => 'Made by ';
 
   @override
-  String get creditsMadeByAuthor => '.jaybelife';
+  String get creditsMadeByAuthor => 'Tim Hauke';
 
   @override
   String get creditsMadeByTail => ' with ♥';
@@ -59,10 +59,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get creditsDevelopedBy =>
-      'Entwickelt von Tim Hauke (VectoDE) für jaybelife';
+      'Entwickelt von Tim Hauke (VectoDE) für LineFM Studios';
 
   @override
-  String get creditsOwnership => 'LINEFM und die App gehören jaybelife.';
+  String get creditsOwnership => 'LINEFM und die App gehören LineFM Studios.';
 
   @override
   String get creditsDeveloperOpen => 'Tim Hauke auf GitHub öffnen';

@@ -30,6 +30,8 @@ set(LF_VERSION_MAJOR ${CMAKE_MATCH_1})
 set(LF_VERSION_MINOR ${CMAKE_MATCH_2})
 set(LF_VERSION_PATCH ${CMAKE_MATCH_3})
 
+include("${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/copyright.cmake")
+
 set(LF_ICON "${CMAKE_CURRENT_SOURCE_DIR}/../../../windows/runner/resources/app_icon.ico")
 file(TO_NATIVE_PATH "${LF_ICON}" LF_ICON_NATIVE)
 string(REPLACE "\\" "\\\\" LF_ICON_RC "${LF_ICON_NATIVE}")

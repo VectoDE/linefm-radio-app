@@ -79,6 +79,12 @@ bool googleTagConfigured(Map<String, dynamic> config) {
 
 const String canvasKitMarker = '/*__CANVASKIT_BASE_URL__*/';
 const String buildIdPlaceholder = '__BUILD_ID__';
+
+/// Platzhalter fuer den Jahresbereich der Copyright-Zeile in index.html.
+const String copyrightYearsPlaceholder = '__COPYRIGHT_YEARS__';
+
+/// Erstes Jahr der Copyright-Zeile. Gegenstueck: cmake/copyright.cmake.
+const int copyrightFirstYear = 2026;
 const String firebaseConnectSources =
     'https://*.googleapis.com https://*.google-analytics.com https://*.analytics.google.com';
 
@@ -355,6 +361,12 @@ DateTime buildDate([Map<String, String>? env]) {
       ? DateTime.now().toUtc()
       : DateTime.fromMillisecondsSinceEpoch(epoch * 1000, isUtc: true);
 }
+
+/// Jahresbereich der Copyright-Zeile: erstes Jahr bis Jahr des Builds, bei
+/// gleichem Jahr nur eines (z. B. `2026` oder `2026-2027`).
+String copyrightYears(DateTime build) => build.year > copyrightFirstYear
+    ? '$copyrightFirstYear-${build.year}'
+    : '$copyrightFirstYear';
 
 /// Ersetzt die Standard-Domain durch eine andere Basis-URL (nur Textdateien).
 String rewriteBaseUrl(String text, String baseUrl) {
@@ -693,6 +705,10 @@ List<String> runPostbuild(PostbuildOptions o) {
     var text = rewriteBaseUrl(f.readAsStringSync(), baseUrl);
     if (name == 'index.html') {
       text = renderGscVerification(text, gsc);
+      text = text.replaceAll(
+        copyrightYearsPlaceholder,
+        copyrightYears(buildDate()),
+      );
     }
     if (name == 'sitemap.xml') {
       text = renderSitemapLastmod(text, buildDate());

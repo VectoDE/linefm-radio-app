@@ -77,7 +77,7 @@ msix_config:
   capabilities: internetClient
 ```
 
-Platzhalter für den Store (Werte liefert das Partner Center von jaybelife, siehe Schritt "Product identity" der App-Reservierung):
+Platzhalter für den Store (Werte liefert das Partner Center von LineFM Studios, siehe Schritt "Product identity" der App-Reservierung):
 
 | Feld | Wert aus dem Partner Center |
 |---|---|

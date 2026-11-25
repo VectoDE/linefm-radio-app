@@ -108,10 +108,13 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/out"
           # A non-zero exit only means nikto reported findings; a missing or
           # empty report means the scan itself failed.
-          perl nikto.pl -h http://127.0.0.1:8788 -maxtime 1500s -nointeractive \
+          # -nocheck skips the online update check, which fails from CI (HTTP 400).
+          # -Plugins also limits the report plugins: without report_text the
+          # headers-only run writes no file.
+          perl nikto.pl -h http://127.0.0.1:8788 -maxtime 1500s -nointeractive -nocheck \
             -Format json -o "$GITHUB_WORKSPACE/out/nikto.json" || true
-          perl nikto.pl -h http://127.0.0.1:8788 -maxtime 600s -nointeractive -Plugins headers \
-            -Format txt -o "$GITHUB_WORKSPACE/out/nikto-headers.txt" || true
+          perl nikto.pl -h http://127.0.0.1:8788 -maxtime 600s -nointeractive -nocheck \
+            -Plugins "headers;report_text" -Format txt -o "$GITHUB_WORKSPACE/out/nikto-headers.txt" || true
           for f in nikto.json nikto-headers.txt; do
             test -s "$GITHUB_WORKSPACE/out/$f" || { echo "::error::nikto wrote no $f"; exit 1; }
           done

@@ -168,7 +168,7 @@ def texts_from_aab(aab: Path) -> dict[str, str]:
                 try:
                     out[f"{lang}/{kind}.json"] = z.read(name).decode("utf-8")
                 except KeyError:
-                    raise SystemExit(f"ERROR: {name} is missing in the AAB {aab}")
+                    raise SystemExit(f"legal_store_check: ERROR: {name} is missing in the AAB {aab}")
     return out
 
 
@@ -195,7 +195,7 @@ def main(argv: list[str]) -> int:
     providers = parse_providers(args.providers)
     unknown = providers - TELEMETRY_PROVIDERS
     if unknown:
-        raise SystemExit(f"ERROR: unknown providers: {', '.join(sorted(unknown))}")
+        raise SystemExit(f"legal_store_check: ERROR: unknown providers: {', '.join(sorted(unknown))}")
     registry = load_registry(root / "assets/legal/placeholders.json")
 
     if args.aab:
@@ -206,7 +206,7 @@ def main(argv: list[str]) -> int:
             raw = os.environ.get("LEGAL_VALUES_JSON", "").strip()
             values = json.loads(raw) if raw else {}
             if not isinstance(values, dict):
-                raise SystemExit("ERROR: LEGAL_VALUES_JSON is not a JSON object")
+                raise SystemExit("legal_store_check: ERROR: LEGAL_VALUES_JSON is not a JSON object")
             values = non_blank({str(k): v for k, v in values.items()})
             for rel, text in texts.items():
                 filled = fill(text, values)
@@ -231,7 +231,7 @@ def main(argv: list[str]) -> int:
         if found:
             problems.append(f"{rel}: {', '.join(found)}")
     if problems:
-        print("ERROR: open required placeholders:", file=sys.stderr)
+        print("legal_store_check: ERROR: open required placeholders:", file=sys.stderr)
         for p in problems:
             print(f"  {p}", file=sys.stderr)
         print(

@@ -140,7 +140,7 @@ void main(List<String> args) {
     } else {
       failed = true;
       for (final e in errors) {
-        stderr.writeln('ERROR   ${file.path}: $e');
+        stderr.writeln('check_config: ERROR ${file.path}: $e');
       }
     }
   }
@@ -323,7 +323,7 @@ int _writeDefines(File out) {
     final errors = _checkSchema(text, schema, example: false);
     if (errors.isNotEmpty) {
       for (final e in errors) {
-        stderr.writeln('ERROR   ${real.path}: $e');
+        stderr.writeln('check_config: ERROR ${real.path}: $e');
       }
       return 1;
     }

@@ -32,7 +32,7 @@ TEXT
 }
 
 fehler() {
-  printf '\nERROR: %s\n' "$1" >&2
+  printf '\nbauen: ERROR: %s\n' "$1" >&2
   exit "${2:-1}"
 }
 

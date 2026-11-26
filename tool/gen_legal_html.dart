@@ -473,7 +473,7 @@ Future<void> main(List<String> args) async {
     providers = parseProviders(_arg(args, 'providers') ?? '');
     baseUrl = checkedBaseUrl(_arg(args, 'base-url') ?? 'https://app.linefm.de');
   } on FormatException catch (e) {
-    stderr.writeln('ERROR: ${e.message}');
+    stderr.writeln('gen_legal_html: ERROR: ${e.message}');
     exitCode = 2;
     return;
   }
@@ -534,7 +534,7 @@ Future<void> main(List<String> args) async {
   }
   if (strict && openRequired.isNotEmpty) {
     stderr.writeln(
-      'ERROR (--strict): required entries missing: ${openRequired.join(", ")}',
+      'gen_legal_html: ERROR (--strict): required entries missing: ${openRequired.join(", ")}',
     );
     exitCode = 1;
   }
@@ -542,7 +542,7 @@ Future<void> main(List<String> args) async {
     final Map<String, Set<String>> files = openPlaceholdersInFiles(strictFiles);
     for (final MapEntry<String, Set<String>> e in files.entries) {
       stderr.writeln(
-        'ERROR (--strict): ${e.key} still contains placeholders: '
+        'gen_legal_html: ERROR (--strict): ${e.key} still contains placeholders: '
         '${(e.value.toList()..sort()).join(", ")}',
       );
       exitCode = 1;

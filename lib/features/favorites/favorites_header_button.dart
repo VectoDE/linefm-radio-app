@@ -50,7 +50,6 @@ class FavoritesHeaderButton extends ConsumerWidget {
           child: InkResponse(
             onTap: () => _open(ref),
             radius: LinefmMetrics.minTarget / 2,
-            containedInkWell: false,
             child: SizedBox.square(
               dimension: LinefmMetrics.minTarget,
               child: Stack(

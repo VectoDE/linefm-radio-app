@@ -175,7 +175,6 @@ void main() {
       final ok = await initAndReschedule(
         coordinator(platform),
         () => <AlarmRule>[rule],
-        retryDelay: const Duration(seconds: 30),
         sleep: (d) async => waits.add(d),
       );
       expect(ok, isTrue);

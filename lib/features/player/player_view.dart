@@ -691,8 +691,6 @@ class _IconAction extends StatelessWidget {
             child: InkResponse(
               onTap: onPressed,
               radius: LinefmMetrics.minTarget / 2,
-              highlightShape: BoxShape.circle,
-              containedInkWell: false,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,

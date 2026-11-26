@@ -103,7 +103,6 @@ class DesktopTitleBar extends StatelessWidget {
                     (TitleBarMetrics.logoSize *
                             MediaQuery.devicePixelRatioOf(context))
                         .ceil(),
-                filterQuality: FilterQuality.medium,
               ),
             ),
           ),

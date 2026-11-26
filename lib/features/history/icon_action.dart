@@ -62,7 +62,6 @@ class _IconActionState extends State<IconAction> {
           onHover: (v) => setState(() => _hover = v),
           onFocusChange: (v) => setState(() => _focus = v),
           radius: LinefmMetrics.minTarget / 2,
-          containedInkWell: false,
           child: SizedBox.square(
             dimension: LinefmMetrics.minTarget,
             child: Center(

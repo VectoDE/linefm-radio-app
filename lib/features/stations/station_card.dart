@@ -164,7 +164,6 @@ class _StationCardState extends State<StationCard> {
         child: child,
       ),
       child: FocusRing(
-        borderRadius: LinefmMetrics.radiusCard,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,

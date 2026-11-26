@@ -46,7 +46,7 @@ void main() {
 
     test('morgen, wenn die Uhrzeit vorbei ist', () {
       expect(
-        AlarmSchedule.nextOccurrence(rule(hour: 7), wed),
+        AlarmSchedule.nextOccurrence(rule(), wed),
         DateTime(2026, 11, 19, 7),
       );
     });
@@ -121,7 +121,7 @@ void main() {
     test('00:00 von 23:59 aus: naechster Tag', () {
       expect(
         AlarmSchedule.nextOccurrence(
-          rule(hour: 0, minute: 0),
+          rule(hour: 0),
           DateTime(2026, 11, 18, 23, 59),
         ),
         DateTime(2026, 11, 19),
@@ -185,7 +185,7 @@ void main() {
     );
 
     test('Wochen-Wecker bleibt ueber die Umstellung auf der Uhrzeit', () {
-      var cursor = DateTime(2027, 3, 1);
+      var cursor = DateTime(2027, 3);
       final r = rule(hour: 6, minute: 45, weekdays: <int>{1});
       for (var i = 0; i < 6; i++) {
         final next = AlarmSchedule.nextOccurrence(r, cursor)!;
@@ -283,7 +283,7 @@ void main() {
   });
 
   group('Faelligkeit (Desktop-Timer)', () {
-    final r = rule(hour: 7);
+    final r = rule();
 
     test('klingelt im Pruefintervall (exklusiv/inklusiv)', () {
       expect(

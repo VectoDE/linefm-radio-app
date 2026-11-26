@@ -56,7 +56,7 @@ Favorite _f(String title, String artist, String slug) => Favorite(
   stationSlug: slug,
   title: title,
   artist: artist,
-  savedAt: DateTime(2026, 11, 18, 20, 0),
+  savedAt: DateTime(2026, 11, 18, 20),
 );
 
 Future<void> _show(

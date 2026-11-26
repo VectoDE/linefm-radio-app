@@ -543,7 +543,6 @@ class _StationPicker extends ConsumerWidget {
                   child: DropdownButton<String>(
                     value: fallback.slug,
                     isExpanded: true,
-                    itemHeight: LinefmMetrics.minTarget,
                     dropdownColor: c.surfaceRaised,
                     borderRadius: BorderRadius.circular(
                       LinefmMetrics.radiusPopover,

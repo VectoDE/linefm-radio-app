@@ -407,7 +407,7 @@ void main() {
 
     test('Copyright-Jahre: erstes Jahr bis Build-Jahr', () {
       expect(copyrightYears(DateTime.utc(2026, 11, 19)), '2026');
-      expect(copyrightYears(DateTime.utc(2027, 1, 1)), '2026-2027');
+      expect(copyrightYears(DateTime.utc(2027)), '2026-2027');
       final index = File('web/index.html').readAsStringSync();
       expect(index, contains(copyrightYearsPlaceholder));
     });
@@ -460,8 +460,8 @@ void main() {
         File('${web.path}/.well-known/assetlinks.json').readAsStringSync(),
       ) as List<dynamic>;
       expect(
-        (links.single
-            as Map<String, dynamic>)['target']['sha256_cert_fingerprints'],
+        ((links.single as Map<String, dynamic>)['target']
+            as Map<String, dynamic>)['sha256_cert_fingerprints'],
         <String>[fp],
         reason: 'doppelter Fingerprint (Gross/klein) nur einmal',
       );
@@ -469,9 +469,10 @@ void main() {
         File('${web.path}/.well-known/apple-app-site-association')
             .readAsStringSync(),
       ) as Map<String, dynamic>;
-      expect(aasa['applinks']['details'][0]['appIDs'], <String>[
-        'ABCDE12345.de.linefm.app',
-      ]);
+      final applinks = aasa['applinks'] as Map<String, dynamic>;
+      final details =
+          (applinks['details'] as List<dynamic>).first as Map<String, dynamic>;
+      expect(details['appIDs'], <String>['ABCDE12345.de.linefm.app']);
     });
 
     test('App-Signatur und Upload-Schluessel: beide Fingerprints', () {
@@ -489,8 +490,8 @@ void main() {
         File('${web.path}/.well-known/assetlinks.json').readAsStringSync(),
       ) as List<dynamic>;
       expect(
-        (links.single
-            as Map<String, dynamic>)['target']['sha256_cert_fingerprints'],
+        ((links.single as Map<String, dynamic>)['target']
+            as Map<String, dynamic>)['sha256_cert_fingerprints'],
         <String>[fp, upload],
       );
     });

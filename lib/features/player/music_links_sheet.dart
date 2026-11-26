@@ -159,7 +159,6 @@ Future<void> showMusicLinksSheet(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    useSafeArea: false,
     showDragHandle: false,
     backgroundColor: colors.surface,
     barrierColor: LinefmPalette.scrim,

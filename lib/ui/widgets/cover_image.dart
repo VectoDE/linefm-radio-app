@@ -83,7 +83,6 @@ class CoverImage extends StatelessWidget {
             fit: BoxFit.cover,
             gaplessPlayback: true,
             excludeFromSemantics: true,
-            filterQuality: FilterQuality.medium,
             frameBuilder: (context, child, frame, sync) => sync
                 ? child
                 : AnimatedOpacity(

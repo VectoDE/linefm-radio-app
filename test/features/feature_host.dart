@@ -40,6 +40,7 @@ class FeatureHost {
       appConfigProvider.overrideWithValue(config),
       telemetryProvider.overrideWithValue(TelemetryHub(config: config)),
       clockProvider.overrideWithValue(clock),
+      ...offlineDataOverrides(),
       platformInfoProvider.overrideWithValue(
         platform ??
             const PlatformInfo(isWeb: false, platform: TargetPlatform.android),

@@ -9,6 +9,7 @@ import 'package:linefm_radio/data/api/song_change_socket.dart';
 import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/domain/history_entry.dart';
 import 'package:linefm_radio/domain/now_playing.dart';
+import 'package:linefm_radio/domain/schedule_slot.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
@@ -39,6 +40,10 @@ class StubLautApi implements LautApi {
 
   @override
   Future<int?> listeners(String slug) async => null;
+
+  @override
+  Future<List<ScheduleSlot>> schedule(String slug) async =>
+      const <ScheduleSlot>[];
 
   @override
   Future<String?> streamUrl(String slug) async => null;
@@ -103,6 +108,9 @@ class FakeNowPlayingRepository implements NowPlayingRepository {
 
   @override
   Future<void> refresh() async {}
+
+  @override
+  void forgetRestored() {}
 
   @override
   void dispose() {}

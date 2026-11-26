@@ -41,7 +41,7 @@ class HotkeyManagerDesktopHotkeys implements DesktopHotkeys {
   @override
   Future<void> register() async {
     final mod = <HotKeyModifier>[
-      Platform.isMacOS ? HotKeyModifier.meta : HotKeyModifier.control,
+      if (Platform.isMacOS) HotKeyModifier.meta else HotKeyModifier.control,
       HotKeyModifier.alt,
     ];
     await _add(

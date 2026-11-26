@@ -10,7 +10,7 @@ import 'package:smtc_windows/smtc_windows.dart';
 /// AudioPlayer laufen. Android/iOS/macOS bleiben auf den nativen Backends.
 void initNativeAudioBackend() {
   if (Platform.isWindows || Platform.isLinux) {
-    JustAudioMediaKit.ensureInitialized(windows: true, linux: true);
+    JustAudioMediaKit.ensureInitialized();
     JustAudioMediaKit.title = 'LINEFM Radio';
   }
 }

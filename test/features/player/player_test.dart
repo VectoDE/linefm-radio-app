@@ -59,11 +59,7 @@ class _RecordingShare implements ShareService {
   ) async {}
 }
 
-const _track = Track(
-  artist: 'James Hype',
-  title: "I Was Lovin' You",
-  artworkUrl: null,
-);
+const _track = Track(artist: 'James Hype', title: "I Was Lovin' You");
 
 class _Harness {
   _Harness() {

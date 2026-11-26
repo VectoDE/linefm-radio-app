@@ -128,7 +128,7 @@ class _Popover extends ConsumerWidget {
         volume: volume,
         color: color,
         semanticLabel: l10n.volumeLabel,
-        valueLabel: (p) => l10n.volumePercent(p),
+        valueLabel: l10n.volumePercent,
         onChanged: (v) => ref.read(playerControllerProvider).setVolume(v),
       ),
     );

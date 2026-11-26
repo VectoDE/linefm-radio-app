@@ -1,6 +1,10 @@
 """Fail when the web build grows past the budget in bundle_budget.json.
 
   python3 -I tool/perf/bundle_budget.py build/web [--budget tool/perf/bundle_budget.json]
+  python3 -I tool/perf/bundle_budget.py --apk build/app/outputs/flutter-apk/app-release.apk
+
+The APK limit is "apk_bytes" in the budget file. While it is null the size is
+only reported; set it from the first measured CI value plus about 10 %.
 
 Standard library only. Prints one line per check; with GITHUB_STEP_SUMMARY set
 it also writes a Markdown table there. Exit code 1 on any overrun or when a
@@ -92,13 +96,38 @@ def summary(results: list[Result], missing: list[str]) -> str:
     return "### Bundle budget\n\n" + "\n".join(rows) + "\n"
 
 
+def check_apk(apk: Path, budget: dict) -> int:
+    if not apk.is_file():
+        print(f"::error::{apk} is not a file")
+        return 1
+    size = apk.stat().st_size
+    limit = budget.get("apk_bytes")
+    if limit is None:
+        print(f"{apk.name}: {size:,} bytes (no apk_bytes budget set yet, report only)")
+        ok = True
+    else:
+        r = Result(f"{apk.name} (raw)", size, int(limit))
+        ok = r.ok
+        line = f"{r.name}: {r.actual:,} of {r.limit:,} bytes ({100 * r.actual / r.limit:.0f} %)"
+        print(line if ok else f"::error::bundle budget exceeded: {line}")
+    out = os.environ.get("GITHUB_STEP_SUMMARY")
+    if out:
+        with open(out, "a", encoding="utf-8") as fh:
+            suffix = "" if limit is None else f" of {int(limit):,}"
+            fh.write(f"### APK size\n\n{apk.name}: {size:,} bytes{suffix}\n")
+    return 0 if ok else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Check the web build against its size budget.")
-    ap.add_argument("web", type=Path)
+    ap.add_argument("web", type=Path, nargs="?")
+    ap.add_argument("--apk", type=Path, help="check this APK against apk_bytes instead of a web build")
     ap.add_argument("--budget", type=Path, default=DEFAULT_BUDGET)
     args = ap.parse_args(argv)
 
-    if not args.web.is_dir():
+    if args.apk is not None:
+        return check_apk(args.apk, json.loads(args.budget.read_text(encoding="utf-8")))
+    if args.web is None or not args.web.is_dir():
         print(f"::error::{args.web} is not a directory")
         return 1
     budget = json.loads(args.budget.read_text(encoding="utf-8"))

@@ -1,5 +1,6 @@
 {
   "_comment": "Size budget for the release web build (flutter build web --wasm). gzip sizes use level 5 like nginx in deploy/. Baseline: performance run of 25.11.2026; budgets are about 10 % above it. Raise a value only with a reason in the commit message.",
+  "apk_bytes": null,
   "files_gzip": {
     "main\\.([0-9a-f]+\\.)?dart\\.wasm": 1650000,
     "main\\.([0-9a-f]+\\.)?dart\\.mjs": 16000,

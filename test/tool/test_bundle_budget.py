@@ -88,6 +88,15 @@ class BundleBudgetTest(unittest.TestCase):
         for spec in data["groups_raw"].values():
             self.assertGreater(spec["max"], 0)
 
+    def test_apk_over_budget_fails_and_unset_budget_reports(self) -> None:
+        apk = self.web / "app.apk"
+        apk.write_bytes(b"x" * 1000)
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(bb.check_apk(apk, {"apk_bytes": None}), 0)
+            self.assertEqual(bb.check_apk(apk, {"apk_bytes": 1000}), 0)
+            self.assertEqual(bb.check_apk(apk, {"apk_bytes": 999}), 1)
+            self.assertEqual(bb.check_apk(self.web / "none.apk", {}), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

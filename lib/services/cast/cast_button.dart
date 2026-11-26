@@ -125,7 +125,6 @@ class _CastButtonState extends ConsumerState<CastButton> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      useSafeArea: false,
       showDragHandle: false,
       backgroundColor: colors.surface,
       barrierColor: LinefmPalette.scrim,
@@ -211,8 +210,6 @@ class _CastButtonState extends ConsumerState<CastButton> {
             child: InkResponse(
               onTap: onTap,
               radius: LinefmMetrics.minTarget / 2,
-              highlightShape: BoxShape.circle,
-              containedInkWell: false,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,

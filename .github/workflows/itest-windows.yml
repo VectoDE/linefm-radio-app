@@ -8,29 +8,19 @@ name: Windows integration test
 # Screenshots per step as the artifact "windows-itest-screens" (Flutter view and
 # screen capture including the window frame). Cannot be tested: dragging, docking,
 # snap layouts (real mouse input from the operating system).
-# Only on change proposals and manually, no access to secrets.
+# Nightly on main and manually, no access to secrets.
 
 on:
-  pull_request:
-    # Only files that cannot reach the Windows app or this test are ignored:
-    # documentation, store metadata, deployment and other platform folders.
-    paths-ignore:
-      - docs/**
-      - fastlane/**
-      - "*.md"
-      - deploy/**
-      - android/**
-      - ios/**
-      - macos/**
-      - linux/**
-      - web/**
+  # Nightly on main instead of every change proposal (not a required check).
+  schedule:
+    - cron: "23 1 * * *"
   workflow_dispatch:
 
 permissions: {}
 
 concurrency:
-  group: itest-windows-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: itest-windows-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   windows-integration:

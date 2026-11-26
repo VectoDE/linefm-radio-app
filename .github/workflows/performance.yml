@@ -396,6 +396,7 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
           add-job-summary: never
+          cache-provider: basic
 
       - name: Set up Flutter
         uses: ./.github/actions/setup-flutter

@@ -135,20 +135,20 @@ jobs:
           # The tests ran on this device (no clones); make sure it is up.
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl install "$UDID" "$app"
-          xcrun simctl io "$UDID" recordVideo --codec=h264 --force "$out/simulator.mp4" &
+          xcrun simctl io "$UDID" recordVideo --display=internal --codec=h264 --force "$out/simulator.mp4" &
           rec=$!
           sleep 3
           for mode in light dark light; do
             xcrun simctl ui "$UDID" appearance "$mode"
             sleep 2
-            xcrun simctl io "$UDID" screenshot "$out/home-$mode.png"
+            xcrun simctl io "$UDID" screenshot --display=internal "$out/home-$mode.png"
           done
           xcrun simctl launch "$UDID" de.linefm.app
           sleep 8
           for mode in dark light; do
             xcrun simctl ui "$UDID" appearance "$mode"
             sleep 3
-            xcrun simctl io "$UDID" screenshot "$out/app-$mode.png"
+            xcrun simctl io "$UDID" screenshot --display=internal "$out/app-$mode.png"
           done
           kill -INT "$rec"
           wait "$rec" || true

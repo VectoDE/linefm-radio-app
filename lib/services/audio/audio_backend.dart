@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart'
     show TargetPlatform, debugPrint, defaultTargetPlatform, kIsWeb;
 import 'package:linefm_radio/l10n/system_l10n.dart';
 import 'package:linefm_radio/services/audio/audio_handler.dart';
+import 'package:linefm_radio/services/audio/browse_tree.dart';
 import 'package:linefm_radio/services/audio/native_audio_init_io.dart'
     if (dart.library.js_interop) 'package:linefm_radio/services/audio/native_audio_init_web.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
@@ -50,6 +51,7 @@ Future<PlaybackService> initAudio() async {
         // Live-Radio: kein Vor-/Zuruecksetzen per Zeitsprung.
         fastForwardInterval: const Duration(seconds: 1),
         rewindInterval: const Duration(seconds: 1),
+        androidBrowsableRootExtras: BrowseTree.rootExtras,
       ),
     );
   } on Object catch (e) {

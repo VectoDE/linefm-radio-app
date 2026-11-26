@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/rendering.dart' show RenderProxyBox;
 import 'package:flutter/semantics.dart' show OrdinalSortKey, SemanticsRole;
 import 'package:flutter/services.dart';
@@ -61,6 +62,9 @@ class AppShell extends ConsumerStatefulWidget {
 
 class _AppShellState extends ConsumerState<AppShell> {
   late final AppLifecycleListener _lifecycle;
+
+  /// Completes when the UI first reaches the foreground (autoplay gate).
+  final Completer<void> _foreground = Completer<void>();
   final FocusNode _focus = FocusNode(debugLabel: 'shell');
   AppScreen _lastShellScreen = AppScreen.stations;
 
@@ -81,12 +85,25 @@ class _AppShellState extends ConsumerState<AppShell> {
       // Favoriten-Sender fuer das Auto-Menue, auch nach "Speicher loeschen".
       ..listenManual(favoriteStationsProvider, (_, _) {});
     _lifecycle = AppLifecycleListener(
-      onStateChange: (state) => ref
-          .read(nowPlayingRepositoryProvider)
-          .setForeground(value: state == AppLifecycleState.resumed),
+      onStateChange: (state) {
+        final resumed = state == AppLifecycleState.resumed;
+        if (resumed && !_foreground.isCompleted) _foreground.complete();
+        ref.read(nowPlayingRepositoryProvider).setForeground(value: resumed);
+      },
     );
+    // Only Android gates: a headless start by Android Auto never reaches
+    // "resumed", so autoplay waits until the user opens the app.
+    final android = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    if (!android ||
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      _foreground.complete();
+    }
     unawaited(
-      controller.startup(launchUri: kIsWeb ? Uri.base : null, web: kIsWeb),
+      controller.startup(
+        launchUri: kIsWeb ? Uri.base : null,
+        web: kIsWeb,
+        untilForeground: _foreground.future,
+      ),
     );
     _screenEvent(ref.read(navigationProvider));
 

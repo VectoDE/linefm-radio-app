@@ -554,9 +554,15 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
 
   void _publishPlaybackState() {
     playbackState.add(
-      playbackStateFor(_state.status, errorMessage: _errorMessage),
+      playbackStateFor(_state.status, errorMessage: userErrorMessage()),
     );
   }
+
+  /// Error text for the media session. Android Auto shows it on the car
+  /// display, so it is a short localized sentence, never the technical
+  /// exception text ([lastError]).
+  static String userErrorMessage([String? languageCode]) =>
+      systemLocalizations(languageCode).playerStreamError;
 
   /// Abbildung auf den audio_service-Zustand (Benachrichtigung,
   /// Sperrbildschirm, Android Auto, Media Session, MPRIS).

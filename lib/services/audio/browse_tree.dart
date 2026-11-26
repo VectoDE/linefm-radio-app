@@ -99,6 +99,20 @@ class BrowseTree {
   static const String contentStyleBrowsableHint =
       'android.media.browse.CONTENT_STYLE_BROWSABLE_HINT';
   static const int contentStyleList = 1;
+
+  /// Root extra that tells Android Auto the service answers search queries
+  /// (`MediaConstants.BROWSER_SERVICE_EXTRAS_KEY_SEARCH_SUPPORTED`). Without
+  /// it the car shows no search button.
+  static const String searchSupportedKey =
+      'android.media.browse.SEARCH_SUPPORTED';
+
+  /// Extras of the browse root: search on, folders as a list, stations as a
+  /// grid (same as [folderItem]).
+  static const Map<String, dynamic> rootExtras = <String, dynamic>{
+    searchSupportedKey: true,
+    contentStyleBrowsableHint: contentStyleList,
+    contentStylePlayableHint: contentStyleGrid,
+  };
   static const int contentStyleGrid = 2;
 
   /// Paket der App fuer `android.resource://`-Bilder.

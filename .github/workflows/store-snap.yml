@@ -40,7 +40,7 @@ on:
           - stable
         default: edge
       build_only:
-        description: Nur bauen und als Artefakt ablegen, nicht hochladen (ohne Store-Konto)
+        description: Build only and keep as artifact, no upload (no store account)
         type: boolean
         default: false
 

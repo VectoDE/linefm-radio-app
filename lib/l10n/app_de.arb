@@ -39,8 +39,8 @@
   "creditsDeveloperOpen": "Tim Hauke auf GitHub öffnen",
   "radioGruppeName": "RadioGruppe Deutschland",
   "radioGruppeOpen": "RadioGruppe Deutschland öffnen",
-  "storageNoticeBodyWeb": "LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt gehörten Sender in diesem Browser, damit die App sie beim nächsten Start kennt.",
-  "storageNoticeBodyDevice": "LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt gehörten Sender auf diesem Gerät, damit die App sie beim nächsten Start kennt.",
+  "storageNoticeBodyWeb": "LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel in diesem Browser, damit die App sie beim nächsten Start kennt.",
+  "storageNoticeBodyDevice": "LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel auf diesem Gerät, damit die App sie beim nächsten Start kennt.",
   "storageNoticePrivacy": "Datenschutz",
   "storageNoticeDismiss": "Verstanden",
   "storageNoticeTitle": "Speicher auf diesem Gerät",
@@ -159,6 +159,10 @@
   },
   "linkOpenError": "Der Link konnte nicht geöffnet werden.",
   "historyTitle": "Zuletzt gespielt",
+  "trackLastSeen": "Zuletzt gesehen",
+  "@trackLastSeen": {
+    "description": "Hinweis an Titel, die aus dem Gerätespeicher stammen und noch nicht durch Live-Daten bestätigt sind (z. B. offline nach einem Neustart)."
+  },
   "historyEmpty": "Noch keine Titel im Verlauf.",
   "historyLoadFailed": "Verlauf konnte nicht geladen werden.",
   "favoritesTitle": "Favoriten",
@@ -316,11 +320,28 @@
   },
   "sleepTimerStatusEndOfSong": "Wiedergabe stoppt am Ende des Songs.",
   "sleepTimerExpired": "Sleeptimer abgelaufen.",
+  "settingCoverCacheTitle": "Cover-Speicher",
+  "@settingCoverCacheTitle": {
+    "description": "Einstellungen: Überschrift der Größenwahl für zwischengespeicherte Cover"
+  },
+  "settingCoverCacheBody": "So viel Platz dürfen zwischengespeicherte Cover auf diesem Gerät belegen. Ein kleinerer Wert räumt sofort auf.",
+  "@settingCoverCacheBody": {
+    "description": "Einstellungen: Erklärung unter der Größenwahl des Cover-Speichers"
+  },
+  "coverCacheSizeMb": "{size} MB",
+  "@coverCacheSizeMb": {
+    "description": "Größenwahl des Cover-Speichers: ein Wert in Megabyte",
+    "placeholders": {
+      "size": {
+        "type": "int"
+      }
+    }
+  },
   "settingStorageTitle": "Speicher",
-  "settingStorageBody": "Lokal gespeichert werden: zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen, zwischengespeicherte Cover und am Computer die Fensterposition.",
+  "settingStorageBody": "Lokal gespeichert werden: zuletzt gehörter Sender, zuletzt gespielte Titel samt Verlauf, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen, zwischengespeicherte Cover und am Computer die Fensterposition.",
   "settingStorageClear": "Speicher löschen",
   "clearStorageConfirmTitle": "Speicher löschen?",
-  "clearStorageConfirmBody": "Zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen. Nur „Cover laden: aus“ bleibt gespeichert, damit danach keine Anfragen an Apple gehen.",
+  "clearStorageConfirmBody": "Zuletzt gehörter Sender, zuletzt gespielte Titel samt Verlauf, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen. Nur „Cover laden: aus“ bleibt gespeichert, damit danach keine Anfragen an Apple gehen.",
   "clearStorageDone": "Speicher gelöscht.",
   "actionCancel": "Abbrechen",
   "actionDelete": "Löschen",

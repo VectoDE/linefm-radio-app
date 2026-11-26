@@ -7,6 +7,7 @@ class Track {
     this.artworkUrl,
     this.startedAt,
     this.endsAt,
+    this.lastSeen = false,
   });
 
   /// Tolerant: fehlende oder falsch typisierte Felder fuehren zu `null`.
@@ -33,6 +34,10 @@ class Track {
   final DateTime? startedAt;
   final DateTime? endsAt;
 
+  /// Restored from the device after a restart, not confirmed by live data
+  /// yet. The UI marks such a track as "last seen". Not part of [toJson].
+  final bool lastSeen;
+
   Track copyWith({
     String? artist,
     String? title,
@@ -40,6 +45,7 @@ class Track {
     String? artworkUrl,
     DateTime? startedAt,
     DateTime? endsAt,
+    bool? lastSeen,
   }) => Track(
     artist: artist ?? this.artist,
     title: title ?? this.title,
@@ -47,6 +53,7 @@ class Track {
     artworkUrl: artworkUrl ?? this.artworkUrl,
     startedAt: startedAt ?? this.startedAt,
     endsAt: endsAt ?? this.endsAt,
+    lastSeen: lastSeen ?? this.lastSeen,
   );
 
   Map<String, Object?> toJson() => <String, Object?>{
@@ -66,11 +73,19 @@ class Track {
       other.album == album &&
       other.artworkUrl == artworkUrl &&
       other.startedAt == startedAt &&
-      other.endsAt == endsAt;
+      other.endsAt == endsAt &&
+      other.lastSeen == lastSeen;
 
   @override
-  int get hashCode =>
-      Object.hash(artist, title, album, artworkUrl, startedAt, endsAt);
+  int get hashCode => Object.hash(
+    artist,
+    title,
+    album,
+    artworkUrl,
+    startedAt,
+    endsAt,
+    lastSeen,
+  );
 
   @override
   String toString() => 'Track($artist - $title)';

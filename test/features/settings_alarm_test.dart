@@ -82,7 +82,8 @@ void main() {
         'Sleeptimer',
         'Kein Sleeptimer aktiv.',
         'Speicher',
-        'Lokal gespeichert werden: zuletzt gehörter Sender, Lautstärke, '
+        'Lokal gespeichert werden: zuletzt gehörter Sender, zuletzt '
+            'gespielte Titel samt Verlauf, Lautstärke, '
             'Favoriten, Favoriten-Sender, Wecker, Einstellungen, '
             'zwischengespeicherte Cover und am Computer die Fensterposition.',
         'Speicher löschen',
@@ -128,6 +129,47 @@ void main() {
       await tester.tap(find.text('System'));
       await tester.pump();
       expect(host.prefs.readSettings().themeMode, AppThemeMode.system);
+    });
+
+    testWidgets('Cover-Speicher: 20 / 40 / 100 MB, Standard 40', (
+      tester,
+    ) async {
+      useSize(tester, 420, 2600);
+      final host = FeatureHost();
+      await tester.pumpWidget(host.app(const SettingsScreen()));
+      await tester.pump();
+      expect(find.text('Cover-Speicher'), findsOneWidget);
+      expect(host.prefs.readSettings().coverCacheLimit, CoverCacheLimit.mb40);
+      for (final label in <String>['20 MB', '40 MB', '100 MB']) {
+        final segment = find.ancestor(
+          of: find.text(label),
+          matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+        );
+        expect(segment, findsOneWidget, reason: label);
+        expect(tester.getSize(segment).height, greaterThanOrEqualTo(48));
+      }
+      expect(
+        tester.getSemantics(find.text('40 MB')),
+        matchesSemantics(
+          label: '40 MB',
+          isSelected: true,
+          hasSelectedState: true,
+          isInMutuallyExclusiveGroup: true,
+          hasTapAction: true,
+          hasFocusAction: true,
+          isButton: true,
+          isFocusable: true,
+          hasEnabledState: true,
+          isEnabled: true,
+        ),
+      );
+
+      await tester.tap(find.text('20 MB'));
+      await tester.pump();
+      expect(host.prefs.readSettings().coverCacheLimit, CoverCacheLimit.mb20);
+      await tester.tap(find.text('100 MB'));
+      await tester.pump();
+      expect(host.prefs.readSettings().coverCacheLimit, CoverCacheLimit.mb100);
     });
 
     testWidgets('Tray-Zeile nur auf dem Desktop', (tester) async {

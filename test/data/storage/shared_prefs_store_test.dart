@@ -150,6 +150,8 @@ void main() {
         autoplay: false,
         closeToTray: false,
         themeMode: AppThemeMode.dark,
+        language: AppLanguage.en,
+        coverCacheLimit: CoverCacheLimit.mb100,
       );
       await s.writeSettings(settings);
       expect(s.readSettings(), settings);
@@ -235,7 +237,10 @@ void main() {
       await s.writeLastStation('fobfm');
       await s.writeTelemetryConsent(value: true);
       await s.writeCoverCache('{}');
+      await s.writeLiveCache('{"v":1}');
+      expect((await reopen()).readLiveCache(), '{"v":1}');
       await s.clearAll();
+      expect(s.readLiveCache(), isNull);
       expect(s.storageConsent, isFalse);
       expect(s.readFavorites(), isEmpty);
       expect(s.readVolume(), isNull);

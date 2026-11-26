@@ -227,13 +227,13 @@ abstract class AppLocalizations {
   /// No description provided for @storageNoticeBodyWeb.
   ///
   /// In de, this message translates to:
-  /// **'LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt gehörten Sender in diesem Browser, damit die App sie beim nächsten Start kennt.'**
+  /// **'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel in diesem Browser, damit die App sie beim nächsten Start kennt.'**
   String get storageNoticeBodyWeb;
 
   /// No description provided for @storageNoticeBodyDevice.
   ///
   /// In de, this message translates to:
-  /// **'LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt gehörten Sender auf diesem Gerät, damit die App sie beim nächsten Start kennt.'**
+  /// **'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel auf diesem Gerät, damit die App sie beim nächsten Start kennt.'**
   String get storageNoticeBodyDevice;
 
   /// No description provided for @storageNoticePrivacy.
@@ -475,6 +475,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Zuletzt gespielt'**
   String get historyTitle;
+
+  /// Hinweis an Titel, die aus dem Gerätespeicher stammen und noch nicht durch Live-Daten bestätigt sind (z. B. offline nach einem Neustart).
+  ///
+  /// In de, this message translates to:
+  /// **'Zuletzt gesehen'**
+  String get trackLastSeen;
 
   /// No description provided for @historyEmpty.
   ///
@@ -842,6 +848,24 @@ abstract class AppLocalizations {
   /// **'Sleeptimer abgelaufen.'**
   String get sleepTimerExpired;
 
+  /// Einstellungen: Überschrift der Größenwahl für zwischengespeicherte Cover
+  ///
+  /// In de, this message translates to:
+  /// **'Cover-Speicher'**
+  String get settingCoverCacheTitle;
+
+  /// Einstellungen: Erklärung unter der Größenwahl des Cover-Speichers
+  ///
+  /// In de, this message translates to:
+  /// **'So viel Platz dürfen zwischengespeicherte Cover auf diesem Gerät belegen. Ein kleinerer Wert räumt sofort auf.'**
+  String get settingCoverCacheBody;
+
+  /// Größenwahl des Cover-Speichers: ein Wert in Megabyte
+  ///
+  /// In de, this message translates to:
+  /// **'{size} MB'**
+  String coverCacheSizeMb(int size);
+
   /// No description provided for @settingStorageTitle.
   ///
   /// In de, this message translates to:
@@ -851,7 +875,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingStorageBody.
   ///
   /// In de, this message translates to:
-  /// **'Lokal gespeichert werden: zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen, zwischengespeicherte Cover und am Computer die Fensterposition.'**
+  /// **'Lokal gespeichert werden: zuletzt gehörter Sender, zuletzt gespielte Titel samt Verlauf, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen, zwischengespeicherte Cover und am Computer die Fensterposition.'**
   String get settingStorageBody;
 
   /// No description provided for @settingStorageClear.
@@ -869,7 +893,7 @@ abstract class AppLocalizations {
   /// No description provided for @clearStorageConfirmBody.
   ///
   /// In de, this message translates to:
-  /// **'Zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen. Nur „Cover laden: aus“ bleibt gespeichert, damit danach keine Anfragen an Apple gehen.'**
+  /// **'Zuletzt gehörter Sender, zuletzt gespielte Titel samt Verlauf, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen. Nur „Cover laden: aus“ bleibt gespeichert, damit danach keine Anfragen an Apple gehen.'**
   String get clearStorageConfirmBody;
 
   /// No description provided for @clearStorageDone.

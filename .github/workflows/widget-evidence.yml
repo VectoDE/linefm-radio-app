@@ -75,7 +75,7 @@ jobs:
           mkdir -p "$out"
           TEST_RUNNER_WIDGET_SNAPSHOT_DIR="$out" xcodebuild test -quiet \
             -workspace ios/Runner.xcworkspace -scheme Runner \
-            -destination "id=$UDID" \
+            -destination "platform=iOS Simulator,id=$UDID,arch=arm64" \
             -only-testing:RunnerTests/WidgetSnapshotTests \
             CODE_SIGNING_ALLOWED=NO
           for f in small-light small-dark medium-light medium-dark; do
@@ -90,6 +90,9 @@ jobs:
           set -euo pipefail
           out="$RUNNER_TEMP/widget-evidence"
           app=build/ios/iphonesimulator/Runner.app
+          # xcodebuild test may leave the simulator shut down.
+          xcrun simctl boot "$UDID" 2>/dev/null || true
+          xcrun simctl bootstatus "$UDID" -b
           test -x "$app/PlugIns/LinefmWidgetExtension.appex/LinefmWidgetExtension"
           xcrun simctl install "$UDID" "$app"
           xcrun simctl io "$UDID" recordVideo --codec=h264 --force "$out/simulator.mp4" &

@@ -397,10 +397,9 @@ Sources (retrieved 2026-11-26): <https://web.dev/articles/install-criteria>, <ht
 - [ ] <a id="w-02"></a>**W-02 Rich install UI.** Optional `screenshots` and `shortcuts` in the manifest. Status: open (optional). Where: `web/manifest.webmanifest`. Source: [Manifest](https://www.w3.org/TR/appmanifest/), 2026-11-26.
 - [x] <a id="w-03"></a>**W-03 Consent before tracking.** GA4 and GTM only after consent. Status: OK. Where: `web/analytics.js`, `web/datenschutz/`. Source: [TDDDG § 25](https://www.gesetze-im-internet.de/ttdsg/__25.html), 2026-11-26.
 - [ ] <a id="w-04"></a>**W-04 License page.** `/lizenz/` in German and English, linked from the metainfo and the stores. Status: open. Where: `web/lizenz/` (to create). Source: owner decision; Flathub needs it, see F-07.
-
 - [ ] <a id="w-05"></a>**W-05 Contact and support.** `/support/` page in German and English with support@linefm.de, linked from imprint, app and every store listing. Status: open. Where: `web/support/` (to create). Source: owner decision; the stores need it, see G-29, A-28, M-22.
-
-- [ ] <a id="w-06"></a>**W-06 Accessibility statement.** Published voluntarily at `/barrierefreiheit/` (German and English), even if the micro-enterprise exemption of the BFSG may apply; the lawyer confirms. Status: open. Where: `web/barrierefreiheit/` (to create). Source: [BFSG § 3](https://www.gesetze-im-internet.de/bfsg/__3.html), 2026-11-26
+- [ ] <a id="w-06"></a>**W-06 Accessibility statement.** Published voluntarily at `/barrierefreiheit/` (German and English), even if the micro-enterprise exemption of the BFSG may apply; the lawyer confirms. Status: open. Where: `web/barrierefreiheit/` (to create). Source: [BFSG § 3](https://www.gesetze-im-internet.de/bfsg/__3.html), 2026-11-26.
+- [ ] <a id="w-07"></a>**W-07 Related native apps.** Optional `related_applications` in the manifest can point to the store apps; `prefer_related_applications` stays off so the PWA remains installable. Status: open. Where: `web/manifest.webmanifest`. Source: [Manifest](https://www.w3.org/TR/appmanifest/), 2026-11-26.
 
 ### Overview by topic
 
@@ -410,7 +409,7 @@ Items: [W-03](#w-03)
 
 #### Intellectual property
 
-Items: [W-04](#w-04)
+Items: [W-04](#w-04), [W-07](#w-07)
 
 #### Updates
 
@@ -418,9 +417,8 @@ Items: [W-01](#w-01)
 
 #### Contact and support
 
-Items: [W-05](#w-05)
+Items: [W-05](#w-05), [W-06](#w-06)
 
-- [ ] <a id="w-07"></a>**W-07 Related native apps.** Optional `related_applications` in the manifest can point to the store apps; `prefer_related_applications` stays off so the PWA remains installable. Status: open. Where: `web/manifest.webmanifest`. Source: [Manifest](https://www.w3.org/TR/appmanifest/), 2026-11-26.
 
 ---
 
@@ -430,12 +428,12 @@ Items: [W-05](#w-05)
 - [ ] <a id="d-02"></a>**D-02 Own accounts of the client.** Every store account belongs to the client's organisation. Status: owner. Where: `docs/EINRICHTUNG.md`. Source: internal rule from owner decisions.
 - [ ] <a id="d-03"></a>**D-03 Content rights.** The client keeps the laut.fm agreement and names it wherever a store asks for rights (Apple content rights, Google on request, Microsoft notes, Snap, Flathub). The same applies to the partner stations Radio3FM and FobFM: the client obtains their written permission for names, logos and streams in all stores. The client also obtains written confirmation from laut.fm that its GEMA and GVL licences cover playback in the LINEFM app; the lawyer checks it. Status: owner. Source: internal rule from owner decisions.
 - [ ] <a id="d-04"></a>**D-04 Privacy policy without placeholders.** Controller and contact filled in, all three telemetry services named as optional. It also names the outbound links and lookups: Spotify, YouTube Music, radiogruppe.de and the iTunes search for covers. The URL must stay reachable for good: domain renewal, TLS and uptime monitoring. Legal review by a lawyer recommended. Status: owner. Where: `web/datenschutz/`, `web/datenschutz/en/`. Source: internal rule from owner decisions.
-
-- [ ] <a id="d-05"></a>**D-05 Record of processing activities (Art. 30 GDPR).** A filled template lists Sentry, Firebase, Umami, GA4/GTM on the web, laut.fm requests, server logs and support mail. The client checks it, adds company data and keeps it current. Status: owner. Where: `docs/VERARBEITUNGSVERZEICHNIS.md`. Source: [Art. 30 GDPR](https://dsgvo-gesetz.de/art-30-dsgvo/), 2026-11-26
-- [ ] <a id="d-06"></a>**D-06 Youth protection (JMStV).** The 13+ rating and its reason (occasional strong language in third-party streams) are documented. Whether a youth protection officer is needed is checked by the client's lawyer. Status: owner. Where: client's records. Source: [JMStV § 7](https://www.gesetze-bayern.de/Content/Document/JMStV-7), 2026-11-26
-
+- [ ] <a id="d-05"></a>**D-05 Record of processing activities (Art. 30 GDPR).** A filled template lists Sentry, Firebase, Umami, GA4/GTM on the web, laut.fm requests, server logs and support mail. The client checks it, adds company data and keeps it current. Status: owner. Where: `docs/VERARBEITUNGSVERZEICHNIS.md`. Source: [Art. 30 GDPR](https://dsgvo-gesetz.de/art-30-dsgvo/), 2026-11-26.
+- [ ] <a id="d-06"></a>**D-06 Youth protection (JMStV).** The 13+ rating and its reason (occasional strong language in third-party streams) are documented. Whether a youth protection officer is needed is checked by the client's lawyer. Status: owner. Where: client's records. Source: [JMStV § 7](https://www.gesetze-bayern.de/Content/Document/JMStV-7), 2026-11-26.
 - [ ] <a id="d-07"></a>**D-07 JMStV: youth protection officer or FSM.** Instead of appointing an officer, a provider can join a self-regulation body such as the FSM. The client's lawyer decides (decision). Status: owner. Where: client's records. Source: [JMStV § 7](https://www.gesetze-bayern.de/Content/Document/JMStV-7), 2026-11-26; [FSM](https://www.fsm.de/), 2026-11-26.
 - [ ] <a id="d-08"></a>**D-08 No Art. 30 exemption.** The small-company exemption does not apply because the telemetry processing is not occasional. Status: owner. Where: `docs/VERARBEITUNGSVERZEICHNIS.md`. Source: [Art. 30 GDPR](https://dsgvo-gesetz.de/art-30-dsgvo/), 2026-11-26.
+- [ ] <a id="d-09"></a>**D-09 Sign the Windows setup in the direct download.** Without an Authenticode signature, SmartScreen warns when the setup starts, and Microsoft ties reputation to the certificate. CI signs as soon as the secrets from EINRICHTUNG 7.4 are set. Whether a paid certificate is bought or the setup ships unsigned for now: open (owner). Status: Owner. Where: `.github/workflows/build.yml`, secrets `WINDOWS_CERT_PFX_BASE64`, `WINDOWS_CERT_PASSWORD`. Source: [SmartScreen and code signing](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation), 2026-11-26.
+- [ ] <a id="d-10"></a>**D-10 Sign and notarize the macOS DMG in the direct download.** Outside the Mac App Store, Gatekeeper opens apps without detours only with a Developer ID signature and notarization. That needs the Apple developer account, which comes with the later Apple round. Whether the DMG ships in the first release (unsigned, with instructions) or only with the Apple round: open (owner). Status: Owner. Where: `.github/workflows/build.yml` (step "macOS signing and notarization gate"). Source: [Notarization](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution), 2026-11-26.
 
 ---
 

@@ -73,6 +73,21 @@ void main() {
       expect(await cache.read('u2'), isNull);
     });
 
+    test('concurrent writes of the same URL share one write', () async {
+      final cache = FileCoverDiskCache(dir);
+      final bytes = Uint8List.fromList(<int>[4, 5, 6]);
+      await Future.wait(<Future<void>>[
+        cache.write('same', bytes),
+        cache.write('same', bytes),
+        cache.write('same', bytes),
+      ]);
+      expect(await cache.read('same'), <int>[4, 5, 6]);
+      expect(
+        dir.listSync().whereType<File>().where((f) => f.path.endsWith('.tmp')),
+        isEmpty,
+      );
+    });
+
     test('evicts least recently used files above the limit', () async {
       final cache = FileCoverDiskCache(dir, maxBytes: 250);
       final chunk = Uint8List(100);

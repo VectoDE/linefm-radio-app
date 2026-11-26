@@ -34,6 +34,11 @@ class FileCoverDiskCache implements CoverDiskCache {
   final Directory directory;
   int _maxBytes;
 
+  /// Writes in flight per cache file. Two images with the same URL would
+  /// otherwise share one temp file, and on Windows the second rename fails
+  /// while the first still holds the file.
+  final Map<String, Future<void>> _pending = <String, Future<void>>{};
+
   int get maxBytes => _maxBytes;
 
   @override
@@ -73,8 +78,19 @@ class FileCoverDiskCache implements CoverDiskCache {
   }
 
   @override
-  Future<void> write(String url, Uint8List bytes) async {
-    if (bytes.isEmpty || bytes.length > maxBytes) return;
+  Future<void> write(String url, Uint8List bytes) {
+    if (bytes.isEmpty || bytes.length > maxBytes) return Future<void>.value();
+    final key = coverCacheKey(url);
+    final pending = _pending[key];
+    if (pending != null) return pending;
+    final future = _write(url, bytes).whenComplete(() {
+      _pending.remove(key);
+    });
+    _pending[key] = future;
+    return future;
+  }
+
+  Future<void> _write(String url, Uint8List bytes) async {
     try {
       await directory.create(recursive: true);
       final file = _file(url);

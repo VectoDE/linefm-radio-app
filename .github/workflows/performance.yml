@@ -208,6 +208,24 @@ jobs:
         timeout-minutes: 30
         run: node lighthouse.mjs --url http://127.0.0.1:8080/ --out out/lighthouse --runs "$RUNS"
 
+      # Before: the same build behind a stock nginx without any hosting config (no gzip, no cache
+      # headers). The comparison with the project server above is the before/after evidence.
+      - name: Lighthouse baseline (stock nginx)
+        if: ${{ matrix.slice == 'lighthouse' }}
+        working-directory: tool/perf
+        timeout-minutes: 30
+        run: |
+          set -euo pipefail
+          image=$(grep -m1 '^FROM ' ../../deploy/traefik/Dockerfile | awk '{print $2}')
+          docker run -d --name linefm-perf-baseline -p 127.0.0.1:8081:8080             -v "$GITHUB_WORKSPACE/build/web:/usr/share/nginx/html:ro" "$image"
+          for _ in $(seq 1 30); do
+            curl -fsS -o /dev/null http://127.0.0.1:8081/ && break
+            sleep 1
+          done
+          node lighthouse.mjs --url http://127.0.0.1:8081/ --out out/lighthouse-baseline --runs "$RUNS"
+          node hosting_compare.mjs --before out/lighthouse-baseline --after out/lighthouse --out out/hosting-compare.md >> "$GITHUB_STEP_SUMMARY"
+          docker rm -f linefm-perf-baseline >/dev/null
+
       - name: Playwright (${{ matrix.slice }})
         if: ${{ matrix.slice != 'lighthouse' }}
         working-directory: tool/perf

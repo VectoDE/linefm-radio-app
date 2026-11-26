@@ -2,7 +2,7 @@
 
 Überblick und Cache-Regeln: [hosting-uebersicht.md](hosting-uebersicht.md).
 
-**Hinweis zum Teststand:** Die Direktiven wurden gegen reines nginx und gegen die Syntax von Apache 2.4 geprüft, aber nicht auf einer echten Plesk-Installation. Nach dem Einrichten bitte mit den `curl`-Befehlen unten prüfen. Plesk-Versionen unterscheiden sich in den generierten Konfigurationen.
+**Hinweis zum Teststand:** Die CI prüft die Direktiven auf Syntax (`nginx -t` in einem Server-Block, `httpd -t`), vergleicht Header und Cache-Regeln mit den anderen Zielen und startet die `.htaccess` in einem echten Apache 2.4 mit `AllowOverride All` (Job „Hosting smoke (apache)“). Auf einer echten Plesk-Installation sind sie noch nicht getestet. Nach dem Einrichten bitte mit den `curl`-Befehlen unten prüfen. Plesk-Versionen unterscheiden sich in den generierten Konfigurationen.
 
 ## Welche Variante?
 

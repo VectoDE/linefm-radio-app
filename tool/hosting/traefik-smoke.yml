@@ -1,0 +1,7 @@
+# CI override for deploy/traefik/docker-compose.yml: no ACME resolver, so Traefik serves its
+# generated default certificate on the secure entrypoint. Nothing else changes, so the smoke test
+# exercises the labels of the real compose file.
+services:
+  web:
+    labels:
+      traefik.http.routers.linefm-app.tls.certresolver: ""

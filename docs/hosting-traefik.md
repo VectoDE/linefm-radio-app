@@ -34,7 +34,7 @@ Traefik darf nur das Netzwerk `TRAEFIK_NETWORK` mit dem Container teilen. Der HT
 
 Neuer Build, dann `docker compose up -d --build`. Für Rollbacks Images mit Versions-Tag bauen (`WEB_IMAGE=...:1.0.1`) und den alten Tag wieder eintragen.
 
-Basisimage aktualisieren: neuen Digest holen (`docker buildx imagetools inspect nginxinc/nginx-unprivileged:1.30-alpine`), in `deploy/traefik/Dockerfile` ersetzen, neu bauen. Dependabot kann das für Dockerfiles übernehmen.
+Basisimage aktualisieren: neuen Digest holen (`docker buildx imagetools inspect nginxinc/nginx-unprivileged:1.31-alpine`), in `deploy/traefik/Dockerfile` ersetzen, neu bauen. Dependabot kann das für Dockerfiles übernehmen.
 
 ## Kompression
 
@@ -50,6 +50,8 @@ Läuft die Seite nativ (siehe [hosting-nginx.md](hosting-nginx.md)), kann Traefi
 TLS-Zertifikate verwaltet dann Traefik, der nginx braucht keine.
 
 ## Prüfen
+
+Die CI startet diese Compose-Datei mit einem echten Traefik und dem echten Web-Build (Job „Hosting smoke (traefik)“, Override `tool/hosting/traefik-smoke.yml` ohne Let's-Encrypt-Resolver) und prüft Header, Caching, ETag, SPA-Fallback und die Weiterleitung auf HTTPS. Auf dem Server selbst:
 
 ```bash
 docker compose ps                       # web: healthy

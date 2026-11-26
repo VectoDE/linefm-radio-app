@@ -50,13 +50,17 @@ brotli_comp_level 5;
 brotli_types text/plain text/css text/xml application/xml application/json application/javascript text/javascript application/manifest+json application/wasm image/svg+xml application/octet-stream font/otf font/ttf application/vnd.ms-fontobject;
 ```
 
+## nginx als Container (ohne Traefik)
+
+`deploy/nginx/docker-compose.yml` startet denselben Container wie die Traefik-Variante (`deploy/traefik/Dockerfile`, gleiche Snippets), veröffentlicht Port 8080 aber nur auf `127.0.0.1`. TLS übernimmt ein vorgeschalteter Proxy, der auf `127.0.0.1:8080` weiterleitet. Bauen und Starten im Ordner `deploy/nginx` nach dem Postbuild: `docker compose up -d --build`. Über `WEB_BIND`, `WEB_PORT` und `WEB_IMAGE` lassen sich Adresse, Port und Image-Tag ändern. Die CI prüft sie mit `docker compose config`.
+
 ## Traefik vor diesem nginx
 
 Siehe [hosting-traefik.md](hosting-traefik.md), Abschnitt "Traefik vor nativem nginx".
 
 ## Prüfen
 
-`nginx -t` stand in der Entwicklungsumgebung nicht zur Verfügung. Die Konfigurationen sind von Hand gegengelesen, nicht von nginx geprüft. Auf dem Server vor jedem Reload `nginx -t` laufen lassen.
+Die CI prüft die Syntax von `linefm-app.conf` samt Snippets mit `nginx -t` im gepinnten nginx-Image (Job „Hosting config“, Skript `tool/check_hosting_config.sh`, mit Wegwerf-Zertifikat). Das belegt die Syntax, nicht das Verhalten auf dem Server. Dort vor jedem Reload `nginx -t` laufen lassen.
 
 ```bash
 sudo nginx -t

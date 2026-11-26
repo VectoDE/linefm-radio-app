@@ -63,8 +63,16 @@ class RuleTest(unittest.TestCase):
             "added 120 packages in 3s",
             "error_reporting: enabled",
             '        "markdown": "Some features are deprecated in older runners"',
+            '      "message": "ci: warning gate in every workflow: Warning: x is deprecated",',
+            '    "message": "fix: Warning: handle ERROR: cases",',
         ]
         self.assertEqual(hits(*clean), [])
+
+    def test_json_dump_lines_pass_but_real_shapes_still_fail(self) -> None:
+        self.assertEqual(hits('  "message": "ci: warning gate in every workflow ...",'), [])
+        self.assert_caught("##[warning]\"message\": x", "annotation")
+        self.assert_caught("npm warn deprecated \"a\": \"b\"", "npm")
+        self.assert_caught("W: \"a\": \"b\"", "apt")
 
     def test_runner_echo_of_script_source_is_ignored(self) -> None:
         lines = [
@@ -79,6 +87,18 @@ class RuleTest(unittest.TestCase):
         allow = [{"_re": re.compile(r"^WARN: low disk$"), "_job": re.compile("Android")}]
         self.assertEqual(hits("WARN: low disk", allow=allow, job="Android__APK_"), [])
         self.assertEqual(len(hits("WARN: low disk", allow=allow, job="Web")), 1)
+
+
+class RepositoryAllowListTest(unittest.TestCase):
+    LINE = ("Warning: 'no file associated with this alert' is not a valid URI in "
+            "'instance.runs[2].results[1].locations[0].physicalLocation.artifactLocation.uri'.")
+
+    def test_scorecard_sarif_uri_warning_is_allowed_for_the_real_job_name(self) -> None:
+        allow, problems = cbl.load_allowlist(cbl.DEFAULT_ALLOWLIST)
+        self.assertEqual(problems, [])
+        self.assertEqual(hits(self.LINE, allow=allow, job="Scorecard-Analyse"), [])
+        # Another job (or the file stem of a raw job id) is not covered.
+        self.assertEqual(len(hits(self.LINE, allow=allow, job="Android")), 1)
 
 
 class AnnotationTest(unittest.TestCase):

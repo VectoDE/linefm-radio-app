@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:linefm_radio/domain/schedule_slot.dart';
 import 'package:linefm_radio/domain/track.dart';
 
 /// Ergebnis eines geparsten laut.fm-Songs inklusive der Live-Kennung.
@@ -90,6 +91,41 @@ class LautParsers {
     if (json is! List) return const <Track>[];
     return <Track>[for (final item in json) ?parseSong(item)];
   }
+
+  /// Sendeplan (`schedule`): Liste von Bloecken. Eintraege ohne Namen,
+  /// Wochentag oder gueltige Startstunde werden uebersprungen. Eine
+  /// ungueltige Endstunde wird zu `null`.
+  static List<ScheduleSlot> parseSchedule(Object? json) {
+    if (json is! List) return const <ScheduleSlot>[];
+    return <ScheduleSlot>[for (final item in json) ?_parseSlot(item)];
+  }
+
+  static ScheduleSlot? _parseSlot(Object? json) {
+    if (json is! Map) return null;
+    final name = _string(json['name']);
+    final day = ScheduleDay.tryParse(json['day']);
+    final start = _int(json['hour']);
+    if (name == null || name.isEmpty || day == null) return null;
+    if (start == null || start < 0 || start > 23) return null;
+    final end = _int(json['end_time']);
+    final description = _string(json['description']);
+    final color = _string(json['color']);
+    final shuffled = json['shuffled'];
+    return ScheduleSlot(
+      id: _int(json['id']),
+      name: name,
+      day: day,
+      startHour: start,
+      endHour: end != null && end >= 0 && end <= 24 ? end : null,
+      description: description == null || description.isEmpty
+          ? null
+          : description,
+      colorHex: color != null && _hexColor.hasMatch(color) ? color : null,
+      shuffled: shuffled is bool ? shuffled : null,
+    );
+  }
+
+  static final RegExp _hexColor = RegExp(r'^#[0-9a-fA-F]{6}$');
 
   /// Zeit im laut.fm-Format `2026-11-18 18:00:00 +0100` oder ISO-8601.
   /// Ergebnis in lokaler Zeit; `null` bei unbekanntem Format.

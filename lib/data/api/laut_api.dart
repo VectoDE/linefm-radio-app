@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:linefm_radio/data/api/http_cache.dart';
 import 'package:linefm_radio/data/api/laut_parsers.dart';
+import 'package:linefm_radio/domain/schedule_slot.dart';
 import 'package:linefm_radio/domain/track.dart';
 
 /// REST-Client fuer api.laut.fm (Spec 3.3).
@@ -13,6 +14,9 @@ abstract interface class LautApi {
   Future<List<Track>> lastSongs(String slug);
 
   Future<int?> listeners(String slug);
+
+  /// Wochen-Sendeplan der Station; leer, wenn laut.fm keinen liefert.
+  Future<List<ScheduleSlot>> schedule(String slug);
 
   /// stream_url aus der Station-Antwort, null wenn unbekannt.
   Future<String?> streamUrl(String slug);
@@ -65,10 +69,21 @@ class HttpLautApi implements LautApi {
       LautParsers.parseListeners(await _getJson(_station(slug, 'listeners')));
 
   @override
+  Future<List<ScheduleSlot>> schedule(String slug) async =>
+      LautParsers.parseSchedule(
+        await _getJson(
+          _station(slug, 'schedule'),
+          emptyBodyAs: const <Object?>[],
+        ),
+      );
+
+  @override
   Future<String?> streamUrl(String slug) async =>
       LautParsers.parseStreamUrl(await _getJson(_station(slug)));
 
-  Future<Object?> _getJson(Uri uri) async {
+  /// [emptyBodyAs]: Ergebnis bei leerem Body mit Status 200 (laut.fm liefert
+  /// das fuer Sender ohne Sendeplan); sonst ist ein leerer Body ein Fehler.
+  Future<Object?> _getJson(Uri uri, {Object? emptyBodyAs}) async {
     final http.Response response = await cache.get(uri);
     if (response.statusCode != 200) {
       throw LautApiException(
@@ -77,6 +92,7 @@ class HttpLautApi implements LautApi {
         statusCode: response.statusCode,
       );
     }
+    if (emptyBodyAs != null && response.bodyBytes.isEmpty) return emptyBodyAs;
     try {
       return jsonDecode(utf8.decode(response.bodyBytes));
     } on FormatException catch (e) {
@@ -99,6 +115,10 @@ class StubLautApi implements LautApi {
 
   @override
   Future<int?> listeners(String slug) async => null;
+
+  @override
+  Future<List<ScheduleSlot>> schedule(String slug) async =>
+      const <ScheduleSlot>[];
 
   @override
   Future<String?> streamUrl(String slug) async => null;

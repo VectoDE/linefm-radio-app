@@ -497,7 +497,7 @@ powershell -File tool\bauen.ps1 -Hilfe
 
 Was `-Oeffnen` tut: bei `windows` startet es die App, bei `web` startet es einen lokalen Server auf einem freien Port (ab 8090) und öffnet den Browser, bei `apk` und `aab` öffnet es den Ordner mit der Datei. Der Web-Server läuft im selben Fenster, beende ihn mit Strg+C.
 
-Du erkennst den Erfolg an der grünen Zeile `DONE after ... seconds.` mit dem Pfad zum Ergebnis. Bei einem Fehler steht rot `ERROR:` mit einer Erklärung, und das Skript endet mit Exit-Code 1 (falsche Eingabe: 2).
+Du erkennst den Erfolg an der grünen Zeile `DONE after ... seconds.` mit dem Pfad zum Ergebnis. Bei einem Fehler steht rot `bauen: ERROR:` mit einer Erklärung, und das Skript endet mit Exit-Code 1 (falsche Eingabe: 2).
 
 **Wenn Windows das Skript blockiert** ("Die Ausführung von Skripts ist auf diesem System deaktiviert" oder "nicht digital signiert"): Das passiert vor allem bei einem ZIP-Download von GitHub, weil Windows die Dateien als "aus dem Internet" markiert. Zwei offizielle Wege:
 

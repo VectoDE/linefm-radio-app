@@ -456,7 +456,7 @@ List<String> renderAppLinks(
       if (strict) {
         throw PostbuildException(msg);
       }
-      stderr.writeln('web_postbuild: WARNING: $msg');
+      stderr.writeln('web_postbuild: note: $msg');
       f.deleteSync();
       continue;
     }
@@ -599,7 +599,7 @@ List<String> runPostbuild(PostbuildOptions o) {
     if (o.strict) {
       throw PostbuildException(msg);
     }
-    stderr.writeln('web_postbuild: WARNING: $msg');
+    stderr.writeln('web_postbuild: note: $msg');
   }
 
   // 0b. Fallback fonts (L14): without Noto files under assets/fonts/fallback/
@@ -611,7 +611,7 @@ List<String> runPostbuild(PostbuildOptions o) {
     if (o.strict) {
       throw PostbuildException(msg);
     }
-    stderr.writeln('web_postbuild: WARNING: $msg');
+    stderr.writeln('web_postbuild: note: $msg');
   }
 
   // 0c. Fallback fonts only with license text (OFL 1.1 requires it on redistribution).

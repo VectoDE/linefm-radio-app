@@ -62,7 +62,7 @@ function Show-Hilfe {
 function Stop-Mit {
   param([string]$Text, [int]$Code = 1)
   Write-Host ''
-  Write-Host ('ERROR: ' + $Text) -ForegroundColor Red
+  Write-Host ('bauen: ERROR: ' + $Text) -ForegroundColor Red
   exit $Code
 }
 

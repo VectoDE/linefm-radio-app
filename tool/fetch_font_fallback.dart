@@ -456,13 +456,13 @@ Future<int> runCli(List<String> args) async {
         if (strict) {
           throw FontFallbackException(msg);
         }
-        stderr.writeln('fetch_font_fallback: WARNING: $msg');
+        stderr.writeln('fetch_font_fallback: note: $msg');
       }
     } on FontFallbackException catch (e) {
       if (strict) {
         rethrow;
       }
-      stderr.writeln('fetch_font_fallback: WARNING: ${e.message}');
+      stderr.writeln('fetch_font_fallback: note: ${e.message}');
     }
 
     final selected = lock.fonts.where((f) => groups.contains(f.group)).toList();

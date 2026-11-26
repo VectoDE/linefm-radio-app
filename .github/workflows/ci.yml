@@ -53,8 +53,17 @@ jobs:
       - name: Dependency overrides documented
         run: bash tool/check_dependency_overrides.sh
 
+      # The config check imports the app package, so "dart run" builds the
+      # native asset hooks against GTK. It runs here, beside the short analyzer,
+      # instead of on the critical path of the longer "Tests" job.
+      - name: System packages (native asset hooks)
+        uses: ./.github/actions/linux-deps
+
       - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
+
+      - name: Check config folder (config/)
+        run: dart run tool/check_config.dart
 
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed .
@@ -88,9 +97,6 @@ jobs:
 
       - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
-
-      - name: Check config folder (config/)
-        run: dart run tool/check_config.dart
 
       # Golden tests (*_golden_test.dart, tag "golden") depend on the operating
       # system's rasterization and therefore run in the "goldens" job (Windows runner);

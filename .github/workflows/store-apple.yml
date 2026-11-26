@@ -172,6 +172,8 @@ jobs:
 
       - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
+        with:
+          cache: "false"
 
       - name: Write config
         uses: ./.github/actions/write-config
@@ -292,6 +294,8 @@ jobs:
 
       - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
+        with:
+          cache: "false"
 
       - name: Write config
         uses: ./.github/actions/write-config

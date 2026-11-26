@@ -95,7 +95,15 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-          cache: gradle
+
+      # Gradle User Home cache (wrapper, dependencies, transforms). Written on
+      # main only, read-only elsewhere.
+      - name: Gradle cache
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          add-job-summary: never
+          cache-provider: basic
 
       - name: Set up Flutter
         uses: ./.github/actions/setup-flutter

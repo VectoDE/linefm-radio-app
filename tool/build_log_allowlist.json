@@ -50,7 +50,7 @@
     "pattern": "^/.+/sentry_flutter-\\d+\\.\\d+\\.\\d+/Sources/sentry_flutter_objc/include/SentryFlutterReplayScreenshotProvider\\.h:\\d+:\\d+: warning: pointer is missing a nullability type specifier",
     "job": "iOS.widget.light.and.dark",
     "expires": "2027-02-28",
-    "reason": "Header of sentry_flutter 10.6.0 (latest) compiled into the Runner for the widget snapshot test; the plugin's own Objective-C lacks a nullability annotation. A third-party source file, so no app-side change removes it. Reported upstream: https://github.com/getsentry/sentry-dart/issues/4232"
+    "reason": "Header of sentry_flutter 10.6.0 (latest) compiled into the Runner for the widget snapshot test; the plugin's own Objective-C lacks a nullability annotation. A third-party source file, so no app-side change removes it."
   },
   {
     "pattern": "^1 warning generated\\.$",

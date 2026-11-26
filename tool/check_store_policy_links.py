@@ -171,7 +171,7 @@ def main(argv: list[str] | None = None) -> int:
         fresh = {u: v for u, (s, v) in results.items() if s == "ok"}
         # Keep the old hash for pages that could not be checked this time.
         fresh.update({u: baseline[u] for u, (s, _) in results.items() if s == "transient" and u in baseline})
-        BASELINE.write_text(json.dumps(dict(sorted(fresh.items())), indent=2) + "\n", encoding="utf-8")
+        BASELINE.write_text(json.dumps(dict(sorted(fresh.items())), indent=2) + "\n", encoding="utf-8", newline="\n")
         print(f"Baseline written: {len(fresh)} pages")
     return 0
 

@@ -68,3 +68,8 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // MediaBrowserCompat for the widget play button; same version as audio_service.
+    implementation("androidx.media:media:1.7.0")
+}

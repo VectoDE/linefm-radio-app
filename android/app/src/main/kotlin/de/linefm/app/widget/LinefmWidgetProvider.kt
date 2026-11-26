@@ -8,9 +8,13 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.SizeF
 import android.view.KeyEvent
 import android.view.View
@@ -19,6 +23,7 @@ import de.linefm.app.MainActivity
 import de.linefm.app.R
 import es.antonborri.home_widget.HomeWidgetPlugin
 import es.antonborri.home_widget.HomeWidgetProvider
+import com.ryanheise.audioservice.AudioService
 import java.io.File
 
 /**
@@ -31,9 +36,12 @@ import java.io.File
  * Play/Stop:
  * - Spielt die App, schickt der Knopf die Medientaste STOP an den
  *   MediaButtonReceiver von audio_service.
- * - Sonst oeffnet er die App mit `linefm://play?station=<slug>`; die App
- *   startet den Sender (Deep Link, P21). Ein Start im Hintergrund ohne
- *   sichtbare App ist ab Android 12 fuer Vordergrunddienste nicht erlaubt.
+ * - Sonst startet er den Sender im Hintergrund, ohne die App zu oeffnen:
+ *   Der Broadcast verbindet sich mit dem Wiedergabedienst von audio_service
+ *   und sendet `playFromMediaId(<slug>)`. Android erlaubt den Start eines
+ *   Vordergrunddienstes aus dem Hintergrund, wenn der Nutzer ein Widget
+ *   bedient (developer.android.com, "Restrictions on starting a foreground
+ *   service from the background"). Antippen der Flaeche oeffnet die App.
  */
 class LinefmWidgetProvider : HomeWidgetProvider() {
 
@@ -77,7 +85,76 @@ class LinefmWidgetProvider : HomeWidgetProvider() {
             if (ids.isNotEmpty()) onUpdate(context, manager, ids, data)
             return
         }
+        if (intent.action == ACTION_PLAY) {
+            startPlayback(context, intent.getStringExtra(EXTRA_STATION), goAsync())
+            return
+        }
         super.onReceive(context, intent)
+    }
+
+    /**
+     * Verbindet sich mit dem Wiedergabedienst und startet den Sender.
+     *
+     * Laeuft die App nicht, startet der Dienst erst die Dart-Seite (headless);
+     * bis dahin verwirft audio_service Befehle. Darum wird der Befehl
+     * wiederholt, bis der Wiedergabestatus nicht mehr leer/gestoppt ist. Die
+     * Frist bleibt unter dem goAsync-Limit des Systems (rund 10 s).
+     */
+    private fun startPlayback(
+        context: Context,
+        slug: String?,
+        pending: PendingResult,
+    ) {
+        val app = context.applicationContext
+        val main = Handler(Looper.getMainLooper())
+        var browser: MediaBrowserCompat? = null
+        var controller: MediaControllerCompat? = null
+        var finished = false
+
+        fun finish() {
+            if (finished) return
+            finished = true
+            main.removeCallbacksAndMessages(null)
+            browser?.disconnect()
+            pending.finish()
+        }
+
+        fun send() {
+            val controls = controller?.transportControls ?: return
+            if (slug.isNullOrEmpty()) controls.play() else controls.playFromMediaId(slug, null)
+        }
+
+        fun started(): Boolean = when (controller?.playbackState?.state) {
+            PlaybackStateCompat.STATE_PLAYING,
+            PlaybackStateCompat.STATE_BUFFERING,
+            PlaybackStateCompat.STATE_CONNECTING,
+            -> true
+            else -> false
+        }
+
+        lateinit var retry: Runnable
+        retry = Runnable {
+            if (started()) {
+                finish()
+            } else {
+                send()
+                main.postDelayed(retry, RETRY_MS)
+            }
+        }
+
+        val callback = object : MediaBrowserCompat.ConnectionCallback() {
+            override fun onConnected() {
+                val active = browser ?: return finish()
+                controller = MediaControllerCompat(app, active.sessionToken)
+                send()
+                main.postDelayed(retry, RETRY_MS)
+            }
+
+            override fun onConnectionFailed() = finish()
+        }
+        browser = MediaBrowserCompat(app, ComponentName(app, AudioService::class.java), callback, null)
+        main.postDelayed({ finish() }, DEADLINE_MS)
+        browser?.connect()
     }
 
     private fun buildViews(
@@ -152,16 +229,12 @@ class LinefmWidgetProvider : HomeWidgetProvider() {
         return PendingIntent.getActivity(context, REQUEST_OPEN, intent, IMMUTABLE_UPDATE)
     }
 
-    /** Startet die App mit Deep Link auf den Sender. */
+    /** Startet den Sender im Hintergrund (Broadcast an dieses Widget). */
     private fun playIntent(context: Context, slug: String?): PendingIntent {
-        val uri = Uri.Builder()
-            .scheme("linefm")
-            .authority("play")
-            .apply { if (!slug.isNullOrEmpty()) appendQueryParameter("station", slug) }
-            .build()
-        val intent = Intent(Intent.ACTION_VIEW, uri, context, MainActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        return PendingIntent.getActivity(context, REQUEST_PLAY, intent, IMMUTABLE_UPDATE)
+        val intent = Intent(context, LinefmWidgetProvider::class.java)
+            .setAction(ACTION_PLAY)
+            .apply { if (!slug.isNullOrEmpty()) putExtra(EXTRA_STATION, slug) }
+        return PendingIntent.getBroadcast(context, REQUEST_PLAY, intent, IMMUTABLE_UPDATE)
     }
 
     /** Stop ueber dieses Widget (setzt den Status sofort zurueck). */
@@ -172,6 +245,10 @@ class LinefmWidgetProvider : HomeWidgetProvider() {
 
     companion object {
         const val ACTION_STOP = "de.linefm.app.widget.STOP"
+        const val ACTION_PLAY = "de.linefm.app.widget.PLAY"
+        const val EXTRA_STATION = "station"
+        private const val RETRY_MS = 1000L
+        private const val DEADLINE_MS = 9000L
         private const val REQUEST_OPEN = 1
         private const val REQUEST_PLAY = 2
         private const val REQUEST_STOP = 3

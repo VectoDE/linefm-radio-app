@@ -199,6 +199,36 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
+  integration:
+    name: Integration test (playback flow)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: System packages (native asset hooks)
+        uses: ./.github/actions/linux-deps
+
+      - name: Set up Flutter
+        uses: ./.github/actions/setup-flutter
+
+      # Whole app (widgets, navigation, controller, providers) with a fake
+      # audio backend and no network: play, now playing, stop, play again.
+      # Headless, no device. The Windows desktop test runs nightly in
+      # itest-windows.yml.
+      - name: Playback flow
+        run: flutter test -d flutter-tester --reporter=expanded integration_test/playback_flow_test.dart
+
   goldens:
     name: Golden tests (Windows)
     runs-on: windows-latest
@@ -514,7 +544,7 @@ jobs:
   # holds the few documented upstream exceptions, each with an expiry date.
   log-gate:
     name: Build log gate
-    needs: [analyze, test, goldens, l10n-check, web-smoke, hosting-config, hosting-smoke]
+    needs: [analyze, test, integration, goldens, l10n-check, web-smoke, hosting-config, hosting-smoke]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10

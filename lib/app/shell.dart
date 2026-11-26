@@ -757,24 +757,30 @@ class _Header extends ConsumerWidget {
       ),
       child: Row(
         children: <Widget>[
-          Semantics(
-            header: true,
-            headingLevel: 2,
-            container: true,
-            label: l10n.brandName,
-            excludeSemantics: true,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  l10n.brandName,
-                  style: LinefmText.brandHeader.copyWith(color: tint),
+          // Takes the space left of the buttons and scales the brand name
+          // down instead of overflowing at large text scales.
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Semantics(
+                header: true,
+                headingLevel: 2,
+                container: true,
+                label: l10n.brandName,
+                excludeSemantics: true,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      l10n.brandName,
+                      style: LinefmText.brandHeader.copyWith(color: tint),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-          const Spacer(),
           FavoritesHeaderButton(color: tint),
           const SizedBox(width: 4),
           QuietTooltip(

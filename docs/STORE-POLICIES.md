@@ -28,7 +28,7 @@ This list is for the client and the operator. It works as a template for every s
 - The client holds the agreement with laut.fm and keeps it. Where a store asks for content rights, the entry below says so.
 - The client places the Flathub domain verification file at go-live.
 
-**Freshness:** the workflow `.github/workflows/store-policy-watch.yml` checks every linked page once a month (reachable, text changed) and opens one ticket when something changed. After reviewing a change, refresh the baseline with `python3 tool/check_store_policy_links.py --update-baseline` and update the affected entries and dates here.
+<a id="aktualitaet"></a>**Freshness:** the workflow `.github/workflows/store-policy-watch.yml` checks every linked page once a month (reachable, text changed) and opens one ticket when something changed. After reviewing a change, refresh the baseline with `python3 tool/check_store_policy_links.py --update-baseline` and update the affected entries and dates here.
 
 ---
 
@@ -92,6 +92,14 @@ Sources (all retrieved 2026-11-26):
 - [ ] <a id="g-32"></a>**G-32 Content rights evidence.** If Google raises an intellectual property or impersonation complaint, upload the laut.fm agreement and the LINEFM brand permission from the Policy status page. Status: owner (client). Where: Play Console > Policy status. Source: [Policy centre](https://play.google/developer-content-policy/), 2026-11-26.
 - [ ] <a id="g-33"></a>**G-33 Responding to rejections.** Fix the cause, then resubmit or appeal from the Policy status page; repeated violations put the account at risk. Status: owner. Where: Play Console > Policy status. Source: [Policy centre](https://play.google/developer-content-policy/), 2026-11-26.
 - [ ] <a id="g-34"></a>**G-34 Recurring deadlines.** The target API level rises every year (usually by 31 August); Data safety, foreground service, full-screen intent and exact alarm declarations must be confirmed again when Google asks. Status: owner (calendar entry each July). Source: [Target API](https://developer.android.com/google/play/requirements/target-sdk), 2026-11-26.
+
+- [ ] <a id="g-35"></a>**G-35 Health apps declaration.** Every app on Google Play completes it, even without health features. Answer: no health features. Status: owner. Where: Play Console > App content. Source: [Health apps](https://support.google.com/googleplay/android-developer/answer/14738291), 2026-11-26
+- [ ] <a id="g-36"></a>**G-36 Financial features declaration.** Answer: the app offers no financial features. Status: owner. Where: Play Console > App content. Source: [Financial features](https://support.google.com/googleplay/android-developer/answer/13849271), 2026-11-26
+- [ ] <a id="g-37"></a>**G-37 Government apps declaration.** Answer: not a government app and not developed on behalf of a government body. Status: owner. Where: Play Console > App content. Source: [Prepare your app for review](https://support.google.com/googleplay/android-developer/answer/9859455), not verified
+- [ ] <a id="g-38"></a>**G-38 News apps declaration.** Answer: no. Google lists media streaming apps as out of scope of the news and magazine policy, even when they carry news programmes. LINEFM is a radio streaming app and is not listed in the "News and Magazines" category. Status: owner. Where: Play Console > App content; category in Store settings. Source: [News and magazine apps](https://support.google.com/googleplay/android-developer/answer/10523915), 2026-11-26
+- [ ] <a id="g-39"></a>**G-39 Ads declaration.** Answer: no ads. The app integrates no ad SDK; ad breaks inside third-party streams come from the stations. Google may still set the "Contains ads" label itself after its own review. Status: owner. Where: Play Console > App content > Ads. Source: [Prepare your app for review](https://support.google.com/googleplay/android-developer/answer/9859455), 2026-11-26
+- [ ] <a id="g-40"></a>**G-40 Advertising ID declaration.** Apps targeting Android 13 or later declare whether they use the advertising ID. Answer: no; the `AD_ID` permission is removed from the merged manifest. Check the release build with `aapt dump permissions`. Status: owner. Where: Play Console > App content > Advertising ID; `android/app/src/main/AndroidManifest.xml`. Source: [Advertising ID](https://support.google.com/googleplay/android-developer/answer/6048248), 2026-11-26
+- [ ] <a id="g-41"></a>**G-41 Developer verification for the direct APK.** Certified Android devices only install apps whose package and signing key are registered to a verified developer. Start 30 September 2026 in Brazil, Indonesia, Singapore and Thailand, worldwide in 2027. The APK on GitHub Releases stays (decision), so the client registers the package name and the key that signs the direct APK in the Play Console. Status: owner. Where: Play Console > developer verification; `.github/workflows/release.yml`. Source: [Android developer verification](https://developer.android.com/developer-verification), 2026-11-26
 
 ### Overview by topic
 
@@ -163,9 +171,9 @@ Sources (all retrieved 2026-11-26):
 
 ### Account, fees, review and recurring duties
 
-- [ ] <a id="a-25"></a>**A-25 EU trader status (Digital Services Act).** Declare trader status in App Store Connect; traders give address, phone and email, which Apple shows on the product page in the EU. Without it the app is not offered in the EU. Status: owner. Where: App Store Connect > Business > Compliance. Source: [DSA trader requirements](https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements), 2026-11-26.
-- [ ] <a id="a-26"></a>**A-26 Membership fee.** The Apple Developer Program has an annual fee; renew it in time, or the apps leave the store. Status: owner. Source: [Developer account overview](https://developer.apple.com/support/compare-memberships/), 2026-11-26 (fee amount not verified on the page).
-- [ ] <a id="a-27"></a>**A-27 Agreements, tax and banking.** The free apps agreement is enough for a free app; tax and bank forms are only needed for sales. Accept updated agreements when App Store Connect asks, otherwise uploads stop. Status: owner. Where: App Store Connect > Business. Source: [Sign and update agreements](https://developer.apple.com/help/app-store-connect/manage-agreements/sign-and-update-agreements), 2026-11-26.
+- [ ] <a id="a-25"></a>**A-25 EU trader status (Digital Services Act).** Every account declares its trader status, even without EU distribution; App Store Connect asks at the next submission. For organisations the address comes from the D-U-N-S record; traders add phone and email (shown on the product page in the EU), payment account details if not yet entered, and certify that their offer follows EU law. Non-traders get a notice to EU consumers that consumer rights do not apply. Status: owner. Where: App Store Connect > Business > Compliance. Source: [DSA trader requirements](https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements), 2026-11-26.
+- [ ] <a id="a-26"></a>**A-26 Membership fee.** The Apple Developer Program costs 99 US dollars per membership year, charged in local currency; renew it in time, or the apps leave the store. Status: owner. Source: [Enroll](https://developer.apple.com/programs/enroll/), 2026-11-26.
+- [ ] <a id="a-27"></a>**A-27 Agreements, tax and banking.** For a free app the free apps agreement is enough and tax forms are only needed for sales; as a DSA trader, however, Apple asks for payment account details (see A-25). Accept updated agreements when App Store Connect asks, otherwise uploads stop. Status: owner. Where: App Store Connect > Business. Source: [Sign and update agreements](https://developer.apple.com/help/app-store-connect/manage-agreements/sign-and-update-agreements), 2026-11-26.
 - [ ] <a id="a-28"></a>**A-28 Support URL.** A support URL with real contact information is mandatory, a marketing URL is optional: the `/support/` page. Status: owner. Where: `fastlane/metadata/*/support_url.txt`, App Store Connect > Product page. Source: [Guidelines](https://developer.apple.com/app-store/review/guidelines/), 2026-11-26.
 - [ ] <a id="a-29"></a>**A-29 Review notes.** Say that no login is needed, how to try the alarm, AirPlay and CarPlay, and where the content rights come from. Status: owner. Where: App Store Connect > App Review Information. Source: [Guidelines](https://developer.apple.com/app-store/review/guidelines/), 2026-11-26.
 - [ ] <a id="a-30"></a>**A-30 Responding to review.** Answer in App Store Connect, fix and resubmit, or appeal to the App Review Board. Status: owner. Source: [Guidelines](https://developer.apple.com/app-store/review/guidelines/) (part "After You Submit"), 2026-11-26.
@@ -173,6 +181,8 @@ Sources (all retrieved 2026-11-26):
 - [ ] <a id="a-32"></a>**A-32 Recurring deadlines.** Each spring Apple raises the Xcode and SDK minimum; age rating answers and privacy labels must be updated when Apple changes the questions. Status: owner (calendar entry each March). Source: [Upcoming requirements](https://developer.apple.com/news/upcoming-requirements/), 2026-11-26.
 
 - [x] <a id="a-33"></a>**A-33 Rule 4.3, spam and duplicates.** One app per purpose; no copies of the same app under different names or per station. Status: OK by design (one app for all stations), keep it that way. Where: `assets/config/`. Source: [Guidelines](https://developer.apple.com/app-store/review/guidelines/), 2026-11-26.
+
+- [ ] <a id="a-34"></a>**A-34 Ads in App Store Connect.** Where the age rating questions ask about advertising, answer no: the app shows no ads of its own; spots in the streams come from the stations. Status: owner. Where: App Store Connect > Age Rating. Source: [Age rating](https://developer.apple.com/help/app-store-connect/manage-app-information/set-an-app-age-rating), not verified
 
 ### Overview by topic
 
@@ -227,10 +237,14 @@ Source: <https://learn.microsoft.com/en-us/windows/apps/publish/store-policies>,
 
 ### Account, fees and review
 
-- [ ] <a id="m-20"></a>**M-20 Account and fee.** Company account of the client in Partner Center with company verification; with the current onboarding there is no registration fee. Status: owner. Source: [Account types and fees](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/account-types-locations-and-fees), 2026-11-26.
+- [ ] <a id="m-20"></a>**M-20 Account and fee.** Company account of the client in Partner Center with company verification and a work email on the company domain; with the current onboarding there is no registration fee. Status: owner. Source: [Account types and fees](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/account-types-locations-and-fees), 2026-11-26.
 - [x] <a id="m-21"></a>**M-21 Payout and tax forms.** Only for paid apps; not needed. Status: OK. Where: Partner Center > Payout and tax.
 - [ ] <a id="m-22"></a>**M-22 Support contact and certification notes.** Support contact in the listing (support@linefm.de, `/support/` page); notes for testers (no login, alarm). Status: owner. Where: Partner Center > Properties and Submission options.
 - [ ] <a id="m-23"></a>**M-23 Certification failures.** Fix and resubmit, or use the appeal process described at the end of the policy. Status: owner.
+
+- [x] <a id="m-24"></a>**M-24 10.11 and 10.12.** Both marked "Policy removed" in version 7.20. Version 7.20 has no sections 10.15 or 11.17. Status: OK. Source: [Store policies](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies), 2026-11-26
+- [ ] <a id="m-25"></a>**M-25 EU trader status (Digital Services Act).** If Partner Center asks for the trader status, declare the client as a trader with the same address, phone and email as in Google and Apple. Status: owner. Where: Partner Center > Account settings. Source: [Open a developer account](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/open-a-developer-account), not verified (no Microsoft page on the trader status found)
+- [ ] <a id="m-26"></a>**M-26 Ads question.** Answer no in the product properties: no ad SDK; spots in streams come from the stations. Status: owner. Where: Partner Center > Properties. Source: [Store policies](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies) 10.10, 2026-11-26
 
 ### Overview by topic
 
@@ -270,6 +284,8 @@ Sources:
 - [ ] <a id="s-07"></a>**S-07 Account and fees.** Ubuntu One account of the client, no fee, no tax forms for free snaps. Status: owner. Source: [Terms](https://ubuntu.com/legal/terms-and-policies/snap-store-terms), 2026-11-26.
 
 - [ ] <a id="s-08"></a>**S-08 Contact and support.** Contact address and website in the snap metadata: support@linefm.de and the `/support/` page. Status: open. Where: `packaging/snap/snapcraft.yaml` (`contact`, `website`), `web/support/` (to create). Source: [Terms](https://ubuntu.com/legal/terms-and-policies/snap-store-terms), 2026-11-26.
+
+- [ ] <a id="s-09"></a>**S-09 Privacy policy and contact in the listing.** Enter the privacy policy URL, support@linefm.de and the `/support/` page in the snapcraft.io listing. Status: owner. Where: snapcraft.io > Listing. Source: [Terms](https://ubuntu.com/legal/terms-and-policies/snap-store-terms), 2026-11-26 (listing fields themselves not verified)
 
 ### Overview by topic
 
@@ -341,10 +357,12 @@ Sources (retrieved 2026-11-26): <https://web.dev/articles/install-criteria>, <ht
 
 - [x] <a id="w-01"></a>**W-01 Installable.** Manifest with name, icons 192 and 512 (maskable), start URL, `display` standalone, served over HTTPS with a service worker. Status: OK. Where: `web/manifest.webmanifest`. Source: [Install criteria](https://web.dev/articles/install-criteria), 2026-11-26.
 - [ ] <a id="w-02"></a>**W-02 Rich install UI.** Optional `screenshots` and `shortcuts` in the manifest. Status: open (optional). Where: `web/manifest.webmanifest`. Source: [Manifest](https://www.w3.org/TR/appmanifest/), 2026-11-26.
-- [x] <a id="w-03"></a>**W-03 Consent before tracking.** GA4 and GTM only after consent (TDDDG). Status: OK. Where: `web/analytics.js`, `web/datenschutz/`. Source: [Install criteria](https://web.dev/articles/install-criteria), 2026-11-26.
-- [ ] <a id="w-04"></a>**W-04 License page.** `/lizenz/` in German and English, linked from the metainfo and the stores. Status: open. Where: `web/lizenz/` (to create). Source: [Manifest](https://www.w3.org/TR/appmanifest/), 2026-11-26.
+- [x] <a id="w-03"></a>**W-03 Consent before tracking.** GA4 and GTM only after consent. Status: OK. Where: `web/analytics.js`, `web/datenschutz/`. Source: [TDDDG § 25](https://www.gesetze-im-internet.de/ttdsg/__25.html), 2026-11-26.
+- [ ] <a id="w-04"></a>**W-04 License page.** `/lizenz/` in German and English, linked from the metainfo and the stores. Status: open. Where: `web/lizenz/` (to create). Source: owner decision; Flathub needs it, see F-07.
 
-- [ ] <a id="w-05"></a>**W-05 Contact and support.** `/support/` page in German and English with support@linefm.de, linked from imprint, app and every store listing. Status: open. Where: `web/support/` (to create). Source: [Install criteria](https://web.dev/articles/install-criteria), 2026-11-26.
+- [ ] <a id="w-05"></a>**W-05 Contact and support.** `/support/` page in German and English with support@linefm.de, linked from imprint, app and every store listing. Status: open. Where: `web/support/` (to create). Source: owner decision; the stores need it, see G-29, A-28, M-22.
+
+- [ ] <a id="w-06"></a>**W-06 Accessibility statement.** Published voluntarily at `/barrierefreiheit/` (German and English), even if the micro-enterprise exemption of the BFSG may apply; the lawyer confirms. Status: open. Where: `web/barrierefreiheit/` (to create). Source: [BFSG § 3](https://www.gesetze-im-internet.de/bfsg/__3.html), 2026-11-26
 
 ### Overview by topic
 
@@ -370,8 +388,11 @@ Items: [W-05](#w-05)
 
 - [ ] <a id="d-01"></a>**D-01 Updater only in direct downloads.** Store builds (Play, App Store, Mac App Store, Microsoft Store, Snap, Flathub) are built without the updater; a CI check searches the store packages for updater code. Status: open. Where: build flags, `.github/workflows/store-*.yml`.
 - [ ] <a id="d-02"></a>**D-02 Own accounts of the client.** Every store account belongs to the client's organisation. Status: owner. Where: `docs/EINRICHTUNG.md`.
-- [ ] <a id="d-03"></a>**D-03 Content rights.** The client keeps the laut.fm agreement and names it wherever a store asks for rights (Apple content rights, Google on request, Microsoft notes, Snap, Flathub). The same applies to the partner stations Radio3FM and FobFM: the client keeps their written consent to be listed. Status: owner.
-- [ ] <a id="d-04"></a>**D-04 Privacy policy without placeholders.** Controller and contact filled in, all three telemetry services named as optional. Legal review by a lawyer recommended. Status: owner. Where: `web/datenschutz/`, `web/datenschutz/en/`.
+- [ ] <a id="d-03"></a>**D-03 Content rights.** The client keeps the laut.fm agreement and names it wherever a store asks for rights (Apple content rights, Google on request, Microsoft notes, Snap, Flathub). The same applies to the partner stations Radio3FM and FobFM: the client keeps their written consent to be listed. The client also obtains written confirmation from laut.fm that its GEMA and GVL licences cover playback in the LINEFM app; the lawyer checks it. Status: owner.
+- [ ] <a id="d-04"></a>**D-04 Privacy policy without placeholders.** Controller and contact filled in, all three telemetry services named as optional. The URL must stay reachable for good: domain renewal, TLS and uptime monitoring. Legal review by a lawyer recommended. Status: owner. Where: `web/datenschutz/`, `web/datenschutz/en/`.
+
+- [ ] <a id="d-05"></a>**D-05 Record of processing activities (Art. 30 GDPR).** A filled template lists Sentry, Firebase, Umami, GA4/GTM on the web, laut.fm requests, server logs and support mail. The client checks it, adds company data and keeps it current. Status: owner. Where: template under `docs/`. Source: GDPR Art. 30, <https://eur-lex.europa.eu/eli/reg/2016/679/oj>, not verified
+- [ ] <a id="d-06"></a>**D-06 Youth protection (JMStV).** The 13+ rating and its reason (occasional strong language in third-party streams) are documented. Whether a youth protection officer is needed is checked by the client's lawyer. Status: owner. Where: client's records. Source: no source fetched
 
 ---
 

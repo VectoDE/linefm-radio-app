@@ -28,7 +28,7 @@ Diese Liste ist für den Kunden und den Betreiber gedacht. Sie dient als Vorlage
 - Der Kunde hat die Vereinbarung mit laut.fm und verwahrt sie selbst. Wo ein Store nach Inhaltsrechten fragt, steht es unten beim Eintrag.
 - Der Kunde legt die Flathub-Datei zur Domain-Bestätigung zum Livegang ab.
 
-**Aktualität:** Der Workflow `.github/workflows/store-policy-watch.yml` prüft einmal im Monat jede verlinkte Seite (erreichbar, Text geändert) und legt bei einer Änderung ein Ticket an. Nach dem Durchsehen die Vergleichsbasis mit `python3 tool/check_store_policy_links.py --update-baseline` erneuern und die betroffenen Einträge und Daten hier und in der englischen Fassung anpassen.
+<a id="aktualitaet"></a>**Aktualität:** Der Workflow `.github/workflows/store-policy-watch.yml` prüft einmal im Monat jede verlinkte Seite (erreichbar, Text geändert) und legt bei einer Änderung ein Ticket an. Nach dem Durchsehen die Vergleichsbasis mit `python3 tool/check_store_policy_links.py --update-baseline` erneuern und die betroffenen Einträge und Daten hier und in der englischen Fassung anpassen.
 
 ---
 
@@ -92,6 +92,14 @@ Quellen (alle abgerufen am 26.11.2026):
 - [ ] <a id="g-32"></a>**G-32 Nachweis der Inhaltsrechte.** Kommt eine Beschwerde wegen geistigen Eigentums oder Identitätsanmaßung, lädt der Kunde die laut.fm-Vereinbarung und die Markenfreigabe von LINEFM über die Seite "Richtlinienstatus" hoch. Status: Inhaber (Kunde). Wo: Play Console > Richtlinienstatus. Quelle: [Richtlinien](https://play.google/developer-content-policy/), 26.11.2026.
 - [ ] <a id="g-33"></a>**G-33 Umgang mit Ablehnungen.** Ursache beheben, dann neu einreichen oder über den Richtlinienstatus Einspruch einlegen. Wiederholte Verstöße gefährden das Konto. Status: Inhaber. Wo: Play Console > Richtlinienstatus. Quelle: [Richtlinien](https://play.google/developer-content-policy/), 26.11.2026.
 - [ ] <a id="g-34"></a>**G-34 Wiederkehrende Fristen.** Das Ziel-API-Level steigt jedes Jahr (meist zum 31. August). Die Deklarationen zu Datensicherheit, Vordergrunddienst, Vollbild-Intent und exakten Alarmen muss man erneut bestätigen, wenn Google danach fragt. Status: Inhaber (Kalendereintrag jeden Juli). Quelle: [Ziel-API](https://developer.android.com/google/play/requirements/target-sdk), 26.11.2026.
+
+- [ ] <a id="g-35"></a>**G-35 Erklärung Gesundheits-Apps.** Jede App bei Google Play füllt sie aus, auch ohne Gesundheitsfunktionen. Antwort: keine Gesundheitsfunktionen. Status: Inhaber. Wo: Play Console > App-Inhalte. Quelle: [Health apps](https://support.google.com/googleplay/android-developer/answer/14738291), 26.11.2026
+- [ ] <a id="g-36"></a>**G-36 Erklärung Finanzfunktionen.** Antwort: Die App bietet keine Finanzfunktionen. Status: Inhaber. Wo: Play Console > App-Inhalte. Quelle: [Financial features](https://support.google.com/googleplay/android-developer/answer/13849271), 26.11.2026
+- [ ] <a id="g-37"></a>**G-37 Erklärung Behörden-App.** Antwort: keine Behörden-App und nicht im Auftrag einer Behörde entwickelt. Status: Inhaber. Wo: Play Console > App-Inhalte. Quelle: [Prepare your app for review](https://support.google.com/googleplay/android-developer/answer/9859455), nicht geprüft
+- [ ] <a id="g-38"></a>**G-38 Erklärung Nachrichten-App.** Antwort: nein. Google nimmt Streaming-Apps für Medien ausdrücklich aus der Nachrichten-Richtlinie aus, auch wenn sie Nachrichtensendungen enthalten. LINEFM ist eine Radio-Streaming-App und steht nicht in der Kategorie "Nachrichten & Magazine". Status: Inhaber. Wo: Play Console > App-Inhalte; Kategorie in den Store-Einstellungen. Quelle: [News and magazine apps](https://support.google.com/googleplay/android-developer/answer/10523915), 26.11.2026
+- [ ] <a id="g-39"></a>**G-39 Erklärung Werbung.** Antwort: keine Werbung. Die App bindet kein Werbe-SDK ein, Werbespots in fremden Streams kommen von den Sendern. Google kann das Label "Enthält Werbung" nach eigener Prüfung trotzdem selbst setzen. Status: Inhaber. Wo: Play Console > App-Inhalte > Werbung. Quelle: [Prepare your app for review](https://support.google.com/googleplay/android-developer/answer/9859455), 26.11.2026
+- [ ] <a id="g-40"></a>**G-40 Erklärung Werbe-ID.** Apps ab Ziel Android 13 geben an, ob sie die Werbe-ID nutzen. Antwort: nein, die Berechtigung `AD_ID` ist aus dem zusammengeführten Manifest entfernt. Im Release-Build mit `aapt dump permissions` prüfen. Status: Inhaber. Wo: Play Console > App-Inhalte > Werbe-ID; `android/app/src/main/AndroidManifest.xml`. Quelle: [Advertising ID](https://support.google.com/googleplay/android-developer/answer/6048248), 26.11.2026
+- [ ] <a id="g-41"></a>**G-41 Entwicklerbestätigung für das Direkt-APK.** Zertifizierte Android-Geräte installieren nur Apps, deren Paket und Signaturschlüssel einem bestätigten Entwickler zugeordnet sind. Start am 30. September 2026 in Brasilien, Indonesien, Singapur und Thailand, weltweit 2027. Das APK auf GitHub Releases bleibt (entschieden), also registriert der Kunde in der Play Console den Paketnamen und den Schlüssel, mit dem das Direkt-APK signiert ist. Status: Inhaber. Wo: Play Console > Entwicklerbestätigung; `.github/workflows/release.yml`. Quelle: [Android developer verification](https://developer.android.com/developer-verification), 26.11.2026
 
 ### Überblick nach Thema
 
@@ -163,9 +171,9 @@ Quellen (alle abgerufen am 26.11.2026):
 
 ### Konto, Gebühren, Prüfung und wiederkehrende Pflichten
 
-- [ ] <a id="a-25"></a>**A-25 Händlerstatus in der EU (Digital Services Act).** Händlerstatus in App Store Connect angeben. Händler hinterlegen Adresse, Telefon und E-Mail, Apple zeigt sie in der EU auf der Produktseite. Ohne Angabe wird die App in der EU nicht angeboten. Status: Inhaber. Wo: App Store Connect > Geschäftliches > Compliance. Quelle: [DSA-Händlerpflichten](https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements), 26.11.2026.
-- [ ] <a id="a-26"></a>**A-26 Mitgliedsgebühr.** Das Apple Developer Program kostet eine jährliche Gebühr. Rechtzeitig verlängern, sonst verschwinden die Apps aus dem Store. Status: Inhaber. Quelle: [Übersicht Entwicklerkonto](https://developer.apple.com/support/compare-memberships/), 26.11.2026 (Höhe der Gebühr auf der Seite nicht geprüft).
-- [ ] <a id="a-27"></a>**A-27 Verträge, Steuern und Bankdaten.** Für eine kostenlose App reicht der Vertrag für kostenlose Apps. Steuer- und Bankformulare braucht es nur bei Verkäufen. Neue Vertragsfassungen annehmen, sobald App Store Connect danach fragt, sonst stoppen die Uploads. Status: Inhaber. Wo: App Store Connect > Geschäftliches. Quelle: [Verträge unterzeichnen](https://developer.apple.com/help/app-store-connect/manage-agreements/sign-and-update-agreements), 26.11.2026.
+- [ ] <a id="a-25"></a>**A-25 Händlerstatus in der EU (Digital Services Act).** Jedes Konto gibt seinen Händlerstatus an, auch ohne Vertrieb in der EU. App Store Connect fragt bei der nächsten Einreichung danach. Bei Organisationen kommt die Anschrift aus dem D-U-N-S-Eintrag. Händler ergänzen Telefon und E-Mail (in der EU auf der Produktseite sichtbar), Zahlungskontodaten, falls noch nicht hinterlegt, und bestätigen, dass ihr Angebot EU-Recht einhält. Bei Nicht-Händlern erfahren EU-Verbraucher, dass Verbraucherrechte nicht gelten. Status: Inhaber. Wo: App Store Connect > Geschäftliches > Compliance. Quelle: [DSA-Händlerpflichten](https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements), 26.11.2026.
+- [ ] <a id="a-26"></a>**A-26 Mitgliedsgebühr.** Das Apple Developer Program kostet 99 US-Dollar pro Mitgliedsjahr, abgerechnet in Landeswährung. Rechtzeitig verlängern, sonst verschwinden die Apps aus dem Store. Status: Inhaber. Quelle: [Mitglied werden](https://developer.apple.com/programs/enroll/), 26.11.2026.
+- [ ] <a id="a-27"></a>**A-27 Verträge, Steuern und Bankdaten.** Für eine kostenlose App reicht der Vertrag für kostenlose Apps, Steuerformulare braucht es nur bei Verkäufen. Als DSA-Händler verlangt Apple aber Zahlungskontodaten (siehe A-25). Neue Vertragsfassungen annehmen, sobald App Store Connect danach fragt, sonst stoppen die Uploads. Status: Inhaber. Wo: App Store Connect > Geschäftliches. Quelle: [Verträge unterzeichnen](https://developer.apple.com/help/app-store-connect/manage-agreements/sign-and-update-agreements), 26.11.2026.
 - [ ] <a id="a-28"></a>**A-28 Support-URL.** Eine Support-URL mit echten Kontaktdaten ist Pflicht, eine Marketing-URL ist freiwillig: die Seite `/support/`. Status: Inhaber. Wo: `fastlane/metadata/*/support_url.txt`, App Store Connect > Produktseite. Quelle: [Guidelines](https://developer.apple.com/app-store/review/guidelines/), 26.11.2026.
 - [ ] <a id="a-29"></a>**A-29 Prüfhinweise.** Vermerken, dass keine Anmeldung nötig ist, wie man Wecker, AirPlay und CarPlay ausprobiert und woher die Inhaltsrechte stammen. Status: Inhaber. Wo: App Store Connect > Informationen zur App-Prüfung. Quelle: [Guidelines](https://developer.apple.com/app-store/review/guidelines/), 26.11.2026.
 - [ ] <a id="a-30"></a>**A-30 Antworten auf die Prüfung.** In App Store Connect antworten, beheben und neu einreichen oder beim App Review Board Einspruch einlegen. Status: Inhaber. Quelle: [Guidelines](https://developer.apple.com/app-store/review/guidelines/) (Teil "After You Submit"), 26.11.2026.
@@ -173,6 +181,8 @@ Quellen (alle abgerufen am 26.11.2026):
 - [ ] <a id="a-32"></a>**A-32 Wiederkehrende Fristen.** Jedes Frühjahr hebt Apple die Mindestversion von Xcode und SDK an. Antworten zur Altersfreigabe und die Datenschutz-Labels sind anzupassen, wenn Apple die Fragen ändert. Status: Inhaber (Kalendereintrag jeden März). Quelle: [Kommende Anforderungen](https://developer.apple.com/news/upcoming-requirements/), 26.11.2026.
 
 - [x] <a id="a-33"></a>**A-33 Regel 4.3, Spam und Duplikate.** Eine App je Zweck, keine Kopien derselben App unter anderen Namen oder je Sender. Status: OK durch den Aufbau (eine App für alle Sender), so beibehalten. Wo: `assets/config/`. Quelle: [Guidelines](https://developer.apple.com/app-store/review/guidelines/), 26.11.2026.
+
+- [ ] <a id="a-34"></a>**A-34 Werbung in App Store Connect.** Wo die Fragen zur Altersfreigabe nach Werbung fragen: nein. Die App zeigt keine eigene Werbung, Spots in den Streams kommen von den Sendern. Status: Inhaber. Wo: App Store Connect > Altersfreigabe. Quelle: [Age rating](https://developer.apple.com/help/app-store-connect/manage-app-information/set-an-app-age-rating), nicht geprüft
 
 ### Überblick nach Thema
 
@@ -227,10 +237,14 @@ Quelle: <https://learn.microsoft.com/en-us/windows/apps/publish/store-policies>,
 
 ### Konto, Gebühren und Prüfung
 
-- [ ] <a id="m-20"></a>**M-20 Konto und Gebühr.** Firmenkonto des Kunden im Partner Center mit Firmenprüfung. Seit dem neuen Anmeldeablauf gibt es keine Registrierungsgebühr. Status: Inhaber. Quelle: [Kontotypen und Gebühren](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/account-types-locations-and-fees), 26.11.2026.
+- [ ] <a id="m-20"></a>**M-20 Konto und Gebühr.** Firmenkonto des Kunden im Partner Center mit Firmenprüfung und einer E-Mail-Adresse auf der Firmendomain. Seit dem neuen Anmeldeablauf gibt es keine Registrierungsgebühr. Status: Inhaber. Quelle: [Kontotypen und Gebühren](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/account-types-locations-and-fees), 26.11.2026.
 - [x] <a id="m-21"></a>**M-21 Auszahlung und Steuerformulare.** Nur für kostenpflichtige Apps, hier nicht nötig. Status: OK. Wo: Partner Center > Auszahlung und Steuern.
 - [ ] <a id="m-22"></a>**M-22 Support-Kontakt und Hinweise zur Zertifizierung.** Support-Kontakt im Store-Eintrag (support@linefm.de, Seite `/support/`), Hinweise für die Prüfer (keine Anmeldung, Wecker). Status: Inhaber. Wo: Partner Center > Eigenschaften und Einreichungsoptionen.
 - [ ] <a id="m-23"></a>**M-23 Abgelehnte Zertifizierung.** Beheben und neu einreichen oder den Einspruchsweg am Ende der Richtlinie nutzen. Status: Inhaber.
+
+- [x] <a id="m-24"></a>**M-24 10.11 und 10.12.** In Version 7.20 beide als "Policy removed" gekennzeichnet. Abschnitte 10.15 und 11.17 gibt es in Version 7.20 nicht. Status: OK. Quelle: [Store policies](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies), 26.11.2026
+- [ ] <a id="m-25"></a>**M-25 Händlerstatus in der EU (Digital Services Act).** Fragt das Partner Center nach dem Händlerstatus, den Kunden als Händler angeben, mit derselben Anschrift, Telefonnummer und E-Mail wie bei Google und Apple. Status: Inhaber. Wo: Partner Center > Kontoeinstellungen. Quelle: [Open a developer account](https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/open-a-developer-account), nicht geprüft (keine Microsoft-Seite zum Händlerstatus gefunden)
+- [ ] <a id="m-26"></a>**M-26 Frage zur Werbung.** In den Produkteigenschaften mit nein beantworten: kein Werbe-SDK, Spots in Streams kommen von den Sendern. Status: Inhaber. Wo: Partner Center > Eigenschaften. Quelle: [Store policies](https://learn.microsoft.com/en-us/windows/apps/publish/store-policies) 10.10, 26.11.2026
 
 ### Überblick nach Thema
 
@@ -270,6 +284,8 @@ Quellen:
 - [ ] <a id="s-07"></a>**S-07 Konto und Gebühren.** Ubuntu-One-Konto des Kunden, keine Gebühr, keine Steuerformulare für kostenlose Snaps. Status: Inhaber. Quelle: [Nutzungsbedingungen](https://ubuntu.com/legal/terms-and-policies/snap-store-terms), 26.11.2026.
 
 - [ ] <a id="s-08"></a>**S-08 Kontakt und Support.** Kontaktadresse und Website in den Snap-Metadaten: support@linefm.de und die Seite `/support/`. Status: offen. Wo: `packaging/snap/snapcraft.yaml` (`contact`, `website`), `web/support/` (anzulegen). Quelle: [Nutzungsbedingungen](https://ubuntu.com/legal/terms-and-policies/snap-store-terms), 26.11.2026.
+
+- [ ] <a id="s-09"></a>**S-09 Datenschutz und Kontakt im Store-Eintrag.** Im Eintrag auf snapcraft.io die URL der Datenschutzerklärung, support@linefm.de und die Seite `/support/` eintragen. Status: Inhaber. Wo: snapcraft.io > Listing. Quelle: [Terms](https://ubuntu.com/legal/terms-and-policies/snap-store-terms), 26.11.2026 (Felder des Eintrags selbst nicht geprüft)
 
 ### Überblick nach Thema
 
@@ -341,10 +357,12 @@ Quellen (abgerufen am 26.11.2026): <https://web.dev/articles/install-criteria>, 
 
 - [x] <a id="w-01"></a>**W-01 Installierbar.** Manifest mit Name, Icons 192 und 512 (maskable), Start-URL, `display` standalone, ausgeliefert über HTTPS mit Service Worker. Status: OK. Wo: `web/manifest.webmanifest`. Quelle: [Installationskriterien](https://web.dev/articles/install-criteria), 26.11.2026.
 - [ ] <a id="w-02"></a>**W-02 Erweiterter Installationsdialog.** Optional `screenshots` und `shortcuts` im Manifest. Status: offen (freiwillig). Wo: `web/manifest.webmanifest`. Quelle: [Manifest](https://www.w3.org/TR/appmanifest/), 26.11.2026.
-- [x] <a id="w-03"></a>**W-03 Einwilligung vor dem Tracking.** GA4 und GTM erst nach Einwilligung (TDDDG). Status: OK. Wo: `web/analytics.js`, `web/datenschutz/`. Quelle: [Installationskriterien](https://web.dev/articles/install-criteria), 26.11.2026.
-- [ ] <a id="w-04"></a>**W-04 Lizenzseite.** `/lizenz/` auf Deutsch und Englisch, verlinkt aus der Metainfo und den Stores. Status: offen. Wo: `web/lizenz/` (anzulegen). Quelle: [Manifest](https://www.w3.org/TR/appmanifest/), 26.11.2026.
+- [x] <a id="w-03"></a>**W-03 Einwilligung vor dem Tracking.** GA4 und GTM erst nach Einwilligung. Status: OK. Wo: `web/analytics.js`, `web/datenschutz/`. Quelle: [TDDDG § 25](https://www.gesetze-im-internet.de/ttdsg/__25.html), 26.11.2026.
+- [ ] <a id="w-04"></a>**W-04 Lizenzseite.** `/lizenz/` auf Deutsch und Englisch, verlinkt aus der Metainfo und den Stores. Status: offen. Wo: `web/lizenz/` (anzulegen). Quelle: Entscheidung des Inhabers, Flathub braucht die Seite, siehe F-07.
 
-- [ ] <a id="w-05"></a>**W-05 Kontakt und Support.** Seite `/support/` auf Deutsch und Englisch mit support@linefm.de, verlinkt aus Impressum, App und jedem Store-Eintrag. Status: offen. Wo: `web/support/` (anzulegen). Quelle: [Installationskriterien](https://web.dev/articles/install-criteria), 26.11.2026.
+- [ ] <a id="w-05"></a>**W-05 Kontakt und Support.** Seite `/support/` auf Deutsch und Englisch mit support@linefm.de, verlinkt aus Impressum, App und jedem Store-Eintrag. Status: offen. Wo: `web/support/` (anzulegen). Quelle: Entscheidung des Inhabers, die Stores brauchen die Seite, siehe G-29, A-28, M-22.
+
+- [ ] <a id="w-06"></a>**W-06 Barrierefreiheitserklärung.** Freiwillig unter `/barrierefreiheit/` (Deutsch und Englisch) veröffentlicht, auch wenn die Ausnahme für Kleinstunternehmen im BFSG greifen könnte. Der Anwalt bestätigt das. Status: offen. Wo: `web/barrierefreiheit/` (anzulegen). Quelle: [BFSG § 3](https://www.gesetze-im-internet.de/bfsg/__3.html), 26.11.2026
 
 ### Überblick nach Thema
 
@@ -370,8 +388,11 @@ Punkte: [W-05](#w-05)
 
 - [ ] <a id="d-01"></a>**D-01 Updater nur in Direktdownloads.** Store-Builds (Play, App Store, Mac App Store, Microsoft Store, Snap, Flathub) entstehen ohne Updater. Ein CI-Check durchsucht die Store-Pakete nach Updater-Code. Status: offen. Wo: Build-Schalter, `.github/workflows/store-*.yml`.
 - [ ] <a id="d-02"></a>**D-02 Eigene Konten des Kunden.** Jedes Store-Konto gehört der Organisation des Kunden. Status: Inhaber. Wo: `docs/EINRICHTUNG.md`.
-- [ ] <a id="d-03"></a>**D-03 Inhaltsrechte.** Der Kunde verwahrt die laut.fm-Vereinbarung und nennt sie überall dort, wo ein Store nach Rechten fragt (Inhaltsrechte bei Apple, Google auf Nachfrage, Hinweise bei Microsoft, Snap, Flathub). Das gilt auch für die Partnersender Radio3FM und FobFM: Der Kunde verwahrt deren schriftliche Zustimmung zur Aufnahme. Status: Inhaber.
-- [ ] <a id="d-04"></a>**D-04 Datenschutzerklärung ohne Platzhalter.** Verantwortlicher und Kontakt eingetragen, alle drei Telemetriedienste als optional genannt. Anwaltliche Prüfung empfohlen. Status: Inhaber. Wo: `web/datenschutz/`, `web/datenschutz/en/`.
+- [ ] <a id="d-03"></a>**D-03 Inhaltsrechte.** Der Kunde verwahrt die laut.fm-Vereinbarung und nennt sie überall dort, wo ein Store nach Rechten fragt (Inhaltsrechte bei Apple, Google auf Nachfrage, Hinweise bei Microsoft, Snap, Flathub). Das gilt auch für die Partnersender Radio3FM und FobFM: Der Kunde verwahrt deren schriftliche Zustimmung zur Aufnahme. Außerdem holt der Kunde von laut.fm eine schriftliche Bestätigung ein, dass dessen GEMA- und GVL-Lizenzen die Wiedergabe in der LINEFM-App abdecken. Der Anwalt prüft sie. Status: Inhaber.
+- [ ] <a id="d-04"></a>**D-04 Datenschutzerklärung ohne Platzhalter.** Verantwortlicher und Kontakt eingetragen, alle drei Telemetriedienste als optional genannt. Die URL muss dauerhaft erreichbar bleiben: Domain verlängern, TLS und Uptime-Überwachung. Anwaltliche Prüfung empfohlen. Status: Inhaber. Wo: `web/datenschutz/`, `web/datenschutz/en/`.
+
+- [ ] <a id="d-05"></a>**D-05 Verzeichnis der Verarbeitungstätigkeiten (Art. 30 DSGVO).** Eine ausgefüllte Vorlage nennt Sentry, Firebase, Umami, GA4/GTM im Web, laut.fm-Abrufe, Server-Logs und Support-Mail. Der Kunde prüft sie, ergänzt die Firmendaten und hält sie aktuell. Status: Inhaber. Wo: Vorlage unter `docs/`. Quelle: GDPR Art. 30, <https://eur-lex.europa.eu/eli/reg/2016/679/oj>, nicht geprüft
+- [ ] <a id="d-06"></a>**D-06 Jugendschutz (JMStV).** Die Einstufung 13+ und ihr Grund (gelegentlich derbe Sprache in fremden Streams) sind dokumentiert. Ob ein Jugendschutzbeauftragter nötig ist, prüft der Anwalt des Kunden. Status: Inhaber. Wo: Unterlagen des Kunden. Quelle: keine Quelle abgerufen
 
 ---
 

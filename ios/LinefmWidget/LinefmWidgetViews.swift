@@ -158,7 +158,7 @@ struct LinefmBackground: ViewModifier {
 
   @ViewBuilder
   func body(content: Content) -> some View {
-    if #available(iOSApplicationExtension 17.0, *) {
+    if #available(iOS 17.0, *) {
       content.containerBackground(color, for: .widget)
     } else {
       content

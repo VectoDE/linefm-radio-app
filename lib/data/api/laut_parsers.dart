@@ -3,15 +3,15 @@ import 'dart:convert';
 import 'package:linefm_radio/domain/schedule_slot.dart';
 import 'package:linefm_radio/domain/track.dart';
 
-/// Ergebnis eines geparsten laut.fm-Songs inklusive der Live-Kennung.
+/// Result of a parsed laut.fm song including the live flag.
 ///
-/// `live: true` setzt laut.fm, wenn der Sender gerade von einer externen
-/// Live-Einspeisung (Encoder/Relay) statt aus der laut.fm-Playlist laeuft
-/// (der Sender steht dann auch in `GET /stations/live`). In diesem Modus
-/// kennt laut.fm die Songlaenge nicht: `id` ist ein Platzhalter, `album`,
-/// `length` und `genre` fehlen, und `ends_at` des laufenden Songs ist immer
-/// `started_at + 60 s`. Erst wenn der naechste Titel kommt, wird `ends_at`
-/// des Vorgaengers korrigiert (gemessen am 18.11.2026 bei linefm und
+/// laut.fm sets `live: true` when the station is currently fed by an external
+/// live source (encoder/relay) instead of the laut.fm playlist
+/// (the station then also appears in `GET /stations/live`). In this mode
+/// laut.fm does not know the song length: `id` is a placeholder, `album`,
+/// `length` and `genre` are missing, and `ends_at` of the running song is always
+/// `started_at + 60 s`. Only when the next track arrives is `ends_at`
+/// of the predecessor corrected (measured on 2026-11-18 for linefm and
 /// linefmgaming).
 class LautSong {
   const LautSong({
@@ -24,20 +24,20 @@ class LautSong {
   final Track track;
   final bool isLive;
 
-  /// Nur bei WebSocket-Nachrichten gesetzt.
+  /// Only set for WebSocket messages.
   final String? stationSlug;
 
-  /// Laenge in Sekunden (fehlt bei Live-Sendungen).
+  /// Length in seconds (missing for live shows).
   final int? length;
 }
 
-/// Tolerante JSON-Parser (Verhalten wie `normalizeTrack` der Web-App).
+/// Tolerant JSON parsers (behaviour like `normalizeTrack` of the web app).
 ///
-/// Kaputte oder leere Felder ergeben `null` statt einer Exception.
+/// Broken or empty fields yield `null` instead of an exception.
 class LautParsers {
   const LautParsers._();
 
-  /// Platzhalterdauer, die laut.fm bei Live-Sendungen fuer `ends_at` setzt.
+  /// Placeholder duration laut.fm uses for `ends_at` on live shows.
   static const Duration livePlaceholderLength = Duration(seconds: 60);
 
   static final RegExp _lautTime = RegExp(
@@ -45,10 +45,10 @@ class LautParsers {
     r'\s*([+-])(\d{2}):?(\d{2})$',
   );
 
-  /// Song-Objekt -> [Track]. `null`, wenn weder Kuenstler noch Titel da sind.
+  /// Song object -> [Track]. `null` if neither artist nor title is present.
   static Track? parseSong(Object? json) => parseSongDetail(json)?.track;
 
-  /// Wie [parseSong], liefert zusaetzlich Live-Kennung, Laenge und Sender.
+  /// Like [parseSong], additionally returns live flag, length and station.
   static LautSong? parseSongDetail(Object? json) {
     if (json is! Map) return null;
     final artist = _artistOf(json);
@@ -62,7 +62,7 @@ class LautParsers {
         startedAt != null &&
         endsAt != null &&
         endsAt.difference(startedAt) == livePlaceholderLength) {
-      // Platzhalter, kein echtes Songende.
+      // Placeholder, not a real song end.
       endsAt = null;
     }
 
@@ -85,16 +85,16 @@ class LautParsers {
     );
   }
 
-  /// Liste von Songs (z. B. `last_songs`, genau 10, neueste zuerst).
-  /// Unbrauchbare Eintraege werden uebersprungen.
+  /// List of songs (e.g. `last_songs`, exactly 10, newest first).
+  /// Unusable entries are skipped.
   static List<Track> parseSongList(Object? json) {
     if (json is! List) return const <Track>[];
     return <Track>[for (final item in json) ?parseSong(item)];
   }
 
-  /// Sendeplan (`schedule`): Liste von Bloecken. Eintraege ohne Namen,
-  /// Wochentag oder gueltige Startstunde werden uebersprungen. Eine
-  /// ungueltige Endstunde wird zu `null`.
+  /// Schedule (`schedule`): list of blocks. Entries without a name,
+  /// weekday or valid start hour are skipped. An
+  /// invalid end hour becomes `null`.
   static List<ScheduleSlot> parseSchedule(Object? json) {
     if (json is! List) return const <ScheduleSlot>[];
     return <ScheduleSlot>[for (final item in json) ?_parseSlot(item)];
@@ -127,8 +127,8 @@ class LautParsers {
 
   static final RegExp _hexColor = RegExp(r'^#[0-9a-fA-F]{6}$');
 
-  /// Zeit im laut.fm-Format `2026-11-18 18:00:00 +0100` oder ISO-8601.
-  /// Ergebnis in lokaler Zeit; `null` bei unbekanntem Format.
+  /// Time in laut.fm format `2026-11-18 18:00:00 +0100` or ISO-8601.
+  /// Result in local time; `null` for an unknown format.
   static DateTime? parseTime(Object? value) {
     if (value is! String) return null;
     final text = value.trim();
@@ -155,13 +155,13 @@ class LautParsers {
     return DateTime.tryParse(text)?.toLocal();
   }
 
-  /// Hoererzahl (`/listeners` liefert eine nackte Ganzzahl).
+  /// Listener count (`/listeners` returns a bare integer).
   static int? parseListeners(Object? json) {
     final n = _int(json);
     return n == null || n < 0 ? null : n;
   }
 
-  /// `stream_url` aus der Station-Antwort.
+  /// `stream_url` from the station response.
   static String? parseStreamUrl(Object? json) {
     if (json is! Map) return null;
     final url = _string(json['stream_url']);
@@ -173,10 +173,10 @@ class LautParsers {
     return url;
   }
 
-  /// Ein WebSocket-Frame enthaelt mehrere JSON-Dokumente, getrennt durch
-  /// Zeilenumbruch (gemessen: ca. 1 Frame/s mit allen Wechseln aller
-  /// laut.fm-Sender). Es werden nur Zeilen der gesuchten [slugs] geparst;
-  /// alle anderen werden per Textvergleich verworfen, ohne JSON-Parsing.
+  /// A WebSocket frame contains several JSON documents separated by
+  /// newlines (measured: about 1 frame/s with all changes of all
+  /// laut.fm stations). Only lines of the requested [slugs] are parsed;
+  /// all others are discarded by text comparison, without JSON parsing.
   static List<LautSong> parseSongChangeFrame(String frame, Set<String> slugs) {
     final result = <LautSong>[];
     for (final line in const LineSplitter().convert(frame)) {
@@ -248,7 +248,7 @@ class LautParsers {
 
   static int? _int(Object? value) {
     if (value is int) return value;
-    // jsonDecode('1e999') liefert Unendlich; toInt() wuerde dort werfen.
+    // jsonDecode('1e999') yields infinity; toInt() would throw there.
     if (value is num) return value.isFinite ? value.toInt() : null;
     if (value is String) return int.tryParse(value.trim());
     return null;

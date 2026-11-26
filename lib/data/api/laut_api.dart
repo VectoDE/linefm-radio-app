@@ -6,25 +6,25 @@ import 'package:linefm_radio/data/api/laut_parsers.dart';
 import 'package:linefm_radio/domain/schedule_slot.dart';
 import 'package:linefm_radio/domain/track.dart';
 
-/// REST-Client fuer api.laut.fm (Spec 3.3).
+/// REST client for api.laut.fm (spec 3.3).
 abstract interface class LautApi {
   Future<Track?> currentSong(String slug);
 
-  /// Genau 10 Songs, neueste zuerst.
+  /// Exactly 10 songs, newest first.
   Future<List<Track>> lastSongs(String slug);
 
   Future<int?> listeners(String slug);
 
-  /// Wochen-Sendeplan der Station; leer, wenn laut.fm keinen liefert.
+  /// Weekly schedule of the station; empty if laut.fm delivers none.
   Future<List<ScheduleSlot>> schedule(String slug);
 
-  /// stream_url aus der Station-Antwort, null wenn unbekannt.
+  /// stream_url from the station response, null if unknown.
   Future<String?> streamUrl(String slug);
 }
 
-/// Fehler einer laut.fm-Anfrage (HTTP-Status ungleich 200 oder kaputtes
-/// JSON). Netzwerkfehler ohne Cache-Eintrag kommen als Exception von
-/// `package:http` durch.
+/// Error of a laut.fm request (HTTP status other than 200 or broken
+/// JSON). Network errors without a cache entry surface as an exception from
+/// `package:http`.
 class LautApiException implements Exception {
   const LautApiException(this.uri, this.message, {this.statusCode});
 
@@ -38,7 +38,7 @@ class LautApiException implements Exception {
       ', $uri)';
 }
 
-/// Echte Implementierung ueber [HttpCache].
+/// Real implementation on top of [HttpCache].
 class HttpLautApi implements LautApi {
   HttpLautApi({HttpCache? cache, Uri? baseUri})
     : cache = cache ?? HttpCache(),
@@ -54,7 +54,7 @@ class HttpLautApi implements LautApi {
   Future<Track?> currentSong(String slug) async =>
       (await currentSongDetail(slug))?.track;
 
-  /// Wie [currentSong], zusaetzlich mit Live-Kennung (siehe [LautSong]).
+  /// Like [currentSong], additionally with the live flag (see [LautSong]).
   Future<LautSong?> currentSongDetail(String slug) async =>
       LautParsers.parseSongDetail(
         await _getJson(_station(slug, 'current_song')),
@@ -81,8 +81,8 @@ class HttpLautApi implements LautApi {
   Future<String?> streamUrl(String slug) async =>
       LautParsers.parseStreamUrl(await _getJson(_station(slug)));
 
-  /// [emptyBodyAs]: Ergebnis bei leerem Body mit Status 200 (laut.fm liefert
-  /// das fuer Sender ohne Sendeplan); sonst ist ein leerer Body ein Fehler.
+  /// [emptyBodyAs]: result for an empty body with status 200 (laut.fm sends
+  /// that for stations without a schedule); otherwise an empty body is an error.
   Future<Object?> _getJson(Uri uri, {Object? emptyBodyAs}) async {
     final http.Response response = await cache.get(uri);
     if (response.statusCode != 200) {
@@ -103,7 +103,7 @@ class HttpLautApi implements LautApi {
   void close() => cache.close();
 }
 
-/// Platzhalter ohne Netzwerkzugriff (Tests, Previews).
+/// Placeholder without network access (tests, previews).
 class StubLautApi implements LautApi {
   const StubLautApi();
 

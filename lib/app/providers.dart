@@ -70,7 +70,7 @@ final telemetryProvider = Provider<TelemetryHub>(
 
 final lautApiProvider = Provider<LautApi>((ref) => const StubLautApi());
 
-/// Sendeplan einer Station (Slug); leer bei Fehler oder ohne Plan.
+/// Schedule of a station (slug); empty on error or without a schedule.
 final stationScheduleProvider =
     FutureProvider.family<List<ScheduleSlot>, String>((ref, slug) async {
       try {

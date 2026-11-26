@@ -18,8 +18,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location("bundle_budget", ROOT / "tool/perf/bundle_budget.py")
+assert _spec is not None and _spec.loader is not None
 bb = importlib.util.module_from_spec(_spec)
-assert _spec.loader is not None
 sys.modules["bundle_budget"] = bb  # dataclasses look the module up
 _spec.loader.exec_module(bb)
 

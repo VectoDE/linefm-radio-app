@@ -1,0 +1,10 @@
+# Extends the default gitleaks rules.
+# tool/store_policy_baseline.json holds SHA-256 hashes of public web pages
+# (written by tool/check_store_policy_links.py). They look like API keys to the
+# generic rule but carry no secret.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "SHA-256 page hashes of the store policy watch"
+paths = ['''^tool/store_policy_baseline\.json$''']

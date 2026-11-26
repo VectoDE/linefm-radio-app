@@ -42,7 +42,7 @@ Haken setzen, sobald ein Schritt erledigt und geprüft ist. Die Haken setzt du i
 
 **Windows:** Wo ein Schritt einen Befehl mit `grep` oder `dig` zeigt, gilt unter Windows PowerShell: `curl.exe -sI <Adresse> | Select-String <Wort>` statt `curl ... | grep -i <Wort>` (`curl.exe` mit Endung, sonst startet PowerShell einen anderen Befehl), `Resolve-DnsName <Name>` statt `dig`. Im Browser gehen für Zertifikate <https://www.ssllabs.com/ssltest/> und für Antwort-Kopfzeilen die Entwicklerwerkzeuge (F12, Reiter "Netzwerk"). Die Windows-Schreibweisen haben wir nicht auf deinem Rechner geprüft.
 
-**Rollen:** *Du* (Betreiber) bist LineFM Studios, die Person, die diese Anleitung abarbeitet. *Entwickler* und *Repository-Eigentümer* ist Tim Hauke. Mit *Inhaber* ist in den Schritten dieselbe Person gemeint wie du (der Betreiber). *Kunde* meint dein Unternehmen als Auftraggeber der App, also dich. Die Vereinbarung mit laut.fm hast du bereits und behältst sie selbst (Schritte 2.1, 17.7). Die Konten (Google, Microsoft und weitere) sind Organisationskonten deines Unternehmens. Name und Rechtsform des Konto-Inhabers trägst du in Schritt 1.6 ein, wir raten sie nicht. Die *zweite Person* (Zweitadmin, Vertretung) ist jemand aus deinem Unternehmen, den du benennst (Schritt 18.2). Fällt im Text eine andere Rolle, steht sie mit Namen dabei.
+**Rollen:** *Du* (Betreiber) bist LineFM Studios, die Person, die diese Anleitung abarbeitet. *Entwickler* und *Repository-Eigentümer* ist Tim Hauke. Mit *Inhaber* ist in den Schritten dieselbe Person gemeint wie du (der Betreiber). *Kunde* meint dein Unternehmen als Auftraggeber der App, also dich. Die Vereinbarung mit laut.fm hast du bereits und behältst sie selbst (Schritte 2.1, 17.7). Die Konten (Google, Microsoft und weitere) sind Organisationskonten deines Unternehmens. Name und Rechtsform des Konto-Inhabers trägst du in Schritt 1.6 ein, wir raten sie nicht. *LINEFM Gruppe* und *RadioGruppe* sind die Sender-Partner im Umfeld von LineFM Studios, ihre Zustimmung holst du selbst ein (Schritte 2.2, 2.3). *Verantwortlicher* im Sinne des Medienstaatsvertrags und der Datenschutz-Grundverordnung ist die Person oder Firma, die du in Schritt 3.1 benennst (in der Regel du als Geschäftsführung von LineFM Studios). Die *zweite Person* (Zweitadmin, Vertretung) ist jemand aus deinem Unternehmen, den du benennst (Schritt 18.2). Fällt im Text eine andere Rolle, steht sie mit Namen dabei.
 
 **Die wichtigsten Begriffe:**
 
@@ -131,10 +131,20 @@ Haken setzen, sobald ein Schritt erledigt und geprüft ist. Die Haken setzt du i
 | GPG, cosign, Attestierung | Verfahren, Dateien kryptografisch zu unterschreiben und die Herkunft nachzuweisen |
 | Semgrep, Trivy, zizmor, Code Scanning, Branch-Protection, Fine-grained Token | Sicherheitswerkzeuge und GitHub-Funktionen, die der Entwickler betreibt: Code-Prüfer, Schwachstellen-Scanner, Schutzregeln für den Hauptzweig, Token mit eng begrenzten Rechten |
 | gestaffelter Rollout, Managed Publishing | Veröffentlichung zuerst für einen Teil der Nutzer bzw. Freigabe erst auf deinen Klick |
-| msstore, Client-Secret, Globaler Administrator | Kommandozeile für den Microsoft Store, Passwort einer registrierten Anwendung, Rolle mit allen Rechten im Microsoft-Verzeichnis |
+| msstore, Client-Secret, Globaler Administrator (das bist du mit dem Konto aus Schritt 7.1) | Kommandozeile für den Microsoft Store, Passwort einer registrierten Anwendung, Rolle mit allen Rechten im Microsoft-Verzeichnis |
 | TalkBack, VoiceOver, NVDA, Tray | Screenreader (Android, Apple, Windows) bzw. das Symbol der App im Infobereich der Taskleiste |
 | DS-Daten, Registry Lock | Signatur-Daten für DNSSEC beim Domain-Anbieter, bzw. zusätzliche Sperre gegen Änderungen an der Domain |
 | Bundle-ID, Provisioning Profile, Xcode, Account Holder | Apple-Begriffe (spätere Runde): Kennung der App, Datei mit Installationsrechten, Entwicklungsprogramm auf dem Mac, Hauptverantwortlicher des Apple-Kontos |
+| Deploy (Ausrollen), Rollback | die Web-Version auf den Server bringen bzw. auf die vorige Version zurückgehen |
+| Runner, Lighthouse, Label | der GitHub-Rechner, auf dem ein Ablauf läuft; Qualitätsmessung einer Webseite; Markierung an einem Ticket (zum Beispiel `uptime`) |
+| Subdomain | Unteradresse einer Domain, zum Beispiel `app.linefm.de` |
+| Maintainer, Linter, Tarball, `extra-data` | Entwicklerbegriffe aus der Flathub-Einreichung: Betreuer der App bei Flathub (der Entwickler), automatische Formprüfung, gepacktes Archiv, Verfahren für fremde Download-Dateien |
+| Ubuntu One | Anmeldedienst von Canonical, den der Snap Store für sein Konto nutzt |
+| hybride Signierung, Play App Signing | Google verwaltet den App-Schlüssel, du hältst nur den Upload-Schlüssel |
+| Android Vitals | Auswertung von Abstürzen und Ruckeln in der Play Console |
+| Reverse-Charge | Steuerschuld liegt beim Empfänger, steht auf Rechnungen von Google und Apple aus Irland |
+| Container (GTM), Datenstream (GA4) | Sammelordner für Messcodes im Tag Manager bzw. die Messquelle einer Webseite in Google Analytics |
+| Netzwerkmitschnitt | Browser-Entwicklertools (Taste F12) > Reiter "Netzwerk": zeigt, welche Server die Seite anfragt |
 | D-U-N-S-Nummer | kostenlose Firmennummer von Dun & Bradstreet, die Google und Apple für Firmenkonten verlangen |
 
 ## Reihenfolge im Überblick
@@ -170,9 +180,9 @@ Die Schrittnummern bleiben stabil. In dieser Reihenfolge arbeitest du sie ab, we
 
 | Phase | Schritte | Warum zuerst |
 |---|---|---|
-| 1. Grundlagen | 1.1, 1.2, 1.3, 1.4, 1.5 | Zugang, Passwortmanager, Secrets |
+| 1. Grundlagen | 1.1, 1.2, 1.3, 1.5 (1.4 bleibt bis zum Anwaltstermin in Phase 3 offen) | Zugang, Passwortmanager, Secrets |
 | 2. Entscheiden | 1.6 | Hosting, Telemetrie, Stores und Konto-Inhaber bestimmen den Rest |
-| 3. Lange Wartezeiten anstoßen | 18.1 (D-U-N-S), 2.1 bis 2.3 (Bestätigungen), 20.1 (nur das Postfach, die Support-Seite folgt nach der Web-Phase) und 18.2 (Konten-Regeln, die Haken je Konto erst am Ende von Phase 8), Anwaltstermin vereinbaren (Anhang D) | Dritte antworten spät, Konten brauchen Adressen, mehrere Schritte brauchen den Anwalt |
+| 3. Lange Wartezeiten anstoßen | 20.5 (gemeinsamen Kalender anlegen, Fristen eintragen, sobald sie anfallen), 18.1 (D-U-N-S), 2.1 bis 2.3 (Bestätigungen), 20.1 (nur das Postfach, die Support-Seite folgt nach der Web-Phase) und 18.2 (Konten-Regeln, die Haken je Konto erst am Ende von Phase 8), Anwaltstermin vereinbaren (Anhang D) | Dritte antworten spät, Konten brauchen Adressen, mehrere Schritte brauchen den Anwalt |
 | 3a. Pflichtwerte | 3.1 (Werte und Platzhalter), 3.2, 3.5, 3.6 (Telemetrie-Entscheidung festlegen, danach 3.1 und 17.13 abschließen, der Dienst selbst folgt in 9.1 bis 9.3), 17.7, 17.8, 17.10, 17.13 | Der Release-Build bricht bei offenen Platzhaltern ab, Store-Formulare brauchen diese Antworten |
 | 4. Web | 5.1, 5.2, 4.1, 4.2, 4.4, 4.3 | Datenschutz-URL und Domain müssen live sein. "Domain live" heißt hier: Die Web-App ist unter linefm.de erreichbar. Der "Tag des Live-Gangs" der Apps in den Stores ist etwas anderes (Phase 11) |
 | 5. Rechtstexte | 3.3, 3.4, 3.1 abschließen (danach Web neu bauen, Schritt 1.5), Nutzungsbedingungen-Seite (Händlerstatus, Schritt 17.5: Anwalt), 2.4, 2.5, 17.3, 17.1, 17.2, 17.4, 17.6, 17.9, 17.11, 17.12, 18.3, 18.4 | Stores verlangen die URLs und Texte |
@@ -276,10 +286,11 @@ Die Schrittnummern bleiben stabil. In dieser Reihenfolge arbeitest du sie ab, we
 ### 1.6 Drei Entscheidungen vorab
 
 - **Wer:** Betreiber entscheidet, Entwickler berät.
-- **Was:** Entscheide diese drei Dinge, bevor du Abschnitt 2 bis 5 und 9 abarbeitest. Sie bestimmen, welche Verträge, Rechtstexte und Konten du brauchst.
+- **Was:** Entscheide diese vier Dinge, bevor du Abschnitt 2 bis 5 und 9 abarbeitest. Sie bestimmen, welche Verträge, Rechtstexte und Konten du brauchst.
   1. **Hosting der Web-App** (Schritt 5.1): Cloudflare Pages, eigener Server mit nginx oder Traefik oder Plesk. Der Hoster steht später im Impressum und in der Datenschutzerklärung. Kostenlos und ohne eigenen Server geht nur Cloudflare Pages (siehe Kostenübersicht oben). Das ist eine Empfehlung nach Aufwand, die Entscheidung triffst du mit dem Entwickler.
   2. **Statistik und Absturzberichte** (Abschnitt 9): ja oder nein, und mit welchem Anbieter. Selbst gehostete Dienste (Umami, Sentry in der Variante GlitchTip) brauchen einen eigenen Server mit Docker, den Cloudflare Pages nicht bietet. Ohne Server bleiben gehostete Dienste (Sentry, Firebase, Tarife nicht geprüft). Die einfachste Variante ist "nein" (Fall A in [STORE-DATENSCHUTZANGABEN.md](STORE-DATENSCHUTZANGABEN.md)): Dann entfallen die Auftragsverarbeitung für Telemetrie (Schritt 2.4), mehrere Platzhalter und viele Angaben in den Store-Formularen. Entscheidung des Betreibers, sie lässt sich später ändern.
   3. **Welche Stores zuerst:** Google Play, Microsoft, Flathub und Snap sind der erste Umfang, Apple später (Abschnitt 15). Jeder Store zusätzlich heißt: ein Konto, ein Formularsatz, eine Prüfung.
+  4. **Registrar und DNS-Anbieter von `linefm.de`:** Wo wurde die Domain gekauft (Registrar, steht auf der Rechnung) und wo liegen die DNS-Einträge (Cloudflare oder beim Registrar)? Das brauchst du für 4.1, 8.1 und 19.1. Weißt du es nicht, frag den Entwickler oder schau auf der Rechnung nach.
 - **Wozu:** Ohne diese Entscheidungen drehen sich Schritte im Kreis: Der Vertrag in 2.4 braucht den Telemetrie-Anbieter aus 9.1, die DNS-Einträge in 4.1 brauchen das Hosting aus 5.1.
 - **Wo eintragen:** Schicke die Antworten per Mail an den Entwickler und lege sie in deinen Unterlagen ab. **Konto-Inhaber (Betreiber trägt ein):** Name der Firma laut Handelsregister bzw. Gewerbeanmeldung: ____________________; Rechtsform: ____________________. Diese Angaben stehen später unverändert in Google Play, Microsoft, D-U-N-S und im Impressum.
 - **Woher:** eigene Entscheidung, Kosten siehe Übersicht oben.
@@ -458,7 +469,7 @@ dart run tool/gen_legal_html.dart --values=legal_values.json --fill-assets --str
 
 - **Wer:** Betreiber entscheidet (Schritt 1.6), Entwickler trägt die Werte ein.
 - **Was:** Wenn du in Schritt 1.6 Telemetrie gewählt hast, brauchen Schritt 3.1 (Anbieterliste und Betreiber-Platzhalter wie `{{UMAMI_BETREIBER}}`), Schritt 17.13 (Speicherdauer `{{TELEMETRIE_AUFBEWAHRUNG}}`) und Abschnitt 9 (Dienst einrichten) dieselben Antworten. Lege sie hier einmal fest: Anbieter (Umami, Sentry oder Firebase), Server-Anbieter, Speicherdauer (Vorschlag 90 Tage). Erst danach schließt der Entwickler 3.1 und 17.13 ab. Hast du Telemetrie ausgeschlossen, trägst du bei 3.1 die Telemetrie-Anbieter als nicht genutzt ein und überspringst 17.13 für diese Zeile.
-- **Wozu:** Der Release-Build bricht bei offenen Telemetrie-Platzhaltern ab, aber der Dienst selbst entsteht erst in Abschnitt 9. Ohne diese Festlegung widersprechen sich Rechtstexte und Dienst.
+- **Wozu:** Die Festlegung geht jetzt, der Prüfschritt "Dauer im Dienst eingestellt" erst nach Abschnitt 9. Setze den Haken deshalb erst dann. Der Release-Build bricht bei offenen Telemetrie-Platzhaltern ab, aber der Dienst selbst entsteht erst in Abschnitt 9. Ohne diese Festlegung widersprechen sich Rechtstexte und Dienst.
 - **Wo eintragen:** In der Datei aus Schritt 3.1 (`legal_values.json`) und später im Dienst (Schritt 9.3).
 - **Woher:** Deine Entscheidung aus Schritt 1.6, der Vertrag aus Schritt 2.4.
 - **Prüfschritt:** Anbieter, Server-Anbieter und Speicherdauer stehen in der Datei aus 3.1 und sind in 17.13 und 9.3 gleich.
@@ -504,7 +515,7 @@ dart run tool/gen_legal_html.dart --values=legal_values.json --fill-assets --str
 
 ### 4.4 CORS für cdn.linefm.de
 
-- **Wer:** Entwickler.
+- **Wer:** Entwickler, bei fehlendem Zugriff Betreiber über den CDN-Anbieter.
 - **Was:** Der Server hinter `cdn.linefm.de` sendet für `/images/icons/` den Header `Access-Control-Allow-Origin: *` (oder `https://app.linefm.de`).
 - **Wozu:** Ohne ihn kann die Web-Version das Senderlogo nicht als Cover in der Mediensteuerung des Browsers zeigen. Die App läuft trotzdem.
 - **Wo eintragen:** In der Server- oder CDN-Konfiguration von `cdn.linefm.de`.
@@ -592,13 +603,13 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 
 ### 6.4 Dienstkonto für den automatischen Upload
 
-- **Wer:** Betreiber legt das Cloud-Projekt mit dem Organisationskonto aus Schritt 6.1 und das Dienstkonto samt JSON-Schlüssel an, Entwickler begleitet. Den ersten Upload in die Play Console macht der Betreiber, der Entwickler begleitet. Die AAB-Datei dafür lädt der Betreiber aus dem Release auf GitHub herunter (Datei mit der Endung `.aab` unter Assets), der Entwickler zeigt, welche.
+- **Wer:** Betreiber legt das Cloud-Projekt mit dem Organisationskonto aus Schritt 6.1 und das Dienstkonto samt JSON-Schlüssel an, Entwickler begleitet. Den ersten Upload in die Play Console macht der Betreiber, der Entwickler begleitet. Die AAB-Datei dafür lädt der Betreiber aus dem Release auf GitHub herunter (die Echtheitsprüfung nach Schritt 16.4 macht der Entwickler vorher für dich) (Datei mit der Endung `.aab` unter Assets), der Entwickler zeigt, welche.
 - **Was:** In der Google Cloud Console ein Dienstkonto mit JSON-Schlüssel anlegen und in der Play Console einladen (Nutzer und Berechtigungen, Recht für Veröffentlichung auf Test- und Produktionsspuren).
 - **Wozu:** Die Pipeline lädt damit jedes Release als Entwurf in die Spur "internal".
 - **Wo eintragen:** Gesamter Inhalt der JSON-Datei als Secret `PLAY_SERVICE_ACCOUNT_JSON`. Optional Variable `BUILD_NUMBER_OFFSET`, nur wenn Play einen höheren `versionCode` verlangt (Standard 100).
 - **Woher:** Wenn du noch kein Google-Cloud-Projekt hast: <https://console.cloud.google.com/projectcreate>, Namen vergeben (zum Beispiel "LINEFM Store"), "Create". Das Projekt ist kostenlos und braucht keine Zahlungsdaten für diese Nutzung (nicht geprüft). Der **erste** App-Upload in die Play Console muss von Hand erfolgen (Spur "internal", AAB-Datei aus dem Release herunterladen), die Pipeline lädt erst danach hoch (der Entwickler begleitet das). Dann im Cloud-Projekt die "Google Play Android Developer API" aktivieren ("Enable", <https://developers.google.com/android-publisher/getting_started>). Dann Google Cloud Console > "IAM & Admin" > "Service accounts" (<https://console.cloud.google.com/iam-admin/serviceaccounts>), Projekt wählen. "Create service account", Name eingeben, "Done". Dann die E-Mail-Adresse des Dienstkontos anklicken > Reiter "Keys" > "Add key" > "Create new key" > Typ "JSON" > "Create". Die JSON-Datei wird einmal heruntergeladen und lässt sich nicht erneut laden. Sicher ablegen, nicht einchecken. Quellen: <https://docs.cloud.google.com/iam/docs/service-accounts-create>, <https://docs.cloud.google.com/iam/docs/keys-create-delete> (abgerufen 26.11.2026). Dann in der Play Console "Users and permissions" > "Invite new users", die E-Mail-Adresse des Dienstkontos (endet auf `iam.gserviceaccount.com`) eintragen, Rechte "Release apps to testing tracks" und "Release to production, exclude devices, and use Play App Signing", "Invite user". Das Konto steht dann als "Active" in der Liste. Die Wartezeit, bis die Rechte wirken, nennt Google nicht (nicht geprüft), erfahrungsgemäß kann es dauern.
 - **Prüfschritt:** Nach einem Release erscheint ein Entwurf in der Spur "internal".
-- **Wenn es nicht klappt:** Lauf rot mit "The caller does not have permission": Das Dienstkonto ist in der Play Console nicht eingeladen oder hat für diese App keine Veröffentlichungsrechte. Rechte prüfen, nach Änderungen bis zu 24 Stunden warten. Ist "Create new key" gesperrt, verbietet eine Organisationsrichtlinie (`iam.disableServiceAccountKeyCreation`) Schlüssel: Ein Administrator der Google-Organisation muss das Projekt davon ausnehmen. Meldung "Package not found": Die App ist in der Console noch nicht angelegt oder es wurde noch nie ein Build von Hand hochgeladen. **[Entwickler]** Der Entwickler lädt das erste App-Paket (AAB, die Android-Datei für den Play Store) einmal von Hand hoch. Meldung zum versionCode: `BUILD_NUMBER_OFFSET` höher setzen, zum Beispiel 200.
+- **Wenn es nicht klappt:** Lauf rot mit "The caller does not have permission": Das Dienstkonto ist in der Play Console nicht eingeladen oder hat für diese App keine Veröffentlichungsrechte. Rechte prüfen, nach Änderungen bis zu 24 Stunden warten. Ist "Create new key" gesperrt, verbietet eine Organisationsrichtlinie (`iam.disableServiceAccountKeyCreation`) Schlüssel: Ein Administrator der Google-Organisation (das bist du mit dem Konto aus Schritt 6.1, sonst frag den Entwickler) muss das Projekt davon ausnehmen. Meldung "Package not found": Die App ist in der Console noch nicht angelegt oder es wurde noch nie ein Build von Hand hochgeladen. **[Entwickler]** Der Betreiber lädt das erste App-Paket (AAB, die Android-Datei für den Play Store) einmal von Hand hoch. Meldung zum versionCode: `BUILD_NUMBER_OFFSET` höher setzen, zum Beispiel 200.
 - [ ] erledigt
 
 ### 6.5 Datenschutz und App-Inhalte
@@ -767,7 +778,7 @@ Quelle: [packaging/windows/README.md](../packaging/windows/README.md).
 - **Was:** Reihenfolge für Microsoft (eine Liste, nur hier): 1. 7.1 Konto, 2. 7.6 Lizenz, 3. 7.2 Produktidentität, 4. 7.5 Store-Eintrag und 7.7 Hinweise, 5. 7.8 Entra-Verzeichnis und Anwendung (macht nur die Anwendung, noch kein Client-Secret), 6. dieser Schritt: Client-Secret erzeugen, Partner-Center-Rolle "Manager" für die Anwendung vergeben, vier Secrets eintragen. Zuerst die App **einmal von Hand** im Partner Center veröffentlichen (das Paket dafür lädst du aus einem Release herunter, der Entwickler zeigt dir wie) (Name reservieren, erste Einreichung samt Altersfragebogen, Veröffentlichung abwarten). Die Pipeline nutzt die Store-CLI `msstore`, und die kann laut Microsoft keine App anlegen und nicht die erste Veröffentlichung machen. Updates per CLI gehen derzeit nur für kostenlose Produkte (<https://learn.microsoft.com/en-us/windows/apps/publish/msstore-dev-cli/overview>, abgerufen 26.11.2026). Danach: Partner Center > Zahnrad > "Account settings" > "User management" > Reiter "Microsoft Entra applications" (früher Azure AD) > Anwendung hinzufügen, Rolle "Manager". Vorher muss ein Entra-Verzeichnis (Tenant) mit dem Partner-Center-Konto verbunden sein: "Account settings" > "Tenants" > "Associate Microsoft Entra ID with your Partner Center account", mit Entra-Zugangsdaten anmelden, "Confirm" (<https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/associate-existing-azure-ad-tenant-with-partner-center-account>). Ein privates Microsoft-Konto reicht für die CLI nicht, sie braucht Entra-Zugangsdaten. **[Entwickler]** Diesen Schritt macht der Entwickler mit dir per Bildschirmfreigabe.
 - **Wozu:** `store-microsoft.yml` reicht damit den Entwurf ein (`--noCommit`, die Einreichung bleibt im Entwurf). Abgeschickt wird im Partner Center. Ein erneutes `publish` verwirft einen vorhandenen Entwurf. Deshalb gilt: Erst die Pipeline einmal laufen lassen, dann Beschreibung, Bilder, Altersfreigabe (Schritt 7.5) und Zertifizierungshinweise (Schritt 7.7) im Entwurf prüfen und ergänzen. Die Einträge aus der Handveröffentlichung bleiben für die erste Einreichung erhalten.
 - **Wo eintragen:** Secrets `MS_STORE_TENANT_ID` (Verzeichnis-/Tenant-ID: <https://entra.microsoft.com/> > Identity > Overview > "Tenant ID"), `MS_STORE_CLIENT_ID` (Entra admin center > Identity > Applications > App registrations > die Anwendung > "Application (client) ID"), `MS_STORE_CLIENT_SECRET` (App registrations > die Anwendung > "Certificates & secrets" > "Client secrets" > "New client secret", Beschreibung und Ablauf wählen, "Add", den Wert **sofort** kopieren, er wird nur einmal angezeigt) und `MS_STORE_SELLER_ID` (Account settings > Organization profile > Identifiers, Reiter "Publisher"; alternativ Legal info > Reiter "Developer". Die Microsoft-Doku nennt beide Orte uneinheitlich, nicht abschließend geprüft). Quelle: <https://learn.microsoft.com/en-us/windows/apps/publish/msstore-dev-cli/github-actions> (abgerufen 26.11.2026).
-- **Woher:** Partner Center und Entra admin center. Das Client-Secret hat ein Ablaufdatum (höchstens 24 Monate, Microsoft empfiehlt unter 12), notiere es im Fristenkalender (Schritt 20.5). Um die Anwendung in Entra anzulegen, kann ein Globaler Administrator des Verzeichnisses nötig sein.
+- **Woher:** Partner Center und Entra admin center. Das Client-Secret hat ein Ablaufdatum (höchstens 24 Monate, Microsoft empfiehlt unter 12), notiere es im Fristenkalender (Schritt 20.5, den du schon in Phase 3 anlegst). Um die Anwendung in Entra anzulegen, kann ein Globaler Administrator des Verzeichnisses nötig sein.
 - **Prüfschritt:** Nach einem Release erscheint ein Entwurf im Partner Center.
 - **Wenn es nicht klappt:** Lauf rot mit "AADSTS7000215" oder "invalid client secret": Das Client-Secret ist falsch oder abgelaufen. Unter "Certificates & secrets" ein neues erzeugen und `MS_STORE_CLIENT_SECRET` überschreiben. Meldung "Unauthorized": Die Anwendung hat im Partner Center nicht die Rolle "Manager" oder der Tenant ist nicht mit dem Konto verbunden. Die Einreichung bricht ab, weil die App noch nie veröffentlicht war: erste Veröffentlichung von Hand nachholen (siehe oben). Beide Fehlertexte stammen aus der Praxis, die Microsoft-Doku nennt keine Codes (nicht geprüft).
 - [ ] erledigt
@@ -1032,7 +1043,7 @@ Das gilt nur für die Web-Version. Alles ist aus, solange du keine Werte einträ
 
 #### Token für Sicherheitsfunde (nicht vorgesehen)
 
-- **Entscheidung des Inhabers (22.11.2026):** Es gibt kein `SECURITY_ALERTS_TOKEN`. Nichts einzurichten.
+- **Entscheidung des Betreibers (22.11.2026):** Es gibt kein `SECURITY_ALERTS_TOKEN`. Nichts einzurichten.
 - **Folge:** `security-alerts.yml` gleicht regulär nur Code Scanning ab. Dependabot- und Secret-Scanning-Alerts prüft der Betreiber in der Security-Ansicht des Repositories (siehe SECURITY.md).
 
 ### 12.4 PageSpeed-Schlüssel (optional)
@@ -1060,7 +1071,7 @@ Das gilt nur für die Web-Version. Alles ist aus, solange du keine Werte einträ
 ### 12.6 Sonar, Snyk und Best-Practices-Badge: nichts zu tun
 
 - **Wer:** Repo-Eigentümer (Entscheidung ist gefallen).
-- **Sonar und Snyk:** Entscheidung des Repo-Inhabers vom 21.11.2026: Beide entfallen. Du legst dort **kein** Konto an, und es gibt kein Secret dafür. Die Prüfungen übernehmen Semgrep, CodeQL, Trivy, OSV, gitleaks und zizmor, alle ohne Konto und ohne Zutun.
+- **Sonar und Snyk:** Entscheidung des Repo-Eigentümers vom 21.11.2026: Beide entfallen. Du legst dort **kein** Konto an, und es gibt kein Secret dafür. Die Prüfungen übernehmen Semgrep, CodeQL, Trivy, OSV, gitleaks und zizmor, alle ohne Konto und ohne Zutun.
 - **OpenSSF Best Practices (bestpractices.dev):** Nach unserer Kenntnis verlangt schon die unterste Stufe eine freie Lizenz (Anforderungen dort nicht live geprüft). LINEFM Radio ist proprietär, das Badge ist deshalb nicht erreichbar. Kein Konto nötig.
 - **Prüfschritt:** Unter Actions sind "Semgrep", "CodeQL" und "Supply Chain" grün.
 - **Wenn es nicht klappt:** Einer der drei ist rot: Das erledigt der Entwickler.
@@ -1458,7 +1469,7 @@ Vorprüfung, keine Rechtsberatung. Jeden Punkt lässt du von einem Anwalt bestä
 - **Woher:** deine Unterlagen.
 - **Prüfschritt:** Abschnitt A5 der Freigabe-Checkliste abgehakt, Vereinbarung griffbereit.
 - Store-Regeln: [D-03](STORE-RICHTLINIEN.md#d-03), [G-03](STORE-RICHTLINIEN.md#g-03), [G-32](STORE-RICHTLINIEN.md#g-32), [A-10](STORE-RICHTLINIEN.md#a-10), [M-14](STORE-RICHTLINIEN.md#m-14), [S-04](STORE-RICHTLINIEN.md#s-04)
-- **Wenn es nicht klappt:** Ein Store fragt nach Rechten, und die Vereinbarung liegt beim Kunden: Bei dir (Betreiber) einholen, nicht selbst formulieren. Die Plattform lehnt wegen geistigen Eigentums ab: Nachweis über den Einspruchsweg des Stores hochladen (Schritt 20.6).
+- **Wenn es nicht klappt:** Ein Store fragt nach Rechten, und die Vereinbarung liegt bei dir (Betreiber): Bei dir (Betreiber) einholen, nicht selbst formulieren. Die Plattform lehnt wegen geistigen Eigentums ab: Nachweis über den Einspruchsweg des Stores hochladen (Schritt 20.6).
 - [ ] erledigt
 
 ### 17.8 Radio3FM und FobFM
@@ -1470,7 +1481,7 @@ Vorprüfung, keine Rechtsberatung. Jeden Punkt lässt du von einem Anwalt bestä
 - **Woher:** Ansprechpartner bei den Sendern (Sender-Betreiber).
 - **Prüfschritt:** Zwei Freigaben mit Datum liegen vor. Ohne sie fliegen die Sender aus der App.
 - Store-Regeln: [D-03](STORE-RICHTLINIEN.md#d-03), [G-02](STORE-RICHTLINIEN.md#g-02), [M-28](STORE-RICHTLINIEN.md#m-28). Ohne schriftliche Erlaubnis für Namen, Logos und Streams keine Andeutung einer Verbindung.
-- **Wenn es nicht klappt:** Eine Freigabe fehlt: Den Sender ohne sie aus der App nehmen lassen (Entwickler), nicht auf Verdacht ausliefern. Ablage: Datei mit Datum beim Kunden.
+- **Wenn es nicht klappt:** Eine Freigabe fehlt: Den Sender ohne sie aus der App nehmen lassen (Entwickler), nicht auf Verdacht ausliefern. Ablage: Datei mit Datum bei dir (Betreiber).
 - [ ] erledigt
 
 ### 17.9 Lizenzen und Seite /lizenz/
@@ -1923,7 +1934,7 @@ Art: S = Secret, V = Variable. Ohne den Wert fehlt die Funktion, die in der Spal
 | `TRUST_TRUSTPILOT_URL` | V | Vertrauens-Badge | Profil bei Trustpilot | 11.2 |
 | `GPG_PRIVATE_KEY` | S | Signierte Releases (optional) | `gpg --armor --export-secret-keys <ID>` | 12.2 |
 | `NVD_API_KEY` | S | OWASP dependency-check im Workflow `dast.yml` (optional, ohne Schlüssel wird der Job übersprungen) | kostenloser Schlüssel von nvd.nist.gov/developers/request-an-api-key | 12.5 |
-| `UPDATER_ED25519_PRIVATE_KEY` | S (Umgebung `release`) | Updater der direkten Downloads (Windows-Setup, macOS-DMG), nie in Store-Builds | selbst erzeugter Ed25519-Schlüssel, Befehl liefert der Entwickler | 19.3 |
+| `UPDATER_ED25519_PRIVATE_KEY` (noch nicht anlegen, Schritt 19.3) | S (Umgebung `release`) | Updater der direkten Downloads (Windows-Setup, macOS-DMG), nie in Store-Builds | selbst erzeugter Ed25519-Schlüssel, Befehl liefert der Entwickler | 19.3 |
 | `GPG_PASSPHRASE` | S | Signierte Releases (optional) | beim Erzeugen vergeben | 12.2 |
 | `SCORECARD_TOKEN` | S | OpenSSF Scorecard (optional) | GitHub, Fine-grained token | 12.3 |
 | `CODE_SCANNING_ENABLED` | V | CodeQL (optional) | `true` | 12.3 |

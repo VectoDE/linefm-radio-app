@@ -68,7 +68,7 @@ Festzuhalten, damit später keine Zweifel entstehen:
 ### A7. Veröffentlichen
 
 - [ ] Freigabe, das GitHub-Repository öffentlich zu schalten. Danach sieht jeder den Code.
-- [ ] Freigabe für den Start in jedem Store einzeln (Google Play, Microsoft Store, Flathub, Snap, GitHub Releases, später Apple).
+- [ ] Freigabe für den Start in jedem Store einzeln (Google Play, Microsoft Store, Flathub, Snap, GitHub Releases; Apple App Store mit Mac App Store später in einer eigenen Runde, siehe EINRICHTUNG.md Abschnitt 15). Je Store vorher die Punkte in [STORE-RICHTLINIEN.md](STORE-RICHTLINIEN.md) abgehakt: [Google Play](STORE-RICHTLINIEN.md#google-play), [Apple](STORE-RICHTLINIEN.md#apple-app-store), [Microsoft](STORE-RICHTLINIEN.md#microsoft-store), [Snap](STORE-RICHTLINIEN.md#snap-store), [Flathub](STORE-RICHTLINIEN.md#flathub), [Web](STORE-RICHTLINIEN.md#web-und-pwa).
 
 ## B. Gerätetests (Release-Gate)
 
@@ -172,8 +172,11 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 - [ ] Kurz- und Langbeschreibung auf Deutsch und Englisch gelesen und freigegeben (Entwürfe in [STORE-TEXTE.md](STORE-TEXTE.md)). Sie nennen nur, was die App wirklich kann. Plattform-Hinweise stimmen (kein CarPlay, solange Apple fehlt).
 - [ ] Keine Aussagen wie "offizielle App der RadioGruppe", wenn LineFM Studios das nicht bestätigt hat. Der Hinweis "LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe" entspricht der Web-App.
 - [ ] Screenshots zeigen die echte App und keine Fantasiedaten, nichts Fremdes (keine Cover von Dritten in Großansicht ohne Freigabe).
-- [ ] Altersangabe stimmt (+RAP: Kraftausdrücke möglich).
-- [ ] Google Play: "Datensicherheit" und "App-Inhalte" zur Datenschutzerklärung passend ausgefüllt (siehe [EINRICHTUNG.md](EINRICHTUNG.md), Abschnitt 2.5).
+- [ ] Altersangabe stimmt: 13+ in allen Stores, OARS Kraftausdrücke moderat (+RAP: Kraftausdrücke möglich).
+- [ ] Google Play: "Datensicherheit" und "App-Inhalte" zur Datenschutzerklärung passend ausgefüllt (siehe [EINRICHTUNG.md](EINRICHTUNG.md), Abschnitt 13.1).
+- [ ] Google Play: Werbung "nein", Werbe-ID "nein", Nachrichten-App "nein", Prüfhinweise ausgefüllt (Schritte 6.5, 6.13).
+- [ ] Android Auto: Formfaktor hinzugefügt, Auto-Prüfung bestanden (Schritt 6.10, [G-21](STORE-RICHTLINIEN.md#g-21)).
+- [ ] 16-KB-Prüfung ohne Fehler (Schritt 6.11, [G-22](STORE-RICHTLINIEN.md#g-22)).
 - [ ] Google Play: Erklärung zu `USE_FULL_SCREEN_INTENT` (Vollbild-Alarm bei gesperrtem Bildschirm) und Foreground-Service (Dienst für die Wiedergabe im Hintergrund) gestellt, Entscheidung zum Umgang mit einer Ablehnung festgehalten.
 - [ ] Microsoft Store: Datenschutz-URL und Altersfreigabe eingetragen.
 - [ ] Flathub: Metainfo (Beschreibungsdatei für Linux-Stores) gültig, Altersangabe (OARS, Alterseinstufung dort) bestätigt, Domain-Bestätigung vorhanden.
@@ -182,6 +185,62 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 - [ ] Datenschutz in den Stores nennt dieselben Anbieter wie die Datenschutzerklärung (laut.fm, Apple iTunes für Cover, `cdn.linefm.de`, `radiogruppe.de`, Google Cast SDK, aktive Telemetrie).
 - [ ] Verträge zur Auftragsverarbeitung (AVV, Art. 28 DSGVO) mit Hosting-, CDN- und Telemetrie-Betreibern liegen vor. Bei US-Anbietern DPF-Zertifizierung geprüft (<https://www.dataprivacyframework.gov/list>).
 - [ ] Lizenzhinweise für Linux und Windows: libmpv und FFmpeg (LGPL bzw. GPL) sind in [LIZENZEN-DRITTE.md](LIZENZEN-DRITTE.md) beschrieben und im Paket enthalten.
+
+## E. Recht, Konten, Betrieb und Pflege
+
+Die Schritte dazu stehen in [EINRICHTUNG.md](EINRICHTUNG.md), Abschnitte 17 bis 20. Die Store-Regeln je Punkt in [STORE-RICHTLINIEN.md](STORE-RICHTLINIEN.md). Rechts- und Steuerpunkte sind eine Vorprüfung, keine Beratung.
+
+### E1. Recht und Datenschutz
+
+- [ ] Impressum nach § 5 DDG vollständig, Anschrift in allen Konsolen gleich (Schritt 17.1).
+- [ ] Datenschutzerklärung nennt Sentry, Firebase und Umami als optionale Dienste nach Einwilligung, dazu laut.fm, iTunes-Cover, `cdn.linefm.de`, `radiogruppe.de`, Google Cast, Hoster (Schritt 17.2).
+- [ ] Ohne Einwilligung geht keine Anfrage an Sentry, Firebase, Umami oder Google raus, Widerruf wirkt sofort (Netzwerkmitschnitt).
+- [ ] AVV je aktivem Auftragsverarbeiter abgelegt, DPF-Status mit Datum (Schritt 17.3).
+- [ ] BFSG: Entscheidung festgehalten, Erklärung zur Barrierefreiheit fertig oder Begründung (Schritt 17.4).
+- [ ] DSA-Händlerstatus bei Google, bei Apple in der späteren Apple-Runde angegeben und mit dem Anwalt abgestimmt ([G-26](STORE-RICHTLINIEN.md#g-26), [A-25](STORE-RICHTLINIEN.md#a-25), Schritt 17.5).
+- [ ] Markenlage LINEFM geprüft (Schritt 17.6).
+- [ ] laut.fm-Vereinbarung beim Kunden griffbereit, Hinweis für Prüfer in jeder Einreichung vermerkt (Schritt 17.7).
+- [ ] Schriftliche Freigaben Radio3FM und FobFM abgelegt (Schritt 17.8).
+- [ ] `/lizenz/` (de und en) erreichbar, Fremdlizenzen vollständig ([F-07](STORE-RICHTLINIEN.md#f-07), [W-04](STORE-RICHTLINIEN.md#w-04), Schritt 17.9).
+- [ ] Altersfreigabe überall 13+ (IARC bei Google und Microsoft), Zielgruppe 13+, OARS "Kraftausdrücke: moderat", keine Kinderzielgruppe ([G-19](STORE-RICHTLINIEN.md#g-19), [G-20](STORE-RICHTLINIEN.md#g-20), [A-17](STORE-RICHTLINIEN.md#a-17), [M-18](STORE-RICHTLINIEN.md#m-18), [F-10](STORE-RICHTLINIEN.md#f-10)).
+- [ ] Jugendschutz: Anwalt hat geprüft, ob ein Jugendschutzbeauftragter nach § 7 JMStV nötig ist (Schritt 17.10).
+- [ ] GEMA/GVL: schriftliche Bestätigung von laut.fm liegt vor (Schritt 2.1).
+- [ ] Verzeichnis der Verarbeitungstätigkeiten aus dem Muster übernommen und geprüft (Schritt 17.11, [VERARBEITUNGSVERZEICHNIS.md](VERARBEITUNGSVERZEICHNIS.md)).
+- [ ] Meldeweg für Datenpannen (72 Stunden) in INCIDENT.md eingetragen (Schritt 17.12).
+- [ ] Speicherdauern in Diensten, Datenschutzerklärung, Verzeichnis und Store-Formularen gleich (Schritt 17.13).
+- [ ] Externe Links (YouTube Music, Spotify, radiogruppe.de, laut.fm, iTunes, `cdn.linefm.de`) in der Datenschutzerklärung genannt (Schritt 17.2).
+- [ ] Freiwillige Erklärung zur Barrierefreiheit unter `/barrierefreiheit/` (de und en) erreichbar (Schritt 17.4).
+
+### E2. Konten, Kosten und Steuern
+
+- [ ] D-U-N-S-Nummer liegt vor, Name und Anschrift stimmen mit dem Impressum überein (Schritt 18.1).
+- [ ] Organisationskonten ([D-02](STORE-RICHTLINIEN.md#d-02)) von LineFM Studios bei Google Play, Apple, Microsoft, Snapcraft, Flathub, dazu Cloudflare, Sentry, Firebase, Umami-Host und Registrar; je Konto Zweitadmin und Zwei-Faktor-Anmeldung (Schritt 18.2).
+- [ ] Snap-Name `linefm-radio` mit dem Konto von LineFM Studios registriert ([S-03](STORE-RICHTLINIEN.md#s-03)).
+- [ ] Google-Entwicklerverifizierung für die APK außerhalb von Play erledigt (Schritt 6.12).
+- [ ] Vereinbarungen in Play Console und Partner Center angenommen, keine offenen Hinweise (Schritt 18.3, Apple später).
+- [ ] Steuerliche Einordnung der Kontokosten mit dem Steuerberater geklärt (Schritt 18.4).
+
+### E3. Technik und Betrieb
+
+- [ ] Domain mit automatischer Verlängerung und Transfer-Sperre, Ablaufdatum im Kalender (Schritt 19.1).
+- [ ] TLS gültig, Erneuerung automatisch (Schritt 19.2).
+- [ ] Alle Signierschlüssel doppelt gesichert, Wiederherstellung einmal getestet; Updater-Schlüssel `UPDATER_ED25519_PRIVATE_KEY` nur in der geschützten Umgebung `release`, Eigentümer LineFM Studios, Wechsel bei Verdacht geregelt (Schritt 19.3).
+- [ ] Updater fehlt in allen Store-Builds, die CI-Prüfung dazu ist grün.
+- [ ] Alle genutzten Secrets und Variablen aus Anhang A eingetragen, Release-Lauf meldet nichts Fehlendes (Schritt 19.4).
+- [ ] Release-Ablauf einmal komplett durchlaufen, Freigabe in jedem Store von Hand (Schritt 19.5).
+- [ ] Uptime-Monitor aktiv, Benachrichtigung für Tickets an; externer Monitor (UptimeRobot Free) mit E-Mail-Alarm an zwei Personen, Testalarm angekommen (Schritt 19.6).
+- [ ] Meldewege in `docs/betrieb/INCIDENT.md` eingetragen (Schritt 19.7).
+- [ ] Zuständigkeit für Dependabot und Sicherheitsmeldungen geregelt (Schritt 19.8).
+- [ ] Live-Gang: Flathub-Domaindatei, Brotli, Telemetrie-Adressen in der CSP, Log-Kürzung (Schritt 19.9, [F-04](STORE-RICHTLINIEN.md#f-04), [W-01](STORE-RICHTLINIEN.md#w-01)).
+
+### E4. Support und Pflege
+
+- [ ] `support@linefm.de` angelegt, `/support/` (de und en) erreichbar, beides in jedem Support-Feld jedes Stores, Testmail kommt an (Schritt 20.1).
+- [ ] Zuständigkeit für Bewertungen geregelt (Schritt 20.2).
+- [ ] Sicherheitsmeldungen landen bei jemandem, `security.txt` gültig (Schritt 20.3).
+- [ ] Monatliche Richtlinienprüfung läuft, Tickets mit Label `store-policy` werden binnen fünf Werktagen gelesen (Schritt 20.4).
+- [ ] Umgang mit Ablehnungen bekannt (Schritt 20.6).
+- [ ] Fristenkalender angelegt (Schritt 20.5).
 
 ## D. Zum Schluss
 

@@ -47,18 +47,25 @@ Haken setzen, sobald ein Schritt erledigt und geprüft ist.
 | 14 | Bilder und Screenshots | 6 bis 8 | Tage |
 | 15 | Apple (später) | 1 | Wochen |
 | 16 | Abnahme | alles | 1 Tag |
+| 17 | Recht, Datenschutz, Jugendschutz, Verarbeitungsverzeichnis | 2, 3 | Tage, dann laufend |
+| 18 | Konten, Kosten und Steuern | 1 | Wochen (D-U-N-S bis 30 Tage) |
+| 19 | Technik und Betrieb | 4, 5 | 1 bis 2 Tage, dann laufend |
+| 20 | Support und Pflege, Fristenkalender | 16 | laufend |
 
-Abschnitt 2 zuerst anstoßen, weil Antworten von Dritten am längsten dauern. Die Abschnitte 6 bis 8 laufen parallel.
+Abschnitt 2 und die D-U-N-S-Nummer (Schritt 18.1) zuerst anstoßen, weil Antworten von Dritten am längsten dauern. Die Abschnitte 6 bis 8 laufen parallel.
 
 ## Übersicht: Was kostet das?
 
 | Dienst | Kosten | Wofür |
 |---|---|---|
-| Google Play Console | 25 US-Dollar einmalig | Android |
-| Microsoft Partner Center | für Einzelpersonen kostenlos | Windows-Store |
+| Google Play Console | 25 US-Dollar einmalig (abgerufen 26.11.2026) | Android |
+| Microsoft Partner Center | kostenlos für Einzelpersonen und Firmen über storedeveloper.microsoft.com (abgerufen 26.11.2026) | Windows-Store |
 | Flathub, Snap Store | kostenlos | Linux |
 | GitHub Releases | kostenlos | Installer für Windows, Linux, macOS, Android-APK |
-| Apple Developer Program | 99 US-Dollar pro Jahr | iOS, macOS-Store, CarPlay (vorerst nicht) |
+| Apple Developer Program | 99 US-Dollar pro Mitgliedsjahr, Preis in Landeswährung (abgerufen 26.11.2026) | iOS, macOS-Store, CarPlay |
+| D-U-N-S-Nummer | kostenlos bei Dun & Bradstreet, bis zu 30 Tage (laut Google, abgerufen 26.11.2026) | Organisationskonten Google, Apple, Microsoft |
+| Domain `linefm.de` | laut Registrar-Rechnung | Web, App-Links, Flathub-Bestätigung |
+| Sentry, Firebase, Umami | je nach Tarif, kostenlose Stufen vorhanden (nicht live geprüft) | Statistik und Absturzberichte nach Einwilligung |
 | Cloudflare Pages | kostenlos | Web, falls gewählt |
 | eigener Server oder Plesk | vorhanden | Web, falls gewählt |
 | Sigstore, GitHub-Attestierung | kostenlos | Signatur der Releases (Abschnitt 12) |
@@ -116,7 +123,7 @@ Alle Punkte hier sind Vorprüfung, keine Rechtsberatung. Lass Wortlaut und Folge
 - **Was:** Schriftlich klären, ob die Musikrechte für die Wiedergabe über eine eigene App abgedeckt sind und ob für die Sender eine Lizenz über laut.fm besteht.
 - **Wozu:** Die App nutzt die öffentliche laut.fm-Schnittstelle (Titel, Hörerzahl, Streams). Unsere Quelle belegt die Abdeckung nur durch einen Artikel von 2015. Ohne Bestätigung bleibt ein Rechtsrisiko.
 - **Wo eintragen:** Antwort in Abschnitt A4 und A5 der Freigabe-Checkliste. Im Impressum steht bewusst keine Aussage wie "eigene Lizenz".
-- **Woher:** laut.fm fragen (Adresse laut Freigabe-Checkliste: `team@laut.fm`, vor Gebrauch prüfen). GEMA und GVL fragst du mit der Frage, ob die Nutzung als App-Wiedergabe unter die Verträge von laut.fm fällt.
+- **Woher:** Entscheidung des Inhabers: Die schriftliche Bestätigung zu GEMA und GVL holt LineFM Studios **bei laut.fm** ein (Adresse laut Freigabe-Checkliste: `team@laut.fm`, vor Gebrauch prüfen). Gefragt wird, ob die Wiedergabe der Streams in einer eigenen App eines Dritten unter die Lizenzverträge von laut.fm mit GEMA und GVL fällt.
 - **Prüfschritt:** Es liegt eine schriftliche Antwort vor, die zur Aussage im Impressum passt.
 - [ ] erledigt
 
@@ -294,10 +301,10 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 
 ### 6.1 Entwicklerkonto
 
-- **Was:** Konto anlegen, 25 US-Dollar einmalig zahlen, Identität bestätigen (Ausweis, Adresse, Telefon). Tim Hauke als Nutzer einladen (Nutzer und Berechtigungen > Neue Nutzer einladen, mit App-Rechten für Veröffentlichung).
+- **Was:** **Organisationskonto** von LineFM Studios anlegen (Entscheidung des Inhabers: in jedem Store das eigene Organisationskonto des Kunden), 25 US-Dollar einmalig zahlen, Organisation bestätigen (D-U-N-S-Nummer aus Schritt 18.1, Website, offizielle Telefonnummer und E-Mail der Organisation). Tim Hauke als Nutzer einladen (Nutzer und Berechtigungen > Neue Nutzer einladen, mit App-Rechten für Veröffentlichung).
 - **Wozu:** Ohne Konto keine Veröffentlichung. Google verlangt die Identität auch für sideloadbare APKs ab 2027 (Entwicklerverifizierung).
 - **Wo eintragen:** <https://play.google.com/console/signup>.
-- **Woher:** Kreditkarte, Ausweis. Ein **privates** Konto braucht für die Erstveröffentlichung einen geschlossenen Test mit mindestens 12 Testern über mindestens 14 Tage (Schritt 6.8). Ein Organisationskonto mit D-U-N-S-Nummer braucht das nicht. Die Regel ändert Google gelegentlich, vor dem Start prüfen.
+- **Woher:** Kreditkarte (keine Prepaid-Karte), D-U-N-S-Nummer. Name und Anschrift müssen exakt dem Eintrag bei Dun & Bradstreet entsprechen. Quelle: <https://support.google.com/googleplay/android-developer/answer/13628312> (abgerufen 26.11.2026). Store-Regeln: [G-25](STORE-RICHTLINIEN.md#g-25), [G-27](STORE-RICHTLINIEN.md#g-27), [D-02](STORE-RICHTLINIEN.md#d-02). Zum Vergleich: Ein **privates** Konto braucht für die Erstveröffentlichung einen geschlossenen Test mit mindestens 12 Testern über mindestens 14 Tage (Schritt 6.8). Ein Organisationskonto mit D-U-N-S-Nummer braucht das nicht. Die Regel ändert Google gelegentlich, vor dem Start prüfen.
 - **Prüfschritt:** Die Console zeigt "Konto verifiziert".
 - [ ] erledigt
 
@@ -330,11 +337,12 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 
 ### 6.5 Datenschutz und App-Inhalte
 
-- **Was:** Play Console > Richtlinie > App-Inhalte. Datenschutzerklärung-URL `https://app.linefm.de/datenschutz/`, Werbung "Keine Werbung", Zielgruppe (nicht für Kinder), Inhaltseinstufung per Fragebogen, Kontaktdaten der Store-Seite, Behördenapp "nein", Finanzfunktionen "nein", Gesundheit "nein".
+- **Was:** Play Console > Richtlinie > App-Inhalte. Datenschutzerklärung-URL `https://app.linefm.de/datenschutz/`. Werbung "nein": Die App selbst bindet keine Werbung ein, Werbespots im Programm kommen von den Sendern. Google kann das Werbe-Label selbst setzen (<https://support.google.com/googleplay/android-developer/answer/9859455>, abgerufen 26.11.2026). Zielgruppe "13 und älter" (keine Kinder), Altersfreigabe über den **IARC-Fragebogen** (Ziel 13+), App-Zugriff "keine Anmeldung nötig" (kein Testkonto), Werbe-ID-Erklärung "nein", Nachrichten-App "nein" (Medien-Streaming-Apps fallen laut Google nicht darunter, <https://support.google.com/googleplay/android-developer/answer/10523915>), Behörden-App "nein", Finanzfunktionen "nein", Gesundheit "nein". Laut Google sind Datenschutzerklärung, Werbung, Zielgruppe und Altersfreigabe für alle Apps Pflicht (Quelle oben). Welche weiteren Erklärungen die Console abfragt, zeigt sie selbst.
 - **Wozu:** Alles muss ausgefüllt sein, sonst blockiert Google die Veröffentlichung.
 - **Wo eintragen:** Play Console, App-Inhalte.
 - **Woher:** Hinweise: Der Sender +RAP kann Kraftausdrücke senden, im Fragebogen ehrlich angeben. Die Werbe-ID wird nicht verwendet. Das Manifest entfernt `com.google.android.gms.permission.AD_ID` per `tools:node="remove"`. Nach dem Release-Build mit `aapt dump permissions app-release.apk` nachsehen, ob sie fehlt. Sonst müsste "Werbe-ID: ja" stehen. Die Antworten zu Datensicherheit stehen in Abschnitt 13.
 - **Prüfschritt:** Alle Punkte unter App-Inhalte zeigen einen grünen Haken.
+- Store-Regeln: [G-05](STORE-RICHTLINIEN.md#g-05), [G-12](STORE-RICHTLINIEN.md#g-12), [G-13](STORE-RICHTLINIEN.md#g-13), [G-19](STORE-RICHTLINIEN.md#g-19), [G-20](STORE-RICHTLINIEN.md#g-20), [G-24](STORE-RICHTLINIEN.md#g-24), [G-30](STORE-RICHTLINIEN.md#g-30)
 - [ ] erledigt
 
 ### 6.6 Deklarationen: Vordergrunddienst und Vollbild-Benachrichtigung
@@ -344,6 +352,7 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 - **Wo eintragen:** Play Console > Richtlinie > App-Inhalte > "Vordergrunddienste" und "Vollbild-Benachrichtigungen" (genauen Menünamen vor Ort prüfen).
 - **Woher:** Fertige Texte auf Deutsch und Englisch, die Felder der Console und das Skript für das Demo-Video stehen in [STORE-TEXTE.md](STORE-TEXTE.md), Abschnitt "Play-Console-Deklarationen". Das Video nimmst du selbst auf (Hinweise dort).
 - **Prüfschritt:** Beide Deklarationen zeigen den Status "Abgeschickt" bzw. "Genehmigt". Entscheidung zum Umgang mit einer Ablehnung ist festgehalten (Freigabe-Checkliste, Abschnitt C).
+- Store-Regeln: [G-14](STORE-RICHTLINIEN.md#g-14), [G-15](STORE-RICHTLINIEN.md#g-15), [G-16](STORE-RICHTLINIEN.md#g-16), [G-17](STORE-RICHTLINIEN.md#g-17)
 - [ ] erledigt
 
 ### 6.7 Store-Eintrag
@@ -353,11 +362,14 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 - **Wo eintragen:** Play Console > Store-Präsenz. Texte aus [STORE-TEXTE.md](STORE-TEXTE.md). Icon 512 x 512 liegt in `assets/branding/play_store_512.png`. Weiteres in Abschnitt 14.
 - **Woher:** STORE-TEXTE.md, Abschnitt "Google Play".
 - **Prüfschritt:** Die Vorschau der Store-Seite zeigt alle Felder ohne Fehler.
+- Store-Regeln: [G-06](STORE-RICHTLINIEN.md#g-06), [G-29](STORE-RICHTLINIEN.md#g-29)
 - [ ] erledigt
 
-### 6.8 Geschlossener Test (nur privates Konto)
+### 6.8 Geschlossener Test (Pflicht nur für private Konten)
 
-- **Was:** Testspur "Geschlossener Test" anlegen, Release hochladen, mindestens 12 Tester per E-Mail-Liste oder Google-Gruppe eintragen, 14 Tage laufen lassen, dann "Zugriff auf Produktion beantragen".
+Google nennt die Testpflicht nur für **private** Konten, die nach dem 13.11.2023 angelegt wurden: mindestens 12 Tester, je 14 Tage durchgehend dabei (<https://support.google.com/googleplay/android-developer/answer/14151465>, abgerufen 26.11.2026). LineFM Studios nutzt ein Organisationskonto, für das die Seite keine solche Pflicht nennt. Zeigt die Console trotzdem den Hinweis, gilt die Console. Für Android Auto brauchst du ohnehin eine Testspur (Schritt 6.10).
+
+- **Was (nur falls die Console es verlangt):** Testspur "Geschlossener Test" anlegen, Release hochladen, mindestens 12 Tester per E-Mail-Liste oder Google-Gruppe eintragen, 14 Tage laufen lassen, dann "Zugriff auf Produktion beantragen".
 - **Wozu:** Google verlangt das für private Konten vor der ersten Veröffentlichung.
 - **Wo eintragen:** Play Console > Test und Veröffentlichung > Geschlossener Test. Einladungstext und Testerliste-Vorlage in [STORE-TEXTE.md](STORE-TEXTE.md). Tester-E-Mail-Adressen nur solange speichern, wie der Test läuft.
 - **Woher:** Deine Kontakte.
@@ -373,6 +385,52 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 - **Prüfschritt:** Nach dem nächsten Web-Deploy ist `https://app.linefm.de/.well-known/assetlinks.json` ohne Weiterleitung mit Status 200 und `application/json` erreichbar und enthält beide Fingerabdrücke. Danach bittest du den Entwickler, im Manifest `autoVerify` auf `true` zu setzen und neu zu veröffentlichen.
 - [ ] erledigt
 
+### 6.10 Android Auto
+
+Quelle: <https://developer.android.com/training/cars/distribute> (abgerufen 26.11.2026).
+
+- **Was:**
+  1. Play Console > Test und Veröffentlichung > Erweiterte Einstellungen > Formfaktoren: "Android Auto" hinzufügen.
+  2. Ein App-Bundle mit Auto-Unterstützung zuerst in einer **Testspur** veröffentlichen.
+  3. Die Auto-Prüfung einplanen: Für offene Tests und Produktion blockiert sie die Veröffentlichung, für geschlossene Tests ist sie nur ein Hinweis. Das Ergebnis kommt per E-Mail.
+  4. Wird ein Bundle abgelehnt: das abgelehnte Bundle aus der Spur entfernen, bevor du eine neue Version hochlädst.
+  5. Vorher mit der Desktop Head Unit (DHU) prüfen (Freigabe-Checkliste B2).
+- **Wozu:** Ohne Formfaktor erscheint die App nicht im Auto. Google prüft Auto-Apps gesondert nach der Qualitätsliste für Medien-Apps.
+- **Wo eintragen:** Play Console. Ein Testkonto für die Prüfung ist nicht nötig, die App hat keine Anmeldung.
+- **Woher:** Der Entwickler erklärt die DHU.
+- **Prüfschritt:** Die Auto-Prüfung meldet per E-Mail "genehmigt".
+- Store-Regeln: [G-21](STORE-RICHTLINIEN.md#g-21)
+- [ ] erledigt
+
+### 6.11 16-KB-Speicherseiten
+
+- **Was:** Vor jedem Release prüfen, dass die nativen Bibliotheken auf 16-KB-Seiten ausgerichtet sind: `zipalign -c -P 16 -v 4 app-release.apk`. Das macht der Entwickler bzw. die CI.
+- **Wozu:** Google lehnt Updates ab, die auf Geräten mit 16-KB-Speicherseiten nicht laufen.
+- **Wo eintragen:** nichts. Die Play Console zeigt Warnungen im App-Bundle-Explorer.
+- **Woher:** Entwickler.
+- **Prüfschritt:** Die Prüfung meldet keinen Fehler, die Console keine Warnung.
+- Store-Regeln: [G-22](STORE-RICHTLINIEN.md#g-22)
+- [ ] erledigt
+
+### 6.12 Entwicklerverifizierung für die APK außerhalb von Google Play
+
+- **Was:** Die APK auf GitHub Releases bleibt (Entscheidung des Inhabers). Dafür registriert LineFM Studios die App bei Googles Android-Entwicklerverifizierung. Wer auch über Play vertreibt, macht das in der Play Console. Laut Google registriert Play 99 Prozent der Apps automatisch, übrige Apps und solche außerhalb von Play meldest du dort von Hand an.
+- **Wozu:** Seit 30.09.2026 schützen zertifizierte Android-Geräte in Brasilien, Indonesien, Singapur und Thailand vor Apps unbestätigter Entwickler, 2027 folgt die weltweite Ausweitung. Ohne Registrierung lässt sich die GitHub-APK dann auf normalen Geräten kaum noch installieren. Quelle: <https://developer.android.com/developer-verification> (abgerufen 26.11.2026).
+- **Wo eintragen:** Play Console, Bereich Entwicklerverifizierung (Menüname vor Ort prüfen). Registriert wird der Schlüssel, der die GitHub-APK signiert (Upload-Schlüssel, Schritt 6.3).
+- **Woher:** Organisationskonto, Upload-Schlüssel. Gebühren und Details in der FAQ der Quellseite (nicht im Detail abgerufen).
+- **Prüfschritt:** Die Console zeigt die App als registriert, auch für den Vertrieb außerhalb von Play.
+- [ ] erledigt
+
+### 6.13 Hinweise für die Prüfung
+
+- **Was:** Im Feld für Prüfhinweise schreiben: keine Anmeldung nötig; wo der Wecker gestellt wird; wie Chromecast und Android Auto getestet werden; Herkunft der Inhalte (laut.fm-Vereinbarung, Schritt 17.7).
+- **Wozu:** Prüfer, die eine Funktion nicht finden, lehnen ab.
+- **Wo eintragen:** Play Console > App-Inhalte > App-Zugriff (Anweisungen). Microsoft: Partner Center > Einreichung > "Hinweise für die Zertifizierung".
+- **Woher:** Textvorschläge in [STORE-TEXTE.md](STORE-TEXTE.md).
+- **Prüfschritt:** Beide Felder ausgefüllt.
+- Store-Regeln: [G-30](STORE-RICHTLINIEN.md#g-30), [M-03](STORE-RICHTLINIEN.md#m-03), [M-22](STORE-RICHTLINIEN.md#m-22)
+- [ ] erledigt
+
 ---
 
 ## 7. Microsoft Partner Center (Windows-Store)
@@ -381,7 +439,7 @@ Quelle: [packaging/windows/README.md](../packaging/windows/README.md).
 
 ### 7.1 Konto und App-Name
 
-- **Was:** Als Einzelentwickler registrieren (kostenlos, Identitätsprüfung), Namen "LINEFM Radio" reservieren.
+- **Was:** Als **Firma** (Company account) über <https://storedeveloper.microsoft.com> registrieren, kostenlos (abgerufen 26.11.2026). Bestätigung per D-U-N-S-Nummer (schneller) oder Firmendokumenten (manuelle Prüfung, 2 bis 5 Werktage). Die E-Mail muss zur Domain der Firma passen, Gmail und ähnliche gehen nicht. Ein Einzelkonto lässt sich später nicht in ein Firmenkonto umwandeln. Danach Namen "LINEFM Radio" reservieren. Store-Regeln: [M-12](STORE-RICHTLINIEN.md#m-12), [M-20](STORE-RICHTLINIEN.md#m-20), [D-02](STORE-RICHTLINIEN.md#d-02).
 - **Wozu:** Ohne Konto kein Store-Eintrag.
 - **Wo eintragen:** <https://partner.microsoft.com/dashboard/registration>.
 - **Woher:** Ausweis, Kontaktdaten.
@@ -419,10 +477,11 @@ Quelle: [packaging/windows/README.md](../packaging/windows/README.md).
 
 ### 7.5 Store-Eintrag
 
-- **Was:** Beschreibung, 300 x 300-Logo, mindestens ein Screenshot, Altersfreigabe, Datenschutz-URL.
+- **Was:** Beschreibung, 300 x 300-Logo, mindestens ein Screenshot, Altersfreigabe über den **IARC-Fragebogen** im Partner Center (Ziel 13+), Datenschutz-URL, Support-Kontakt (Schritt 20.1), Hinweise für die Zertifizierung (Schritt 6.13).
 - **Wo eintragen:** Partner Center. Texte aus [STORE-TEXTE.md](STORE-TEXTE.md), Abschnitt "Microsoft Store".
 - **Wozu / Woher:** Sichtbar im Store. Datenschutz-URL `https://app.linefm.de/datenschutz/`.
 - **Prüfschritt:** Die Einreichung zeigt keine offenen Pflichtfelder.
+- Store-Regeln: [M-05](STORE-RICHTLINIEN.md#m-05), [M-07](STORE-RICHTLINIEN.md#m-07), [M-18](STORE-RICHTLINIEN.md#m-18), [M-22](STORE-RICHTLINIEN.md#m-22)
 - [ ] erledigt
 
 ---
@@ -447,11 +506,12 @@ Quelle: [packaging/flathub/README.md](../packaging/flathub/README.md).
 
 ### 8.2 Snap Store
 
-- **Was:** Konto anlegen, Snap-Namen `linefm-radio` registrieren, Zugangsdaten für die Pipeline erzeugen.
+- **Was:** Konto von LineFM Studios anlegen, Snap-Namen `linefm-radio` mit diesem Konto registrieren (nicht mit einem Entwicklerkonto), Zugangsdaten für die Pipeline erzeugen. Im Snap-Dashboard Kontakt `support@linefm.de`, Website `/support/` und Datenschutz-URL eintragen.
 - **Wozu:** `store-snap.yml` lädt jedes Release in den Kanal "edge".
 - **Wo eintragen:** Secret `SNAPCRAFT_STORE_CREDENTIALS`.
 - **Woher:** Konto auf <https://snapcraft.io/> (Ubuntu One). Name per `snapcraft register linefm-radio`. Zugangsdaten per `snapcraft export-login`, der volle Befehl steht in [secrets.md](secrets.md). Sie laufen ab, dann wiederholen.
 - **Prüfschritt:** Nach einem Release erscheint die Version im Kanal "edge". Dann "candidate" und "stable". Ob die Tray-Funktion unter der strikten Snap-Absicherung läuft, ist noch ungetestet.
+- Store-Regeln: [S-03](STORE-RICHTLINIEN.md#s-03), [S-06](STORE-RICHTLINIEN.md#s-06), [S-07](STORE-RICHTLINIEN.md#s-07), [S-08](STORE-RICHTLINIEN.md#s-08)
 - [ ] erledigt
 
 ---
@@ -586,7 +646,8 @@ Die Angaben müssen zur Datenschutzerklärung passen. Im Zweifel anwaltlich prü
   - **Cast immer mit bedenken:** Das Cast-SDK der Google Play-Dienste sendet laut Google Nutzungsdaten. Die App startet es erst beim Tippen auf den Cast-Knopf, doch das Plugin kann es auf Android schon beim Beenden der App initialisieren (siehe [ENTWICKLUNG.md](ENTWICKLUNG.md), Abschnitt Google Cast). Gib "App-Aktivität" und "Geräte- oder andere IDs" mit Zweck "App-Funktionen" und Weitergabe an Google an, auch ohne eigene Telemetrie. Die genauen Daten stehen in der aktuellen Google-Dokumentation zum Cast-SDK, vor dem Ausfüllen nachlesen.
   - Umami, GlitchTip, Sentry oder Firebase aktiv: Nutzungsdaten (App-Aktivität) und Absturzdaten angeben, Verschlüsselung bei der Übertragung "ja", Löschung auf Anfrage nach deinem tatsächlichen Verfahren.
   - Google Analytics (nur Web): betrifft die Web-Version, nicht die App.
-- **Prüfschritt:** Die Antworten stimmen mit Abschnitt 7 und 11 der Datenschutzerklärung überein.
+- **Prüfschritt:** Die Antworten stimmen mit Abschnitt 7 und 11 der Datenschutzerklärung überein. Löschung und Speicherdauer wie in Schritt 17.13.
+- Store-Regeln: [G-12](STORE-RICHTLINIEN.md#g-12), [G-13](STORE-RICHTLINIEN.md#g-13)
 - [ ] erledigt
 
 ### 13.2 Microsoft Store
@@ -605,6 +666,7 @@ Die Angaben müssen zur Datenschutzerklärung passen. Im Zweifel anwaltlich prü
 - **Wo eintragen:** Metainfo `linux/de.linefm.app.metainfo.xml`, Snap-Eintrag im Dashboard.
 - **Woher:** Wie in Schritt 8.1. Einen Datenfragebogen wie bei Google gibt es dort nach unserem Stand nicht, im Zweifel prüfen.
 - **Prüfschritt:** Die Metainfo besteht die Prüfung des Flathub-Builds.
+- Store-Regeln: [D-04](STORE-RICHTLINIEN.md#d-04), [F-10](STORE-RICHTLINIEN.md#f-10), [S-08](STORE-RICHTLINIEN.md#s-08)
 - [ ] erledigt
 
 ### 13.4 Apple App-Privacy (später)
@@ -614,6 +676,7 @@ Die Angaben müssen zur Datenschutzerklärung passen. Im Zweifel anwaltlich prü
 - **Wo eintragen:** App Store Connect > App-Datenschutz. Erst mit Schritt 15.
 - **Woher:** Gleiche Fakten wie bei Google. Apples Fragebogen im Zweifel vor Ort lesen.
 - **Prüfschritt:** Der Status ist "Veröffentlicht".
+- Store-Regeln: [A-12](STORE-RICHTLINIEN.md#a-12), [A-13](STORE-RICHTLINIEN.md#a-13), [A-14](STORE-RICHTLINIEN.md#a-14), [A-15](STORE-RICHTLINIEN.md#a-15)
 - [ ] erledigt (Apple ist offen)
 
 ---
@@ -630,6 +693,7 @@ Die Angaben müssen zur Datenschutzerklärung passen. Im Zweifel anwaltlich prü
   - Flathub: mindestens 1, über URL erreichbar.
 - **Woher:** Der Entwickler erzeugt sie auf den Geräten oder Emulatoren. Du gibst sie frei. Sie zeigen die echte App ohne Fantasiedaten und ohne fremde Cover in Großansicht.
 - **Prüfschritt:** Alle Pflichtgrößen sind hochgeladen.
+- Store-Regeln: [G-06](STORE-RICHTLINIEN.md#g-06), [A-03](STORE-RICHTLINIEN.md#a-03), [F-10](STORE-RICHTLINIEN.md#f-10)
 - [ ] erledigt
 
 ### 14.2 Alt-Texte
@@ -645,7 +709,17 @@ Die Angaben müssen zur Datenschutzerklärung passen. Im Zweifel anwaltlich prü
 
 ## 15. Apple (vorbereitet, vorerst nicht veröffentlicht)
 
-iOS, macOS, CarPlay und AirPlay sind im Code vorbereitet. Wenn du Apple später aktivieren willst:
+iOS, macOS, CarPlay und AirPlay sind im Code vorbereitet. Apple (iOS und Mac App Store) kommt **nicht in die erste Veröffentlichung**, sondern später in einer gemeinsamen Runde für iOS und Mac. Für diese Runde gelten alle Schritte dieses Abschnitts plus die Apple-Teile aus 13.4 (App-Datenschutz), 17.5 (DSA-Händlerstatus), 18.2 und 18.3 (Konto, Vereinbarungen, Steuern), 19.3 (Zertifikate), 20.1 (Support-URL) und dem Fristenkalender 20.5. Regeln: [STORE-RICHTLINIEN.md, Apple](STORE-RICHTLINIEN.md#apple-app-store).
+
+### 15.0 Vorbedingungen der Apple-Runde (später)
+
+- **Was:** Vor dem Start der Apple-Runde: D-U-N-S liegt vor (18.1), Website und E-Mail auf der eigenen Domain (Apple verlangt beides für Organisationen), `support@linefm.de` und `/support/` erreichbar (20.1), Altersfragebogen 13+ beantwortet, Screenshots für iPhone, iPad und Mac (Abschnitt 14), Prüfnotizen mit Hinweis auf die laut.fm-Vereinbarung (17.7), Mac-Sandbox-Export über den Speichern-Dialog umgesetzt, Wecker mit AlarmKit ab iOS 26 und Hinweis auf den Benachrichtigungs-Rückfall in App- und Store-Text.
+- **Wozu:** Ohne diese Punkte lehnt Apple ab oder die Anmeldung hängt.
+- **Wo eintragen:** App Store Connect, Entwicklerportal.
+- **Woher:** die genannten Schritte.
+- **Prüfschritt:** Alle Unterpunkte abgehakt, erst dann `APPLE_PUBLISHING_ENABLED` setzen (15.6).
+- Store-Regeln: [A-01](STORE-RICHTLINIEN.md#a-01), [A-17](STORE-RICHTLINIEN.md#a-17), [A-20](STORE-RICHTLINIEN.md#a-20), [A-22](STORE-RICHTLINIEN.md#a-22), [A-23](STORE-RICHTLINIEN.md#a-23)
+- [ ] erledigt (Apple-Runde, später)
 
 ### 15.1 Konto und Team-ID
 
@@ -654,6 +728,7 @@ iOS, macOS, CarPlay und AirPlay sind im Code vorbereitet. Wenn du Apple später 
 - **Wo eintragen:** Secret `APPLE_TEAM_ID`. Außerdem steht der Name als `{{APPLE_TEAM_ID}}` in `packaging/ios/ExportOptions-*.plist.template` und in `web/.well-known/apple-app-site-association`. Das Skript und der Web-Postbuild setzen ihn aus dem Secret ein.
 - **Woher:** <https://developer.apple.com/programs/>, Account > Mitgliedschaft, 10 Zeichen.
 - **Prüfschritt:** Die ID ist 10 Zeichen lang und im Secret hinterlegt.
+- Store-Regeln: [A-24](STORE-RICHTLINIEN.md#a-24), [A-26](STORE-RICHTLINIEN.md#a-26)
 - [ ] erledigt
 
 ### 15.2 App-ID und App Store Connect
@@ -700,6 +775,7 @@ iOS, macOS, CarPlay und AirPlay sind im Code vorbereitet. Wenn du Apple später 
 - **Woher:** Apple-Entwicklerportal.
 - **Prüfschritt:** `https://app.linefm.de/.well-known/apple-app-site-association` ist ohne Dateiendung, mit `application/json` und ohne Weiterleitung erreichbar.
 - macOS ohne Apple-Konto: Es gibt ein unsigniertes DMG auf GitHub Releases mit Öffnen-Anleitung ([packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt)).
+- Store-Regeln: [A-07](STORE-RICHTLINIEN.md#a-07), [A-21](STORE-RICHTLINIEN.md#a-21), [A-29](STORE-RICHTLINIEN.md#a-29), [A-33](STORE-RICHTLINIEN.md#a-33)
 - Review-Risiko: Apple lehnt reine Webseiten-Hüllen ab (Richtlinien 4.2 und 4.3). Die App bringt Favoriten, Verlauf, Sleeptimer, Wecker, Sperrbildschirm-Steuerung und CarPlay als Mehrwert mit.
 - [ ] erledigt
 
@@ -725,6 +801,399 @@ Der Test `test/tool/einrichtung_vollstaendig_test.dart` prüft bei jedem Lauf, d
 - Frag im Repo unter Tickets oder Discussions nach. Beschreibe, welchen Schritt du gerade machst und was du siehst.
 - Bei Fehlermeldungen von Stores: Meldung kopieren, Screenshot anhängen, keine Passwörter.
 - Zeitaufwand der Prüfungen einplanen: Google Play einige Tage, CarPlay-Antrag Wochen, Flathub je nach Betreuern.
+
+---
+
+## 17. Recht und Datenschutz im Betrieb
+
+Vorprüfung, keine Rechtsberatung. Jeden Punkt lässt du von einem Anwalt bestätigen. Die Store-Regeln zum Datenschutz: [D-04](STORE-RICHTLINIEN.md#d-04), [G-12](STORE-RICHTLINIEN.md#g-12), [G-13](STORE-RICHTLINIEN.md#g-13), [A-09](STORE-RICHTLINIEN.md#a-09), [A-15](STORE-RICHTLINIEN.md#a-15), [M-05](STORE-RICHTLINIEN.md#m-05), [W-03](STORE-RICHTLINIEN.md#w-03).
+
+### 17.1 Impressum nach § 5 DDG
+
+- **Was:** Das Impressum unter `/impressum/` (de und en) und in der App vollständig machen: Name, Rechtsform, ladungsfähige Anschrift, Vertretung, E-Mail, zweiter schneller Kontaktweg, Register und USt-IdNr., falls vorhanden, sowie die Angaben nach § 18 MStV.
+- **Wozu:** Pflicht für jedes geschäftsmäßige Telemedium. Google, Apple und Microsoft verlangen dieselben Angaben zusätzlich in der Console (Schritt 17.5).
+- **Wo eintragen:** Werte wie in Schritt 3.1 (Anhang B). Dieselbe Anschrift in allen Store-Konsolen verwenden.
+- **Woher:** Handelsregister bzw. Gewerbeanmeldung, eigene Unterlagen.
+- **Prüfschritt:** `/impressum/` zeigt keine `{{`-Reste. Die Anschrift ist überall gleich geschrieben: Impressum, D-U-N-S-Eintrag, Play Console, App Store Connect, Partner Center.
+- [ ] erledigt
+
+### 17.2 Datenschutzerklärung und Einwilligung (DSGVO, TDDDG)
+
+- **Was:** Die Datenschutzerklärung nennt jeden Empfänger: laut.fm, Apple iTunes-Suche (Cover), `cdn.linefm.de`, `radiogruppe.de`, Google Cast, Hoster, sowie **Sentry, Firebase und Umami**. Die drei Telemetrie-Dienste laufen nach Entscheidung des Inhabers in den Store-Builds nur nach Einwilligung und sind in allen Store-Formularen als optional angegeben. Im Web kommt GA4/GTM hinzu (Schritt 10.2).
+- **Wozu:** Ohne Einwilligung kein Zugriff auf das Endgerät für nicht notwendige Zwecke (§ 25 TDDDG). Die Store-Formulare müssen zur Erklärung passen, sonst droht Ablehnung oder Sperre.
+- **Wo eintragen:** `legal_values.json` bzw. `LEGAL_VALUES_JSON`, Generator mit `--providers=umami,sentry` plus Firebase, falls aktiv. Store-Formulare: Abschnitt 13.
+- **Woher:** Deine Konfiguration, die AVV aus Schritt 17.3.
+- **Prüfschritt:** Ohne Einwilligung zeigt der Netzwerkmitschnitt keine Anfrage an Sentry, Firebase, Umami oder Google. Widerruf in den Einstellungen stoppt die Übertragung sofort.
+- **Externe Links:** Die App lädt Inhalte von und verlinkt auf Dritte: `music.youtube.com` und `open.spotify.com` (Song suchen), `radiogruppe.de`, `cdn.linefm.de`, `api.laut.fm`, die Streams und die iTunes-Suche. Prüfe mit dem Anwalt, dass die Datenschutzerklärung jeden davon nennt und bei Links sagt, dass beim Öffnen die Regeln des Zielanbieters gelten. Die vollständige Liste liefert der Entwickler aus dem Code.
+- Store-Regeln: [D-04](STORE-RICHTLINIEN.md#d-04), [G-04](STORE-RICHTLINIEN.md#g-04), [G-12](STORE-RICHTLINIEN.md#g-12), [A-09](STORE-RICHTLINIEN.md#a-09), [A-15](STORE-RICHTLINIEN.md#a-15), [M-05](STORE-RICHTLINIEN.md#m-05)
+- [ ] erledigt
+
+### 17.3 AVV je Auftragsverarbeiter
+
+- **Was:** Für jeden Dienst, der personenbezogene Daten in deinem Auftrag verarbeitet, einen Vertrag nach Art. 28 DSGVO abschließen und ablegen.
+- **Wozu:** Harte Freigabesperre für die Telemetrie (Freigabe-Checkliste).
+- **Wo eintragen:** Ablage im Passwortmanager oder Vertragsordner. Liste:
+
+| Dienst | Rolle | Wo es den Vertrag gibt | DPF prüfen |
+|---|---|---|---|
+| Sentry (Functional Software) | Absturzberichte | im Sentry-Konto unter den rechtlichen Einstellungen (vor Ort prüfen) | ja, US-Anbieter |
+| GlitchTip, selbst gehostet | Absturzberichte | entfällt, wenn auf eigenem Server; sonst mit dem Hoster | nein |
+| Firebase (Google) | Statistik, Absturzberichte | Firebase-Konsole, Projekteinstellungen, Datenschutz (Data Processing Terms, vor Ort prüfen) | ja |
+| Umami, selbst gehostet | Statistik | AVV mit dem Server-Hoster | je nach Hoster |
+| Umami Cloud | Statistik | beim Anbieter anfragen | je nach Anbieter |
+| Google Analytics 4 | Web-Statistik | GA4 > Verwaltung > Kontoeinstellungen, Datenverarbeitungsbedingungen | ja |
+| Cloudflare | Hosting, CDN, DNS | Cloudflare-DPA, Teil der Nutzungsbedingungen | ja |
+| eigener Server oder Plesk-Hoster | Hosting, Server-Logs | beim Hoster | je nach Hoster |
+| Betreiber von `cdn.linefm.de` | Logos | beim Betreiber | je nach Betreiber |
+
+- **Woher:** Die Anbieter. Die genauen Menüpfade haben wir nicht live geprüft. DPF-Liste: <https://www.dataprivacyframework.gov/list>.
+- **Prüfschritt:** Für jede Zeile mit aktivem Dienst liegt ein Vertrag mit Datum vor, der DPF-Status ist mit Abrufdatum notiert.
+- [ ] erledigt
+
+### 17.4 Barrierefreiheit (BFSG)
+
+- **Was:** Entscheidung des Inhabers: Es gibt eine **freiwillige** Erklärung zur Barrierefreiheit als Seite `/barrierefreiheit/` (de und en) in der Web-App, Inhalt aus [BARRIEREFREIHEIT.md](BARRIEREFREIHEIT.md) (Schritt 3.2). Unabhängig davon klärst du mit dem Anwalt, ob das BFSG Pflichten auslöst (Kleinstunternehmen mit Dienstleistungen sind ausgenommen).
+- **Wozu:** Seit 28.06.2025 gelten die Anforderungen für bestimmte Dienstleistungen im elektronischen Geschäftsverkehr. Ob eine kostenlose Radio-App darunter fällt, ist eine Rechtsfrage.
+- **Wo eintragen:** Platzhalter in `docs/BARRIEREFREIHEIT.md`. Die Seite `/barrierefreiheit/` baut der Entwickler und verlinkt sie im Fuß der Web-App und in der App unter "Über".
+- **Woher:** Anwalt. Gesetzestext: <https://www.gesetze-im-internet.de/bfsg/> (nicht live abgerufen).
+- **Prüfschritt:** `https://app.linefm.de/barrierefreiheit/` und `/en/barrierefreiheit/` antworten mit 200, ohne `{{`-Reste. Die BFSG-Einschätzung des Anwalts liegt schriftlich vor.
+- [ ] erledigt
+
+### 17.5 Händlerstatus nach DSA bei Apple und Google
+
+- **Was:** In App Store Connect und in der Play Console angeben, ob LineFM Studios als Händler (Trader) im Sinne des Digital Services Act handelt, und die Kontaktdaten bestätigen.
+- **Wozu:** Apple verlangt die Angabe für jedes Konto, auch ohne EU-Vertrieb, und fragt spätestens bei der nächsten Einreichung danach. Als Händler zeigt Apple in der EU Anschrift, Telefon und E-Mail auf der Produktseite. Wer kein Händler ist, bei dem weist Apple EU-Kunden darauf hin, dass Verbraucherrechte nicht gelten. Google fragt dasselbe in der Play Console ab.
+- **Wo eintragen:** App Store Connect > Business > Compliance (Rolle Account Holder oder Admin). Play Console > Einstellungen > Entwicklerkonto (Menüname vor Ort prüfen).
+- **Woher:** Für Firmen nimmt Apple die Anschrift aus dem D-U-N-S-Eintrag, dazu Telefon und E-Mail (per Code bestätigt) und einen Nachweis zu Name und Anschrift. Quelle Apple: <https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements/> (abgerufen 26.11.2026). Zu Google: Die Kontoangaben stehen auf <https://support.google.com/googleplay/android-developer/answer/13628312> (abgerufen 26.11.2026), den Wortlaut zum Händlerstatus haben wir dort nicht im Detail geprüft. Als Händler verlangt Apple zusätzlich Zahlungskontodaten, falls noch keine hinterlegt sind. Ob du Händler bist, entscheidest du mit dem Anwalt. Eine GmbH oder ein Gewerbe ist es in aller Regel.
+- **Prüfschritt:** Beide Konsolen zeigen den Status als bestätigt. Die angezeigten Daten stimmen mit dem Impressum überein.
+- Store-Regeln: [G-26](STORE-RICHTLINIEN.md#g-26), [A-25](STORE-RICHTLINIEN.md#a-25). Apple erst in der späteren Apple-Runde.
+- [ ] erledigt
+
+### 17.6 Markenrechte LINEFM
+
+- **Was:** Prüfen, ob die Marke LINEFM eingetragen ist und wem sie gehört. Falls nicht: Anmeldung beim DPMA oder EUIPO erwägen.
+- **Wozu:** Stores reagieren auf Markenbeschwerden. Mit eingetragener Marke kannst du Nachahmer melden und eigene Einreichungen belegen.
+- **Wo eintragen:** Ergebnis in Abschnitt A1 der Freigabe-Checkliste.
+- **Woher:** Recherche in DPMAregister (<https://register.dpma.de>) und TMview, Anwalt. Gebühren nicht live abgerufen.
+- **Prüfschritt:** Registernummer oder bewusste Entscheidung gegen eine Anmeldung ist notiert.
+- [ ] erledigt
+
+### 17.7 laut.fm-Vereinbarung
+
+- **Was:** Die Vereinbarung mit laut.fm liegt beim Kunden und bleibt dort (Entscheidung des Inhabers). Bei der Einreichung nennst du sie, wenn ein Store nach Rechten an Inhalten fragt.
+- **Wozu:** Google und Apple fragen bei Streaming-Apps nach dem Recht, die Inhalte zu verbreiten. Ohne Beleg droht die Ablehnung wegen geistigen Eigentums.
+- **Wo eintragen:** Play Console: Hinweis im Feld für Prüfer (Schritt 6.13); bei einer Beschwerde wegen geistigen Eigentums lädst du den Nachweis über die Seite "Richtlinienstatus" hoch. App Store Connect (spätere Apple-Runde): Frage "Content Rights" in den App-Informationen beantworten, Hinweis in den Review-Notizen, Nachweis bei Bedarf als Anhang. Partner Center: Hinweise für die Zertifizierung. Snap und Flathub: auf Nachfrage.
+- **Woher:** deine Unterlagen.
+- **Prüfschritt:** Abschnitt A5 der Freigabe-Checkliste abgehakt, Vereinbarung griffbereit.
+- Store-Regeln: [D-03](STORE-RICHTLINIEN.md#d-03), [G-03](STORE-RICHTLINIEN.md#g-03), [G-32](STORE-RICHTLINIEN.md#g-32), [A-10](STORE-RICHTLINIEN.md#a-10), [M-14](STORE-RICHTLINIEN.md#m-14), [S-04](STORE-RICHTLINIEN.md#s-04)
+- [ ] erledigt
+
+### 17.8 Radio3FM und FobFM
+
+- **Was:** Schriftliche Freigabe beider Sender (Schritt 2.2) als Datei ablegen, damit du sie Prüfern zeigen kannst.
+- **Wozu:** Gleicher Grund wie 17.7.
+- **Wo eintragen:** Abschnitt A1 der Freigabe-Checkliste, Ablage beim Kunden.
+- **Woher:** Betreiber der Sender.
+- **Prüfschritt:** Zwei Freigaben mit Datum liegen vor. Ohne sie fliegen die Sender aus der App.
+- Store-Regeln: [D-03](STORE-RICHTLINIEN.md#d-03), [G-02](STORE-RICHTLINIEN.md#g-02)
+- [ ] erledigt
+
+### 17.9 Lizenzen und Seite /lizenz/
+
+- **Was:** Die Seite `/lizenz/` (de und en) in der Web-App nennt die Lizenz der App und alle Fremdlizenzen (libmpv, FFmpeg und die Pakete aus [LIZENZEN-DRITTE.md](LIZENZEN-DRITTE.md)). Ihre URL steht in der Flathub-Metainfo und kann in den Store-Einträgen stehen.
+- **Wozu:** LGPL und GPL verlangen Lizenztext und Hinweis auf den Quellcode der Bibliotheken. Flathub prüft die Lizenz-URL.
+- **Wo eintragen:** nichts von Hand, die Seite kommt mit dem Web-Build. Du gibst den Wortlaut zur App-Lizenz frei (Schritt 2.5).
+- **Woher:** Repo.
+- **Prüfschritt:** `https://app.linefm.de/lizenz/` und `/en/lizenz/` antworten mit 200. In der App öffnet "Lizenzen" die Liste.
+- Store-Regeln: [F-07](STORE-RICHTLINIEN.md#f-07), [W-04](STORE-RICHTLINIEN.md#w-04)
+- [ ] erledigt
+
+### 17.10 Jugendschutz (JMStV)
+
+- **Was:** Die App richtet sich an Nutzer ab 13 Jahren (Entscheidung des Inhabers), in allen Stores mit Altersfreigabe 13+. Die Sender spielen Musik mit gelegentlich derber Sprache. Der Anwalt prüft, ob nach dem Jugendmedienschutz-Staatsvertrag ein Jugendschutzbeauftragter zu benennen ist (§ 7 JMStV) und ob weitere Pflichten bestehen.
+- **Wozu:** Für geschäftsmäßige Telemedien mit möglicherweise entwicklungsbeeinträchtigenden Inhalten kann ein Jugendschutzbeauftragter Pflicht sein.
+- **Wo eintragen:** Ergebnis in Abschnitt A4 der Freigabe-Checkliste. Ist ein Beauftragter nötig, kommen Name und Kontakt ins Impressum (der Entwickler legt dafür einen Platzhalter an).
+- **Woher:** Anwalt. Gesetzestext nicht live abgerufen.
+- **Prüfschritt:** Schriftliche Einschätzung liegt vor.
+- Store-Regeln: [G-19](STORE-RICHTLINIEN.md#g-19), [G-20](STORE-RICHTLINIEN.md#g-20), [A-17](STORE-RICHTLINIEN.md#a-17), [M-18](STORE-RICHTLINIEN.md#m-18), [F-10](STORE-RICHTLINIEN.md#f-10)
+- [ ] erledigt
+
+### 17.11 Verzeichnis der Verarbeitungstätigkeiten (Art. 30 DSGVO)
+
+- **Was:** Das ausgefüllte Muster [VERARBEITUNGSVERZEICHNIS.md](VERARBEITUNGSVERZEICHNIS.md) übernehmen, prüfen und als dein eigenes Verzeichnis pflegen. Es listet jeden Datenfluss mit Zweck, Rechtsgrundlage, Empfängern, Drittlandübermittlung und Speicherdauer.
+- **Wozu:** Das Verzeichnis ist Pflicht des Verantwortlichen. Aufsichtsbehörden können es anfordern. Es ist die Grundlage für Datenschutzerklärung und Store-Formulare.
+- **Wo eintragen:** In deine Unterlagen. Das Muster im Repo bleibt Vorlage, die gepflegte Fassung liegt bei dir.
+- **Woher:** Muster im Repo, deine Konfiguration, die AVV aus Schritt 17.3.
+- **Prüfschritt:** Jede aktive Zeile ist geprüft und datiert, die Speicherdauern stimmen mit der Datenschutzerklärung überein.
+- [ ] erledigt
+
+### 17.12 Datenpanne: Meldeweg (Art. 33 und 34 DSGVO)
+
+- **Was:** Festlegen, wer bei einer Datenpanne entscheidet und meldet. Beispiele: offenes Umami- oder GlitchTip-Konto, geleakter Sentry- oder Firebase-Zugang, kompromittierter Server, Meldung eines Auftragsverarbeiters.
+- **Wozu:** Meldung an die Aufsichtsbehörde binnen 72 Stunden ab Kenntnis, wenn ein Risiko für Betroffene besteht (Art. 33). Bei hohem Risiko auch Benachrichtigung der Betroffenen (Art. 34). Jede Panne wird dokumentiert, auch ohne Meldung.
+- **Wo eintragen:** Meldewege in [betrieb/INCIDENT.md](betrieb/INCIDENT.md) (Schritt 19.7). Meldung über das Online-Formular der zuständigen Landesdatenschutzbehörde (dieselbe wie `{{AUFSICHTSBEHOERDE_DATENSCHUTZ}}`).
+- **Woher:** Ablauf: 1. Vorfall eindämmen (Zugang sperren, Schlüssel tauschen). 2. Verantwortlicher bei LineFM Studios entscheidet mit dem Anwalt über die Meldepflicht. 3. Meldung binnen 72 Stunden. 4. Dokumentation im Vorfallsbericht. Die AVV verpflichten die Anbieter, dir Pannen unverzüglich zu melden.
+- **Prüfschritt:** Namen, Vertretung und Behördenformular sind in INCIDENT.md eingetragen.
+- [ ] erledigt
+
+### 17.13 Speicherdauern
+
+- **Was:** Für jeden Datenfluss eine Speicherdauer festlegen, im Dienst einstellen und gleichlautend in Datenschutzerklärung, Verarbeitungsverzeichnis und Store-Formularen angeben.
+
+| Daten | Vorschlag | Wo einstellen | Platzhalter |
+|---|---|---|---|
+| Server-Logs der Web-App | 7 Tage, IP gekürzt | Hoster bzw. nginx/Traefik | `{{LOG_AUFBEWAHRUNG}}` |
+| Umami, Sentry/GlitchTip, Firebase | 90 Tage | Einstellungen des jeweiligen Dienstes | `{{TELEMETRIE_AUFBEWAHRUNG}}` |
+| GA4 (nur Web) | 2 Monate | GA4 > Verwaltung > Datenaufbewahrung | `{{GA4_AUFBEWAHRUNG}}` |
+| Support-E-Mails | bis zur Erledigung, danach gesetzliche Aufbewahrung, falls sie greift | Postfach | in der Datenschutzerklärung prüfen |
+| Testerlisten Google | bis Testende | Play Console | entfällt |
+
+- **Wozu:** Google fragt im Formular Datensicherheit, ob und wie Daten gelöscht werden. Abweichende Angaben sind ein Ablehnungsgrund.
+- **Wo eintragen:** Siehe Tabelle, Werte in `legal_values.json` bzw. `LEGAL_VALUES_JSON`.
+- **Woher:** Die Vorschläge sind Erfahrungswerte, keine Rechtsauskunft. Mit dem Anwalt abstimmen.
+- **Prüfschritt:** Einstellung im Dienst, Datenschutzerklärung und Store-Formular nennen dieselbe Dauer.
+- Store-Regeln: [G-12](STORE-RICHTLINIEN.md#g-12), [G-31](STORE-RICHTLINIEN.md#g-31), [A-31](STORE-RICHTLINIEN.md#a-31)
+- [ ] erledigt
+
+---
+
+## 18. Konten, Kosten und Steuern
+
+Alle Konten laufen auf LineFM Studios als Organisation. Gebühren abgerufen am 26.11.2026 auf den genannten offiziellen Seiten. Steuerliches ist nur eine Vorprüfung. Was davon für dich gilt, klärst du mit deinem Steuerberater.
+
+### 18.1 D-U-N-S-Nummer
+
+- **Was:** Eine D-U-N-S-Nummer für LineFM Studios beantragen oder die vorhandene nachschlagen.
+- **Wozu:** Pflicht für das Google-Organisationskonto und das Apple-Organisationskonto, bei Microsoft der schnellere Weg. Name und Anschrift müssen exakt mit Impressum und Handelsregister übereinstimmen.
+- **Wo eintragen:** Bei Dun & Bradstreet. Apple bietet eine eigene Suche im Anmeldeablauf.
+- **Woher:** kostenlos, laut Google bis zu 30 Tage Bearbeitung (<https://support.google.com/googleplay/android-developer/answer/13628312>, abgerufen 26.11.2026).
+- **Prüfschritt:** Die neunstellige Nummer ist im Passwortmanager notiert, der Eintrag zeigt die richtige Anschrift.
+- [ ] erledigt
+
+### 18.2 Kontenübersicht
+
+| Konto | Gebühr | Bestätigung | Wer ist Inhaber | Quelle |
+|---|---|---|---|---|
+| Google Play Console (Organisation) | 25 US-Dollar einmalig | D-U-N-S, Website, Telefon und E-Mail der Organisation, je per Code bestätigt | LineFM Studios | <https://support.google.com/googleplay/android-developer/answer/6112435>, abgerufen 26.11.2026 |
+| Apple Developer Program (Organisation) | 99 US-Dollar pro Mitgliedsjahr, in Landeswährung | D-U-N-S, rechtsfähige Organisation (kein reiner Handelsname), Website auf eigener Domain, E-Mail auf der Domain, Apple-Account mit Zwei-Faktor-Anmeldung | LineFM Studios, Account Holder mit Vertretungsmacht | <https://developer.apple.com/programs/enroll/>, abgerufen 26.11.2026 |
+| Microsoft Partner Center (Company) | kostenlos | D-U-N-S oder Firmendokumente, E-Mail auf der Firmendomain | LineFM Studios | <https://learn.microsoft.com/en-us/windows/apps/publish/partner-center/open-a-developer-account>, abgerufen 26.11.2026 |
+| Snapcraft (Ubuntu One) | kostenlos (nicht live geprüft) | E-Mail | LineFM Studios | <https://snapcraft.io/> |
+| Flathub | kostenlos (nicht live geprüft) | GitHub-Konto, Domain-Bestätigung (Schritt 19.9) | LineFM Studios | <https://docs.flathub.org/> |
+| GitHub | kostenlos für öffentliche Repos | Zwei-Faktor-Anmeldung | Tim Hauke (Repo), LineFM Studios als Collaborator | <https://github.com/pricing> (nicht live geprüft) |
+| Cloudflare | kostenlose Stufe reicht für Pages und DNS (nicht live geprüft) | E-Mail | LineFM Studios | <https://www.cloudflare.com/plans/> |
+| Sentry | kostenlose Stufe vorhanden (nicht live geprüft) | E-Mail | LineFM Studios | <https://sentry.io/pricing/> |
+| Firebase | Spark-Tarif kostenlos (nicht live geprüft) | Google-Konto | LineFM Studios | <https://firebase.google.com/pricing> |
+| Umami | selbst gehostet kostenlos, Cloud nach Tarif (nicht live geprüft) | eigener Server | LineFM Studios | <https://umami.is/pricing> |
+| Domain-Registrar für `linefm.de` | laut Rechnung | Inhaberdaten bei DENIC | LineFM Studios | eigener Vertrag |
+
+- **Was:** Jedes Konto anlegen, das du brauchst, mit einer Funktionsadresse (zum Beispiel `apps@linefm.de`, nicht die private Adresse), Zwei-Faktor-Anmeldung und Notfall-Codes im Passwortmanager. Mindestens zwei Personen mit Admin-Recht je Konto.
+- **Wozu:** Verlässt eine Person das Team, bleibt das Konto erreichbar. Fällt ein Konto weg, lässt sich die App bei Google und Apple nicht in ein anderes Konto übernehmen, ohne einen Transfer zu beantragen.
+- **Wo eintragen:** Passwortmanager, Spalte "Konto, Inhaber, Zweitadmin, Notfall-Codes, Verlängerung".
+- **Woher:** siehe Tabelle.
+- **Prüfschritt:** Für jede Zeile sind Inhaber, Zweitadmin und Ablaufdatum der Mitgliedschaft (Apple, Domain) notiert.
+- Store-Regeln zu Konten: [D-02](STORE-RICHTLINIEN.md#d-02), [G-25](STORE-RICHTLINIEN.md#g-25), [A-24](STORE-RICHTLINIEN.md#a-24), [M-20](STORE-RICHTLINIEN.md#m-20), [S-07](STORE-RICHTLINIEN.md#s-07), [F-12](STORE-RICHTLINIEN.md#f-12).
+- [ ] erledigt
+
+### 18.3 Vereinbarungen, Zahlungs- und Steuerangaben in den Konsolen
+
+- **Was:** Die Vereinbarungen jeder Console annehmen. Zahlungsprofil, Bankverbindung und Steuerformulare sind bei einer kostenlosen App ohne Käufe nach Angaben der Stores nicht nötig. Ausnahme: Als DSA-Händler verlangt Apple Zahlungskontodaten (Schritt 17.5, spätere Apple-Runde).
+- **Wozu:** Ohne angenommene Vereinbarung stoppen die Uploads. Apple legt neue Fassungen regelmäßig vor.
+- **Wo eintragen:** Play Console > Einstellungen. App Store Connect > Geschäftliches (Vertrag für kostenlose Apps). Partner Center > Konto-Einstellungen.
+- **Woher:** Quellen in den Store-Punkten. Fragt eine Console beim Anlegen dennoch Steuerangaben ab (zum Beispiel US-Formular W-8BEN-E), mit dem Steuerberater ausfüllen.
+- **Prüfschritt:** Keine Console zeigt einen roten Hinweis zu Vereinbarungen.
+- Store-Regeln: [G-28](STORE-RICHTLINIEN.md#g-28), [A-27](STORE-RICHTLINIEN.md#a-27), [M-21](STORE-RICHTLINIEN.md#m-21), [S-07](STORE-RICHTLINIEN.md#s-07)
+- [ ] erledigt
+
+### 18.4 Steuerliche Vorprüfung
+
+- **Was:** Kosten der Konten (Google, Apple, Domain, Server) als Betriebsausgaben erfassen. Rechnungen von Google (Irland), Apple (Irland bzw. Luxemburg) und Cloudflare (USA) können unter das Reverse-Charge-Verfahren fallen.
+- **Wozu:** Saubere Buchhaltung. Die App erzielt keinen Umsatz, solange sie kostenlos ist und keine Werbung zeigt.
+- **Wo eintragen:** Buchhaltung.
+- **Woher:** Rechnungen aus den Konsolen. **Das ist keine Steuerberatung, bitte mit dem Steuerberater klären.**
+- **Prüfschritt:** Der Steuerberater hat die Einordnung bestätigt.
+- [ ] erledigt
+
+---
+
+## 19. Technik und Betrieb
+
+Das Betriebshandbuch mit Deploy, Rollback und Wiederherstellung ist [betrieb/RUNBOOK.md](betrieb/RUNBOOK.md), der Störungsablauf [betrieb/INCIDENT.md](betrieb/INCIDENT.md), die Bedrohungen [betrieb/BEDROHUNGSMODELL.md](betrieb/BEDROHUNGSMODELL.md).
+
+### 19.1 Domains und DNS
+
+- **Was:** Die Domain `linefm.de` mit den Subdomains `app.linefm.de` (Web-App) und `cdn.linefm.de` (Logos) dauerhaft absichern: automatische Verlängerung beim Registrar an, Registrar-Sperre (Transfer Lock) an, DNSSEC an, wenn der DNS-Anbieter es kann.
+- **Wozu:** Läuft die Domain aus, fallen Web-App, App-Links (`assetlinks.json`, `apple-app-site-association`), die Flathub-Bestätigung und die Datenschutz-URL in allen Stores gleichzeitig aus. Die Stores können die App dann sperren.
+- **Wo eintragen:** Beim Registrar und beim DNS-Anbieter.
+- **Woher:** Registrar-Konto (Schritt 18.2).
+- **Prüfschritt:** Ablaufdatum im Fristenkalender (Abschnitt 20.5). `dig +dnssec linefm.de` zeigt `ad`, falls DNSSEC aktiv ist.
+- [ ] erledigt
+
+### 19.2 Web-Hosting und TLS
+
+- **Was:** Hosting aus Abschnitt 5, Zertifikat aus Schritt 4.2. Verlängerung prüfen: Let's Encrypt erneuert automatisch nach 60 Tagen, Cloudflare ebenfalls.
+- **Wozu:** Abgelaufenes Zertifikat heißt: Web-App nicht erreichbar, App-Links ungültig.
+- **Wo eintragen:** nichts zusätzlich.
+- **Woher:** [betrieb/RUNBOOK.md](betrieb/RUNBOOK.md), Abschnitt "Zertifikate und Domain".
+- **Prüfschritt:** Quartalsweise der `openssl`-Befehl aus dem Runbook. Der Uptime-Monitor (Schritt 19.6) meldet Ausfälle.
+- [ ] erledigt
+
+### 19.3 Signierschlüssel und ihre Sicherung
+
+- **Was:** Für jeden Schlüssel eine verschlüsselte Sicherung an zwei getrennten Orten anlegen (Passwortmanager plus Offline-Kopie, zum Beispiel verschlüsselter USB-Stick im Tresor).
+
+| Schlüssel | Wofür | Was bei Verlust passiert | Ablauf |
+|---|---|---|---|
+| Android-Upload-Schlüssel (`upload-keystore.jks`) | jeder Upload zu Google Play, APK auf GitHub | Zurücksetzen über die Play Console möglich, dauert Tage. APK-Nutzer müssen neu installieren | `keytool`-Gültigkeit, Standard im Befehl 10.000 Tage |
+| Apple-Zertifikate (Distribution, Mac Installer, Developer ID) | iOS, Mac App Store, DMG | neu ausstellen, alte widerrufen | ein Jahr (Distribution) bzw. fünf Jahre (Developer ID), im Entwicklerportal ablesen |
+| Apple-Provisioning-Profile | Export der Apps | neu erzeugen | ein Jahr bzw. mit dem Zertifikat |
+| App-Store-Connect-API-Schlüssel (`.p8`) | Upload aus der Pipeline | widerrufen, neu erzeugen; die Datei lässt sich nur einmal herunterladen | kein Ablauf |
+| Windows-Codesigning-Zertifikat (PFX) | Installer auf GitHub | neu kaufen, SmartScreen-Ruf beginnt neu | laut Zertifikat |
+| MSIX für den Store | signiert Microsoft selbst | entfällt | entfällt |
+| Azure-AD-Client-Secret (`MS_STORE_CLIENT_SECRET`) | Einreichung beim Microsoft Store | neu erzeugen | maximal 24 Monate, Datum notieren |
+| Snap-Anmeldedaten (`SNAPCRAFT_STORE_CREDENTIALS`) | Upload Snap Store | neu exportieren | laut `snapcraft export-login` |
+| Updater-Schlüssel (Ed25519, Secret `UPDATER_ED25519_PRIVATE_KEY` in der Umgebung `release`) | signiert die Update-Hinweise der direkten Downloads (Windows-Setup, macOS-DMG) | Nutzer der direkten Downloads bekommen keine Updates mehr bzw. müssen neu installieren | kein Ablauf |
+| GPG-Schlüssel (optional) | `SHA256SUMS.txt.asc` | neuen Schlüssel veröffentlichen | laut Schlüssel |
+| SSH-Schlüssel für das Ausrollen | Web-Deploy | neu erzeugen, auf dem Server tauschen | kein Ablauf |
+
+- **Wozu:** Ein verlorener Schlüssel kann Updates für Wochen blockieren.
+- **Wo eintragen:** Passwortmanager, Offline-Kopie. In GitHub nur als Secret (Anhang A). Der Updater-Schlüssel kommt als Secret in die geschützte Umgebung `release` (Settings > Environments, mit "Required reviewers"), nicht als normales Repo-Secret. Der Updater ist nach Entscheidung des Inhabers nur in den direkten Downloads aktiv und in allen Store-Builds per Build-Schalter entfernt, eine CI-Prüfung erzwingt das. Name des Secrets: `UPDATER_ED25519_PRIVATE_KEY`, angelegt unter Settings > Environments > `release` > Environment secrets. Den öffentlichen Schlüssel baut der Entwickler in die App ein. **Sicherung und Wechsel:** LineFM Studios ist Eigentümer und verwahrt den privaten Schlüssel (Passwortmanager plus Offline-Kopie). Der Entwickler erzeugt ihn gemeinsam mit dir und tauscht ihn bei Verdacht auf Missbrauch: neuen Schlüssel erzeugen, eine App-Version ausliefern, die übergangsweise beide öffentlichen Schlüssel annimmt, danach den alten löschen. Ohne Verdacht ist kein regelmäßiger Wechsel vorgesehen.
+- **Woher:** Die jeweiligen Schritte (6.3, 7.3, 7.4, 8.2, 12.2, 15.3, 15.4, 5.2).
+- Store-Regeln: [D-01](STORE-RICHTLINIEN.md#d-01), [A-04](STORE-RICHTLINIEN.md#a-04), [M-02](STORE-RICHTLINIEN.md#m-02), [S-05](STORE-RICHTLINIEN.md#s-05), [F-11](STORE-RICHTLINIEN.md#f-11)
+- **Prüfschritt:** Einmal im Jahr eine Sicherung testweise zurückspielen (Fingerabdruck mit `keytool -list -v` bzw. `openssl pkcs12 -info` vergleichen).
+- [ ] erledigt
+
+### 19.4 Secrets-Abgleich
+
+- **Was:** Alle Secrets und Variablen aus Anhang A eintragen, soweit du den jeweiligen Kanal nutzt. Anhang A ist vollständig: Jeder Name, den ein Workflow unter `.github/workflows/` liest, steht dort, das prüft der Test aus Schritt 16.2. Details je Wert: [secrets.md](secrets.md).
+- **Wozu:** Fehlende Werte lassen Schritte still ausfallen.
+- **Wo eintragen:** Schritt 1.3. Werte für `deploy-web.yml` gehören in die Umgebung `production`.
+- **Woher:** Anhang A, Spalte "Bezugsquelle".
+- **Prüfschritt:** Ein Release-Lauf nennt in der Zusammenfassung keinen fehlenden Namen.
+- [ ] erledigt
+
+### 19.5 Release-Ablauf
+
+- **Was:** Ein Release entsteht über ein Tag `vX.Y.Z`. `release.yml` baut alle Plattformen, signiert (Sigstore, Attestierung, optional GPG), hängt die Dateien an das GitHub-Release, dann laden `store-google.yml` (Spur "internal"), `store-microsoft.yml` (Entwurf), `store-snap.yml` (Kanal "edge") und `store-apple.yml` (wenn `APPLE_PUBLISHING_ENABLED` gesetzt ist) hoch, und `deploy-web.yml` rollt das Web nach deiner Freigabe aus. Flathub bekommt ein Update per Änderungsvorschlag (`flathub-prep.yml` bereitet ihn vor).
+- **Wozu:** Die Pipelines laden nur hoch. **Die Veröffentlichung in den Stores gibst du selbst frei**: Play Console (Spur hochstufen, gestaffelter Rollout), Partner Center (Einreichung abschicken), Snap (Kanal hochstufen), App Store Connect (zur Prüfung einreichen).
+- **Wo eintragen:** nichts. Ablauf: [stores-pipelines.md](stores-pipelines.md), Prüfung: [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).
+- **Woher:** entfällt.
+- **Prüfschritt:** Vor jeder Freigabe die Freigabe-Checkliste, Abschnitt E, durchgehen. Gestaffelten Rollout bei Google mit 10 bis 20 Prozent beginnen und die Absturzrate beobachten.
+- Store-Regeln zu Updates: [D-01](STORE-RICHTLINIEN.md#d-01), [G-23](STORE-RICHTLINIEN.md#g-23), [G-34](STORE-RICHTLINIEN.md#g-34), [A-32](STORE-RICHTLINIEN.md#a-32)
+- [ ] erledigt
+
+### 19.6 Überwachung
+
+- **Was:** `uptime.yml` prüft alle 30 Minuten Web-App und laut.fm-Schnittstelle und öffnet bei Ausfall ein Ticket mit dem Label `uptime`. Benachrichtigung einschalten: im Repository oben "Watch" > "Custom" > Tickets.
+- **Wozu:** Ohne Benachrichtigung merkt niemand das Ticket. GitHub startet geplante Läufe nicht minutengenau, das ist ein Hinweis, keine Garantie.
+- **Wo eintragen:** Variable `WEB_BASE_URL` (Schritt 5.2) aktiviert den Monitor. Zusätzlich ein externer Monitor, weil `uptime.yml` mit GitHub zusammen ausfallen kann. Empfehlung: **UptimeRobot Free**: 50 Monitore, Prüfung alle 5 Minuten, laut Anbieter auch für kommerzielle Projekte (<https://uptimerobot.com/pricing/>, abgerufen 26.11.2026). Alternative Better Stack Free: 10 Monitore, E-Mail-Alarm, aber laut Preisseite nur für private Projekte (<https://betterstack.com/pricing>, abgerufen 26.11.2026), passt daher nicht. Das Konto legt LineFM Studios mit `support@linefm.de` oder einer Betriebsadresse an. Monitore: `https://app.linefm.de/`, `https://app.linefm.de/datenschutz/`, `https://cdn.linefm.de/images/icons/main.png`, `https://api.laut.fm/`. Alarm per E-Mail an mindestens zwei Personen. Ob E-Mail-Alarme im Free-Tarif enthalten sind, zeigt die Preisseite nicht eindeutig, nach dem Anlegen mit einem Testalarm prüfen.
+- **Woher:** entfällt.
+- **Prüfschritt:** Actions > "Uptime" läuft grün. Im externen Monitor einen Monitor kurz pausieren bzw. auf eine falsche URL stellen: die Alarm-Mail kommt an. Absturzberichte in Sentry, Firebase Crashlytics und Play Console (Android Vitals) einmal pro Woche ansehen.
+- [ ] erledigt
+
+### 19.7 Notfallplan
+
+- **Was:** [betrieb/INCIDENT.md](betrieb/INCIDENT.md) lesen und die Meldewege eintragen: wer wird bei Ausfall benachrichtigt, wer entscheidet über Rollback, wer spricht mit Stores und Nutzern. Fälle, die vorbereitet sein müssen: Web-App down, Stream bei laut.fm down, Schlüssel kompromittiert (sofort widerrufen, Secret tauschen, neues Release), Store sperrt die App (Begründung lesen, Einspruch über die Console), Konto-Zugang verloren.
+- **Wozu:** Im Ernstfall fehlt sonst die Zeit zum Nachdenken.
+- **Wo eintragen:** `docs/betrieb/INCIDENT.md`, Abschnitt "Meldewege" (der Entwickler trägt Namen ein, wenn du sie lieferst).
+- **Woher:** Deine Organisation.
+- **Prüfschritt:** Einmal im Jahr eine Übung nach dem Abschnitt "Übungen".
+- [ ] erledigt
+
+### 19.8 Abhängigkeiten aktuell halten
+
+- **Was:** Dependabot öffnet jeden Montag Änderungsvorschläge für GitHub Actions und Dart-Pakete (`.github/dependabot.yml`, 7 Tage Wartezeit nach Erscheinen). Sicherheitsmeldungen erscheinen im Reiter "Security".
+- **Wozu:** Veraltete Pakete heißen Sicherheitslücken und irgendwann Ablehnung in den Stores (Ziel-API, Xcode-Version, Seitengröße 16 KB bei Android).
+- **Wo eintragen:** nichts. Wer die Vorschläge prüft und zusammenführt, regelt der Wartungsvertrag (Schritt 2.5).
+- **Woher:** entfällt.
+- **Prüfschritt:** Monatlich: keine offenen Dependabot-Vorschläge älter als 30 Tage, keine offene kritische Sicherheitsmeldung.
+- [ ] erledigt
+
+### 19.9 Aufgaben am Tag des Live-Gangs
+
+- **Was:**
+  1. **Flathub-Domainbestätigung:** Die Datei `https://linefm.de/.well-known/org.flathub.VerifiedApps.txt` mit dem Inhalt, den Flathub nach der Aufnahme im Entwicklerportal anzeigt, auf der Hauptdomain ablegen (Schritt 8.1). Ohne Weiterleitung, Typ `text/plain`.
+  2. **Brotli auf dem Server:** Für nginx das Modul `ngx_brotli` aktivieren bzw. bei Plesk und Traefik die Kompression laut [hosting-uebersicht.md](hosting-uebersicht.md) einschalten. Cloudflare macht es selbst.
+  3. **Telemetrie-Adressen in der Sicherheitsrichtlinie:** Nach dem Setzen von `UMAMI_URL`, `SENTRY_DSN` oder Firebase die Web-App neu bauen und die Server-Header neu ausrollen, sonst blockiert die CSP die Anfragen (Schritt 9.2). Läuft Umami oder GlitchTip auf eigenem Server, dort die Server-Logs auf die in der Datenschutzerklärung genannte Dauer begrenzen und IP-Adressen kürzen bzw. nicht speichern.
+  4. Search Console und Sitemap (Schritt 10.1), Vertrauens-Badges (Abschnitt 11).
+- **Wozu:** Diese Punkte gehen erst, wenn die Domain live ist.
+- **Wo eintragen:** siehe je Punkt.
+- **Woher:** Flathub-Portal, Hoster.
+- **Prüfschritt:** `curl -sI https://linefm.de/.well-known/org.flathub.VerifiedApps.txt` zeigt 200. `curl -sI -H "Accept-Encoding: br" https://app.linefm.de/main.dart.js | grep -i content-encoding` zeigt `br`. Nach Einwilligung erscheint ein Ereignis in Umami.
+- Store-Regeln: [F-04](STORE-RICHTLINIEN.md#f-04), [W-01](STORE-RICHTLINIEN.md#w-01), [W-03](STORE-RICHTLINIEN.md#w-03)
+- [ ] erledigt
+
+---
+
+## 20. Support und Pflege
+
+### 20.1 Support-Kontakt und Support-URL
+
+- **Was:** Die Adresse `support@linefm.de` anlegen (macht LineFM Studios) und die Seite `/support/` der Web-App (de: `https://app.linefm.de/support/`, en: `https://app.linefm.de/en/support/`) als Support-URL nutzen. Beides in jedes Support-Feld jedes Stores eintragen.
+- **Wozu:** Google verlangt eine Kontakt-E-Mail, Apple eine Support-URL, Microsoft Support-Kontaktdaten. Fehlende oder tote Kontakte sind ein häufiger Ablehnungsgrund.
+- **Wo eintragen:** Play Console > Store-Präsenz > Kontaktdaten. App Store Connect > App-Informationen > Support-URL. Partner Center > Store-Eintrag. Flathub-Metainfo (`<url type="contact">` und `<url type="support">`, der Entwickler trägt sie ein). Snap: Dashboard und Snap-Metadaten (Kontakt, Website).
+- **Woher:** Entscheidung des Inhabers. Antwortzeit festlegen (Empfehlung: zwei Werktage). Apple-Felder trägst du erst in der späteren Apple-Runde ein.
+- **Prüfschritt:** Testmail an die Adresse kommt an, die URL antwortet mit 200.
+- Store-Regeln: [G-29](STORE-RICHTLINIEN.md#g-29), [A-28](STORE-RICHTLINIEN.md#a-28), [M-22](STORE-RICHTLINIEN.md#m-22), [S-08](STORE-RICHTLINIEN.md#s-08), [F-13](STORE-RICHTLINIEN.md#f-13), [W-05](STORE-RICHTLINIEN.md#w-05)
+- [ ] erledigt
+
+### 20.2 Bewertungen beantworten
+
+- **Was:** Bewertungen in Google Play, App Store und Microsoft Store wöchentlich lesen und sachlich beantworten. Fehlerberichte daraus als Ticket im Repo anlegen.
+- **Wozu:** Antworten verbessern die Bewertung und zeigen den Stores, dass die App gepflegt ist.
+- **Wo eintragen:** Play Console > Bewertungen, App Store Connect > Bewertungen, Partner Center > Rezensionen.
+- **Woher:** entfällt. Keine Bewertungen kaufen oder gegen Vorteile tauschen, das verbieten alle Stores.
+- **Prüfschritt:** Keine Bewertung mit Fehlerbeschreibung bleibt länger als eine Woche unbeantwortet.
+- [ ] erledigt
+
+### 20.3 Meldung von Sicherheitslücken
+
+- **Was:** Meldungen kommen über das GitHub-Formular aus `SECURITY.md` und `web/.well-known/security.txt` (Schritt 3.3). Benachrichtigung für "Security alerts" einschalten.
+- **Wozu:** Wer eine Lücke findet, braucht einen vertraulichen Weg. Die Datei `security.txt` hat ein Ablaufdatum (`Expires: 2027-05-19`) und muss vorher erneuert werden.
+- **Wo eintragen:** GitHub > Settings > Notifications. Erneuerung von `security.txt` macht der Entwickler.
+- **Woher:** entfällt.
+- **Prüfschritt:** `https://app.linefm.de/.well-known/security.txt` zeigt ein `Expires` in der Zukunft.
+- [ ] erledigt
+
+### 20.4 Monatliche Prüfung der Store-Richtlinien
+
+- **Was:** Ein geplanter Workflow prüft monatlich alle in [STORE-RICHTLINIEN.md](STORE-RICHTLINIEN.md) verlinkten Richtlinienseiten auf Erreichbarkeit und Änderungen und öffnet bei Änderung ein Ticket. Das Ticket trägt das Label `store-policy`. **Zuständig:** Der Entwickler liest es binnen fünf Werktagen, fasst die Änderung zusammen und weist es dir zu, wenn du in einer Console handeln musst. Nennt der Store eine kürzere Frist, gilt sie.
+- **Wozu:** Stores ändern ihre Regeln ohne Vorwarnung, oft mit kurzen Fristen.
+- **Wo eintragen:** Benachrichtigung für Tickets (Schritt 19.6) reicht.
+- **Woher:** entfällt.
+- **Prüfschritt:** Jeden Monat ein grüner Lauf oder ein bearbeitetes Ticket.
+- [ ] erledigt
+
+### 20.5 Fristenkalender
+
+Trag diese Termine mit Erinnerung vier Wochen vorher in einen gemeinsamen Kalender ein.
+
+| Wann | Was | Wer | Quelle |
+|---|---|---|---|
+| jährlich, Stichtag bisher 31. August | Google Play: neue Apps und Updates müssen die aktuelle Ziel-API haben. Seit 31.08.2026 Android 16 (API 36), Verlängerung auf Antrag bis 01.11.2026 | Entwickler | <https://developer.android.com/google/play/requirements/target-sdk>, abgerufen 26.11.2026; [G-11](STORE-RICHTLINIEN.md#g-11), [G-34](STORE-RICHTLINIEN.md#g-34) |
+| jährlich, meist Frühjahr (ab der Apple-Runde) | Apple: Uploads nur mit aktuellem Xcode. Seit 28.04.2026 Xcode 26 mit iOS-26-SDK | Entwickler | <https://developer.apple.com/news/upcoming-requirements/>, abgerufen 26.11.2026; [A-18](STORE-RICHTLINIEN.md#a-18), [A-32](STORE-RICHTLINIEN.md#a-32) |
+| jährlich zum Beitrittsdatum (ab der Apple-Runde) | Apple-Mitgliedschaft verlängern (99 US-Dollar), sonst verschwinden die Apps aus dem Store | LineFM Studios | <https://developer.apple.com/programs/enroll/>; [A-26](STORE-RICHTLINIEN.md#a-26) |
+| jährlich (ab der Apple-Runde) | Apple-Distribution-Zertifikat und Profile erneuern | Entwickler | Entwicklerportal |
+| laut Datum | Developer-ID-Zertifikat, Windows-Zertifikat, Azure-Client-Secret, Snap-Anmeldedaten erneuern | LineFM Studios und Entwickler | Schritt 19.3 |
+| jährlich laut Registrar | Domain `linefm.de` verlängern | LineFM Studios | Registrar |
+| jährlich und bei Aufforderung | Play-Erklärungen erneut bestätigen: Datensicherheit, Vordergrunddienst, Vollbild-Intent, Zielgruppe | LineFM Studios | [G-34](STORE-RICHTLINIEN.md#g-34) |
+| bei Aufforderung (ab der Apple-Runde) | neue Apple-Vereinbarungen annehmen, sonst stoppen die Uploads | LineFM Studios | [A-27](STORE-RICHTLINIEN.md#a-27) |
+| spätestens 19.05.2027, dann halbjährlich | `security.txt` erneuern | Entwickler | Schritt 20.3 |
+| monatlich | Store-Richtlinien-Prüfung, Dependabot, Sicherheitsmeldungen | Entwickler | Schritte 19.8, 20.4 |
+| quartalsweise | TLS-Ablauf, laut.fm-Schnittstelle, Wiederherstellungsübung | Entwickler | [betrieb/RUNBOOK.md](betrieb/RUNBOOK.md) |
+| jährlich | DPF-Status der US-Anbieter, AVV noch gültig, Datenschutzerklärung und Store-Formulare abgleichen, Altersfragebögen (Apple fragt bei neuen Systemen nach) | LineFM Studios | Schritte 17.2, 17.3 |
+| jährlich | Wiederherstellung einer Schlüsselsicherung testen, Notfallübung | beide | Schritte 19.3, 19.7 |
+
+- [ ] Kalender angelegt
+
+### 20.6 Ablehnungen und Sperren
+
+- **Was:** Lehnt ein Store ab oder sperrt die App: Begründung lesen, Ursache beheben, neu einreichen. Hältst du die Ablehnung für falsch, Einspruch einlegen: Play Console über "Richtlinienstatus", Apple über das App Review Board (spätere Apple-Runde), Microsoft über den Einspruchsweg der Zertifizierung, Snap und Flathub im jeweiligen Forum bzw. in der Einreichung.
+- **Wozu:** Wiederholte Verstöße können bei Google zur Kontosperre führen. Schnelle, sachliche Antworten verkürzen die Prüfung.
+- **Wo eintragen:** in der jeweiligen Console. Ticket im Repo mit Meldung und Screenshot, ohne Passwörter.
+- **Woher:** Der Entwickler hilft bei der Ursache.
+- **Prüfschritt:** Jede Ablehnung hat ein Ticket mit Ergebnis.
+- Store-Regeln: [G-33](STORE-RICHTLINIEN.md#g-33), [A-30](STORE-RICHTLINIEN.md#a-30), [M-23](STORE-RICHTLINIEN.md#m-23)
+- [ ] verstanden
 
 ---
 
@@ -798,6 +1267,7 @@ Art: S = Secret, V = Variable. "Pflicht" heißt: ohne den Wert fehlt die Funktio
 | `TRUST_TRUSTPILOT_URL` | V | Vertrauens-Badge | Profil bei Trustpilot | 11.2 |
 | `GPG_PRIVATE_KEY` | S | Signierte Releases (optional) | `gpg --armor --export-secret-keys <ID>` | 12.2 |
 | `NVD_API_KEY` | S | OWASP dependency-check im Workflow `dast.yml` (optional, ohne Schlüssel wird der Job übersprungen) | kostenloser Schlüssel von nvd.nist.gov/developers/request-an-api-key | – |
+| `UPDATER_ED25519_PRIVATE_KEY` | S (Umgebung `release`) | Updater der direkten Downloads (Windows-Setup, macOS-DMG), nie in Store-Builds | selbst erzeugter Ed25519-Schlüssel, Befehl liefert der Entwickler | 19.3 |
 | `GPG_PASSPHRASE` | S | Signierte Releases (optional) | beim Erzeugen vergeben | 12.2 |
 | `SCORECARD_TOKEN` | S | OpenSSF Scorecard (optional) | GitHub, Fine-grained token | 12.3 |
 | `CODE_SCANNING_ENABLED` | V | CodeQL (optional) | `true` | 12.3 |

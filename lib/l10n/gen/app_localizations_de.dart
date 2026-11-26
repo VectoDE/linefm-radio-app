@@ -466,6 +466,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sleepTimerExpired => 'Sleeptimer abgelaufen.';
 
   @override
+  String get settingCoverCacheTitle => 'Cover-Speicher';
+
+  @override
+  String get settingCoverCacheBody =>
+      'So viel Platz dürfen zwischengespeicherte Cover auf diesem Gerät belegen. Ein kleinerer Wert räumt sofort auf.';
+
+  @override
+  String coverCacheSizeMb(int size) {
+    return '$size MB';
+  }
+
+  @override
   String get settingStorageTitle => 'Speicher';
 
   @override

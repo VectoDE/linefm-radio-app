@@ -465,6 +465,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sleepTimerExpired => 'Sleep timer ended.';
 
   @override
+  String get settingCoverCacheTitle => 'Cover storage';
+
+  @override
+  String get settingCoverCacheBody =>
+      'How much space cached covers may take up on this device. A lower value clears space right away.';
+
+  @override
+  String coverCacheSizeMb(int size) {
+    return '$size MB';
+  }
+
+  @override
   String get settingStorageTitle => 'Storage';
 
   @override

@@ -316,6 +316,23 @@
   },
   "sleepTimerStatusEndOfSong": "Wiedergabe stoppt am Ende des Songs.",
   "sleepTimerExpired": "Sleeptimer abgelaufen.",
+  "settingCoverCacheTitle": "Cover-Speicher",
+  "@settingCoverCacheTitle": {
+    "description": "Einstellungen: Überschrift der Größenwahl für zwischengespeicherte Cover"
+  },
+  "settingCoverCacheBody": "So viel Platz dürfen zwischengespeicherte Cover auf diesem Gerät belegen. Ein kleinerer Wert räumt sofort auf.",
+  "@settingCoverCacheBody": {
+    "description": "Einstellungen: Erklärung unter der Größenwahl des Cover-Speichers"
+  },
+  "coverCacheSizeMb": "{size} MB",
+  "@coverCacheSizeMb": {
+    "description": "Größenwahl des Cover-Speichers: ein Wert in Megabyte",
+    "placeholders": {
+      "size": {
+        "type": "int"
+      }
+    }
+  },
   "settingStorageTitle": "Speicher",
   "settingStorageBody": "Lokal gespeichert werden: zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen, zwischengespeicherte Cover und am Computer die Fensterposition.",
   "settingStorageClear": "Speicher löschen",

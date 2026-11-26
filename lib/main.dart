@@ -75,6 +75,9 @@ Future<void> main(List<String> args) async {
   )..applyCached();
   // Gewaehlte Sprache fuer Texte ohne BuildContext (Wecker, Tray, Auto-Menue).
   appLanguageOverride = prefs.readSettings().language.code;
+  await CoverImage.diskCache?.setMaxBytes(
+    prefs.readSettings().coverCacheLimit.bytes,
+  );
   final telemetry = await initTelemetry(config: appConfig, prefs: prefs);
   telemetry.installCrashHandlers();
   perfMark('telemetry-ready');

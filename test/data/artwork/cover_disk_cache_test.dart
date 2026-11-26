@@ -32,6 +32,9 @@ class _MemoryCache implements CoverDiskCache {
   Future<void> write(String url, Uint8List bytes) async => data[url] = bytes;
 
   @override
+  Future<void> setMaxBytes(int maxBytes) async {}
+
+  @override
   Future<void> clear() async => data.clear();
 }
 
@@ -92,6 +95,28 @@ void main() {
       await cache.write('empty', Uint8List(0));
       expect(await cache.read('big'), isNull);
       expect(await cache.read('empty'), isNull);
+    });
+
+    test('a lower limit evicts at once, a higher one keeps files', () async {
+      final cache = FileCoverDiskCache(dir, maxBytes: 1000);
+      final chunk = Uint8List(100);
+      for (final url in <String>['a', 'b', 'c']) {
+        await cache.write(url, chunk);
+      }
+      File('${dir.path}${Platform.pathSeparator}${coverCacheKey('a')}.img')
+          .setLastModifiedSync(DateTime(2020));
+
+      await cache.setMaxBytes(2000);
+      expect(await cache.read('a'), isNotNull);
+      expect(cache.maxBytes, 2000);
+
+      File('${dir.path}${Platform.pathSeparator}${coverCacheKey('a')}.img')
+          .setLastModifiedSync(DateTime(2020));
+      await cache.setMaxBytes(250);
+      expect(cache.maxBytes, 250);
+      expect(await cache.read('a'), isNull);
+      expect(await cache.read('b'), isNotNull);
+      expect(await cache.read('c'), isNotNull);
     });
 
     test('clear removes everything', () async {

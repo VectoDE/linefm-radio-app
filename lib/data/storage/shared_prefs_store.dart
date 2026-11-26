@@ -28,6 +28,10 @@ abstract final class PrefsKeys {
   /// in der Web-App nicht.
   static const String loadArtwork = 'linefm-setting-artwork';
   static const String keyboardShortcuts = 'linefm-setting-shortcuts';
+
+  /// App language and cover cache limit. Not in the web app.
+  static const String language = 'linefm-setting-language';
+  static const String coverCacheLimit = 'linefm-setting-cover-cache-limit';
   static const String alarms = 'linefm-alarms';
   static const String telemetryConsent = 'linefm-telemetry-consent';
   static const String coverCache = 'linefm-cover-cache';
@@ -61,6 +65,8 @@ abstract final class PrefsKeys {
     themeMode,
     loadArtwork,
     keyboardShortcuts,
+    language,
+    coverCacheLimit,
     alarms,
     telemetryConsent,
     coverCache,
@@ -188,6 +194,8 @@ class SharedPrefsStore implements PrefsStore {
       'themeMode': _readString(PrefsKeys.themeMode),
       'loadArtwork': _readBool(_prefs, PrefsKeys.loadArtwork),
       'keyboardShortcuts': _readBool(_prefs, PrefsKeys.keyboardShortcuts),
+      'language': _readString(PrefsKeys.language),
+      'coverCacheLimit': _readString(PrefsKeys.coverCacheLimit),
     });
   }
 
@@ -211,6 +219,11 @@ class SharedPrefsStore implements PrefsStore {
       await _prefs.setBool(
         PrefsKeys.keyboardShortcuts,
         settings.keyboardShortcuts,
+      );
+      await _prefs.setString(PrefsKeys.language, settings.language.name);
+      await _prefs.setString(
+        PrefsKeys.coverCacheLimit,
+        settings.coverCacheLimit.name,
       );
       return true;
     });

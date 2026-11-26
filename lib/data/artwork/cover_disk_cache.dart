@@ -15,6 +15,9 @@ abstract interface class CoverDiskCache {
   /// Stores [bytes] for [url] and evicts old entries above the limit.
   Future<void> write(String url, Uint8List bytes);
 
+  /// Changes the size limit; a lower limit evicts at once.
+  Future<void> setMaxBytes(int maxBytes);
+
   /// Removes every stored cover (part of "clear storage").
   Future<void> clear();
 }

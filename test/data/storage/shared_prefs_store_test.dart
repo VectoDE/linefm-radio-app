@@ -150,6 +150,8 @@ void main() {
         autoplay: false,
         closeToTray: false,
         themeMode: AppThemeMode.dark,
+        language: AppLanguage.en,
+        coverCacheLimit: CoverCacheLimit.mb100,
       );
       await s.writeSettings(settings);
       expect(s.readSettings(), settings);

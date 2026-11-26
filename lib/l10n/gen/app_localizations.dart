@@ -842,6 +842,24 @@ abstract class AppLocalizations {
   /// **'Sleeptimer abgelaufen.'**
   String get sleepTimerExpired;
 
+  /// Einstellungen: Überschrift der Größenwahl für zwischengespeicherte Cover
+  ///
+  /// In de, this message translates to:
+  /// **'Cover-Speicher'**
+  String get settingCoverCacheTitle;
+
+  /// Einstellungen: Erklärung unter der Größenwahl des Cover-Speichers
+  ///
+  /// In de, this message translates to:
+  /// **'So viel Platz dürfen zwischengespeicherte Cover auf diesem Gerät belegen. Ein kleinerer Wert räumt sofort auf.'**
+  String get settingCoverCacheBody;
+
+  /// Größenwahl des Cover-Speichers: ein Wert in Megabyte
+  ///
+  /// In de, this message translates to:
+  /// **'{size} MB'**
+  String coverCacheSizeMb(int size);
+
   /// No description provided for @settingStorageTitle.
   ///
   /// In de, this message translates to:

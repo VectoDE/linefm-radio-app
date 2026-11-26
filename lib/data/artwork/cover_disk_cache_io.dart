@@ -26,13 +26,29 @@ Future<CoverDiskCache?> openCoverDiskCache() async {
 /// folder is at or below [maxBytes]. File errors are swallowed: the cache
 /// is an optimisation and must never break cover display.
 class FileCoverDiskCache implements CoverDiskCache {
-  FileCoverDiskCache(this.directory, {this.maxBytes = defaultMaxBytes});
+  FileCoverDiskCache(this.directory, {this._maxBytes = defaultMaxBytes});
 
-  /// 40 MB holds a few hundred 600x600 covers (about 60 to 120 KB each).
+  /// Default of the cache size setting. 40 MB holds a few hundred 600x600 covers (about 60 to 120 KB each).
   static const int defaultMaxBytes = 40 * 1024 * 1024;
 
   final Directory directory;
-  final int maxBytes;
+  int _maxBytes;
+
+  int get maxBytes => _maxBytes;
+
+  @override
+  Future<void> setMaxBytes(int maxBytes) async {
+    if (maxBytes <= 0 || maxBytes == _maxBytes) return;
+    final lower = maxBytes < _maxBytes;
+    _maxBytes = maxBytes;
+    if (lower) {
+      try {
+        await evict();
+      } on FileSystemException catch (e) {
+        debugPrint('Cover cache not trimmed: $e');
+      }
+    }
+  }
 
   File _file(String url) => File(
     '${directory.path}${Platform.pathSeparator}${coverCacheKey(url)}.img',

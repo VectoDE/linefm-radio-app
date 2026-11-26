@@ -104,24 +104,12 @@ jobs:
         timeout-minutes: 5
         run: node cast_net.mjs --web ../../build/web --hosting ../../build/hosting
 
-      - name: Build web with test IDs (GTM-TEST000, G-TEST000000)
+      - name: CSP without IDs has no Google sources
         run: |
-          set -euo pipefail
-          mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
-          jq '.GTM_ID = "GTM-TEST000" | .GA4_MEASUREMENT_ID = "G-TEST000000"' config/app.json > "$RUNNER_TEMP/app_ga.json"
-          flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file="$RUNNER_TEMP/app_ga.json" --base-href / --output build/web_ga "${web_defines[@]}"
-          dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web_ga --strict
-          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web_ga --config "$RUNNER_TEMP/app_ga.json"             --hosting-out build/hosting_ga
-          grep -q "https://www.googletagmanager.com" build/hosting_ga/nginx/snippets/linefm-headers.conf
           if grep -q "googletagmanager" build/hosting/nginx/snippets/linefm-headers.conf; then
             echo "::error::CSP without IDs contains Google sources"
             exit 1
           fi
-
-      - name: Google network check with test IDs
-        working-directory: tool/a11y
-        timeout-minutes: 5
-        run: node analytics_net.mjs --web ../../build/web_ga --mode ids
 
       - name: Summary
         if: ${{ always() }}
@@ -145,12 +133,68 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
+  # Reach measurement with Google (P31), test-ID half: a second web build with
+  # test IDs, run beside the axe job so its build does not lengthen it.
+  analytics:
+    name: Google tag check (test IDs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Write config
+        uses: ./.github/actions/write-config
+        with:
+          app-env: dev
+
+      - name: Build web with test IDs (GTM-TEST000, G-TEST000000)
+        run: |
+          set -euo pipefail
+          cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
+          mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
+          jq '.GTM_ID = "GTM-TEST000" | .GA4_MEASUREMENT_ID = "G-TEST000000"' config/app.json > "$RUNNER_TEMP/app_ga.json"
+          flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file="$RUNNER_TEMP/app_ga.json" --base-href / --output build/web_ga "${web_defines[@]}"
+          dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web_ga --strict
+          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web_ga --config "$RUNNER_TEMP/app_ga.json"             --hosting-out build/hosting_ga
+          grep -q "https://www.googletagmanager.com" build/hosting_ga/nginx/snippets/linefm-headers.conf
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tool/a11y/package-lock.json
+
+      - name: Install check tooling
+        working-directory: tool/a11y
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npx --no-install playwright install --with-deps chromium
+
+      - name: Google network check with test IDs
+        working-directory: tool/a11y
+        timeout-minutes: 5
+        run: node analytics_net.mjs --web ../../build/web_ga --mode ids
+
   # Zero-warning rule: any warning or error in a job log or a check-run
   # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
   # holds the few documented upstream exceptions, each with an expiry date.
   log-gate:
     name: Log gate
-    needs: [axe]
+    needs: [axe, analytics]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -6,7 +6,7 @@ Dieses Dokument hält den Ausgangsstand fest. Budgets in der CI gibt es noch nic
 
 ## Wie gemessen wird
 
-Workflow [`.github/workflows/performance.yml`](../.github/workflows/performance.yml), Skripte in [`tool/perf/`](../tool/perf/). Läuft bei Änderungen an den Messwerkzeugen, wöchentlich (Sonntag 02:37 UTC) und von Hand (`workflow_dispatch`, Eingabe `runs`). Kein Schritt bricht wegen eines Messwerts ab.
+Workflow [`.github/workflows/performance.yml`](../.github/workflows/performance.yml), Skripte in [`tool/perf/`](../tool/perf/). Läuft bei Änderungen an den Messwerkzeugen, wöchentlich (Sonntag 02:37 UTC) und von Hand (`workflow_dispatch`, Eingabe `runs`). Kein Schritt bricht wegen eines Messwerts ab. Die Web-Messung baut einmal und misst dann parallel in vier Scheiben auf je eigenem Runner (Lighthouse, mobil Laden, mobil Bedienung, Desktop mit Ton); innerhalb einer Scheibe laufen die Messungen nacheinander, damit sie sich keine CPU teilen. Der Job „Web (Lighthouse + Playwright)“ führt die Teilergebnisse zu `web-perf.json` zusammen.
 
 | Job | Was | Wie |
 |---|---|---|

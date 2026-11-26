@@ -67,6 +67,7 @@ jobs:
       - name: Set up Flutter (without pub get)
         uses: ./.github/actions/setup-flutter
         with:
+          cache: "false"
           pub-get: "false"
 
       - name: Prepare version calculator

@@ -26,8 +26,15 @@
 //      measurements against the real laut.fm streams, no continuous polling.
 //
 // Result: <out>/web-perf.json (raw values per run and statistics).
+//
+// Sharding (CI, performance.yml): each shard runs one slice serially on its
+// own runner, so shards never compete for CPU and the numbers stay comparable.
+//   --phases load|interaction|audio (comma list, default all; audio still
+//            needs --audio)  --part <name>  writes <out>/web-perf-part.json
+//   node web_perf.mjs --merge <dir> --out <out>  joins every web-perf-part.json
+//            below <dir> into <out>/web-perf.json with the same statistics.
 
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 
@@ -42,6 +49,9 @@ const { values: args } = parseArgs({
     runs: { type: 'string', default: '5' },
     profiles: { type: 'string', default: 'mobile,desktop' },
     audio: { type: 'boolean', default: false },
+    phases: { type: 'string', default: 'load,interaction,audio' },
+    part: { type: 'string' },
+    merge: { type: 'string' },
   },
 });
 
@@ -588,9 +598,9 @@ function aggregate(results) {
   const out = {};
   for (const profile of Object.keys(PROFILES)) {
     const loads = results.load.filter((r) => r.profile === profile && !r.error);
-    if (!loads.length) continue;
     const keys = ['ttfb', 'fcp', 'lcp', 'cls', 'dartMain', 'runApp', 'firstFrame', 'shellHidden', 'interactive', 'tbt', 'longTaskMs', 'maxLongTask'];
-    for (const phase of ['cold', 'warm']) {
+    // A shard may hold only interaction runs for a profile.
+    for (const phase of loads.length ? ['cold', 'warm'] : []) {
       const rows = loads.map((r) => r[phase]).filter(Boolean);
       out[`${profile}.${phase}`] = Object.fromEntries([
         ...keys.map((k) => [k, pick(rows, (r) => r[k])]),
@@ -626,7 +636,47 @@ function aggregate(results) {
   return out;
 }
 
+const PHASES = new Set(args.phases.split(',').map((p) => p.trim()));
+
+function findParts(dir) {
+  return readdirSync(dir).flatMap((entry) => {
+    const path = join(dir, entry);
+    if (statSync(path).isDirectory()) return findParts(path);
+    return entry === 'web-perf-part.json' ? [path] : [];
+  });
+}
+
+/** Joins shard results into one report with the same layout as a single run. */
+function merge() {
+  mkdirSync(OUT, { recursive: true });
+  const parts = findParts(resolve(args.merge)).map((f) => JSON.parse(readFileSync(f, 'utf8')));
+  if (!parts.length) throw new Error(`no web-perf-part.json below ${args.merge}`);
+  parts.sort((a, b) => a.part.localeCompare(b.part));
+  const results = { load: [], interaction: [], audio: [], targets: {} };
+  for (const p of parts) {
+    results.load.push(...p.results.load);
+    results.interaction.push(...p.results.interaction);
+    results.audio.push(...p.results.audio);
+    Object.assign(results.targets, p.results.targets);
+  }
+  const profiles = [...new Set(parts.flatMap((p) => Object.keys(p.profiles)))];
+  const report = {
+    tool: 'tool/perf/web_perf.mjs',
+    // First shard's runner stands for the run; every shard's own runner is listed below.
+    environment: parts[0].environment,
+    runs: Math.max(...parts.map((p) => p.runs)),
+    profiles: Object.fromEntries(profiles.map((p) => [p, PROFILES[p]])),
+    durationMs: Math.max(...parts.map((p) => p.durationMs)),
+    shards: parts.map((p) => ({ part: p.part, phases: p.phases, environment: p.environment, durationMs: p.durationMs })),
+    stats: aggregate(results),
+    results,
+  };
+  writeFileSync(join(OUT, 'web-perf.json'), JSON.stringify(report, null, 2));
+  console.log(`web-perf: ${join(OUT, 'web-perf.json')} from ${parts.length} shards`);
+}
+
 async function main() {
+  if (args.merge) return merge();
   mkdirSync(OUT, { recursive: true });
   const started = Date.now();
   const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
@@ -634,7 +684,7 @@ async function main() {
   const profiles = args.profiles.split(',').filter((p) => PROFILES[p]);
   try {
     for (const profile of profiles) {
-      for (let i = 1; i <= RUNS; i++) {
+      for (let i = 1; PHASES.has('load') && i <= RUNS; i++) {
         const r = await measureLoad(browser, profile, i);
         results.load.push(r);
         console.log(
@@ -642,6 +692,7 @@ async function main() {
             (r.error ? `ERROR ${r.error}` : `first frame ${Math.round(r.cold.firstFrame)} ms cold, ${Math.round(r.warm.firstFrame)} ms warm, ${r.cold.network.bytes} B`),
         );
       }
+      if (!PHASES.has('interaction') && !(args.audio && PHASES.has('audio') && profile === 'desktop')) continue;
       let found;
       try {
         found = await discoverTargets(browser, profile);
@@ -650,13 +701,13 @@ async function main() {
       }
       results.targets[profile] = found;
       console.log(`${profile} targets: ${JSON.stringify(Object.fromEntries(Object.entries(found.targets).map(([k, v]) => [k, v ? v.name : null])))}`);
-      for (let i = 1; i <= RUNS; i++) {
+      for (let i = 1; PHASES.has('interaction') && i <= RUNS; i++) {
         const r = await measureInteraction(browser, profile, i, found.targets);
         results.interaction.push(r);
         console.log(`${profile} interaction ${i}: ${r.error ?? r.steps.map((s) => `${s.name}=${s.skipped ? 'skipped' : Math.round(s.inputToPaint ?? -1)}`).join(', ')}`);
       }
     }
-    if (args.audio) {
+    if (args.audio && PHASES.has('audio')) {
       const targets = results.targets.desktop?.targets ?? (await discoverTargets(browser, 'desktop')).targets;
       for (let i = 1; i <= RUNS; i++) {
         const r = await measureAudio(browser, i, targets);
@@ -676,8 +727,10 @@ async function main() {
     stats: aggregate(results),
     results,
   };
-  writeFileSync(join(OUT, 'web-perf.json'), JSON.stringify(report, null, 2));
-  console.log(`web-perf: ${join(OUT, 'web-perf.json')} (${Math.round(report.durationMs / 1000)} s)`);
+  const file = join(OUT, args.part ? 'web-perf-part.json' : 'web-perf.json');
+  if (args.part) Object.assign(report, { part: args.part, phases: [...PHASES] });
+  writeFileSync(file, JSON.stringify(report, null, 2));
+  console.log(`web-perf: ${file} (${Math.round(report.durationMs / 1000)} s)`);
 }
 
 main().catch((e) => {

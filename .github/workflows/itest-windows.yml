@@ -12,6 +12,18 @@ name: Windows integration test
 
 on:
   pull_request:
+    # Only files that cannot reach the Windows app or this test are ignored:
+    # documentation, store metadata, deployment and other platform folders.
+    paths-ignore:
+      - docs/**
+      - fastlane/**
+      - "*.md"
+      - deploy/**
+      - android/**
+      - ios/**
+      - macos/**
+      - linux/**
+      - web/**
   workflow_dispatch:
 
 permissions: {}

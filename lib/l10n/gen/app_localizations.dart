@@ -1388,6 +1388,12 @@ abstract class AppLocalizations {
   /// **'Übertragung beenden'**
   String get castDisconnect;
 
+  /// No description provided for @castUnavailable.
+  ///
+  /// In de, this message translates to:
+  /// **'Google Cast ist auf diesem Gerät nicht verfügbar. Auf Android braucht es dafür die Google-Play-Dienste.'**
+  String get castUnavailable;
+
   /// No description provided for @castChooseDevice.
   ///
   /// In de, this message translates to:

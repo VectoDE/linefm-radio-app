@@ -524,6 +524,64 @@ void main() {
       expect(find.byType(CastSheet), findsOneWidget);
       expect(find.text('Wohnzimmer'), findsOneWidget);
     });
+
+    Future<ProviderContainer> pumpButton(WidgetTester tester) async {
+      final container = ProviderContainer(
+        overrides: <Override>[
+          prefsProvider.overrideWithValue(InMemoryPrefsStore()),
+          castServiceProvider.overrideWith(createCastService),
+        ],
+      );
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            locale: const Locale('de'),
+            theme: buildLinefmTheme(Brightness.dark),
+            localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+              AppLocalizations.delegate,
+              ...GlobalMaterialLocalizations.delegates,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const Scaffold(body: Center(child: CastButton())),
+          ),
+        ),
+      );
+      return container;
+    }
+
+    for (final (label, factory) in <(String, Future<CastBackend?> Function())>[
+      ('SDK returns no context', () async => null),
+      ('SDK throws', () async => throw PlatformException(code: 'no_gms')),
+    ]) {
+      testWidgets('Android without Play services ($label): message, button '
+          'hidden, no crash', (tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        castBackend = null;
+        resetCastInitForTest();
+        castBackendFactory = factory;
+        final container = await pumpButton(tester);
+        expect(find.byIcon(Icons.cast), findsOneWidget);
+        await tester.tap(find.byIcon(Icons.cast));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(
+          find.textContaining('Google-Play-Dienste'),
+          findsOneWidget,
+          reason: 'understandable message instead of an empty sheet',
+        );
+        expect(find.byType(CastSheet), findsNothing);
+        expect(find.byIcon(Icons.cast), findsNothing);
+        expect(container.read(castServiceProvider), isA<NoopCastService>());
+        // The player keeps working: casting calls are harmless no-ops.
+        final service = container.read(castServiceProvider);
+        await service.cast(stationsCatalog.first, _a);
+        await service.setVolume(0.5);
+        expect(service.state.isCasting, isFalse);
+      });
+    }
   });
 
   group('AirPlay', () {

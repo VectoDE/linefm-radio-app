@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/core/logging.dart';
 import 'package:linefm_radio/features/consent/cast_consent.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/services/cast/browser_cast.dart';
@@ -68,12 +69,24 @@ class _CastButtonState extends ConsumerState<CastButton> {
     if (!await _ensureWebConsent()) return;
     if (!mounted) return;
     setState(() => _activating = true);
-    await initCast();
+    try {
+      await initCast();
+    } on Object catch (e) {
+      logError('Cast start failed', e);
+    }
     if (!mounted) return;
     _initialized = true;
     ref.invalidate(castServiceProvider);
     _service = ref.read(castServiceProvider);
     setState(() => _activating = false);
+    if (castBackend == null) {
+      // No SDK (e.g. Android without Google Play services): say why instead
+      // of an empty device sheet; the button hides afterwards.
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).castUnavailable)),
+      );
+      return;
+    }
     await _openSheet();
   }
 

@@ -511,6 +511,7 @@
     }
   },
   "castDisconnect": "Übertragung beenden",
+  "castUnavailable": "Google Cast ist auf diesem Gerät nicht verfügbar. Auf Android braucht es dafür die Google-Play-Dienste.",
   "castChooseDevice": "Gerät auswählen",
   "castConsentTitle": "Übertragen mit Google Cast",
   "castConsentIntro": "Damit du das Radio auf einen Chromecast oder einen Lautsprecher mit Google Cast schicken kannst, braucht die Seite ein Skript von Google. Es lädt erst, wenn du hier zustimmst.",

@@ -253,6 +253,7 @@
   "castNoDevices": "No devices found.",
   "castConnectedTo": "Connected to {device}",
   "castDisconnect": "Stop casting",
+  "castUnavailable": "Google Cast is not available on this device. On Android it needs Google Play services.",
   "castChooseDevice": "Choose a device",
   "castConsentTitle": "Casting with Google Cast",
   "castConsentIntro": "To send the radio to a Chromecast or a speaker with Google Cast, the page needs a script from Google. It only loads once you agree here.",

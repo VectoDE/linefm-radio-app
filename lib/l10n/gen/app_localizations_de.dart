@@ -787,6 +787,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get castDisconnect => 'Übertragung beenden';
 
   @override
+  String get castUnavailable =>
+      'Google Cast ist auf diesem Gerät nicht verfügbar. Auf Android braucht es dafür die Google-Play-Dienste.';
+
+  @override
   String get castChooseDevice => 'Gerät auswählen';
 
   @override

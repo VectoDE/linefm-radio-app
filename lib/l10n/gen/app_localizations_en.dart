@@ -784,6 +784,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get castDisconnect => 'Stop casting';
 
   @override
+  String get castUnavailable =>
+      'Google Cast is not available on this device. On Android it needs Google Play services.';
+
+  @override
   String get castChooseDevice => 'Choose a device';
 
   @override

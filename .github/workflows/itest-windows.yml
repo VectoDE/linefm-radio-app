@@ -64,6 +64,17 @@ jobs:
           flutter test integration_test/windows_app_test.dart -d windows \
             --reporter=expanded --dart-define="ITEST_OUT=$out" 2>&1 | tee "$out/flutter-test.log"
 
+      # Restart while offline: last track, history and covers come from the
+      # on-device cache (local fake server, connections refused afterwards).
+      - name: Offline restore test
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$(cygpath -m "$GITHUB_WORKSPACE")/itest-screens"
+          mkdir -p "$out"
+          flutter test integration_test/windows_offline_restore_test.dart -d windows \
+            --reporter=expanded --dart-define="ITEST_OUT=$out" 2>&1 | tee "$out/flutter-test-offline.log"
+
       - name: Summary
         if: ${{ always() }}
         shell: bash

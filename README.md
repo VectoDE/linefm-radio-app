@@ -153,6 +153,7 @@ Stand: 22. November 2026. Status heißt: **erfüllt** = die Prüfung läuft in d
 | [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md) | Bauen, Testen, Architektur |
 | [docs/hosting-uebersicht.md](docs/hosting-uebersicht.md) | Web-Hosting, Cache, Header |
 | [docs/STORE-TEXTE.md](docs/STORE-TEXTE.md) | Texte für Play, Microsoft Store, Snap, Flathub, Tester-Einladung |
+| [docs/STORE-RICHTLINIEN.md](docs/STORE-RICHTLINIEN.md) | Store-Richtlinien als Prüfliste je Store, mit Quellen und Status (englisch: [STORE-POLICIES.md](docs/STORE-POLICIES.md)) |
 | [.github/ACCESSIBILITY.md](.github/ACCESSIBILITY.md) | Barrierefreiheit: Ziel, Stand, bekannte Lücken, Barriere melden (de/en) |
 | [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md) | Erklärung zur Barrierefreiheit (Entwurf) |
 | [docs/secrets.md](docs/secrets.md) | Alle Secrets und Variablen der Abläufe |

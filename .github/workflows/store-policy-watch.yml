@@ -1,0 +1,114 @@
+name: Store policy watch
+
+# Once a month: checks every official policy page linked in
+# docs/STORE-POLICIES.md (reachable, visible text changed against
+# tool/store_policy_baseline.json). When a page changed, is new or is gone,
+# one ticket with the label "store-policy" is opened; while it is open, later
+# runs comment there instead. Rate limits and server errors are retried and,
+# if they persist, only listed in the job summary: they are not a policy
+# change. After reviewing a change, update docs/STORE-POLICIES.md and
+# docs/STORE-RICHTLINIEN.md and run
+#   python3 tool/check_store_policy_links.py --update-baseline
+
+on:
+  schedule:
+    - cron: "17 6 3 * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: store-policy-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    name: Check policy pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check pages
+        id: check
+        run: |
+          set -euo pipefail
+          python3 tool/check_store_policy_links.py --report report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create or comment on ticket
+        if: steps.check.outputs.attention == 'true'
+        run: |
+          set -euo pipefail
+          gh label create store-policy --repo "$REPO" --color 5319E7 \
+            --description "Store policy page changed or unreachable" 2>/dev/null || true
+          {
+            echo "Checked: $(date -u '+%Y-%m-%d') UTC"
+            echo
+            cat report.md
+            echo
+            echo "Run: $RUN_URL"
+          } > body.md
+          number="$(gh issue list --repo "$REPO" --label store-policy --state open \
+            --json number --jq '.[0].number // empty')"
+          if [ -z "$number" ]; then
+            {
+              cat body.md
+              echo
+              echo "## Tasks"
+              echo
+              echo "- [ ] Read each changed page and compare with docs/STORE-POLICIES.md"
+              echo "- [ ] Update docs/STORE-POLICIES.md and docs/STORE-RICHTLINIEN.md (entries and retrieval dates)"
+              echo "- [ ] Replace broken links with the new official address"
+              echo "- [ ] Refresh tool/store_policy_baseline.json with --update-baseline"
+            } > new.md
+            gh issue create --repo "$REPO" --label store-policy \
+              --title "Store policy pages changed" --body-file new.md
+          else
+            gh issue comment "$number" --repo "$REPO" --body-file body.md
+          fi
+
+  # Zero-warning rule: any warning or error in a job log or a check-run
+  # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented upstream exceptions, each with an expiry date.
+  log-gate:
+    name: Log gate
+    needs: [watch]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan job logs and annotations
+        uses: ./.github/actions/log-gate
+        with:
+          job-name: Log gate
+          token: ${{ github.token }}

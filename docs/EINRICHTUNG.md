@@ -38,7 +38,7 @@ Haken setzen, sobald ein Schritt erledigt und geprüft ist. Die Haken setzt du i
 
 **Windows:** Wo ein Schritt einen Befehl mit `grep` oder `dig` zeigt, gilt unter Windows PowerShell: `curl.exe -sI <Adresse> | Select-String <Wort>` statt `curl ... | grep -i <Wort>` (`curl.exe` mit Endung, sonst startet PowerShell einen anderen Befehl), `Resolve-DnsName <Name>` statt `dig`. Im Browser gehen für Zertifikate <https://www.ssllabs.com/ssltest/> und für Antwort-Kopfzeilen die Entwicklerwerkzeuge (F12, Reiter "Netzwerk"). Die Windows-Schreibweisen haben wir nicht auf deinem Rechner geprüft.
 
-**Rollen:** *Du* (Betreiber) bist LineFM Studios, die Person, die diese Anleitung abarbeitet. *Entwickler* und *Repository-Eigentümer* ist Tim Hauke. Mit *Inhaber* ist in den Schritten dieselbe Person gemeint wie du (der Betreiber). *Kunde* ist der Auftraggeber der App, bei dem die laut.fm-Vereinbarung liegt (Schritte 2.1, 17.7, 17.8). Welche Firma jeweils Konto-Inhaber ist (LineFM Studios, LINEFM Gruppe, RadioGruppe Deutschland) und welche Rechtsform sie hat, klärst du vor Schritt 6.1 mit dem Anwalt (Anhang D). Fällt im Text eine andere Rolle, steht sie mit Namen dabei.
+**Rollen:** *Du* (Betreiber) bist LineFM Studios, die Person, die diese Anleitung abarbeitet. *Entwickler* und *Repository-Eigentümer* ist Tim Hauke. Mit *Inhaber* ist in den Schritten dieselbe Person gemeint wie du (der Betreiber). *Kunde* meint dein Unternehmen als Auftraggeber der App, also dich. Die Vereinbarung mit laut.fm hast du bereits und behältst sie selbst (Schritte 2.1, 17.7, 17.8). Die Konten (Google, Microsoft und weitere) sind Organisationskonten deines Unternehmens. Name und Rechtsform des Konto-Inhabers trägst du in Schritt 1.6 ein, wir raten sie nicht. Fällt im Text eine andere Rolle, steht sie mit Namen dabei.
 
 **Die wichtigsten Begriffe:**
 
@@ -101,6 +101,26 @@ Haken setzen, sobald ein Schritt erledigt und geprüft ist. Die Haken setzt du i
 | 20 | Support und Pflege, Fristenkalender | 20.1 (Postfach) sofort, der Rest nach 16 | laufend |
 
 Abschnitt 2 und die D-U-N-S-Nummer (Schritt 18.1) zuerst anstoßen, weil Antworten von Dritten am längsten dauern. Lege außerdem früh das Postfach `support@linefm.de` an (Schritt 20.1) und entscheide, ob du Statistik und Absturzberichte nutzt (Abschnitt 9, optional, dann ohne Einwilligungsrisiko weglassen), denn davon hängen die Verträge in Abschnitt 2 und die Rechtstexte in Abschnitt 3 ab. Die Abschnitte 6 bis 8 laufen parallel. Die Hosting-Wahl (Abschnitt 5) und die DNS-Einträge (Abschnitt 4) bedingen sich: Zuerst Hosting wählen, dann DNS auf dessen Zieladresse stellen, dann das Zertifikat.
+
+## Arbeitsreihenfolge
+
+Die Schrittnummern bleiben stabil. In dieser Reihenfolge arbeitest du sie ab, wenn du nichts überspringen willst:
+
+| Phase | Schritte | Warum zuerst |
+|---|---|---|
+| 1. Grundlagen | 1.1, 1.2, 1.3, 1.5 | Zugang, Passwortmanager, Secrets |
+| 2. Entscheiden | 1.6 | Hosting, Telemetrie, Stores und Konto-Inhaber bestimmen den Rest |
+| 3. Lange Wartezeiten anstoßen | 18.1 (D-U-N-S), 2.1 bis 2.3 (Bestätigungen), 20.1 und 18.2 (Postfächer, Konten-Regeln) | Dritte antworten spät, Konten brauchen Adressen |
+| 4. Web | 5.1, 5.2, 4.1, 4.2, 4.4, 4.3 | Datenschutz-URL und Domain müssen live sein |
+| 5. Rechtstexte | 3.1 bis 3.4, 2.4, 2.5, 17.1 bis 17.4 | Stores verlangen die URLs und Texte |
+| 6. Google | 6.1, 6.2, 6.3, 6.4, 6.5 bis 6.13 (6.9 erst nach dem ersten Upload), 13.1, 17.5 | |
+| 7. Microsoft | 7.1, 7.6, 7.2, 7.5, 7.7, 7.8, 7.3, 7.4, 13.2 | 7.6 und 7.8 vor 7.3 |
+| 8. Linux | 8.2, 13.3, dann 8.1 (Einreichung bei Flathub, Verifizierungsdatei erst nach Aufnahme) | |
+| 9. Optional | 9 (Telemetrie), 10.1, 10.3, 10.2, 11, 12 | 10.3 vor 10.2 |
+| 10. Bilder | 14 (früh anstoßen, die Stores brauchen sie in Phase 6 und 7) | |
+| 11. Abnahme | 16, 19.4, 19.5, 19.9 | |
+| 12. Dauerbetrieb | 19.1 bis 19.3, 19.6 bis 19.8, 20.2 bis 20.7 | Einrichten, dann regelmäßig |
+| später | 15 (Apple) | nicht Teil der ersten Veröffentlichung |
 
 ## Übersicht: Was kostet das?
 
@@ -192,7 +212,7 @@ Abschnitt 2 und die D-U-N-S-Nummer (Schritt 18.1) zuerst anstoßen, weil Antwort
   2. **Statistik und Absturzberichte** (Abschnitt 9): ja oder nein, und mit welchem Anbieter. Selbst gehostete Dienste (Umami, GlitchTip) brauchen einen eigenen Server mit Docker, den Cloudflare Pages nicht bietet. Ohne Server bleiben gehostete Dienste (Sentry, Firebase, Tarife nicht geprüft). Die einfachste Variante ist "nein" (Fall A in [STORE-DATENSCHUTZANGABEN.md](STORE-DATENSCHUTZANGABEN.md)): Dann entfallen die Auftragsverarbeitung für Telemetrie (Schritt 2.4), mehrere Platzhalter und viele Angaben in den Store-Formularen. Entscheidung des Betreibers, sie lässt sich später ändern.
   3. **Welche Stores zuerst:** Google Play, Microsoft, Flathub und Snap sind der erste Umfang, Apple später (Abschnitt 15). Jeder Store zusätzlich heißt: ein Konto, ein Formularsatz, eine Prüfung.
 - **Wozu:** Ohne diese Entscheidungen drehen sich Schritte im Kreis: Der Vertrag in 2.4 braucht den Telemetrie-Anbieter aus 9.1, die DNS-Einträge in 4.1 brauchen das Hosting aus 5.1.
-- **Wo eintragen:** Schicke die Antworten per Mail an den Entwickler und lege sie in deinen Unterlagen ab.
+- **Wo eintragen:** Schicke die Antworten per Mail an den Entwickler und lege sie in deinen Unterlagen ab. **Konto-Inhaber (Betreiber trägt ein):** Name der Firma laut Handelsregister bzw. Gewerbeanmeldung: ____________________; Rechtsform: ____________________. Diese Angaben stehen später unverändert in Google Play, Microsoft, D-U-N-S und im Impressum.
 - **Woher:** eigene Entscheidung, Kosten siehe Übersicht oben.
 - **Prüfschritt:** Alle drei sind schriftlich festgehalten.
 - **Wenn es nicht klappt:** Du kannst dich nicht entscheiden: Nimm Cloudflare Pages, keine Telemetrie, vier Stores (Google, Microsoft, Flathub, Snap). Das ist die kleinste Variante und lässt sich später erweitern.
@@ -215,7 +235,7 @@ Alle Punkte hier sind Vorprüfung, keine Rechtsberatung. Lass Wortlaut und Folge
   > Guten Tag, wir sind LineFM Studios und betreiben die App "LINEFM Radio" (Android, Windows, Linux, Web). Die App spielt die öffentlichen laut.fm-Streams unserer Sender ab und zeigt Titel, Hörerzahl und Sendeplan aus der öffentlichen laut.fm-Schnittstelle. Bitte bestätigen Sie uns schriftlich, ob die Wiedergabe der Streams in einer eigenen App eines Dritten durch Ihre Lizenzverträge mit GEMA und GVL abgedeckt ist, und ob Sie der Nutzung der Schnittstelle in dieser Form zustimmen. Falls Bedingungen gelten (Namensnennung, Logos), nennen Sie uns diese bitte. Vielen Dank und freundliche Grüße, [Name, Funktion, Telefon]
 
   Die Mail ist ein Vorschlag und ersetzt keine Rechtsberatung. Prüfe sie vor dem Versand und lege die Antwort mit Datum ab.
-- **Woher:** Entscheidung des Inhabers: Die schriftliche Bestätigung zu GEMA und GVL holt der Kunde, bei dem die laut.fm-Vereinbarung liegt, **bei laut.fm** ein (Adresse laut Freigabe-Checkliste: `team@laut.fm`, vor Gebrauch prüfen). Gefragt wird, ob die Wiedergabe der Streams in einer eigenen App eines Dritten unter die Lizenzverträge von laut.fm mit GEMA und GVL fällt.
+- **Woher:** Entscheidung des Inhabers: Die schriftliche Bestätigung zu GEMA und GVL holst du, da die Vereinbarung bei dir liegt, **bei laut.fm** ein (Adresse laut Freigabe-Checkliste: `team@laut.fm`, vor Gebrauch prüfen). Gefragt wird, ob die Wiedergabe der Streams in einer eigenen App eines Dritten unter die Lizenzverträge von laut.fm mit GEMA und GVL fällt.
 - **Prüfschritt:** Es liegt eine schriftliche Antwort vor, die zur Aussage im Impressum passt.
 - **Wenn es nicht klappt:** Keine Antwort nach zwei Wochen: freundlich nachfassen und das Datum notieren. Ohne Antwort bleibt die Freigabesperre bestehen (die Telemetrie und die Store-Einreichung bleiben gesperrt, bis die Voraussetzung erfüllt ist).
 - [ ] erledigt
@@ -432,7 +452,7 @@ Die Web-App besteht nur aus Dateien. Such dir **einen** Weg aus. Jede Anleitung 
 
 ### 5.3 Web-Variablen für Google-Dienste, Telemetrie und Vertrauen
 
-Diese stehen in den Abschnitten 9, 10 und 11. Sie landen im fertigen Programm in `config/app.json` und sind öffentlich lesbar, deshalb nur als Variable, nie als Secret.
+Diese stehen in den Abschnitten 9, 10 und 11. Sie landen im fertigen Programm in `config/app.json` und sind öffentlich lesbar, deshalb nur als Variable, nie als Secret. Einzige Ausnahme ist `FIREBASE_CONFIG_JSON`: Die Abläufe unter `.github/workflows/` lesen es ausschließlich als Secret (`secrets.FIREBASE_CONFIG_JSON`), eine Variable liest dort niemand. Der Inhalt ist zwar kein Geheimnis, muss aber trotzdem als Secret angelegt werden, damit der Ablauf ihn findet (Stand 26.11.2026, per Suche in den Abläufen geprüft).
 
 ---
 
@@ -708,7 +728,7 @@ Quelle: [packaging/flathub/README.md](../packaging/flathub/README.md).
 - **Was:** Domain bestätigen, Weitergabe erlauben, dann einreichen.
 - **Wozu:** Flathub prüft, dass `de.linefm.app` dir gehört, und braucht die Erlaubnis zur Weiterverteilung. LINEFM Radio ist proprietär. Das ist bei Flathub erlaubt, wenn du die Weitergabe ausdrücklich erlaubst. Schriftlich bestätigen (Nutzungsrechtevertrag, Schritt 2.5).
 - **Wo eintragen:**
-  1. Datei `https://linefm.de/.well-known/org.flathub.VerifiedApps.txt` auf der Hauptdomain bereitstellen. Den Inhalt zeigt dir das Flathub Developer Portal unter "Verification" (bei Flathub anmelden, "Developer Portal", App wählen, "Verification"; <https://docs.flathub.org/docs/for-app-authors/verification>, abgerufen 26.11.2026). HTTPS ist Pflicht, Weiterleitungen werden befolgt. Das geht nur über `linefm.de`, die du verwaltest.
+  1. Datei `https://linefm.de/.well-known/org.flathub.VerifiedApps.txt` auf der Hauptdomain bereitstellen, **nach** der Aufnahme der App bei Flathub (die Verifizierung geht erst, wenn du Zugriff auf das Flathub-Repository der App hast, die Einladung kommt bei Aufnahme). Den Inhalt zeigt dir das Flathub Developer Portal unter "Verification" (bei Flathub anmelden, "Developer Portal", App wählen, "Verification"; <https://docs.flathub.org/docs/for-app-authors/verification>, abgerufen 26.11.2026). HTTPS ist Pflicht, Weiterleitungen werden befolgt. Der Ablauf: erst einreichen, nach der Aufnahme das Portal öffnen, dann die Datei ablegen (Quelle: <https://docs.flathub.org/docs/for-app-authors/verification>, abgerufen 26.11.2026). Das geht nur über `linefm.de`, die du verwaltest.
   2. Altersangabe (OARS, Alterseinstufung bei Linux-Stores) in der Metainfo bestätigen, wegen Kraftausdrücken bei +RAP.
   3. Screenshots im Netz bereitstellen, URLs in der Metainfo eintragen (dort stehen Platzhalter).
   4. Einreichung als Änderungsvorschlag gegen den Zweig `new-pr` (nicht `master`) von `flathub/flathub`: forken (die Option "Copy the master branch only" **nicht** anhaken), `new-pr` klonen, Dateien committen, Änderungsvorschlag mit Titel "Add de.linefm.app" öffnen (<https://docs.flathub.org/docs/for-app-authors/submission>, abgerufen 26.11.2026). Nach der Aufnahme lädt Flathub den Maintainer in ein neues Repo ein: Zwei-Faktor-Anmeldung bei GitHub aktivieren und die Einladung **innerhalb einer Woche** annehmen. Der Entwickler bereitet ihn vor. Du reichst mit deinem GitHub-Konto ein oder gibst Tim Hauke die Vollmacht.
@@ -752,7 +772,7 @@ Ohne Konfiguration sendet die App nichts und fragt nicht nach Einwilligung. Tech
 ### 9.2 Werte eintragen
 
 - **Was:** Öffentliche IDs als Repository-Variablen setzen.
-- **Wozu:** Sie aktivieren den Anbieter im Build. Es sind keine Geheimnisse, sie stehen im fertigen Programm.
+- **Wozu:** Sie aktivieren den Anbieter im Build. Es sind keine Geheimnisse, sie stehen im fertigen Programm (Ausnahme: `FIREBASE_CONFIG_JSON` wird aus technischen Gründen als Secret angelegt, siehe Schritt 5.3).
 - **Wo eintragen:** Variablen `UMAMI_URL`, `UMAMI_WEBSITE_ID`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT`. Für Firebase Secret `FIREBASE_CONFIG_JSON` (JSON mit `FIREBASE_*`-Schlüsseln). Lokal: `config/app.yaml` nach Vorlage `config/app.example.yaml`, nicht einchecken (siehe [Konfiguration](KONFIGURATION.md)).
 - **Woher:** Umami: Website-ID bei der Website in den Umami-Einstellungen (Website bearbeiten, Bereich "Tracking code"; den genauen Pfad nennt die Umami-Doku nicht, nicht geprüft). Sentry: Projekt > Einstellungen > "Client Keys (DSN)" (<https://docs.sentry.io/concepts/key-terms/dsn-explainer/>). GlitchTip: DSN steht auf der Seite mit der Fehlerliste direkt nach dem Anlegen des Projekts, später in den Projekteinstellungen. Firebase: Projektübersicht > Web-Symbol > "App registrieren" (Register app), das angezeigte `firebaseConfig`-Objekt als JSON eintragen; gibt es schon eine App, zuerst "Add app" (<https://firebase.google.com/docs/web/setup>). Nicht geprüft: deutsche Menünamen.
 - **Prüfschritt:** Nach der Einwilligung in der App erscheint ein Ereignis in Umami bzw. ein Testabsturz in GlitchTip. Ohne Einwilligung geht nichts raus. Nach jeder Änderung die Web-Version neu bauen und die Server-Header neu ausrollen, sonst blockiert die Sicherheitsrichtlinie die neuen Domains.
@@ -1268,7 +1288,7 @@ Vorprüfung, keine Rechtsberatung. Jeden Punkt lässt du von einem Anwalt bestä
 
 ### 17.7 laut.fm-Vereinbarung
 
-- **Was:** Die Vereinbarung mit laut.fm und die Bestätigung aus Schritt 2.1 liegen beim Kunden und kommen von dort (Entscheidung des Inhabers). Bei der Einreichung nennst du sie, wenn ein Store nach Rechten an Inhalten fragt.
+- **Was:** Die Vereinbarung mit laut.fm hast du bereits und behältst sie selbst, sie kommt nicht ins Repository (Entscheidung des Inhabers). Die Bestätigung aus Schritt 2.1 holst du ein. Bei der Einreichung nennst du sie, wenn ein Store nach Rechten an Inhalten fragt.
 - **Wozu:** Google und Apple fragen bei Streaming-Apps nach dem Recht, die Inhalte zu verbreiten. Ohne Beleg droht die Ablehnung wegen geistigen Eigentums.
 - **Wo eintragen:** Play Console: Hinweis im Feld für Prüfer (Schritt 6.13), Partner Center: Schritt 7.7; bei einer Beschwerde wegen geistigen Eigentums lädst du den Nachweis über die Seite "Richtlinienstatus" hoch. App Store Connect (spätere Apple-Runde): Frage "Content Rights" in den App-Informationen beantworten, Hinweis in den Review-Notizen, Nachweis bei Bedarf als Anhang. Partner Center: Hinweise für die Zertifizierung. Snap und Flathub: auf Nachfrage.
 - **Woher:** deine Unterlagen.
@@ -1437,7 +1457,8 @@ Das Betriebshandbuch mit Deploy, Rollback und Wiederherstellung ist [betrieb/RUN
 - **Woher:** [betrieb/RUNBOOK.md](betrieb/RUNBOOK.md), Abschnitt "Zertifikate und Domain".
 - **Prüfschritt:** Quartalsweise der `openssl`-Befehl aus dem Runbook. Der Uptime-Monitor (Schritt 19.6) meldet Ausfälle.
 - **Wenn es nicht klappt:** Das Zertifikat läuft in weniger als 14 Tagen ab, obwohl die Erneuerung automatisch laufen sollte: Beim Hoster prüfen, ob der Erneuerungsjob läuft, sonst von Hand erneuern (Schritt 4.2).
-- [ ] erledigt
+- [ ] eingerichtet
+- [ ] regelmäßig erledigt (quartalsweise, Liste in Schritt 20.7)
 
 ### 19.3 Signierschlüssel und ihre Sicherung
 
@@ -1463,7 +1484,8 @@ Das Betriebshandbuch mit Deploy, Rollback und Wiederherstellung ist [betrieb/RUN
 - Store-Regeln: [D-01](STORE-RICHTLINIEN.md#d-01), [A-04](STORE-RICHTLINIEN.md#a-04), [M-02](STORE-RICHTLINIEN.md#m-02), [S-05](STORE-RICHTLINIEN.md#s-05), [F-11](STORE-RICHTLINIEN.md#f-11)
 - **Prüfschritt:** Einmal im Jahr eine Sicherung testweise zurückspielen (Fingerabdruck mit `keytool -list -v` bzw. `openssl pkcs12 -info` vergleichen).
 - **Wenn es nicht klappt:** Die Sicherung lässt sich nicht zurückspielen: Sofort eine neue anlegen und prüfen. Ein Schlüssel ist verloren: Schritt 6.3 (Upload-Schlüssel zurücksetzen) bzw. [betrieb/INCIDENT.md](betrieb/INCIDENT.md).
-- [ ] erledigt
+- [ ] eingerichtet
+- [ ] regelmäßig erledigt (einmal im Jahr, Liste in Schritt 20.7)
 
 ### 19.4 Secrets-Abgleich
 
@@ -1494,7 +1516,8 @@ Das Betriebshandbuch mit Deploy, Rollback und Wiederherstellung ist [betrieb/RUN
 - **Woher:** entfällt.
 - **Prüfschritt:** Actions > "Uptime" läuft grün. Im externen Monitor einen Monitor kurz pausieren bzw. auf eine falsche URL stellen: die Alarm-Mail kommt an. Absturzberichte in Sentry, Firebase Crashlytics und Play Console (Android Vitals) einmal pro Woche ansehen.
 - **Wenn es nicht klappt:** Der Testalarm kommt nicht an: Spam-Ordner prüfen und prüfen, ob der Monitor dem Alarmkontakt zugewiesen ist. Die Klickpfade im UptimeRobot-Dashboard haben wir nicht geprüft (Anmeldung nötig), sie stehen im Hilfebereich <https://help.uptimerobot.com/en/>. Keine Mail von GitHub bei einem Uptime-Ticket: "Email" und "On GitHub" unter Notifications einschalten und den Watch-Haken für Tickets prüfen.
-- [ ] erledigt
+- [ ] eingerichtet
+- [ ] regelmäßig erledigt (wöchentlich, Liste in Schritt 20.7)
 
 ### 19.7 Notfallplan
 
@@ -1514,12 +1537,13 @@ Das Betriebshandbuch mit Deploy, Rollback und Wiederherstellung ist [betrieb/RUN
 - **Woher:** entfällt.
 - **Prüfschritt:** Monatlich: keine offenen Dependabot-Vorschläge älter als 30 Tage, keine offene kritische Sicherheitsmeldung.
 - **Wenn es nicht klappt:** Ein Dependabot-Vorschlag bricht die Prüfung: Den Entwickler fragen, nicht zusammenführen. Eine kritische Sicherheitsmeldung ist offen: Den Entwickler am selben Tag informieren.
-- [ ] erledigt
+- [ ] eingerichtet
+- [ ] regelmäßig erledigt (monatlich, Liste in Schritt 20.7)
 
 ### 19.9 Aufgaben am Tag des Live-Gangs
 
 - **Was:**
-  1. **Flathub-Domainbestätigung:** Die Datei `https://linefm.de/.well-known/org.flathub.VerifiedApps.txt` mit dem Inhalt, den Flathub nach der Aufnahme im Entwicklerportal anzeigt, auf der Hauptdomain ablegen (Schritt 8.1). Ohne Weiterleitung, Typ `text/plain`.
+  1. **Flathub-Domainbestätigung:** Die Datei `https://linefm.de/.well-known/org.flathub.VerifiedApps.txt` mit dem Inhalt, den Flathub nach der Aufnahme im Entwicklerportal anzeigt, auf der Hauptdomain ablegen (Schritt 8.1). Weiterleitungen folgt Flathub, HTTPS ist Pflicht. Typ `text/plain`.
   2. **Brotli auf dem Server:** Für nginx das Modul `ngx_brotli` aktivieren bzw. bei Plesk und Traefik die Kompression laut [hosting-uebersicht.md](hosting-uebersicht.md) einschalten. Cloudflare macht es selbst.
   3. **Telemetrie-Adressen in der Sicherheitsrichtlinie:** Nach dem Setzen von `UMAMI_URL`, `SENTRY_DSN` oder Firebase die Web-App neu bauen und die Server-Header neu ausrollen, sonst blockiert die CSP die Anfragen (Schritt 9.2). Läuft Umami oder GlitchTip auf eigenem Server, dort die Server-Logs auf die in der Datenschutzerklärung genannte Dauer begrenzen und IP-Adressen kürzen bzw. nicht speichern.
   4. Search Console und Sitemap (Schritt 10.1), Vertrauens-Badges (Abschnitt 11).
@@ -1554,7 +1578,8 @@ Das Betriebshandbuch mit Deploy, Rollback und Wiederherstellung ist [betrieb/RUN
 - **Woher:** entfällt. Keine Bewertungen kaufen oder gegen Vorteile tauschen, das verbieten alle Stores.
 - **Prüfschritt:** Keine Bewertung mit Fehlerbeschreibung bleibt länger als eine Woche unbeantwortet.
 - **Wenn es nicht klappt:** Du weißt nicht, wie du auf eine harte Bewertung antworten sollst: Sachlich bleiben, Lösung anbieten, keine Vorwürfe. Eine Bewertung verstößt gegen die Regeln des Stores: Dort melden, nicht selbst löschen lassen wollen.
-- [ ] erledigt
+- [ ] eingerichtet
+- [ ] regelmäßig erledigt (wöchentlich, Liste in Schritt 20.7)
 
 ### 20.3 Meldung von Sicherheitslücken
 
@@ -1574,7 +1599,8 @@ Das Betriebshandbuch mit Deploy, Rollback und Wiederherstellung ist [betrieb/RUN
 - **Woher:** entfällt.
 - **Prüfschritt:** Jeden Monat ein grüner Lauf oder ein bearbeitetes Ticket.
 - **Wenn es nicht klappt:** Das Ticket nennt eine Frist, die bald abläuft: Den Entwickler am selben Tag informieren und die Frist in den Fristenkalender (Schritt 20.5) eintragen. Der Lauf ist rot, weil eine Seite nicht erreichbar ist: Das ist meist ein Umzug der Seite, der Entwickler pflegt die Adresse.
-- [ ] erledigt
+- [ ] eingerichtet
+- [ ] regelmäßig erledigt (monatlich, Liste in Schritt 20.7)
 
 ### 20.5 Fristenkalender
 
@@ -1609,6 +1635,29 @@ Trag diese Termine mit Erinnerung vier Wochen vorher in einen gemeinsamen Kalend
 - Store-Regeln: [G-33](STORE-RICHTLINIEN.md#g-33), [A-30](STORE-RICHTLINIEN.md#a-30), [M-23](STORE-RICHTLINIEN.md#m-23)
 - **Wenn es nicht klappt:** Du verstehst die Begründung nicht: Wortlaut an den Entwickler schicken. Der Store ändert seine Meinung auch nach einem Einspruch nicht: Ursache beheben und neu einreichen, bevor weitere Verstöße zählen. Bei Sperre des Kontos sofort den Anwalt und den Entwickler einbinden.
 - [ ] verstanden
+
+### 20.7 Regelmäßige Aufgaben im Überblick
+
+- **Was:** Diese Aufgaben wiederholen sich. Das einmalige Einrichten steht in den Schritten oben ("eingerichtet"), das regelmäßige Erledigen trägst du hier ein.
+- **Wozu:** Ein einziger Haken würde sonst nach dem ersten Mal "fertig" melden.
+- **Wo eintragen:** Fristenkalender (Schritt 20.5).
+
+  | Aufgabe | Rhythmus | Schritt | Wer |
+  |---|---|---|---|
+  | Zertifikat und Domain-Ablauf prüfen | quartalsweise | 19.2, 19.1 | du, Entwickler hilft |
+  | Sicherungen der Signierschlüssel testweise zurückspielen | einmal im Jahr | 19.3 | du mit Entwickler |
+  | Uptime-Alarme und Absturzberichte ansehen | wöchentlich | 19.6 | du |
+  | Offene Abhängigkeits-Vorschläge und Sicherheitsmeldungen ansehen | monatlich | 19.8 | Entwickler, du bekommst die Zusammenfassung |
+  | Bewertungen in den Stores beantworten | wöchentlich | 20.2 | du |
+  | Store-Richtlinien-Ticket lesen | monatlich | 20.4 | Entwickler, bei Handlungsbedarf du |
+  | Fristen und Ablaufdaten (Apple-Mitgliedschaft, Domain, Zertifikate, Händlerstatus) | laufend | 20.5 | du |
+  | Notfallübung | einmal im Jahr | 19.7 | du mit Entwickler |
+
+- **Woher:** entfällt.
+- **Prüfschritt:** Jede Zeile hat einen Termin im Kalender.
+- **Wenn es nicht klappt:** Ein Termin wurde verpasst: Sofort nachholen, Datum notieren und den Rhythmus im Kalender anpassen.
+- [ ] eingerichtet
+
 
 ---
 
@@ -1744,43 +1793,43 @@ So prüfst du einen Eintrag: Ablauf unter <https://github.com/VectoDE/linefm-rad
 
 ## Anhang D: Was nur du entscheiden oder liefern kannst
 
-Die folgenden Punkte warten ausschließlich auf dich (LineFM Studios). Sie stehen in den Schritten oben, hier nur gesammelt. Jeder Punkt hat oben in seinem Schritt einen Haken. Sind alle Haken gesetzt, ist alles bis zur Veröffentlichung geklärt.
+Die folgenden Punkte warten ausschließlich auf dich (LineFM Studios). Sie stehen in den Schritten oben, hier nur gesammelt. Jeder Punkt hat hier einen eigenen Haken. Sind alle gesetzt, ist alles bis zur Veröffentlichung geklärt.
 
-| Punkt | Schritt |
-|---|---|
-| Pflichtangaben für Impressum und Datenschutz liefern (14 Pflichtwerte) | 3.1 |
-| Verantwortliche Person nach Medienstaatsvertrag benennen, anwaltlich prüfen | 3.1, Anhang B |
-| Auftragsverarbeitungsvertrag mit dem Telemetrie-Betreiber unterschreiben | 2.4, 17.3 |
-| Nutzungsrechtevertrag zum Code | 2.5 |
-| Ein Anwaltstermin für alle offenen Rechtsfragen: Freigabe des Quellcodes (1.4), Verträge (2), Rundfunkrecht und verantwortliche Person (3.1, 3.4), Barrierefreiheitserklärung (3.2), Einwilligung, Cast und Speicherhinweis (3.4, 13.1), Speicherung der gewählten App-Sprache ohne Einwilligung, Google-Cast-Skript im Web erst nach Einwilligung, Google als Empfänger bei Firebase, GA4 (10.2), Lizenz der Windows-Abspielbibliothek (7.6) | siehe Klammern |
-| Lizenz der vorgebauten Windows-Abspielbibliothek klären, vor dem Microsoft Store | 7.6 |
-| GA4-Auftragsverarbeitung annehmen | 10.2 |
-| DNS für `app.linefm.de` | 4.1 |
-| CORS für `cdn.linefm.de` | 4.4 |
-| Play-Erklärungen zu Vordergrunddienst und Vollbild | 6.6 |
-| HSTS-Preload, nur wenn alle Subdomains HTTPS haben | 4.3 |
-| Search Console | 10.1 |
-| Vorschaubild für soziale Netzwerke freigeben | 14.3 |
-| Gridinsoft: Entscheidung, ob es dort überhaupt ein Badge gibt, Trustpilot: Unternehmenskonto anlegen | 11.1, 11.2 |
-| Gerätetests auf echten Geräten | 16.6 |
-| Konten anlegen: Google Play (6.1), Microsoft (7.1), Snap und Flathub (8) | 6.1, 7.1, 8.1, 8.2, 18.2 |
-| D-U-N-S-Nummer beantragen (dauert bis zu 30 Tage) | 18.1 |
-| Hosting-Weg wählen: Cloudflare Pages, eigener Server oder Plesk | 5.1 |
-| Entscheiden, ob Statistik und Absturzberichte genutzt werden, und welcher Anbieter | 9.1 |
-| Postfächer anlegen (`support@linefm.de`, Funktionsadresse für Konten, gemeinsames Postfach für Uptime-Alarme) | 18.2, 19.6, 20.1 |
-| Store-Erklärungen abgeben (Altersfreigabe, Datensicherheit, Zielgruppe, Händlerstatus) | 6.5, 13, 17.5 |
-| Zweite Person mit Admin-Recht je Konto benennen | 18.2 |
-| Fristen für Händlerstatus bei Google (1. Februar 2027) und 16-KB-Seiten (1. Februar 2027) | 17.5, 6.11 |
+| Haken | Punkt | Schritt |
+|---|---|---|
+| [ ] | Pflichtangaben für Impressum und Datenschutz liefern (14 Pflichtwerte) | 3.1 |
+| [ ] | Verantwortliche Person nach Medienstaatsvertrag benennen, anwaltlich prüfen | 3.1, Anhang B |
+| [ ] | Auftragsverarbeitungsvertrag mit dem Telemetrie-Betreiber unterschreiben | 2.4, 17.3 |
+| [ ] | Nutzungsrechtevertrag zum Code | 2.5 |
+| [ ] | Ein Anwaltstermin für alle offenen Rechtsfragen: Freigabe des Quellcodes (1.4), Verträge (2), Rundfunkrecht und verantwortliche Person (3.1, 3.4), Barrierefreiheitserklärung (3.2), Einwilligung, Cast und Speicherhinweis (3.4, 13.1), Speicherung der gewählten App-Sprache ohne Einwilligung, Google-Cast-Skript im Web erst nach Einwilligung, Google als Empfänger bei Firebase, GA4 (10.2), Lizenz der Windows-Abspielbibliothek (7.6) | siehe Klammern |
+| [ ] | Lizenz der vorgebauten Windows-Abspielbibliothek klären, vor dem Microsoft Store | 7.6 |
+| [ ] | GA4-Auftragsverarbeitung annehmen | 10.2 |
+| [ ] | DNS für `app.linefm.de` | 4.1 |
+| [ ] | CORS für `cdn.linefm.de` | 4.4 |
+| [ ] | Play-Erklärungen zu Vordergrunddienst und Vollbild | 6.6 |
+| [ ] | HSTS-Preload, nur wenn alle Subdomains HTTPS haben | 4.3 |
+| [ ] | Search Console | 10.1 |
+| [ ] | Vorschaubild für soziale Netzwerke freigeben | 14.3 |
+| [ ] | Gridinsoft: Entscheidung, ob es dort überhaupt ein Badge gibt, Trustpilot: Unternehmenskonto anlegen | 11.1, 11.2 |
+| [ ] | Gerätetests auf echten Geräten | 16.6 |
+| [ ] | Konten anlegen: Google Play (6.1), Microsoft (7.1), Snap und Flathub (8) | 6.1, 7.1, 8.1, 8.2, 18.2 |
+| [ ] | D-U-N-S-Nummer beantragen (dauert bis zu 30 Tage) | 18.1 |
+| [ ] | Hosting-Weg wählen: Cloudflare Pages, eigener Server oder Plesk | 5.1 |
+| [ ] | Entscheiden, ob Statistik und Absturzberichte genutzt werden, und welcher Anbieter | 9.1 |
+| [ ] | Postfächer anlegen (`support@linefm.de`, Funktionsadresse für Konten, gemeinsames Postfach für Uptime-Alarme) | 18.2, 19.6, 20.1 |
+| [ ] | Store-Erklärungen abgeben (Altersfreigabe, Datensicherheit, Zielgruppe, Händlerstatus) | 6.5, 13, 17.5 |
+| [ ] | Zweite Person mit Admin-Recht je Konto benennen | 18.2 |
+| [ ] | Fristen für Händlerstatus bei Google (1. Februar 2027) und 16-KB-Seiten (1. Februar 2027) | 17.5, 6.11 |
 
 ### Nur der Eigentümer des Repositories (Tim Hauke)
 
 Diese Punkte kann ein Collaborator nicht erledigen, weil GitHub sie dem Eigentümer eines persönlichen Repositories vorbehält:
 
-| Punkt | Schritt |
-|---|---|
-| Umgebung `production` mit Genehmigern anlegen, Umgebungs-Secrets setzen | 1.3, 5.2 |
-| Project-Felder (Priorität, Schweregrad, Größe, Iteration, Ziel-Release), Status "In Review" und "Blocked", Ansichten | im Repository, nicht Teil dieser Anleitung |
-| Discussions-Kategorien anlegen | im Repository, nicht Teil dieser Anleitung |
+| Haken | Punkt | Schritt |
+|---|---|---|
+| [ ] | Umgebung `production` mit Genehmigern anlegen, Umgebungs-Secrets setzen | 1.3, 5.2 |
+| [ ] | Project-Felder (Priorität, Schweregrad, Größe, Iteration, Ziel-Release), Status "In Review" und "Blocked", Ansichten | im Repository, nicht Teil dieser Anleitung |
+| [ ] | Discussions-Kategorien anlegen | im Repository, nicht Teil dieser Anleitung |
 
 ### Bewusst entschieden
 

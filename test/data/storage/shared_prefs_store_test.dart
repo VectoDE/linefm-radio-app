@@ -344,7 +344,7 @@ void main() {
     });
   });
 
-  group('Cover aus ohne Speicher-Bestaetigung (N4)', () {
+  group('Cover aus ohne Speicher-Bestaetigung', () {
     test('wird gemerkt und gilt nach Neustart', () async {
       final store = await open();
       expect(store.storageConsent, isFalse);
@@ -376,7 +376,7 @@ void main() {
       },
     );
 
-    test('Speicher loeschen behaelt nur "Cover aus" (R3-P03)', () async {
+    test('Speicher loeschen behaelt nur "Cover aus"', () async {
       final s = await openConsented();
       await s.writeFavorites(<Favorite>[fav('T')]);
       await s.writeSettings(

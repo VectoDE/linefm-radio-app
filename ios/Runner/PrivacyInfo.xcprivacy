@@ -8,7 +8,7 @@
 	<key>NSPrivacyTrackingDomains</key>
 	<array/>
 	<!--
-		Nur mit Einwilligung (Telemetrie, P07): Absturzberichte (Sentry) und
+		Nur mit Einwilligung (Telemetrie): Absturzberichte (Sentry) und
 		anonyme Nutzungsereignisse (Umami/Firebase Analytics). Nicht mit der
 		Person verknuepft, kein Tracking. Bei Aenderungen an der Telemetrie
 		(docs/telemetry.md) hier und in den App-Store-Datenschutzangaben

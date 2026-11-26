@@ -75,7 +75,7 @@
 /assets/fonts/MaterialIcons-Regular.otf
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
-# Ersatzschriften (L14): Pfade tragen Version und Hash (notosans/v39/<hash>.woff2), daher unveraenderlich.
+# Ersatzschriften: Pfade tragen Version und Hash (notosans/v39/<hash>.woff2), daher unveraenderlich.
 /assets/fonts/fallback/*
   Cache-Control: public, max-age=31536000, immutable
 
@@ -101,7 +101,7 @@
 /llms.txt
   Cache-Control: public, max-age=3600
 
-# App-Links (L3-01): Datei ohne Endung, Apple verlangt application/json.
+# App-Links: Datei ohne Endung, Apple verlangt application/json.
 /.well-known/apple-app-site-association
   Content-Type: application/json
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Checks before a store upload that the legal texts no longer contain open
-required placeholders ({{NAME}}) (N7).
+required placeholders ({{NAME}}).
 
 For store workflows that do not build via .github/actions/write-config and
 therefore do not run tool/gen_legal_html.dart --strict:

@@ -20,7 +20,7 @@ import 'package:linefm_radio/domain/stations_config.dart';
 ///   (`getInitialLink` beim Start, `onLink` bei laufender App). Flutters
 ///   Routen-Deep-Linking ist dort aus (`shouldHandleDeeplinking`), damit ein
 ///   Link nicht doppelt bzw. als unbekannte Route ankommt. Quelle u. a. das
-///   Homescreen-Widget (P16).
+///   Homescreen-Widget.
 /// - iOS: das Framework meldet URL-Schemata als Routeninformation. Beim
 ///   Kaltstart steht der Link in `PlatformDispatcher.defaultRouteName`,
 ///   laufend kommt er ueber `didPushRouteInformation` ([initDeepLinks]).
@@ -130,7 +130,7 @@ class DeepLinks {
   /// Gueltig: `linefm://play?station=slug` und
   /// `https://app.linefm.de/...?station=slug` (beliebiger Pfad, damit
   /// benannte Web-Routen wie `/history?station=slug` funktionieren). Fremde
-  /// Hosts und Schemata (z. B. `javascript:`) werden abgelehnt (S6/Q-08).
+  /// Hosts und Schemata (z. B. `javascript:`) werden abgelehnt.
   /// Im Browser zaehlt zusaetzlich der eigene Host der Seite ([ownHost],
   /// Standard `Uri.base.host`), damit Vorschau- und Testumgebungen gehen.
   static Station? stationFromUri(Uri uri, {String? ownHost}) {

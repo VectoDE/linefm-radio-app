@@ -130,7 +130,7 @@ void main() {
       await disposeApp(tester, host);
     });
 
-    testWidgets('Einstellungen-Knopf: Rolle, Label einmal, Semantik-Tap (A5)', (
+    testWidgets('Einstellungen-Knopf: Rolle, Label einmal, Semantik-Tap', (
       tester,
     ) async {
       final handle = tester.ensureSemantics();
@@ -153,7 +153,7 @@ void main() {
       handle.dispose();
     });
 
-    testWidgets('Untere Leiste: Semantik-Tap wechselt die Ansicht (A4)', (
+    testWidgets('Untere Leiste: Semantik-Tap wechselt die Ansicht', (
       tester,
     ) async {
       final handle = tester.ensureSemantics();
@@ -178,7 +178,7 @@ void main() {
       handle.dispose();
     });
 
-    testWidgets('Vorhersagbares Zurueck (Android) fuehrt wie Zurueck (L3-03)', (
+    testWidgets('Vorhersagbares Zurueck (Android) fuehrt wie Zurueck', (
       tester,
     ) async {
       useSize(tester, 390, 844);
@@ -289,7 +289,7 @@ void main() {
     });
   });
 
-  group('Tastatur-Reihenfolge (NEU-1)', () {
+  group('Tastatur-Reihenfolge', () {
     testWidgets('Kompakt: Header, Inhalt, Hinweise, Mini-Player, Navigation', (
       tester,
     ) async {

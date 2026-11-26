@@ -23,7 +23,7 @@ _spec.loader.exec_module(lsc)
 
 
 class PlaceholderPatternTest(unittest.TestCase):
-    """R4-S02: lockere Erkennung."""
+    """Lockere Erkennung."""
 
     def test_varianten(self) -> None:
         cases = {
@@ -53,7 +53,7 @@ class PlaceholderPatternTest(unittest.TestCase):
 
 
 class ValuesTest(unittest.TestCase):
-    """R4-S01: nur nicht-leere JSON-Strings zaehlen."""
+    """Nur nicht-leere JSON-Strings zaehlen."""
 
     def test_nur_strings(self) -> None:
         values = {"A": "x", "B": None, "C": 0, "D": False, "E": ["x"], "F": {"x": 1}}

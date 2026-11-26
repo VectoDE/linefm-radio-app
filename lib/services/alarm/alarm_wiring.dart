@@ -98,7 +98,7 @@ List<Override> alarmAndSleepOverrides({
   }),
 ];
 
-/// Startet die Wecker-Plattform und plant alle Regeln (Q-04). Schlaegt das
+/// Startet die Wecker-Plattform und plant alle Regeln. Schlaegt das
 /// fehl (Plugin, Freigabe), wird der Fehler geloggt statt als unbehandelter
 /// Zonen-Fehler zu enden, und es gibt genau einen zweiten Versuch nach
 /// [retryDelay]. Gibt `true` zurueck, wenn die Wecker geplant sind.

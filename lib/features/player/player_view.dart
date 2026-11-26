@@ -99,7 +99,7 @@ class PlayerView extends StatelessWidget {
   final Widget? castSlot;
   final Widget? airPlaySlot;
 
-  /// Oeffnet die Sleeptimer-Auswahl (U2). `null` blendet den Knopf aus.
+  /// Oeffnet die Sleeptimer-Auswahl. `null` blendet den Knopf aus.
   final VoidCallback? onSleepTimer;
 
   /// Sleeptimer laeuft: Knopf hervorgehoben.
@@ -376,7 +376,7 @@ class _TrackInfo extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: MarqueeText(
-                // Syncopate ohne Kapitaelchen: Grossbuchstaben (D80-10).
+                // Syncopate ohne Kapitaelchen: Grossbuchstaben.
                 title.toUpperCase(),
                 enabled: data.marquee,
                 textAlign: TextAlign.center,
@@ -726,7 +726,7 @@ class _PillAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // NEU-4: Eigener, fokussierbarer Semantik-Knoten wie bei _IconAction.
+    // Eigener, fokussierbarer Semantik-Knoten wie bei _IconAction.
     // Ohne container/focusable gab es kein DOM-Element fuer den Knopf: Der
     // Tastaturfokus landete in Flutter auf dem InkWell, der Browser blieb aber
     // auf "Song merken" stehen (doppelter Tab-Stopp, Knopf fuer Screenreader

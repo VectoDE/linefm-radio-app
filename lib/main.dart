@@ -25,7 +25,7 @@ import 'package:linefm_radio/ui/theme/font_licenses.dart';
 import 'package:linefm_radio/ui/theme/native_licenses.dart';
 import 'package:linefm_radio/ui/widgets/cover_image.dart';
 
-/// Bootstrap (Besitz P01, danach P11/P28), unabhaengige Schritte parallel:
+/// Bootstrap, unabhaengige Schritte parallel:
 /// Bindings, Schrift-Lizenzen, Konfiguration, Senderliste, Audio, CarPlay,
 /// Desktop, Speicher, Telemetrie (samt Absturz-Handlern), Wecker, Widget,
 /// Deep Links, runApp mit den echten Diensten. Die Senderliste aus dem Netz
@@ -46,7 +46,7 @@ Future<void> main(List<String> args) async {
   // Mitgelieferte Senderliste (wenige KB aus dem App-Paket) laeuft parallel
   // zum Oeffnen des Speichers; Audio und CarPlay brauchen sie fuers Menue.
   final stationsReady = loadBundledStations();
-  // Unabhaengige Schritte parallel (P30-13): Speicher oeffnen und Web-App-
+  // Unabhaengige Schritte parallel: Speicher oeffnen und Web-App-
   // Daten uebernehmen laeuft, waehrend Audio und CarPlay starten.
   final prefsReady = () async {
     final store = await createPrefsStore();

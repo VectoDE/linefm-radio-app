@@ -76,7 +76,7 @@ void main() {
       find.bySemanticsLabel(
         "LineFM +MAIN, läuft: James Hype - I Was Lovin' You, Favoriten-Sender",
       ),
-      // In "Deine Sender" (U4) und in der Gesamtliste.
+      // In "Deine Sender" und in der Gesamtliste.
       findsNWidgets(2),
     );
     final node = tester.getSemantics(find.bySemanticsLabel('Radio3FM'));

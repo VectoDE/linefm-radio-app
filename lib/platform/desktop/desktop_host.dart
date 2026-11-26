@@ -65,7 +65,7 @@ class ProviderDesktopActions implements DesktopActions {
 /// Tastenkuerzel, "Beim Schliessen im Tray weiterlaufen" aus den
 /// Einstellungen, Tray-Menue-Aktualisierung und das Mini-Fenster.
 ///
-/// Einbau (P28): `MaterialApp(builder: (context, child) => DesktopHost(child:
+/// Einbau: `MaterialApp(builder: (context, child) => DesktopHost(child:
 /// child ?? const SizedBox.shrink()))`. Auf Web und Mobil reicht der Host
 /// das Kind unveraendert durch.
 class DesktopHost extends ConsumerStatefulWidget {

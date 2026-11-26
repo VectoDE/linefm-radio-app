@@ -208,7 +208,7 @@ void main() {
       expect(f(DateTime(2026, 11, 18, 21, 40)), '21:40');
       expect(f(DateTime(2026, 11, 18, 0, 0)), '00:00');
     });
-    test('Englisch ohne 24-Stunden-Einstellung: 12 Stunden (I02)', () {
+    test('Englisch ohne 24-Stunden-Einstellung: 12 Stunden', () {
       expect(formatClock(DateTime(2026, 11, 18, 21, 40), en), '9:40 PM');
     });
   });

@@ -267,7 +267,7 @@ Ein Titel erscheint dadurch bis zu einige Sekunden später als mit WebSocket. Di
 
 ## Google Cast: offener Punkt beim Plugin
 
-Die App startet das Cast-SDK erst beim ersten Tippen auf den Cast-Knopf (`initCast`, L4). Das Plugin `flutter_chrome_cast` 2.0.0 ruft auf Android aber in `onDetachedFromEngine` `CastContext.getSharedInstance(appContext)` auf (`android/src/main/kotlin/com/felnanuke/google_cast/CastContextMethodChannel.kt`, Zeile 139), um einen Listener abzumelden. Läuft das, ohne dass Cast vorher genutzt wurde, initialisiert genau dieser Aufruf das SDK, also beim Beenden der App.
+Die App startet das Cast-SDK erst beim ersten Tippen auf den Cast-Knopf (`initCast`). Das Plugin `flutter_chrome_cast` 2.0.0 ruft auf Android aber in `onDetachedFromEngine` `CastContext.getSharedInstance(appContext)` auf (`android/src/main/kotlin/com/felnanuke/google_cast/CastContextMethodChannel.kt`, Zeile 139), um einen Listener abzumelden. Läuft das, ohne dass Cast vorher genutzt wurde, initialisiert genau dieser Aufruf das SDK, also beim Beenden der App.
 
 Entscheidung: kein eigener Fork des Plugins. Die Datenschutzerklärung (Abschnitt 7) nennt die Ausnahme. Upstream-Wunsch an das Plugin: im Abbau `CastContext.getSharedInstance()` nur aufrufen, wenn der Kontext schon initialisiert ist (eigenes Flag oder `CastContext.getSharedInstance()` ohne Kontext-Argument mit try/catch). Bei jedem Update von `flutter_chrome_cast` die Stelle neu prüfen und die Datenschutzerklärung anpassen, sobald sie behoben ist.
 

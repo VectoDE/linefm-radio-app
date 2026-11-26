@@ -26,7 +26,7 @@ class _Platform implements AlarmPlatform {
   @override
   bool get ringsItself => true;
 
-  /// Anzahl der Aufrufe von init, die noch fehlschlagen sollen (Q-04).
+  /// Anzahl der Aufrufe von init, die noch fehlschlagen sollen.
   int initFailures = 0;
 
   @override
@@ -151,7 +151,7 @@ void main() {
     expect(gateway.timeChanged, isFalse);
   });
 
-  group('initAndReschedule (Q-04)', () {
+  group('initAndReschedule', () {
     final rule = AlarmRule(
       id: 'r1',
       hour: 7,

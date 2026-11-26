@@ -89,11 +89,11 @@ class AppSettings {
   final bool closeToTray;
   final AppThemeMode themeMode;
 
-  /// Cover ueber die iTunes-Suche von Apple laden (L5). Aus: keine Anfrage
+  /// Cover ueber die iTunes-Suche von Apple laden. Aus: keine Anfrage
   /// an Apple, der Player zeigt das Senderlogo.
   final bool loadArtwork;
 
-  /// Ein-Zeichen-Tastenkuerzel (F, S, 1-6) aktiv (WCAG 2.1.4, A11Y-08).
+  /// Ein-Zeichen-Tastenkuerzel (F, S, 1-6) aktiv (WCAG 2.1.4).
   final bool keyboardShortcuts;
 
   /// Gewaehlte App-Sprache; [AppLanguage.system] folgt dem Geraet.

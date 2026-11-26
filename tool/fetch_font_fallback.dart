@@ -1,4 +1,4 @@
-// Self-host fallback fonts for Flutter Web (L14).
+// Self-host fallback fonts for Flutter Web.
 //
 // The web engine loads missing characters (emoji, Cyrillic, CJK, symbols) as
 // Noto fonts, from `fontFallbackBaseUrl + <path>`. Without our own
@@ -11,7 +11,7 @@
 //       every checksum and places them under build/web/assets/fonts/fallback/.
 //   dart run tool/fetch_font_fallback.dart --update-lock [--sdk-data <file>]
 //       Reads the list from the Flutter SDK (font_fallback_data.dart), downloads
-//       everything fresh from the network (no cache, S3-05) and rewrites the
+//       everything fresh from the network (no cache) and rewrites the
 //       lock file (after every Flutter update).
 //   dart run tool/fetch_font_fallback.dart --check-sdk [--sdk-data <file>]
 //       Compares the lock file and the SDK list; exit 1 on mismatch.
@@ -23,7 +23,7 @@
 //   --source <url>        default: https://fonts.gstatic.com/s/
 //   --sdk-data <file>     default: derived from the running Flutter SDK
 //   --license <file>      OFL text (default: assets/fonts/OFL.txt), ends up next to it as OFL.txt.
-//                         If the file is missing, the call aborts with exit 1 (R3-P07).
+//                         If the file is missing, the call aborts with exit 1.
 //   --strict              a mismatch between lock file and SDK is an error
 import 'dart:async';
 import 'dart:convert';

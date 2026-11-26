@@ -16,7 +16,7 @@ dependencies:
   just_audio: ^0.10.6
   audio_session: ^0.2.4
   audio_service: ^0.18.19
-  # ValueStream fuer AudioHandler.subscribeToChildren (Android Auto, P16).
+  # ValueStream fuer AudioHandler.subscribeToChildren (Android Auto).
   rxdart: ^0.28.0
   just_audio_media_kit: ^2.1.0
   media_kit_libs_windows_audio: ^1.0.9
@@ -106,5 +106,5 @@ msix_config:
   # msix_version kommt aus dem Release (build.yml: msix:create --version).
   logo_path: assets/branding/icon_1024.png
   capabilities: internetClient
-  # Deep Links linefm://play?station=... (P21); Startargument -> main(args).
+  # Deep Links linefm://play?station=...; Startargument -> main(args).
   protocol_activation: linefm

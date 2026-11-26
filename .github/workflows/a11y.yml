@@ -1,6 +1,6 @@
 name: Accessibility
 
-# axe-core check of the web version (A4). Builds like ci.yml (web-smoke), runs
+# axe-core check of the web version. Builds like ci.yml (web-smoke), runs
 # tool/a11y/run.mjs (Playwright + @axe-core/playwright, versions in
 # tool/a11y/package-lock.json) and checks stations, player, history, favorites,
 # settings, alarm, about, the dialogs "Clear storage" and time, the sheets
@@ -11,7 +11,7 @@ name: Accessibility
 # summary but do not fail the run.
 # Local runtime (2026-11-19, Windows, 8 cores): web build 95 s, axe 142 s;
 # on the 4-core runner roughly double plus installation; plus the second
-# web build with test IDs for the Google network check (P31), hence 40 minutes.
+# web build with test IDs for the Google network check, hence 40 minutes.
 # What axe does not find (screen reader flow, keyboard traps, comprehensibility)
 # remains manual work, see docs/BARRIEREFREIHEIT.md.
 
@@ -87,7 +87,7 @@ jobs:
         timeout-minutes: 12
         run: node run.mjs --web ../../build/web --out out
 
-      # Reach measurement with Google (P31): without IDs no request goes to Google,
+      # Reach measurement with Google: without IDs no request goes to Google,
       # with test IDs only after consent. The test aborts requests to Google
       # in the browser, nothing leaves for the network.
       - name: Google network check without IDs
@@ -133,7 +133,7 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
-  # Reach measurement with Google (P31), test-ID half: a second web build with
+  # Reach measurement with Google, test-ID half: a second web build with
   # test IDs, run beside the axe job so its build does not lengthen it.
   analytics:
     name: Google tag check (test IDs)

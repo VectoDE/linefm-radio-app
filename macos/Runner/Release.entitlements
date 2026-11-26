@@ -4,7 +4,7 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
-	<!-- Export-Rueckfall in ~/Downloads (P21), falls Teilen nicht geht. -->
+	<!-- Export-Rueckfall in ~/Downloads, falls Teilen nicht geht. -->
 	<key>com.apple.security.files.downloads.read-write</key>
 	<true/>
 	<!-- Favoriten-Import: vom Nutzer gewaehlte Datei lesen. -->

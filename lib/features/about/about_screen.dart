@@ -63,7 +63,7 @@ class AboutScreen extends ConsumerWidget {
         (label: l10n.trustTrustpilot, url: config.trustTrustpilotUrl),
     ];
 
-    // Eigene Seite: als Hauptinhalt kennzeichnen (NEU-2, Landmarke).
+    // Eigene Seite: als Hauptinhalt kennzeichnen (Landmarke).
     return Semantics(
       container: true,
       explicitChildNodes: true,
@@ -232,7 +232,7 @@ class _LinkRow extends StatelessWidget {
   final VoidCallback onTap;
   final bool external;
 
-  /// Ziel fuer die Link-Rolle (im Web ein echtes `href`, A11Y-03). Ohne
+  /// Ziel fuer die Link-Rolle (im Web ein echtes `href`). Ohne
   /// Ziel ist die Zeile ein Knopf (z. B. Lizenzen).
   final Uri? linkUrl;
 

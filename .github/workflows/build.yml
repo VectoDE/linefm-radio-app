@@ -157,7 +157,7 @@ jobs:
           may_sign=false
           if [ "$EVENT_NAME" != "pull_request" ]; then may_sign=true; fi
 
-          # Every tag build (prod) needs complete legal texts (N7): release.yml
+          # Every tag build (prod) needs complete legal texts: release.yml
           # also uploads pre-releases (vX.Y.Z-rc.N) to Google Play and Snap, so
           # the same condition applies as for the store uploads. Dev builds only
           # report open placeholders.
@@ -249,7 +249,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # L3-08: Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
+      # Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
       # sources produce identical dates where the tools honor it (postbuild:
       # sitemap lastmod; ZIP/packers that support it). Bit-identical builds are
       # therefore NOT guaranteed and not verified (see docs/RELEASE-VERIFIZIEREN.md).
@@ -384,7 +384,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # L3-08: Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
+      # Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
       # sources produce identical dates where the tools honor it (postbuild:
       # sitemap lastmod; ZIP/packers that support it). Bit-identical builds are
       # therefore NOT guaranteed and not verified (see docs/RELEASE-VERIFIZIEREN.md).
@@ -424,7 +424,7 @@ jobs:
           # shellcheck disable=SC2086 # FLUTTER_BUILD_FLAGS is a flag list
           flutter build web $FLUTTER_BUILD_FLAGS --wasm --no-web-resources-cdn --base-href /             --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER" "${web_defines[@]}"
 
-      - name: Self-host fallback fonts (L14)
+      - name: Self-host fallback fonts
         run: |
           # Noto fallback into build/web/assets/fonts/fallback/ (checksums from tool/font_fallback.lock.json).
           cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
@@ -433,7 +433,7 @@ jobs:
       - name: Postbuild (hashes, header files)
         env:
           LEGAL_STRICT: ${{ needs.meta.outputs.legal_strict }}
-          # App links (L3-01): Play signing certificate (SHA-256) and Apple team ID are
+          # App links: Play signing certificate (SHA-256) and Apple team ID are
           # public values; without them the postbuild removes the templates (warning).
           ANDROID_CERT_SHA256: ${{ vars.ANDROID_CERT_SHA256 }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -445,7 +445,7 @@ jobs:
             cp tool/web_postbuild.dart "$RUNNER_TEMP/web_postbuild.dart"
             dart run "$RUNNER_TEMP/web_postbuild.dart" build/web $strict
           else
-            echo "- Web: tool/web_postbuild.dart missing (P22), postbuild skipped" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Web: tool/web_postbuild.dart missing, postbuild skipped" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Create ZIP
@@ -490,7 +490,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # L3-08: Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
+      # Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
       # sources produce identical dates where the tools honor it (postbuild:
       # sitemap lastmod; ZIP/packers that support it). Bit-identical builds are
       # therefore NOT guaranteed and not verified (see docs/RELEASE-VERIFIZIEREN.md).
@@ -605,7 +605,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # L3-08: Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
+      # Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
       # sources produce identical dates where the tools honor it (postbuild:
       # sitemap lastmod; ZIP/packers that support it). Bit-identical builds are
       # therefore NOT guaranteed and not verified (see docs/RELEASE-VERIFIZIEREN.md).
@@ -730,7 +730,7 @@ jobs:
         if: hashFiles('assets/branding/icon_1024.png') == ''
         shell: bash
         run: |
-          echo "- Windows: MSIX skipped, assets/branding/icon_1024.png still missing (P05)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Windows: MSIX skipped, assets/branding/icon_1024.png still missing" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Pack installer (own UI)
         shell: pwsh
@@ -898,7 +898,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # L3-08: Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
+      # Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
       # sources produce identical dates where the tools honor it (postbuild:
       # sitemap lastmod; ZIP/packers that support it). Bit-identical builds are
       # therefore NOT guaranteed and not verified (see docs/RELEASE-VERIFIZIEREN.md).
@@ -1187,7 +1187,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # L3-08: Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
+      # Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
       # sources produce identical dates where the tools honor it (postbuild:
       # sitemap lastmod; ZIP/packers that support it). Bit-identical builds are
       # therefore NOT guaranteed and not verified (see docs/RELEASE-VERIFIZIEREN.md).

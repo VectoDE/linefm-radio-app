@@ -23,7 +23,7 @@ import 'package:material_ui/material_ui.dart';
 /// Die Suche läuft, solange der Knopf im Baum steht, und endet danach (außer
 /// bei laufender Übertragung); das schont den Akku.
 ///
-/// Das Google-Cast-SDK startet erst beim ersten Tippen auf den Knopf (L4):
+/// Das Google-Cast-SDK startet erst beim ersten Tippen auf den Knopf:
 /// Vorher zeigt Android/iOS einen schlichten Cast-Knopf, und es geht keine
 /// Anfrage an Google. Erst danach sucht die App nach Geräten.
 ///

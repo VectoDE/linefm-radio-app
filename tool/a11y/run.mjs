@@ -1,4 +1,4 @@
-// axe check of the web version (A4).
+// axe check of the web version.
 //
 // Usage (after flutter build web, fetch_font_fallback and postbuild):
 //   cd tool/a11y && npm ci && npx playwright install --with-deps chromium

@@ -5,6 +5,6 @@
        "drawable/ic_stat_linefm" (androidNotificationIcon).
      - auto_station_*: Senderlogos fuer Android Auto, die App liefert sie als
        android.resource://de.linefm.app/drawable/auto_station_<slug>.
-     Geprueft mit aapt2 dump resources am Release-APK (P16). -->
+     Geprueft mit aapt2 dump resources am Release-APK. -->
 <resources xmlns:tools="http://schemas.android.com/tools"
     tools:keep="@drawable/ic_stat_linefm,@drawable/auto_station_*" />

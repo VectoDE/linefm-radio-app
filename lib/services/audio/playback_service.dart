@@ -4,7 +4,7 @@ import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/track.dart';
 
-/// Vertrag zwischen App-Logik und Audio-Dienst. LinefmAudioHandler (P10)
+/// Vertrag zwischen App-Logik und Audio-Dienst. LinefmAudioHandler
 /// implementiert ihn; Tests und Stubs nutzen [NoopPlaybackService].
 abstract interface class PlaybackService {
   PlayerUiState get state;

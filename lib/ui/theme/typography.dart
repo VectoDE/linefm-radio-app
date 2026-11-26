@@ -44,7 +44,7 @@ abstract final class LinefmText {
     height: 1.4,
   );
 
-  // Untergrenze 12 sp fuer alle Texte (D7, A11Y-17); die Web-App nutzte
+  // Untergrenze 12 sp fuer alle Texte; die Web-App nutzte
   // 9 bis 11 px.
 
   /// Stationsname in Liste und Grid (12).
@@ -121,7 +121,7 @@ abstract final class LinefmText {
     height: 1.5,
   );
 
-  /// Navigation (Web-App 10 px, Spec 9; auf 12 angehoben, D7) mit
+  /// Navigation (Web-App 10 px, Spec 9; auf 12 angehoben) mit
   /// 0,06 em Laufweite, damit "VERLAUF"/"STATIONS" auch bei 320 dp passen.
   /// Zeilenhoehe 1,3 wie die uebrigen Syncopate-Zeilen, damit die Beschriftung
   /// nicht von den Schriftmetriken abhaengt.

@@ -1,7 +1,7 @@
 name: Fetch release files
 description: >
   Validates the version tag (vX.Y.Z or vX.Y.Z-suffix) and downloads matching files
-  from the GitHub release. The store and deploy workflows (P27) therefore always use
+  from the GitHub release. The store and deploy workflows therefore always use
   exactly the artifacts that release.yml built, verified and attested.
   The caller needs contents: read.
 

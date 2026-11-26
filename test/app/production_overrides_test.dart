@@ -15,7 +15,7 @@ import 'package:linefm_radio/services/cast/cast_service.dart';
 import 'package:linefm_radio/services/share/system_share_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 
-/// Q-01: Die Release-Verdrahtung (`productionOverrides`) laeuft in keinem
+/// Die Release-Verdrahtung (`productionOverrides`) laeuft in keinem
 /// anderen Test. Hier wird sie mit einem MockClient gebaut und geprueft,
 /// dass die echten Dienste aktiv sind und keine Stubs.
 void main() {
@@ -52,7 +52,7 @@ void main() {
     expect(c.read(shareServiceProvider), isA<SystemShareService>());
   });
 
-  test('Cast: ohne gestartetes SDK Noop (L4, Start erst beim Tippen)', () {
+  test('Cast: ohne gestartetes SDK Noop (Start erst beim Tippen)', () {
     castBackend = null;
     final c = build();
     expect(c.read(castServiceProvider), isA<NoopCastService>());

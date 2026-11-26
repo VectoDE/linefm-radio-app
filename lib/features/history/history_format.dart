@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 /// Uhrzeit im Verlauf in lokaler Zeit, je Sprache und Geraeteeinstellung
-/// (I02): Deutsch `08:07`, Englisch `8:07 AM`, bei 24-Stunden-Einstellung
+/// gerendert: Deutsch `08:07`, Englisch `8:07 AM`, bei 24-Stunden-Einstellung
 /// des Geraets `08:07`. Gleiche Regel wie die Weckzeit.
 String formatClock(
   DateTime time,

@@ -39,7 +39,7 @@ class LegalScreen extends ConsumerWidget {
         ? l10n.legalImprintTitle
         : l10n.legalPrivacyTitle;
 
-    // Eigene Seite: als Hauptinhalt kennzeichnen (NEU-2, Landmarke).
+    // Eigene Seite: als Hauptinhalt kennzeichnen (Landmarke).
     return Semantics(
       container: true,
       explicitChildNodes: true,
@@ -306,7 +306,7 @@ class _LinkBlock extends ConsumerWidget {
 }
 
 /// Stand-Datum der Rechtstexte (`2026-11-18` in der JSON) nach Sprache
-/// (I01): Deutsch "18. November 2026", Englisch "November 18, 2026".
+/// formatiert: Deutsch "18. November 2026", Englisch "November 18, 2026".
 /// Unlesbare Werte bleiben unveraendert.
 String formatLegalDate(String raw, String localeName) {
   final date = DateTime.tryParse(raw);

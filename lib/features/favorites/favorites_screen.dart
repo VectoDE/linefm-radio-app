@@ -36,12 +36,12 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
     unawaited(ref.read(telemetryProvider).screen('favorites'));
   }
 
-  /// Entfernt sofort und bietet 5 s lang "Rueckgaengig" an (U3).
+  /// Entfernt sofort und bietet 5 s lang "Rueckgaengig" an.
   void _removeWithUndo(Favorite favorite, int index) {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.maybeOf(context);
     final expanded = WindowClass.of(context) == WindowClass.expanded;
-    // Kompakt: ueber Mini-Player und Navigation, nicht darauf (U6).
+    // Kompakt: ueber Mini-Player und Navigation, nicht darauf.
     final bottom = expanded
         ? 16.0
         : MediaQuery.paddingOf(context).bottom + LinefmMetrics.navHeight + 102;

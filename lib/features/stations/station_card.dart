@@ -222,7 +222,7 @@ class _StationCardState extends State<StationCard> {
     );
     if (onToggleFavorite == null) return card;
     // Der Stern liegt neben (nicht in) dem Karten-Knoten: eigener, benannter
-    // Schalter fuer Tastatur und Screenreader (A11Y-10). Die Aktion der Karte
+    // Schalter fuer Tastatur und Screenreader. Die Aktion der Karte
     // bleibt zusaetzlich fuer Wisch-Navigation.
     return Stack(
       children: <Widget>[
@@ -264,7 +264,7 @@ class _FavoriteStar extends StatelessWidget {
   Widget build(BuildContext context) {
     // Eigener Knoten (container), sonst wandert "toggled" in den Eltern-
     // knoten und axe meldet einen Schalter um Karte und Stern
-    // (nested-interactive). Fokussierbar wie alle Knoepfe (A11Y-02/07).
+    // (nested-interactive). Fokussierbar wie alle Knoepfe.
     return SemanticFocus(
       builder: (_, focused, onFocus, child) => Semantics(
         container: true,

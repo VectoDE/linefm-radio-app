@@ -18,7 +18,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" tools:node="remove" />
     <!-- Werbe-ID: LINEFM zeigt keine Werbung und nutzt keine Werbe-ID. Play-
-         Dienste-Bibliotheken (Cast, Firebase) koennen AD_ID einbringen (L11). -->
+         Dienste-Bibliotheken (Cast, Firebase) koennen AD_ID einbringen. -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 
     <application
@@ -31,10 +31,10 @@
         android:enableOnBackInvokedCallback="true"
         android:localeConfig="@xml/locales_config"
         tools:replace="android:allowBackup">
-        <!-- Vorhersagbares Zurueck (Android 13+, L3-03): Die Shell nutzt PopScope,
+        <!-- Vorhersagbares Zurueck (Android 13+): Die Shell nutzt PopScope,
              das mit OnBackInvokedCallback zusammenarbeitet. localeConfig nennt
              die Sprachen fuer die Spracheinstellung pro App (de, en). -->
-        <!-- Keine Android-Sicherung (S10): Einwilligung und Speicher-Hinweis
+        <!-- Keine Android-Sicherung: Einwilligung und Speicher-Hinweis
              gelten je Geraet, ein wiederhergestelltes "Ja" zur Statistik auf
              einem neuen Geraet waere keine aktuelle Einwilligung. Favoriten
              lassen sich ueber den CSV-Export umziehen. -->
@@ -69,7 +69,7 @@
             <!-- Geteilte Web-Links https://app.linefm.de/?station=SLUG.
                  autoVerify bleibt false, bis /.well-known/assetlinks.json mit dem
                  echten SHA-256 des Play-Signaturzertifikats live ist
-                 (Variable ANDROID_CERT_SHA256, tool/web_postbuild.dart, L3-01).
+                 (Variable ANDROID_CERT_SHA256, tool/web_postbuild.dart).
                  Vorher wuerde Android die Verifizierung verwerfen. -->
             <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
@@ -80,7 +80,7 @@
         </activity>
 
         <!-- audio_service: Wiedergabedienst, MediaBrowserService fuer Android Auto.
-             exported="true" ist noetig (S11): Android Auto, Wear OS und
+             exported="true" ist noetig: Android Auto, Wear OS und
              Bluetooth-Geraete verbinden sich von aussen mit dem Dienst. Er
              gibt nur die oeffentliche Senderliste und Wiedergabe-Befehle
              frei, keine Nutzerdaten (BrowseTree: Sender, Favoriten-Sender,

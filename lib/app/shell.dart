@@ -80,7 +80,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       ..listenManual(nowPlayingRepositoryProvider, (_, _) {})
       // Cast-Dienst dauerhaft abonnieren: haelt die Uebergabe lokal/Cast
       // aktiv, auch ohne geoeffneten Player. Das SDK selbst startet erst
-      // beim ersten Tippen auf den Cast-Knopf (L4, initCast).
+      // beim ersten Tippen auf den Cast-Knopf (initCast).
       ..listenManual(castServiceProvider, (_, _) {})
       // Favoriten-Sender fuer das Auto-Menue, auch nach "Speicher loeschen".
       ..listenManual(favoriteStationsProvider, (_, _) {});
@@ -234,7 +234,7 @@ class _AppShellState extends ConsumerState<AppShell> {
             : KeyEventResult.ignored;
       }
       // Ein-Zeichen-Kuerzel (F, S, 1-6) lassen sich in den Einstellungen
-      // abschalten (WCAG 2.1.4, A11Y-08).
+      // abschalten (WCAG 2.1.4).
       if (!ref.read(settingsProvider).keyboardShortcuts) {
         return KeyEventResult.ignored;
       }
@@ -324,11 +324,11 @@ class _AppShellState extends ConsumerState<AppShell> {
 /// durch den ganzen Bereich, dann zum naechsten. Ohne diese Ordnung sortiert
 /// Flutter nach Lage auf dem Schirm; im Kompakt-Layout liegen Karten hinter
 /// Mini-Player und Navigation, und der Fokus sprang zwischen beiden hin
-/// und her (NEU-1).
+/// und her.
 ///
 /// [role] und [label] machen den Bereich zur Landmarke (main, navigation,
 /// complementary, region), damit Screenreader direkt hinspringen koennen
-/// und alle Inhalte in einer Landmarke liegen (NEU-2, axe `region`).
+/// und alle Inhalte in einer Landmarke liegen (axe `region`).
 Widget _ordered(
   int order,
   Widget child, {
@@ -402,7 +402,7 @@ class _CompactLayout extends StatefulWidget {
 class _CompactLayoutState extends State<_CompactLayout> {
   /// Gemessene Hoehe des unteren Stapels (Hinweise, Mini-Player,
   /// Navigation). Der Inhalt haelt so viel Platz frei, damit z. B. der
-  /// Speicher-Hinweis keine Player-Knoepfe verdeckt (NEU-3).
+  /// Speicher-Hinweis keine Player-Knoepfe verdeckt.
   double _bottomStack = 0;
 
   void _onBottomStack(Size size) {
@@ -450,7 +450,7 @@ class _CompactLayoutState extends State<_CompactLayout> {
 
     // Reihenfolge fuer Tab und Screenreader: Header, Inhalt, Hinweise,
     // Mini-Player, Navigation. Kein umlaufender Bereich: nach der
-    // Navigation verlaesst Tab die App wie gewohnt (NEU-1).
+    // Navigation verlaesst Tab die App wie gewohnt.
     return FocusTraversalGroup(
       policy: OrderedTraversalPolicy(),
       child: Stack(
@@ -500,7 +500,7 @@ class _CompactLayoutState extends State<_CompactLayout> {
                           _OfflineBanner(),
                           // Handy: nur ein Hinweis zur Zeit. Steht die
                           // Start-Leiste, wartet der Speicher-Hinweis, damit
-                          // bei 320 x 640 Inhalt sichtbar bleibt (U1).
+                          // bei 320 x 640 Inhalt sichtbar bleibt.
                           _StorageNoticeSlot(yieldToAutoplay: true),
                         ],
                       ),
@@ -587,7 +587,7 @@ class _ExpandedLayout extends ConsumerWidget {
     final index = railScreens.indexOf(shown);
 
     // Tab- und Screenreader-Reihenfolge wie die Optik: Navigation, Header,
-    // Inhalt, Hinweise, Player (A11Y-04). Ohne feste Ordnung kam der Header
+    // Inhalt, Hinweise, Player. Ohne feste Ordnung kam der Header
     // erst nach den Karten.
     return SafeArea(
       child: FocusTraversalGroup(
@@ -653,7 +653,7 @@ class _ExpandedLayout extends ConsumerWidget {
                     ),
                   ),
                   // Im Fluss unter dem Inhalt statt als Overlay: verdeckt
-                  // nichts und liegt nicht ueber der ganzen App (A11Y-01).
+                  // nichts und liegt nicht ueber der ganzen App.
                   _ordered(
                     4,
                     const _NoticesRegion(
@@ -822,7 +822,7 @@ class _BottomNav extends ConsumerWidget {
       (AppScreen.player, FontAwesomeIcons.headphones, l10n.navPlayer),
       (AppScreen.history, FontAwesomeIcons.clockRotateLeft, l10n.navHistory),
     ];
-    // Landmarke und Name setzt die Shell (_ordered, NEU-2).
+    // Landmarke und Name setzt die Shell (_ordered).
     return Semantics(
       container: true,
       explicitChildNodes: true,
@@ -949,7 +949,7 @@ class _StorageNoticeSlot extends ConsumerWidget {
 }
 
 /// Kompakt-Layout: Im Platz des Mini-Players steht bei Autoplay-Sperre die
-/// Start-Leiste (U1, A11Y-13). So ueberdeckt sie keine Karte und der Inhalt
+/// Start-Leiste. So ueberdeckt sie keine Karte und der Inhalt
 /// bleibt auch bei 320 x 640 sichtbar.
 class _MiniPlayerOrStart extends ConsumerWidget {
   const _MiniPlayerOrStart();
@@ -972,7 +972,7 @@ class _MiniPlayerOrStart extends ConsumerWidget {
 /// und startet den gewaehlten Sender mit dem Klick als Nutzeraktion.
 ///
 /// Nur der Hinweistext ist Live-Region; der Knopf ist ein eigener, normaler
-/// Knopf ohne umschliessenden Semantik-Knoten (A11Y-01).
+/// Knopf ohne umschliessenden Semantik-Knoten.
 class AutoplayStartButton extends ConsumerWidget {
   const AutoplayStartButton({super.key, this.padding = EdgeInsets.zero});
 

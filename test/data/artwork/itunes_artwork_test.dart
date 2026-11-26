@@ -229,7 +229,7 @@ void main() {
     expect(requests, hasLength(4));
   });
 
-  group('Treffer-Pruefung (D8)', () {
+  group('Treffer-Pruefung', () {
     test(
       'fremder Treffer zaehlt nicht: Senderlogo statt falschem Cover',
       () async {

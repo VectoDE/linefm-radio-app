@@ -309,7 +309,7 @@ void main() {
       handle.dispose();
     });
 
-    testWidgets('Jeder Knopf ist ein eigener, fokussierbarer Knoten (NEU-4)', (
+    testWidgets('Jeder Knopf ist ein eigener, fokussierbarer Knoten', (
       tester,
     ) async {
       final h = _Harness();

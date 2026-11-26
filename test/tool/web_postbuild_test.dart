@@ -386,7 +386,7 @@ void main() {
     });
   });
 
-  group('Sitemap lastmod (SEO-03)', () {
+  group('Sitemap lastmod', () {
     test('setzt jedes lastmod auf das Build-Datum, idempotent', () {
       const xml =
           '<url><loc>a</loc><lastmod>2020-01-01</lastmod></url>'
@@ -423,7 +423,7 @@ void main() {
     });
   });
 
-  group('App-Links .well-known (L3-01)', () {
+  group('App-Links .well-known', () {
     late Directory web;
     const fp =
         'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:'
@@ -474,7 +474,7 @@ void main() {
       ]);
     });
 
-    test('App-Signatur und Upload-Schluessel: beide Fingerprints (R4-C5)', () {
+    test('App-Signatur und Upload-Schluessel: beide Fingerprints', () {
       final upload = List<String>.filled(32, 'CD').join(':');
       renderAppLinks(
         web,
@@ -577,7 +577,7 @@ void main() {
     });
   });
 
-  group('Google Tag Manager / GA4 (P31)', () {
+  group('Google Tag Manager / GA4', () {
     const ids = <String, dynamic>{
       'GTM_ID': 'GTM-TEST000',
       'GA4_MEASUREMENT_ID': 'G-TEST000000',

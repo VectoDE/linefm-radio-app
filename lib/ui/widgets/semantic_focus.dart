@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 ///
 /// `excludeSemantics` entfernt auch das Fokus-Flag des inneren InkWell. Ohne
 /// Ausgleich bekommt das Element im Web kein `tabindex`, und das DOM folgt
-/// dem Flutter-Fokus nicht (Screenreader bleiben stehen, A11Y-02). Der
+/// dem Flutter-Fokus nicht (Screenreader bleiben stehen). Der
 /// [builder] erhaelt deshalb:
 ///
 /// - `focused`: Ein Element im Teilbaum hat den Tastaturfokus. In

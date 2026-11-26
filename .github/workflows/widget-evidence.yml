@@ -66,14 +66,10 @@ jobs:
       - name: Xcode build cache
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
-          # Only what is expensive to rebuild: compiled intermediates, the
-          # module cache and fetched packages. Index data, logs and products
-          # are left out to keep the cache small (saving a full DerivedData
-          # folder took 11 minutes).
+          # Swift package downloads only. Caching compiled intermediates was
+          # measured and made the job slower (restore 3 min, rebuild 9.6 min
+          # instead of 4.5 min cold, save 11 min for a full DerivedData).
           path: |
-            build/derived-data/Build/Intermediates.noindex
-            build/derived-data/ModuleCache.noindex
-            build/derived-data/SourcePackages
             ~/Library/Caches/org.swift.swiftpm
             ~/Library/org.swift.swiftpm
           key: widget-xcode-${{ runner.os }}-${{ runner.arch }}-${{ steps.sim.outputs.xcode }}-${{ hashFiles('pubspec.lock', 'ios/Podfile.lock', 'ios/Runner.xcodeproj/project.pbxproj') }}

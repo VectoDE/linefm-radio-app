@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' show Locale;
 
@@ -231,5 +232,30 @@ void main() {
 
   test('root extras advertise search to Android Auto', () {
     expect(BrowseTree.rootExtras[BrowseTree.searchSupportedKey], isTrue);
+  });
+
+  test('native seed of the root extras matches BrowseTree.rootExtras', () {
+    // audio_service reads the root extras from its SharedPreferences in
+    // onGetRoot; LinefmApplication writes them before the service starts.
+    final kt = File(
+      'android/app/src/main/kotlin/de/linefm/app/LinefmApplication.kt',
+    ).readAsStringSync();
+    final start =
+        kt.indexOf('ROOT_EXTRAS_JSON =') + 'ROOT_EXTRAS_JSON ='.length;
+    final segment = kt
+        .substring(start, kt.indexOf('}"', start) + 2)
+        .replaceAll(RegExp(r'\s'), '')
+        .replaceAll('"+"', '');
+    final json = segment
+        .substring(1, segment.length - 1)
+        .replaceAll(r'\"', '"');
+    expect(jsonDecode(json), BrowseTree.rootExtras);
+    expect(
+      (jsonDecode(json) as Map)['android.media.browse.SEARCH_SUPPORTED'],
+      isTrue,
+    );
+    final manifest = File('android/app/src/main/AndroidManifest.xml')
+        .readAsStringSync();
+    expect(manifest, contains('android:name=".LinefmApplication"'));
   });
 }

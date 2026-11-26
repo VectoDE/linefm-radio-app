@@ -92,7 +92,7 @@ jobs:
             -destination "platform=iOS Simulator,id=$UDID,arch=arm64" \
             -derivedDataPath build/derived-data \
             -clonedSourcePackagesDirPath build/source-packages \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO OTHER_CFLAGS='$(inherited) -Wno-nullability-completeness'
 
       - name: Render widget snapshots (light and dark)
         shell: bash

@@ -219,7 +219,7 @@ jobs:
           case "$SLICE" in
             mobile-load) opts=(--profiles mobile --phases load) ;;
             mobile-interaction) opts=(--profiles mobile --phases interaction) ;;
-            desktop) opts=(--profiles desktop --phases load,interaction,audio --audio) ;;
+            desktop) opts=(--profiles desktop --phases "load,interaction,audio" --audio) ;;
             *) echo "unknown slice $SLICE" >&2; exit 1 ;;
           esac
           node web_perf.mjs --base http://127.0.0.1:8080 --out out --runs "$RUNS" --part "$SLICE" "${opts[@]}"

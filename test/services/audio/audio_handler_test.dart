@@ -444,4 +444,78 @@ void main() {
       );
     });
   });
+
+  group('Android Auto session', () {
+    test('browsing, prepare and lookups never start playback', () async {
+      final player = FakeRadioPlayer();
+      final h = _handler(player);
+      h.subscribeToChildren(BrowseTree.rootId);
+      final root = await h.getChildren(BrowseTree.rootId);
+      expect(root, isNotEmpty);
+      for (final folder in root.where((i) => i.playable != true)) {
+        await h.getChildren(folder.id);
+      }
+      await h.getChildren(BrowseTree.stationsId);
+      await h.prepare();
+      await h.prepareFromMediaId(main.slug);
+      await h.prepareFromSearch(main.displayName);
+      await h.getMediaItem(main.slug);
+      await h.search(main.displayName);
+      await _settle();
+      expect(player.opened, isEmpty);
+      expect(player.played, isEmpty);
+      expect(h.state.status, PlayerStatus.idle);
+      expect(h.playbackState.value.playing, isFalse);
+    });
+
+    test('stations folder lists every station as playable', () async {
+      final h = _handler(FakeRadioPlayer());
+      final items = await h.getChildren(BrowseTree.stationsId);
+      expect(items.map((i) => i.id), stationsCatalog.map((s) => s.slug));
+      expect(items.every((i) => i.playable == true), isTrue);
+    });
+
+    test('playFromMediaId plays the chosen station', () async {
+      final player = FakeRadioPlayer();
+      final h = _handler(player);
+      await h.playFromMediaId(rap.slug);
+      await _settle();
+      expect(h.state.station, rap);
+      expect(h.state.status, PlayerStatus.playing);
+      expect(h.mediaItem.value?.id, rap.slug);
+    });
+
+    test(
+      'search finds a station by name and playFromSearch plays it',
+      () async {
+        final player = FakeRadioPlayer();
+        final h = _handler(player);
+        final hits = await h.search(rap.displayName);
+        expect(hits.map((i) => i.id), contains(rap.slug));
+        await h.playFromSearch(rap.displayName);
+        await _settle();
+        expect(h.state.station, rap);
+      },
+    );
+
+    test('search without a match returns an empty list', () async {
+      final h = _handler(FakeRadioPlayer());
+      expect(await h.search('zzzz-no-such-station'), isEmpty);
+    });
+
+    test(
+      'a failed stream shows the localized text, not the exception',
+      () async {
+        final player = FakeRadioPlayer()..failOpen = true;
+        final h = _handler(player);
+        await h.playStation(main);
+        await _settle();
+        final state = h.playbackState.value;
+        expect(state.processingState, AudioProcessingState.error);
+        expect(state.errorMessage, LinefmAudioHandler.userErrorMessage());
+        expect(state.errorMessage, isNot(contains('open failed')));
+        expect(state.errorMessage, isNot(contains('Exception')));
+      },
+    );
+  });
 }

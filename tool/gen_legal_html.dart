@@ -1,38 +1,38 @@
-// Erzeugt aus assets/legal/{de,en}/*.json die statischen Rechtstext-Seiten
-// fuer die Web-Version (Stores, Suchmaschinen).
+// Generates the static legal-text pages for the web version (stores, search
+// engines) from assets/legal/{de,en}/*.json.
 //
-// Aufruf (im Repo-Wurzelverzeichnis):
+// Usage (in the repo root):
 //   dart run tool/gen_legal_html.dart [--providers=umami,sentry,firebase,ga4]
 //       [--values=legal_values.json] [--base-url=https://app.linefm.de]
 //       [--out=web] [--strict] [--fill-assets]
 //
-// --providers  aktive Telemetrie-Anbieter (Bloecke mit "requires").
-// --values     JSON-Objekt Platzhalter -> Wert (z. B. BETREIBER_NAME).
-// --strict     Exit-Code 1, solange Pflicht-Platzhalter offen sind (leere oder
-//              nur aus Leerzeichen bestehende Werte gelten als offen, nicht in
-//              placeholders.json registrierte Platzhalter als Pflicht, "required_if"
-//              macht optionale Angaben bei aktivem Anbieter zur Pflicht). Prueft
-//              zusaetzlich [strictFiles] (Sicherheitskontakt, Barrierefreiheit,
-//              Verhaltenskodex) auf offene {{...}}; die traegt der Betreiber
-//              selbst im Repo ein, sie kommen nicht aus --values.
-// --fill-assets setzt die Werte zusaetzlich direkt in assets/legal/**.json ein.
+// --providers  active telemetry providers (blocks with "requires").
+// --values     JSON object placeholder -> value (e.g. BETREIBER_NAME).
+// --strict     Exit code 1 while required placeholders are open (empty or
+//              whitespace-only values count as open, placeholders not registered
+//              in placeholders.json count as required, "required_if"
+//              makes optional entries required when a provider is active). Also
+//              checks [strictFiles] (security contact, accessibility,
+//              code of conduct) for open {{...}}; the operator fills those
+//              in the repo themselves, they do not come from --values.
+// --fill-assets additionally writes the values directly into assets/legal/**.json.
 //
-// Solange Platzhalter offen sind, setzt die Seite "noindex".
+// While placeholders are open, the page sets "noindex".
 import 'dart:convert';
 import 'dart:io';
 
-/// Bekannte Anbieter-Schluessel fuer `requires`.
+/// Known provider keys for `requires`.
 const Set<String> telemetryProviders = <String>{'umami', 'sentry', 'firebase'};
 
-/// Weitere Anbieter mit eigener Einwilligung, die nicht unter `telemetry`
-/// fallen: `ga4` = Reichweitenmessung mit Google (GTM/GA4, nur Web, P31).
+/// Further providers with their own consent that do not fall under
+/// `telemetry`: `ga4` = reach measurement with Google (GTM/GA4, web only, P31).
 const Set<String> knownProviders = <String>{...telemetryProviders, 'ga4'};
 
-/// Lockeres Platzhalter-Muster, Zeichen fuer Zeichen gleich mit
-/// `PLACEHOLDER_PATTERN` in tool/legal_store_check.py (ein Test vergleicht
-/// beide). Erkennt neben `{{NAME}}` auch `{{ NAME }}`, `{{A-B}}`, Umlaute und
-/// vollbreite Klammern (U+FF5B/U+FF5D), damit keine verschriebene Angabe
-/// durch die Pruefung rutscht. Gruppe 1 ist der Name (vor dem Trimmen).
+/// Loose placeholder pattern, character for character identical to
+/// `PLACEHOLDER_PATTERN` in tool/legal_store_check.py (a test compares
+/// both). Besides `{{NAME}}` it also recognizes `{{ NAME }}`, `{{A-B}}`, umlauts and
+/// full-width braces (U+FF5B/U+FF5D), so that no mistyped entry
+/// slips through the check. Group 1 is the name (before trimming).
 const String placeholderPattern =
     r'[{\uFF5B][ \t\u00A0\u3000]*[{\uFF5B][ \t\u00A0\u3000]*'
     r'([^{}\uFF5B\uFF5D\r\n]{1,80}?)'
@@ -40,17 +40,17 @@ const String placeholderPattern =
 
 final RegExp _placeholder = RegExp(placeholderPattern);
 
-/// Name eines Treffers ohne Leerzeichen am Rand.
+/// Name of a match without whitespace at the edges.
 String _name(Match m) => m.group(1)!.trim();
 
-/// Leer-, Trenn- und unsichtbare Formatzeichen (Unicode Zs, Cf, Whitespace).
+/// Blank, separator and invisible format characters (Unicode Zs, Cf, whitespace).
 final RegExp _invisible = RegExp(r'[\p{Cf}\p{Zs}\s]', unicode: true);
 
-/// Hat [value] sichtbaren Inhalt (nach Entfernen von Cf/Zs/Whitespace)?
+/// Does [value] have visible content (after removing Cf/Zs/whitespace)?
 bool hasVisibleContent(String value) =>
     value.replaceAll(_invisible, '').isNotEmpty;
 
-/// Weitere Dateien, die mit --strict keine Platzhalter mehr haben duerfen.
+/// Further files that must contain no placeholders with --strict.
 const List<String> strictFiles = <String>[
   'SECURITY.md',
   'CODE_OF_CONDUCT.md',
@@ -58,7 +58,7 @@ const List<String> strictFiles = <String>[
   'web/.well-known/security.txt',
 ];
 
-/// Offene Platzhalter je Datei aus [paths] (fehlende Dateien zaehlen nicht).
+/// Open placeholders per file from [paths] (missing files do not count).
 Map<String, Set<String>> openPlaceholdersInFiles(Iterable<String> paths) {
   final Map<String, Set<String>> open = <String, Set<String>>{};
   for (final String path in paths) {
@@ -70,8 +70,8 @@ Map<String, Set<String>> openPlaceholdersInFiles(Iterable<String> paths) {
   return open;
 }
 
-/// Ist ein `requires`-Ausdruck (String oder Liste, "!x" = Negation) erfuellt?
-/// Mehrere Eintraege einer Liste muessen alle gelten.
+/// Is a `requires` expression (string or list, "!x" = negation) satisfied?
+/// Multiple entries of a list must all hold.
 bool requirementMet(Object? requires, Set<String> providers) {
   if (requires == null) return true;
   final List<String> tokens = requires is List
@@ -88,30 +88,30 @@ bool requirementMet(Object? requires, Set<String> providers) {
   return true;
 }
 
-/// Nur Werte mit Inhalt: leere oder nur aus Leer- und unsichtbaren
-/// Formatzeichen (Unicode Cf, Zs, z. B. U+200B, U+FEFF, U+00A0) bestehende
-/// Werte zaehlen als nicht gesetzt (der Platzhalter bleibt offen und
-/// markiert).
+/// Only values with content: empty values or values consisting only of blank
+/// and invisible format characters (Unicode Cf, Zs, e.g. U+200B, U+FEFF,
+/// U+00A0) count as unset (the placeholder stays open and
+/// marked).
 Map<String, String> nonBlankValues(Map<String, String> values) =>
     <String, String>{
       for (final MapEntry<String, String> e in values.entries)
         if (hasVisibleContent(e.value)) e.key: e.value,
     };
 
-/// Werte aus einem dekodierten JSON-Objekt: nur nicht-leere Strings zaehlen
-/// (Zahlen, null, Listen usw. bleiben offen, statt als "null" zu gelten).
+/// Values from a decoded JSON object: only non-empty strings count
+/// (numbers, null, lists etc. stay open instead of being treated as "null").
 Map<String, String> stringValues(Map<String, Object?> decoded) =>
     nonBlankValues(<String, String>{
       for (final MapEntry<String, Object?> e in decoded.entries)
         if (e.value is String) e.key: e.value! as String,
     });
 
-/// Ist der Platzhalter [name] bei den aktiven [providers] Pflicht?
+/// Is the placeholder [name] required for the active [providers]?
 ///
-/// [registry] ist der Inhalt von placeholders.json unter "placeholders".
-/// Nicht registrierte Namen sind Pflicht (Tippfehler fallen so auf).
-/// `"required": false` macht eine Angabe optional, ausser `"required_if"`
-/// (gleiche Syntax wie `requires`) ist mit den aktiven Anbietern erfuellt.
+/// [registry] is the content of placeholders.json under "placeholders".
+/// Unregistered names are required (so typos stand out).
+/// `"required": false` makes an entry optional, unless `"required_if"`
+/// (same syntax as `requires`) is met by the active providers.
 bool isRequiredPlaceholder(
   String name,
   Map<String, Object?> registry,
@@ -124,7 +124,7 @@ bool isRequiredPlaceholder(
   return cond != null && requirementMet(cond, providers);
 }
 
-/// Offene Pflicht-Platzhalter (sortiert) aus [open].
+/// Open required placeholders (sorted) from [open].
 List<String> requiredOpen(
   Set<String> open,
   Map<String, Object?> registry,
@@ -135,18 +135,18 @@ List<String> requiredOpen(
         .toList()
       ..sort();
 
-/// Alle Platzhalter-Namen in [text].
+/// All placeholder names in [text].
 Set<String> findPlaceholders(String text) =>
     _placeholder.allMatches(text).map(_name).toSet();
 
-/// Ersetzt bekannte Platzhalter; unbekannte bleiben stehen.
+/// Replaces known placeholders; unknown ones are left in place.
 String substitute(String text, Map<String, String> values) =>
     text.replaceAllMapped(
       _placeholder,
       (Match m) => values[_name(m)] ?? m.group(0)!,
     );
 
-/// Wie [substitute], aber fuer Rohtext einer JSON-Datei (Werte werden escaped).
+/// Like [substitute], but for the raw text of a JSON file (values are escaped).
 String substituteJsonText(String raw, Map<String, String> values) =>
     raw.replaceAllMapped(_placeholder, (Match m) {
       final String? v = values[_name(m)];
@@ -162,7 +162,7 @@ String escapeHtml(String s) => s
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
 
-/// Escaped Text, wandelt "\n" in <br> und markiert offene Platzhalter.
+/// Escapes text, turns "\n" into <br> and marks open placeholders.
 String inlineHtml(String text, Map<String, String> values) {
   final StringBuffer out = StringBuffer();
   int last = 0;
@@ -180,7 +180,7 @@ String inlineHtml(String text, Map<String, String> values) {
   return out.toString().replaceAll('\n', '<br>');
 }
 
-/// Sichtbare Bloecke eines Dokuments (requires gefiltert).
+/// Visible blocks of a document (filtered by requires).
 List<Map<String, Object?>> visibleBlocks(
   Map<String, Object?> doc,
   Set<String> providers,
@@ -194,7 +194,7 @@ List<Map<String, Object?>> visibleBlocks(
       .toList();
 }
 
-/// Offene Platzhalter in den sichtbaren Bloecken.
+/// Open placeholders in the visible blocks.
 Set<String> openPlaceholders(
   Map<String, Object?> doc,
   Set<String> providers,
@@ -247,7 +247,7 @@ const Map<String, Map<String, String>> _ui = <String, Map<String, String>>{
   },
 };
 
-/// Pfad der Seite: de unter /KIND/, en unter /KIND/en/.
+/// Path of the page: de under /KIND/, en under /KIND/en/.
 String pagePath(String kind, String lang) =>
     lang == 'de' ? '/$kind/' : '/$kind/en/';
 
@@ -267,8 +267,8 @@ String _blockHtml(Map<String, Object?> b, Map<String, String> values) {
       return '<ul>\n$items\n</ul>';
     case 'link':
       final String url = substitute('${b['url'] ?? ''}', values).trim();
-      // Nur http(s) und mailto werden zum Link (kein javascript:, data:, ...);
-      // alles andere, auch ein offener Platzhalter, bleibt Text.
+      // Only http(s) and mailto become a link (no javascript:, data:, ...);
+      // everything else, including an open placeholder, stays text.
       if (!isSafeLinkUrl(url)) return '<p>${inlineHtml(text, values)}</p>';
       return '<p><a href="${escapeHtml(url)}" rel="noopener noreferrer">'
           '${inlineHtml(text, values)}</a></p>';
@@ -280,12 +280,12 @@ String _blockHtml(Map<String, Object?> b, Map<String, String> values) {
       return '<p><a href="mailto:${escapeHtml(address)}">'
           '${inlineHtml(text, values)}</a></p>';
     default:
-      throw FormatException('Unbekannter Blocktyp: ${b['type']}');
+      throw FormatException('Unknown block type: ${b['type']}');
   }
 }
 
-/// Erlaubte Link-Ziele in Rechtstexten: absolute http(s)-Adressen mit Host
-/// und mailto.
+/// Allowed link targets in legal texts: absolute http(s) addresses with a host
+/// and mailto.
 bool isSafeLinkUrl(String url) {
   final Uri? uri = Uri.tryParse(url);
   if (uri == null) return false;
@@ -294,7 +294,7 @@ bool isSafeLinkUrl(String url) {
   return (scheme == 'https' || scheme == 'http') && uri.host.isNotEmpty;
 }
 
-/// Prueft `--base-url`: absolute http(s)-Adresse ohne Anfrage und Fragment.
+/// Checks `--base-url`: absolute http(s) address without query and fragment.
 String checkedBaseUrl(String raw) {
   final Uri? uri = Uri.tryParse(raw.trim());
   if (uri == null ||
@@ -302,12 +302,12 @@ String checkedBaseUrl(String raw) {
       uri.host.isEmpty ||
       uri.hasQuery ||
       uri.hasFragment) {
-    throw FormatException('--base-url muss eine http(s)-Adresse sein: $raw');
+    throw FormatException('--base-url must be an http(s) address: $raw');
   }
   return raw.trim();
 }
 
-/// Liest `--providers` und lehnt unbekannte Anbieter ab (wie
+/// Reads `--providers` and rejects unknown providers (like
 /// legal_store_check.py).
 Set<String> parseProviders(String raw) {
   final Set<String> providers = raw
@@ -318,13 +318,13 @@ Set<String> parseProviders(String raw) {
   final Set<String> unknown = providers.difference(knownProviders);
   if (unknown.isNotEmpty) {
     throw FormatException(
-      'unbekannte Anbieter: ${(unknown.toList()..sort()).join(", ")}',
+      'unknown providers: ${(unknown.toList()..sort()).join(", ")}',
     );
   }
   return providers;
 }
 
-/// Rendert eine komplette HTML-Seite.
+/// Renders a complete HTML page.
 String renderPage(
   Map<String, Object?> doc, {
   required String kind,
@@ -388,7 +388,7 @@ $body
 ''';
 }
 
-/// Gemeinsames Stylesheet (dunkel wie die App, hell bei Systemeinstellung).
+/// Shared stylesheet (dark like the app, light when the system setting says so).
 const String legalCss =
     '''/* Erzeugt von tool/gen_legal_html.dart, nicht von Hand aendern. */
 :root {
@@ -446,7 +446,7 @@ Map<String, String> _loadValues(String? path) {
   if (path == null) return <String, String>{};
   final Object? decoded = jsonDecode(File(path).readAsStringSync());
   if (decoded is! Map<String, Object?>) {
-    throw const FormatException('--values muss ein JSON-Objekt sein.');
+    throw const FormatException('--values must be a JSON object.');
   }
   return stringValues(decoded);
 }
@@ -473,7 +473,7 @@ Future<void> main(List<String> args) async {
     providers = parseProviders(_arg(args, 'providers') ?? '');
     baseUrl = checkedBaseUrl(_arg(args, 'base-url') ?? 'https://app.linefm.de');
   } on FormatException catch (e) {
-    stderr.writeln('FEHLER: ${e.message}');
+    stderr.writeln('gen_legal_html: ERROR: ${e.message}');
     exitCode = 2;
     return;
   }
@@ -524,19 +524,17 @@ Future<void> main(List<String> args) async {
 
   final List<String> openRequired = requiredOpen(allOpen, required, providers);
   stdout.writeln(
-    'Seiten geschrieben nach $out/ (Anbieter: ${providers.isEmpty ? "keine" : providers.join(", ")}).',
+    'Pages written to $out/ (providers: ${providers.isEmpty ? "none" : providers.join(", ")}).',
   );
   if (allOpen.isNotEmpty) {
     stdout.writeln(
-      'Offene Platzhalter (${allOpen.length}): ${(allOpen.toList()..sort()).join(", ")}',
+      'Open placeholders (${allOpen.length}): ${(allOpen.toList()..sort()).join(", ")}',
     );
-    stdout.writeln(
-      'Seiten tragen noindex, bis alle Platzhalter gefuellt sind.',
-    );
+    stdout.writeln('Pages carry noindex until all placeholders are filled.');
   }
   if (strict && openRequired.isNotEmpty) {
     stderr.writeln(
-      'FEHLER (--strict): Pflichtangaben fehlen: ${openRequired.join(", ")}',
+      'gen_legal_html: ERROR (--strict): required entries missing: ${openRequired.join(", ")}',
     );
     exitCode = 1;
   }
@@ -544,7 +542,7 @@ Future<void> main(List<String> args) async {
     final Map<String, Set<String>> files = openPlaceholdersInFiles(strictFiles);
     for (final MapEntry<String, Set<String>> e in files.entries) {
       stderr.writeln(
-        'FEHLER (--strict): ${e.key} enthaelt noch Platzhalter: '
+        'gen_legal_html: ERROR (--strict): ${e.key} still contains placeholders: '
         '${(e.value.toList()..sort()).join(", ")}',
       );
       exitCode = 1;

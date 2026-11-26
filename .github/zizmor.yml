@@ -1,19 +1,18 @@
-# Konfiguration fuer zizmor (supply-chain.yml, Job "Workflow-Pruefung").
-# Jede Ausnahme braucht eine Begruendung und einen Pruefpunkt, wann sie faellt.
+# Configuration for zizmor (supply-chain.yml, workflow check job).
+# Every exception needs a justification and a review point for when it expires.
 rules:
-  # self-repository (ab zizmor 1.30) empfiehlt "uses: $/.github/actions/..." statt
-  # "./.github/actions/..." (GitHub, seit 30.07.2026). Kein Sicherheitsbefund im
-  # engeren Sinn: Unsere lokalen Actions laufen immer nach actions/checkout mit
-  # persist-credentials: false aus dem eigenen Commit. Umstellung zurueckgestellt,
-  # weil actionlint 1.7.12 (aktuelle Version) die Syntax noch als Fehler meldet
-  # (known open parser bugs in actionlint). Umstellen, sobald actionlint sie kennt.
+  # self-repository (since zizmor 1.30) recommends "uses: $/.github/actions/..."
+  # instead of "./.github/actions/..." (GitHub, since 2026-07-30). Not a security
+  # finding in the strict sense: our local actions always run after actions/checkout
+  # with persist-credentials: false, from our own commit. Switch postponed because
+  # actionlint 1.7.12 (current version) still reports the syntax as an error
+  # (known open parser bugs in actionlint). Switch once actionlint supports it.
   self-repository:
     disable: true
-  # dangerous-triggers: security-alerts.yml nutzt workflow_run, um nach den
-  # Scannern auf main die Alerts abzugleichen. Der Job checkt nichts aus, liest
-  # keine Artefakte und verwendet keine Daten aus dem ausloesenden Lauf (nur
-  # Alert-APIs und Tickets). Faellt, wenn GitHub einen Ausloeser "nach Code-Scanning-
-  # Upload" anbietet.
+  # dangerous-triggers: security-alerts.yml uses workflow_run to sync the alerts
+  # after the scanners on main. The job checks nothing out, reads no artifacts and
+  # uses no data from the triggering run (only alert APIs and tickets). Expires
+  # when GitHub offers a trigger "after Code Scanning upload".
   dangerous-triggers:
     ignore:
       - security-alerts.yml

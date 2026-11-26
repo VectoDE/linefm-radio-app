@@ -1,32 +1,32 @@
-name: Release-Tag und pubspec-Platzhalter pruefen
+name: Check release tag and pubspec placeholder
 description: >
-  Die Version kommt aus dem Release, nicht aus pubspec.yaml. Prueft, dass
-  der Tag eine SemVer-Version vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N ist und dass
-  pubspec.yaml nur den Entwicklungs-Platzhalter 0.0.0-dev traegt (er gelangt nie
-  in ein Release; --build-name/--build-number setzt der Workflow). Genutzt von
-  release.yml und, fuer manuelle Starts, von den store-*.yml.
+  The version comes from the release, not from pubspec.yaml. Checks that the tag
+  is a SemVer version vX.Y.Z or vX.Y.Z-(alpha|beta|rc).N and that pubspec.yaml
+  only carries the development placeholder 0.0.0-dev (it never ends up in a
+  release; the workflow sets --build-name/--build-number). Used by release.yml and,
+  for manual runs, by the store-*.yml workflows.
 
 inputs:
   tag:
-    description: Versions-Tag, vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N
+    description: Version tag, vX.Y.Z or vX.Y.Z-(alpha|beta|rc).N
     required: true
 
 runs:
   using: composite
   steps:
-    - name: Pruefen
+    - name: Check
       shell: bash
       env:
         TAG: ${{ inputs.tag }}
       run: |
         set -euo pipefail
         if ! [[ "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-(alpha|beta|rc)\.[1-9][0-9]*)?$ ]]; then
-          echo "::error::Tag $TAG hat nicht das Format vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N"
+          echo "::error::Tag $TAG does not have the format vX.Y.Z or vX.Y.Z-(alpha|beta|rc).N"
           exit 1
         fi
         pub="$(sed -n 's/^version:[[:space:]]*\([^[:space:]#]*\).*/\1/p' pubspec.yaml | head -n1)"
         if [ "${pub%%+*}" != "0.0.0-dev" ]; then
-          echo "::error::pubspec.yaml muss version: 0.0.0-dev+<n> tragen (gefunden: $pub). Die Version kommt aus dem Release."
+          echo "::error::pubspec.yaml must carry version: 0.0.0-dev+<n> (found: $pub). The version comes from the release."
           exit 1
         fi
-        echo "Tag $TAG gueltig, pubspec.yaml traegt den Platzhalter ($pub)." >> "$GITHUB_STEP_SUMMARY"
+        echo "Tag $TAG is valid, pubspec.yaml carries the placeholder ($pub)." >> "$GITHUB_STEP_SUMMARY"

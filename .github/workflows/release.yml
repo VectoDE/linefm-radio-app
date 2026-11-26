@@ -1,23 +1,23 @@
 name: Release
 
-# Jeder Merge auf main erzeugt ein Release. Der Job "version" berechnet die
-# Version aus dem hoechsten bisherigen Release-Tag und den offenen Tickets
-# (tool/release/next_version.dart, Logik in lib/core/update/app_version.dart):
-# Start 0.1.0-alpha.1, jeder Merge zaehlt die Vorabnummer hoch; beta, sobald kein
-# Ticket mit typ:feature mehr offen ist; rc (1.0.0-rc.N), sobald nur noch Tickets mit
-# nur-noch:linefm-studios offen sind; 1.0.0, wenn nichts mehr offen ist. Die Version steht
-# nirgends fest; pubspec.yaml traegt nur den Platzhalter 0.0.0-dev.
-# Baut alle Plattformen ueber build.yml. Der Job "sign" erzeugt SHA256SUMS.txt und
-# eine SBOM (SPDX und CycloneDX, syft), legt GitHub-Attestierungen (Build-Provenance,
-# SBOM) an und signiert jede Release-Datei plus SHA256SUMS.txt keyless mit cosign
-# (Sigstore, Bundles *.sigstore.json). "publish" signiert SHA256SUMS.txt optional mit
-# GPG (Secrets GPG_PRIVATE_KEY, GPG_PASSPHRASE; ohne sie uebersprungen), schreibt die
-# Release Notes aus den Commit- bzw. Titeln der Änderungen und legt das GitHub-Release samt Tag
-# auf dem gemergten Commit an. Android (APK/AAB), Windows (EXE) und macOS (DMG)
-# tragen ihre Plattform-Signatur nur mit gesetzten Signier-Secrets.
-# Pruefen: docs/RELEASE-VERIFIZIEREN.md.
-# Danach starten die Store-Workflows und der Web-Deploy, alle erst ab 1.0.0 (keine
-# Vorabversion). alpha, beta und rc gehen nur als GitHub-Vorabversion raus.
+# Every merge to main creates a release. The "version" job computes the version
+# from the highest existing release tag and the open tickets
+# (tool/release/next_version.dart, logic in lib/core/update/app_version.dart):
+# starts at 0.1.0-alpha.1, every merge increments the prerelease number; beta once no
+# ticket with typ:feature is open any more; rc (1.0.0-rc.N) once only tickets with
+# nur-noch:linefm-studios are open; 1.0.0 when nothing is open. The version is not # english-ci: allow
+# hard-coded anywhere; pubspec.yaml carries only the placeholder 0.0.0-dev.
+# Builds all platforms via build.yml. The "sign" job creates SHA256SUMS.txt and
+# an SBOM (SPDX and CycloneDX, syft), creates GitHub attestations (build provenance,
+# SBOM) and signs every release file plus SHA256SUMS.txt keyless with cosign
+# (Sigstore, bundles *.sigstore.json). "publish" optionally signs SHA256SUMS.txt with
+# GPG (secrets GPG_PRIVATE_KEY, GPG_PASSPHRASE; skipped without them), writes the
+# release notes from the commit titles of the changes and creates the GitHub release
+# with its tag on the merged commit. Android (APK/AAB), Windows (EXE) and macOS (DMG)
+# carry their platform signature only when the signing secrets are set.
+# Verify: docs/RELEASE-VERIFIZIEREN.md.
+# After that the store workflows and the web deploy start, all only from 1.0.0 (no
+# prerelease). alpha, beta and rc go out only as a GitHub prerelease.
 
 on:
   push:
@@ -27,15 +27,15 @@ on:
 
 permissions: {}
 
-# Releases laufen nacheinander: jedes braucht den Tag des vorigen.
+# Releases run one after another: each needs the tag of the previous one.
 concurrency:
   group: release-main
   cancel-in-progress: false
 
 jobs:
   version:
-    name: Version berechnen
-    # Releases nur aus main, auch bei manuellem Start.
+    name: Compute version
+    # Releases only from main, also on manual start.
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -50,7 +50,7 @@ jobs:
       prerelease: ${{ steps.calc.outputs.prerelease }}
       last: ${{ steps.calc.outputs.last }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -62,17 +62,17 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      # Nur das Dart-SDK; die Abhaengigkeiten der App (mit nativen Build-Hooks)
-      # werden fuer die Versionsrechnung nicht geholt.
-      - name: Flutter einrichten (ohne pub get)
+      # Only the Dart SDK; the app's dependencies (with native build hooks)
+      # are not fetched for the version computation.
+      - name: Set up Flutter (without pub get)
         uses: ./.github/actions/setup-flutter
         with:
           pub-get: "false"
 
-      - name: Versionsrechner vorbereiten
+      - name: Prepare version calculator
         run: dart pub get --directory tool/release
 
-      - name: Version berechnen
+      - name: Compute version
         id: calc
         env:
           GH_TOKEN: ${{ github.token }}
@@ -80,11 +80,11 @@ jobs:
           set -euo pipefail
           dir="$RUNNER_TEMP/version"
           mkdir -p "$dir"
-          # Schon ein Release auf diesem Commit (erneuter Lauf): nichts tun.
+          # Already a release on this commit (re-run): do nothing.
           existing="$(git tag --points-at HEAD --list 'v*' | head -n1)"
           if [ -n "$existing" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Commit hat schon das Release $existing, uebersprungen." >> "$GITHUB_STEP_SUMMARY"
+            echo "Commit already has release $existing, skipped." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           git tag --list 'v*' > "$dir/tags.txt"
@@ -102,17 +102,17 @@ jobs:
           cp "$dir/subjects.txt" subjects.txt
           {
             echo "### Release $(sed -n 's/^tag=//p' "$dir/out.txt")"
-            echo "- Stufe: $(sed -n 's/^stage=//p' "$dir/out.txt"), vorher: ${last:-keins}"
-            echo "- offene Tickets: $(jq length "$dir/items.json")"
+            echo "- Stage: $(sed -n 's/^stage=//p' "$dir/out.txt"), previous: ${last:-none}"
+            echo "- open tickets: $(jq length "$dir/items.json")"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Tag und pubspec-Platzhalter pruefen
+      - name: Check tag and pubspec placeholder
         if: steps.calc.outputs.skip != 'true'
         uses: ./.github/actions/tag-version
         with:
           tag: ${{ steps.calc.outputs.tag }}
 
-      - name: Commit-Titel weitergeben
+      - name: Pass on commit titles
         if: steps.calc.outputs.skip != 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -149,13 +149,13 @@ jobs:
       actions: read
       checks: read
 
-  # Signieren (P31): nur dieser Job bekommt id-token: write (OIDC fuer Sigstore).
-  # Er erzeugt SBOM und SHA256SUMS.txt, attestiert die Herkunft (GitHub-Attestierung,
-  # Sigstore) und signiert jede Release-Datei plus SHA256SUMS.txt keyless mit cosign.
-  # Die Bundles (*.sigstore.json) gehen als Artefakt an "publish" und landen als
-  # Release-Assets am Release. Pruefen: docs/RELEASE-VERIFIZIEREN.md.
+  # Signing: only this job gets id-token: write (OIDC for Sigstore).
+  # It creates the SBOM and SHA256SUMS.txt, attests the provenance (GitHub attestation,
+  # Sigstore) and signs every release file plus SHA256SUMS.txt keyless with cosign.
+  # The bundles (*.sigstore.json) go to "publish" as an artifact and end up as
+  # release assets on the release. Verify: docs/RELEASE-VERIFIZIEREN.md.
   sign:
-    name: Pruefsummen, Attestierung und Signatur
+    name: Checksums, attestation and signature
     needs: [version, build]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -166,7 +166,7 @@ jobs:
     env:
       TAG: ${{ needs.version.outputs.tag }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -176,18 +176,18 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Version pruefen
+      - name: Check version
         run: |
           if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
-            echo "::error::Tag $TAG ist keine SemVer-Version"
+            echo "::error::Tag $TAG is not a SemVer version"
             exit 1
           fi
           echo "LABEL=${TAG#v}" >> "$GITHUB_ENV"
           mkdir -p dist
 
-      # Vor "Artefakte holen": die SBOM beschreibt die Quellen, nicht die
-      # fertigen Release-Dateien in dist/.
-      - name: SBOM erzeugen (SPDX)
+      # Before "Fetch artifacts": the SBOM describes the sources, not the
+      # finished release files in dist/.
+      - name: Generate SBOM (SPDX)
         uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           path: .
@@ -196,7 +196,7 @@ jobs:
           upload-artifact: false
           upload-release-assets: false
 
-      - name: SBOM erzeugen (CycloneDX)
+      - name: Generate SBOM (CycloneDX)
         uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           path: .
@@ -205,9 +205,9 @@ jobs:
           upload-artifact: false
           upload-release-assets: false
 
-      # Herausgeber LineFM Studios, Hersteller Tim Hauke (VectoDE), Entscheidung
-      # des Inhabers vom 21.11.2026; in beide SBOMs eintragen.
-      - name: SBOM-Herausgeber und -Hersteller setzen
+      # Publisher LineFM Studios, manufacturer Tim Hauke (VectoDE), decision
+      # of the owner of 21 Nov 2026; enter into both SBOMs.
+      - name: Set SBOM supplier and manufacturer
         run: |
           set -euo pipefail
           cdx="dist/linefm-radio-${LABEL}-sbom.cdx.json"
@@ -219,7 +219,7 @@ jobs:
           jq '.creationInfo.creators += ["Organization: LineFM Studios", "Person: Tim Hauke (VectoDE)"]' "$spdx" > "$spdx.tmp"
           mv "$spdx.tmp" "$spdx"
 
-      - name: Artefakte holen
+      - name: Fetch artifacts
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: dist-*
@@ -240,7 +240,7 @@ jobs:
           done
           exit "$missing"
 
-      - name: Pruefsummen
+      - name: Checksums
         run: |
           set -euo pipefail
           cd dist
@@ -248,23 +248,23 @@ jobs:
           sha256sum -- * > SHA256SUMS.txt
           cat SHA256SUMS.txt
           {
-            echo "### Release-Dateien"
+            echo "### Release files"
             echo '```'
             cat SHA256SUMS.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # Das Repository ist oeffentlich: Attestierungen sind Pflicht, ein Fehler bricht
-      # das Release ab. Nur ein privates Repository ohne Enterprise Cloud kann keine
-      # Attestierung anlegen; dort werden die Schritte uebersprungen (Zusammenfassung).
-      - name: Build-Provenance attestieren
+      # The repository is public: attestations are mandatory, a failure aborts
+      # the release. Only a private repository without Enterprise Cloud cannot create an
+      # attestation; there the steps are skipped (summary).
+      - name: Attest build provenance
         id: provenance
         if: ${{ !github.event.repository.private }}
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-checksums: dist/SHA256SUMS.txt
 
-      - name: SBOM attestieren
+      - name: Attest SBOM
         id: sbom
         if: ${{ !github.event.repository.private }}
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
@@ -272,10 +272,10 @@ jobs:
           subject-checksums: dist/SHA256SUMS.txt
           sbom-path: dist/linefm-radio-${{ env.LABEL }}-sbom.spdx.json
 
-      - name: cosign installieren
+      - name: Install cosign
         uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
 
-      - name: Dateien mit cosign signieren (keyless)
+      - name: Sign files with cosign (keyless)
         run: |
           set -euo pipefail
           cd dist
@@ -285,7 +285,7 @@ jobs:
             cosign sign-blob --yes --bundle "$f.sigstore.json" "$f" > /dev/null
           done
 
-      - name: cosign-Signaturen gegenpruefen
+      - name: Verify cosign signatures
         env:
           IDENTITY: https://github.com/${{ github.repository }}/.github/workflows/release.yml@${{ github.ref }}
         run: |
@@ -301,25 +301,25 @@ jobs:
           done
           echo "COSIGN_COUNT=$count" >> "$GITHUB_ENV"
 
-      - name: Signatur-Status
+      - name: Signature status
         env:
           PROVENANCE: ${{ steps.provenance.outcome }}
           SBOM: ${{ steps.sbom.outcome }}
         run: |
           {
-            echo "### Attestierungen und Signaturen"
-            echo "- Build-Provenance (GitHub-Attestierung): $PROVENANCE"
-            echo "- SBOM-Attestierung: $SBOM"
-            echo "- cosign keyless: $COSIGN_COUNT Dateien signiert und gegengeprueft (*.sigstore.json)"
+            echo "### Attestations and signatures"
+            echo "- Build provenance (GitHub attestation): $PROVENANCE"
+            echo "- SBOM attestation: $SBOM"
+            echo "- cosign keyless: $COSIGN_COUNT files signed and verified (*.sigstore.json)"
             if [ "$PROVENANCE" = "skipped" ]; then
               echo ""
-              echo "Hinweis: privates Repository, Attestierungen nur mit GitHub Enterprise Cloud."
+              echo "Note: private repository, attestations only with GitHub Enterprise Cloud."
             fi
             echo ""
-            echo "Pruefen: docs/RELEASE-VERIFIZIEREN.md"
+            echo "Verify: docs/RELEASE-VERIFIZIEREN.md"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Signierte Dateien weitergeben
+      - name: Pass on signed files
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-signed
@@ -328,7 +328,7 @@ jobs:
           if-no-files-found: error
 
   publish:
-    name: Release veroeffentlichen
+    name: Publish release
     needs: [version, sign]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -337,7 +337,7 @@ jobs:
     env:
       TAG: ${{ needs.version.outputs.tag }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -347,32 +347,32 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Version pruefen
+      - name: Check version
         run: |
           if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
-            echo "::error::Tag $TAG ist keine SemVer-Version"
+            echo "::error::Tag $TAG is not a SemVer version"
             exit 1
           fi
           echo "LABEL=${TAG#v}" >> "$GITHUB_ENV"
 
-      - name: Signierte Dateien holen
+      - name: Fetch signed files
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: release-signed
           path: dist
 
-      - name: Gate GPG-Signatur
+      - name: Gate GPG signature
         id: gpg
         uses: ./.github/actions/secret-gate
         with:
-          label: GPG-Signatur (SHA256SUMS.txt.asc)
+          label: GPG signature (SHA256SUMS.txt.asc)
           checks: |
             GPG_PRIVATE_KEY=${{ secrets.GPG_PRIVATE_KEY != '' }}
             GPG_PASSPHRASE=${{ secrets.GPG_PASSPHRASE != '' }}
 
-      # Optional: detached ASCII-Signatur der Pruefsummen mit dem Schluessel des
-      # Betreibers. Der Schluessel lebt nur in einem temporaeren GNUPGHOME.
-      - name: SHA256SUMS.txt mit GPG signieren
+      # Optional: detached ASCII signature of the checksums with the operator's key.
+      # The key lives only in a temporary GNUPGHOME.
+      - name: Sign SHA256SUMS.txt with GPG
         if: steps.gpg.outputs.ready == 'true'
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -389,18 +389,18 @@ jobs:
             --armor --detach-sign --output dist/SHA256SUMS.txt.asc dist/SHA256SUMS.txt
           gpg --batch --verify dist/SHA256SUMS.txt.asc dist/SHA256SUMS.txt
           fpr="$(gpg --batch --with-colons --list-secret-keys | awk -F: '/^fpr:/ { print $10; exit }')"
-          echo "- GPG: SHA256SUMS.txt.asc, Schluessel $fpr" >> "$GITHUB_STEP_SUMMARY"
+          echo "- GPG: SHA256SUMS.txt.asc, key $fpr" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Commit-Titel holen
+      - name: Fetch commit titles
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: release-subjects
           path: ${{ runner.temp }}/subjects
 
-      # Deutsche Release Notes aus den Commit- bzw. Titeln der Änderungen seit dem letzten
-      # Release. Angehaengte Nummern von Squash-Merges und Verweise auf Tickets
-      # oder Änderungsvorschläge werden entfernt: Release Notes beschreiben nur.
-      - name: Release Notes schreiben
+      # English release notes from the commit titles of the changes since the last
+      # release. Appended numbers from squash merges and references to tickets
+      # or change proposals are removed: release notes only describe.
+      - name: Write release notes
         env:
           STAGE: ${{ needs.version.outputs.stage }}
           LAST: ${{ needs.version.outputs.last }}
@@ -408,30 +408,30 @@ jobs:
           set -euo pipefail
           notes="$RUNNER_TEMP/notes.md"
           case "$STAGE" in
-            alpha) stufe="Alpha-Vorabversion: frueher Stand, Funktionen fehlen noch." ;;
-            beta) stufe="Beta-Vorabversion: alle Funktionen sind drin, es wird noch getestet." ;;
-            rc) stufe="Release-Kandidat: offen ist nur noch die Freigabe durch den Betreiber." ;;
-            *) stufe="Stabile Version." ;;
+            alpha) stufe="Alpha prerelease: early state, features are still missing." ;;
+            beta) stufe="Beta prerelease: all features are in, testing is still ongoing." ;;
+            rc) stufe="Release candidate: only the operator's approval is still open." ;;
+            *) stufe="Stable version." ;;
           esac
           {
             echo "LINEFM Radio $LABEL. $stufe"
             echo ""
-            echo "Herausgeber: LineFM Studios. Hersteller: Tim Hauke (VectoDE)."
+            echo "Publisher: LineFM Studios. Manufacturer: Tim Hauke (VectoDE)."
             echo ""
-            echo "### Aenderungen"
+            echo "### Changes"
             echo ""
             grep -v '^[[:space:]]*$' "$RUNNER_TEMP/subjects/subjects.txt"               | sed -E 's/[[:space:]]*\(([[:alpha:]]+ )?#[0-9]+\)//Ig; s/[[:space:]]*(refs|fixes|closes|resolves)[[:space:]]+#[0-9]+//Ig'               | sed 's/^/- /'
             echo ""
             if [ -n "$LAST" ]; then
-              echo "Alle Aenderungen: https://github.com/${GITHUB_REPOSITORY}/compare/${LAST}...${TAG}"
+              echo "All changes: https://github.com/${GITHUB_REPOSITORY}/compare/${LAST}...${TAG}"
               echo ""
             fi
-            echo "### Installieren und aktualisieren"
+            echo "### Install and update"
             echo ""
-            echo "- Android, Linux, macOS und Web: Dateien unten. Der Windows-Installer folgt später."
-            echo "- Vorabversionen sind fuer Tester gedacht und erscheinen nicht in den Stores."
+            echo "- Android, Linux, macOS and web: files below. The Windows installer follows later."
+            echo "- Prereleases are meant for testers and do not appear in the stores."
             echo ""
-            echo "### Pruefen der Downloads"
+            echo "### Verifying the downloads"
             echo ""
             echo '```'
             echo "sha256sum -c SHA256SUMS.txt --ignore-missing"
@@ -441,11 +441,11 @@ jobs:
             echo "  --certificate-oidc-issuer https://token.actions.githubusercontent.com <datei>"
             echo '```'
             echo ""
-            echo "SBOM: *-sbom.spdx.json und *-sbom.cdx.json. Alle Pruefwege: docs/RELEASE-VERIFIZIEREN.md im Repository."
+            echo "SBOM: *-sbom.spdx.json and *-sbom.cdx.json. All verification methods: docs/RELEASE-VERIFIZIEREN.md in the repository."
           } > "$notes"
           echo "NOTES_FILE=$notes" >> "$GITHUB_ENV"
 
-      - name: GitHub-Release anlegen
+      - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           PRERELEASE: ${{ needs.version.outputs.prerelease }}
@@ -455,9 +455,9 @@ jobs:
           if [ "$PRERELEASE" = "true" ]; then flags+=(--prerelease --latest=false); fi
           gh release create "$TAG" dist/*             --repo "$GITHUB_REPOSITORY"             --target "$GITHUB_SHA"             --title "LINEFM Radio $LABEL"             --notes-file "$NOTES_FILE"             "${flags[@]}"
 
-  # Store- und Deploy-Pipelines (P27). Jede ruft nur das auf, wofuer Secrets/Variablen
-  # gesetzt sind; sonst wird sauber uebersprungen. Die Release-Dateien stammen aus dem
-  # eben angelegten GitHub-Release.
+  # Store and deploy pipelines. Each one only runs what its secrets/variables are
+  # set for; otherwise it is skipped cleanly. The release files come from the
+  # GitHub release just created.
   google-play:
     name: Google Play
     needs: [version, publish]
@@ -509,7 +509,7 @@ jobs:
       checks: read
 
   flathub-prep:
-    name: Flathub-Vorbereitung
+    name: Flathub preparation
     needs: [version, publish]
     if: needs.version.outputs.prerelease == 'false'
     uses: ./.github/workflows/flathub-prep.yml
@@ -547,7 +547,7 @@ jobs:
       checks: read
 
   deploy-web:
-    name: Web-Deploy
+    name: Web deploy
     needs: [version, publish]
     if: needs.version.outputs.prerelease == 'false'
     uses: ./.github/workflows/deploy-web.yml

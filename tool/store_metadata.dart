@@ -1,34 +1,34 @@
-// Erzeugt und prueft die fastlane-kompatible Metadaten-Struktur unter
-// fastlane/metadata/ aus docs/STORE-TEXTE.md.
+// Generates and checks the fastlane-compatible metadata structure under
+// fastlane/metadata/ from docs/STORE-TEXTE.md.
 //
-// Einzige Quelle der Wahrheit ist docs/STORE-TEXTE.md (dort liest und
-// genehmigt LineFM Studios die Texte). Die Dateien unter fastlane/metadata/ sind
-// abgeleitet und werden nie von Hand bearbeitet. fastlane selbst ist nicht
-// installiert, die Struktur folgt nur dessen Dateinamen (supply fuer Google
-// Play, deliver fuer den App Store).
+// The single source of truth is docs/STORE-TEXTE.md (that is where
+// LineFM Studios reads and approves the texts). The files under fastlane/metadata/ are
+// derived and are never edited by hand. fastlane itself is not
+// installed, the structure only follows its file names (supply for Google
+// Play, deliver for the App Store).
 //
-// Aufruf (im Repo-Wurzelverzeichnis):
-//   dart tool/store_metadata.dart            Pruefen (Standard)
-//   dart tool/store_metadata.dart --check    wie oben
-//   dart tool/store_metadata.dart --write    Dateien neu erzeugen
+// Usage (in the repo root):
+//   dart tool/store_metadata.dart            check (default)
+//   dart tool/store_metadata.dart --check    same as above
+//   dart tool/store_metadata.dart --write    regenerate the files
 //
-// Pruefen heisst: Zeichenlimits eingehalten, Deutsch und Englisch vollstaendig,
-// jede Datei gleich dem Text aus STORE-TEXTE.md, keine unbekannten Dateien.
+// Checking means: character limits met, German and English complete,
+// every file equal to the text from STORE-TEXTE.md, no unknown files.
 //
-// Limits (Stand der Abfrage 21.11.2026):
-//   Google Play: Titel 30, Kurzbeschreibung 80, Beschreibung 4000 Zeichen
+// Limits (as queried on 2026-11-21):
+//   Google Play: title 30, short description 80, description 4000 characters
 //     (https://support.google.com/googleplay/android-developer/answer/9859152),
-//     Neuerungen 500 Zeichen je Sprache
+//     what's new 500 characters per language
 //     (https://support.google.com/googleplay/android-developer/answer/9859348).
-//   App Store: Name 30 und Untertitel 30 Zeichen
+//   App Store: name 30 and subtitle 30 characters
 //     (https://developer.apple.com/help/app-store-connect/reference/app-information/app-information),
-//     Beschreibung 4000 Zeichen, Schluesselwoerter 100 Bytes, Neuerungen 4000
-//     Zeichen
+//     description 4000 characters, keywords 100 bytes, what's new 4000
+//     characters
 //     (https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information).
 import 'dart:convert';
 import 'dart:io';
 
-/// Eine Datei, die fastlane erwartet, samt Limit.
+/// A file that fastlane expects, including its limit.
 class MetadataField {
   const MetadataField(
     this.file,
@@ -38,24 +38,24 @@ class MetadataField {
     this.required = true,
   });
 
-  /// Pfad relativ zum Sprachordner.
+  /// Path relative to the language folder.
   final String file;
 
-  /// Fettgedruckte Bezeichnungen in STORE-TEXTE.md (deutsch und englisch).
+  /// Bold labels in STORE-TEXTE.md (German and English).
   final Set<String> labels;
   final int? maxChars;
   final int? maxBytes;
   final bool required;
 }
 
-/// Abschnitt in STORE-TEXTE.md mit Zielordner.
+/// Section in STORE-TEXTE.md with target folder.
 class MetadataTarget {
   const MetadataTarget(this.heading, this.outDir, this.fields);
 
-  /// Text der `##`-Ueberschrift (Anfang genuegt).
+  /// Text of the `##` heading (the beginning is enough).
   final String heading;
 
-  /// Ordner unter fastlane/metadata/, `{locale}` wird ersetzt.
+  /// Folder under fastlane/metadata/, `{locale}` is replaced.
   final String outDir;
   final List<MetadataField> fields;
 }
@@ -114,8 +114,8 @@ const List<MetadataTarget> targets = <MetadataTarget>[
   ]),
 ];
 
-/// Liest STORE-TEXTE.md und liefert Pfad (relativ zu fastlane/metadata) ->
-/// Inhalt. Wirft [FormatException], wenn ein Abschnitt oder Feld fehlt.
+/// Reads STORE-TEXTE.md and returns path (relative to fastlane/metadata) ->
+/// content. Throws [FormatException] if a section or field is missing.
 Map<String, String> parseStoreTexts(String markdown) {
   final List<String> lines = const LineSplitter().convert(markdown);
   final Map<String, String> out = <String, String>{};
@@ -124,7 +124,7 @@ Map<String, String> parseStoreTexts(String markdown) {
       (String l) => l.startsWith('## ${target.heading}'),
     );
     if (start < 0) {
-      throw FormatException('Abschnitt "## ${target.heading}" fehlt');
+      throw FormatException('Section "## ${target.heading}" is missing');
     }
     int end = lines.length;
     for (int i = start + 1; i < lines.length; i++) {
@@ -163,7 +163,7 @@ Map<String, String> parseStoreTexts(String markdown) {
       } else if (line.trim().isEmpty) {
         continue;
       } else {
-        // Fliesstext zwischen den Feldern beendet ein laufendes Zitat nicht.
+        // Running text between the fields does not end an ongoing quote.
         continue;
       }
     }
@@ -173,7 +173,7 @@ Map<String, String> parseStoreTexts(String markdown) {
       final Map<String, String>? fields = found[loc.key];
       if (fields == null) {
         throw FormatException(
-          'Abschnitt "${target.heading}": Sprache "${loc.key}" fehlt',
+          'Section "${target.heading}": language "${loc.key}" is missing',
         );
       }
       for (final MetadataField f in target.fields) {
@@ -184,8 +184,8 @@ Map<String, String> parseStoreTexts(String markdown) {
         if (key == null) {
           if (f.required) {
             throw FormatException(
-              'Abschnitt "${target.heading}", ${loc.key}: Feld '
-              '"${f.labels.first}" fehlt',
+              'Section "${target.heading}", ${loc.key}: field '
+              '"${f.labels.first}" is missing',
             );
           }
           continue;
@@ -198,10 +198,10 @@ Map<String, String> parseStoreTexts(String markdown) {
   return out;
 }
 
-/// Zaehlt Unicode-Zeichen (Code Points), nicht UTF-16-Einheiten.
+/// Counts Unicode characters (code points), not UTF-16 units.
 int charCount(String s) => s.runes.length;
 
-/// Prueft Limits der abgeleiteten Dateien. Liefert Fehlermeldungen.
+/// Checks limits of the derived files. Returns error messages.
 List<String> checkLimits(Map<String, String> files) {
   final List<String> problems = <String>[];
   for (final MetadataTarget target in targets) {
@@ -211,37 +211,37 @@ List<String> checkLimits(Map<String, String> files) {
         final String path = '$dir/${f.file}';
         final String? raw = files[path];
         if (raw == null) {
-          if (f.required) problems.add('$path fehlt');
+          if (f.required) problems.add('$path is missing');
           continue;
         }
         final String text = raw.trim();
-        if (text.isEmpty) problems.add('$path ist leer');
+        if (text.isEmpty) problems.add('$path is empty');
         if (f.maxChars != null && charCount(text) > f.maxChars!) {
           problems.add(
-            '$path hat ${charCount(text)} Zeichen, erlaubt sind ${f.maxChars}',
+            '$path has ${charCount(text)} characters, allowed are ${f.maxChars}',
           );
         }
         if (f.maxBytes != null && utf8.encode(text).length > f.maxBytes!) {
           problems.add(
-            '$path hat ${utf8.encode(text).length} Bytes, erlaubt sind '
+            '$path has ${utf8.encode(text).length} bytes, allowed are '
             '${f.maxBytes}',
           );
         }
         if (f.file.endsWith('_url.txt') &&
             !RegExp(r'^https://\S+$').hasMatch(text)) {
-          problems.add('$path ist keine https-Adresse ohne Leerzeichen');
+          problems.add('$path is not an https address without spaces');
         }
         if (f.file == 'keywords.txt' &&
             (text.contains(', ') ||
                 text.endsWith(',') ||
                 text.contains(',,'))) {
           problems.add(
-            '$path: Schluesselwoerter mit Komma trennen, ohne Leerzeichen, '
-            'ohne Komma am Ende',
+            '$path: separate keywords with a comma, without spaces, '
+            'without a trailing comma',
           );
         }
         if (RegExp(r'\{\{.*?\}\}').hasMatch(text)) {
-          problems.add('$path enthaelt einen offenen Platzhalter');
+          problems.add('$path contains an open placeholder');
         }
       }
     }
@@ -249,8 +249,8 @@ List<String> checkLimits(Map<String, String> files) {
   return problems;
 }
 
-/// Prueft, ob die in STORE-TEXTE.md genannten Zeichenzahlen stimmen, etwa
-/// "(12 von 30 Zeichen)" oder "(1158 of 4000 characters)".
+/// Checks whether the character counts stated in STORE-TEXTE.md are correct, e.g.
+/// "(12 von 30 Zeichen)" or "(1158 of 4000 characters)".
 List<String> checkStatedCounts(String markdown, Map<String, String> files) {
   final List<String> problems = <String>[];
   final List<String> lines = const LineSplitter().convert(markdown);
@@ -275,8 +275,8 @@ List<String> checkStatedCounts(String markdown, Map<String, String> files) {
         final int actual = charCount(text.trim());
         if (actual != int.parse(m.group(2)!)) {
           problems.add(
-            'STORE-TEXTE.md ($lang, ${m.group(1)}): nennt ${m.group(2)} '
-            'Zeichen, gezaehlt $actual',
+            'STORE-TEXTE.md ($lang, ${m.group(1)}): states ${m.group(2)} '
+            'characters, counted $actual',
           );
         }
       }
@@ -285,7 +285,7 @@ List<String> checkStatedCounts(String markdown, Map<String, String> files) {
   return problems;
 }
 
-/// Liest alle Textdateien unter [metadataDir] (Pfad relativ, mit `/`).
+/// Reads all text files under [metadataDir] (relative path, with `/`).
 Map<String, String> readMetadataDir(Directory metadataDir) {
   final Map<String, String> out = <String, String>{};
   if (!metadataDir.existsSync()) return out;
@@ -300,7 +300,7 @@ Map<String, String> readMetadataDir(Directory metadataDir) {
   return out;
 }
 
-/// Vergleicht Soll (aus STORE-TEXTE.md) und Ist (auf der Platte).
+/// Compares expected (from STORE-TEXTE.md) and actual (on disk).
 List<String> checkInSync(
   Map<String, String> expected,
   Map<String, String> actual,
@@ -309,22 +309,20 @@ List<String> checkInSync(
   for (final MapEntry<String, String> e in expected.entries) {
     final String? have = actual[e.key];
     if (have == null) {
-      problems.add('fastlane/metadata/${e.key} fehlt');
+      problems.add('fastlane/metadata/${e.key} is missing');
     } else if (have != e.value) {
-      problems.add('fastlane/metadata/${e.key} weicht von STORE-TEXTE.md ab');
+      problems.add('fastlane/metadata/${e.key} differs from STORE-TEXTE.md');
     }
   }
   for (final String k in actual.keys) {
     if (!expected.containsKey(k)) {
-      problems.add(
-        'fastlane/metadata/$k ist unbekannt (nicht in STORE-TEXTE.md)',
-      );
+      problems.add('fastlane/metadata/$k is unknown (not in STORE-TEXTE.md)');
     }
   }
   return problems;
 }
 
-/// Gesamtpruefung fuer das Repo unter [root].
+/// Overall check for the repo under [root].
 List<String> checkRepo(String root) {
   final String md = File('$root/docs/STORE-TEXTE.md').readAsStringSync();
   final Map<String, String> expected;
@@ -364,12 +362,12 @@ void main(List<String> args) {
         ..createSync(recursive: true)
         ..writeAsStringSync(e.value);
     }
-    stdout.writeln('${expected.length} Dateien nach ${dir.path} geschrieben.');
+    stdout.writeln('${expected.length} files written to ${dir.path}.');
     return;
   }
   final List<String> problems = checkRepo(root);
   if (problems.isEmpty) {
-    stdout.writeln('Store-Metadaten in Ordnung.');
+    stdout.writeln('Store metadata OK.');
     return;
   }
   problems.forEach(stderr.writeln);

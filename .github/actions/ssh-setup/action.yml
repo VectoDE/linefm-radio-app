@@ -1,10 +1,10 @@
-name: SSH vorbereiten
+name: Prepare SSH
 description: >
-  Legt Schluessel und known_hosts fuer rsync/ssh an. Der Host-Schluessel kommt aus
-  einem Secret (known_hosts) und wird strikt geprueft: StrictHostKeyChecking=yes,
-  kein ssh-keyscan, kein "no". Host und Benutzer werden auf harmlose Zeichen geprueft.
-  Ausgabe: ssh-Kommando (fuer rsync -e) und Ziel user@host. Aufraeumen: Schritt
-  "SSH aufraeumen" im Aufrufer (if: always()) oder die Dateien liegen nur in RUNNER_TEMP.
+  Creates the key and known_hosts for rsync/ssh. The host key comes from a secret
+  (known_hosts) and is checked strictly: StrictHostKeyChecking=yes, no ssh-keyscan,
+  no "no". Host and user are checked for harmless characters only.
+  Output: the ssh command (for rsync -e) and the target user@host. Cleanup: a
+  cleanup step in the caller (if: always()), or the files only live in RUNNER_TEMP.
 
 inputs:
   host:
@@ -12,10 +12,10 @@ inputs:
   user:
     required: true
   key:
-    description: Privater Schluessel (OpenSSH, ohne Passphrase)
+    description: Private key (OpenSSH, no passphrase)
     required: true
   known-hosts:
-    description: Zeile(n) aus known_hosts fuer den Host (ssh-keyscan-Ausgabe, einmalig geprueft)
+    description: Line(s) from known_hosts for the host (ssh-keyscan output, verified once)
     required: true
   port:
     required: false
@@ -23,7 +23,7 @@ inputs:
 
 outputs:
   ssh-command:
-    description: Fertiges ssh-Kommando fuer rsync -e
+    description: Ready-made ssh command for rsync -e
     value: ${{ steps.setup.outputs.ssh_command }}
   target:
     description: user@host
@@ -32,7 +32,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Schluessel und known_hosts schreiben
+    - name: Write key and known_hosts
       id: setup
       shell: bash
       env:
@@ -43,9 +43,9 @@ runs:
         SSH_PORT: ${{ inputs.port }}
       run: |
         set -euo pipefail
-        if ! [[ "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]; then echo "::error::Host enthaelt unerlaubte Zeichen"; exit 1; fi
-        if ! [[ "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]; then echo "::error::Benutzer enthaelt unerlaubte Zeichen"; exit 1; fi
-        if ! [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]; then echo "::error::Port ungueltig"; exit 1; fi
+        if ! [[ "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]; then echo "::error::Host contains disallowed characters"; exit 1; fi
+        if ! [[ "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]; then echo "::error::User contains disallowed characters"; exit 1; fi
+        if ! [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]; then echo "::error::Invalid port"; exit 1; fi
         dir="$RUNNER_TEMP/ssh"
         umask 077
         mkdir -p "$dir"

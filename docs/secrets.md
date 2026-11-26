@@ -139,7 +139,7 @@ Für die Store-Prüfung der Rechtstexte gilt: Ist Telemetrie aktiv (`UMAMI_*`, `
 
 ## Sicherheits-Scanner (optional)
 
-Beide Workflows laufen ohne Secret grün durch und melden in der Zusammenfassung "übersprungen, fehlt: …". In Änderungsvorschläge aus Forks wird kein Secret verwendet. Einrichtung Schritt für Schritt: [EINRICHTUNG.md](EINRICHTUNG.md), Schritte 12.4 und 12.5.
+Beide Workflows laufen ohne Secret grün durch und melden in der Zusammenfassung "skipped, missing: …". In Änderungsvorschläge aus Forks wird kein Secret verwendet. Einrichtung Schritt für Schritt: [EINRICHTUNG.md](EINRICHTUNG.md), Schritte 12.4 und 12.5.
 
 | Name | Art | Wert / Herkunft | Wer |
 |---|---|---|---|

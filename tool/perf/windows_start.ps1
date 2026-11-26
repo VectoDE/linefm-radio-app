@@ -1,31 +1,31 @@
 <#
-  Windows-Messung: Start, Speicher, CPU, Ton-Start, Paketgroesse.
+  Windows measurement: startup, memory, CPU, audio start, package size.
 
-  Voraussetzung: Release-Build mit Messpunkten
+  Prerequisite: release build with measurement points
     flutter build windows --release --dart-define-from-file=config/app.json `
       --dart-define=LINEFM_PERF_MARKS=true
-  Aufruf:
+  Usage:
     pwsh tool/perf/windows_start.ps1 -Exe build/windows/x64/runner/Release/linefm_radio.exe `
       -OutDir tool/perf/out -Runs 5 [-Audio]
 
-  Messung je Lauf (nach einem nicht gewerteten Aufwaermlauf):
-    - Prozessstart (Erstellzeit laut Betriebssystem) bis Fenster existiert
-      und bis Fenster sichtbar. Das Fenster wird erst mit dem ersten
-      Flutter-Bild gezeigt (windows/runner/flutter_window.cpp,
-      SetNextFrameCallback -> Show), "sichtbar" ist also "erstes Bild".
-    - Dart-Messpunkte aus LINEFM_PERF_FILE (lib/core/perf/perf_marks.dart):
+  Measurement per run (after one warm-up run that is not counted):
+    - Process start (creation time per the operating system) until the window
+      exists and until the window is visible. The window is only shown with
+      the first Flutter frame (windows/runner/flutter_window.cpp,
+      SetNextFrameCallback -> Show), so "visible" means "first frame".
+    - Dart measurement points from LINEFM_PERF_FILE (lib/core/perf/perf_marks.dart):
       main, audio-ready, desktop-ready, prefs-ready, telemetry-ready,
-      run-app, first-frame (alle relativ zum Prozessstart).
-    - 30 s nach Sichtbarkeit: Working Set, Private Bytes, CPU ueber 10 s
-      (Prozent EINES Kerns). Autoplay ist dafuer per Einstellung aus,
-      die App spielt also nichts ("Leerlauf").
-    - Mit -Audio: zweiter Programmstart mit linefm://play?station=<slug>
-      (Single-Instance-Weiterleitung, wie ein Klick aus Startmenue/Link).
-      Zeit von play-request bis player-connecting/-playing (Dart-Zustand,
-      auf dem Runner ohne Soundkarte; die Anzeige "spielt" kommt fruehestens
-      1 s nach dem Start, minConnectDuration in audio_handler.dart).
-      Danach CPU/Speicher beim Abspielen und ein Senderwechsel.
-  Ergebnis: <OutDir>/windows-perf.json
+      run-app, first-frame (all relative to process start).
+    - 30 s after visibility: working set, private bytes, CPU over 10 s
+      (percent of ONE core). Autoplay is turned off in the settings for this,
+      so the app plays nothing ("idle").
+    - With -Audio: second program start with linefm://play?station=<slug>
+      (single-instance forwarding, like a click from the Start menu/link).
+      Time from play-request to player-connecting/-playing (Dart state,
+      on the runner without a sound card; the "playing" display appears at the
+      earliest 1 s after the start, minConnectDuration in audio_handler.dart).
+      Afterwards CPU/memory during playback and a station switch.
+  Result: <OutDir>/windows-perf.json
 #>
 param(
   [Parameter(Mandatory = $true)][string]$Exe,
@@ -49,7 +49,7 @@ public static class LfWin {
   [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
   [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
   [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetClassName(IntPtr h, StringBuilder s, int n);
-  // 0 = kein Fenster, 1 = Fenster da (unsichtbar), 2 = sichtbar
+  // 0 = no window, 1 = window exists (invisible), 2 = visible
   public static int State(int pid) {
     int state = 0;
     EnumWindows((h, l) => {
@@ -102,8 +102,8 @@ function Cpu-Sample([Diagnostics.Process]$p, [int]$seconds) {
   return [math]::Round(($c2 - $c1).TotalMilliseconds / $w.ElapsedMilliseconds * 100, 2)
 }
 
-# Einstellungen vorab: Speicher-Hinweis bestaetigt, Autoplay aus (Leerlauf messbar).
-# Pfad von shared_preferences unter Windows: %APPDATA%\<CompanyName>\<ProductName>
+# Settings up front: storage notice confirmed, autoplay off (idle measurable).
+# Path of shared_preferences on Windows: %APPDATA%\<CompanyName>\<ProductName>
 # (windows/runner/Runner.rc: LineFM Studios / LINEFM Radio; the app migrates the old de.linefm folder).
 $prefsDir = Join-Path $env:APPDATA 'LineFM Studios\LINEFM Radio'
 New-Item -ItemType Directory -Force -Path $prefsDir | Out-Null
@@ -188,12 +188,12 @@ for ($i = 0; $i -lt $total; $i++) {
     }
   }
   $results += $r
-  Write-Host ("Lauf {0}{1}: Fenster sichtbar {2} ms, erstes Bild (Dart) {3} ms" -f $i, $(if ($i -eq 0) { ' (Aufwaermen)' } else { '' }), $r.windowVisibleMs, $r.marksMs['first-frame'])
+  Write-Host ("Run {0}{1}: window visible {2} ms, first frame (Dart) {3} ms" -f $i, $(if ($i -eq 0) { ' (warm-up)' } else { '' }), $r.windowVisibleMs, $r.marksMs['first-frame'])
   if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }
 }
 Remove-Item Env:\LINEFM_PERF_FILE -ErrorAction SilentlyContinue
 
-# Paketgroesse: Release-Ordner und ZIP (wie build.yml).
+# Package size: release folder and ZIP (as in build.yml).
 $rel = Split-Path $Exe
 $files = Get-ChildItem $rel -Recurse -File
 $zip = Join-Path $env:RUNNER_TEMP 'perf-release.zip'

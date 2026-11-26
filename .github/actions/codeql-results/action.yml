@@ -1,20 +1,20 @@
-name: CodeQL-Ergebnisse auswerten
+name: Evaluate CodeQL results
 description: >
-  Zaehlt die Befunde in sarif-results/, schreibt sie als Annotationen und in die
-  Job-Zusammenfassung, laedt die SARIF-Dateien als Artefakt hoch und laesst den Job
-  scheitern, wenn Befunde vorliegen und kein Code Scanning verfuegbar ist (upload=never).
+  Counts the findings in sarif-results/, writes them as annotations and into the
+  job summary, uploads the SARIF files as an artifact and fails the job when
+  findings exist and Code Scanning is not available (upload=never).
 
 inputs:
   language:
     required: true
   upload:
-    description: Wert, der an codeql-action/analyze uebergeben wurde (always oder never)
+    description: Value that was passed to codeql-action/analyze (always or never)
     required: true
 
 runs:
   using: composite
   steps:
-    - name: SARIF als Artefakt
+    - name: SARIF as artifact
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: codeql-${{ inputs.language }}
@@ -22,7 +22,7 @@ runs:
         if-no-files-found: ignore
         retention-days: 30
 
-    - name: Befunde auswerten
+    - name: Evaluate findings
       shell: bash
       env:
         LANGUAGE: ${{ inputs.language }}
@@ -34,10 +34,10 @@ runs:
           [ -f "$f" ] || continue
           n=$(jq '[.runs[].results[]? | select((.suppressions // []) | length == 0)] | length' "$f")
           count=$((count + n))
-          jq -r '.runs[].results[]? | select((.suppressions // []) | length == 0) | "::warning file=\(.locations[0].physicalLocation.artifactLocation.uri // "unbekannt"),line=\(.locations[0].physicalLocation.region.startLine // 1)::\(.ruleId): \(.message.text | split("\n")[0])"' "$f"
+          jq -r '.runs[].results[]? | select((.suppressions // []) | length == 0) | "::warning file=\(.locations[0].physicalLocation.artifactLocation.uri // "unknown"),line=\(.locations[0].physicalLocation.region.startLine // 1)::\(.ruleId): \(.message.text | split("\n")[0])"' "$f"
         done
-        echo "### CodeQL $LANGUAGE: $count Befund(e), Upload an Code Scanning: $UPLOAD" >> "$GITHUB_STEP_SUMMARY"
+        echo "### CodeQL $LANGUAGE: $count finding(s), upload to Code Scanning: $UPLOAD" >> "$GITHUB_STEP_SUMMARY"
         if [ "$UPLOAD" = "never" ] && [ "$count" -gt 0 ]; then
-          echo "::error::CodeQL meldet $count Befund(e) fuer $LANGUAGE (Artefakt codeql-$LANGUAGE)"
+          echo "::error::CodeQL reports $count finding(s) for $LANGUAGE (artifact codeql-$LANGUAGE)"
           exit 1
         fi

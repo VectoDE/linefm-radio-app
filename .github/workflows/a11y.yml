@@ -1,25 +1,25 @@
-name: Barrierefreiheit
+name: Accessibility
 
-# axe-core-Pruefung der Web-Version (A4). Baut wie ci.yml (web-smoke), startet
-# tool/a11y/run.mjs (Playwright + @axe-core/playwright, Versionen in
-# tool/a11y/package-lock.json) und prueft Sender, Player, Verlauf, Favoriten,
-# Einstellungen, Wecker, Ueber, die Dialoge "Speicher loeschen" und Uhrzeit,
-# die Sheets "Sleeptimer" und "Favoriten exportieren" sowie Impressum und
-# Datenschutz (de/en) bei 390 und 1280 px, hell und dunkel (58 Laeufe).
-# Gate: kein Verstoss gleich welcher Stufe (Baseline 0), jede Ansicht
-# erreichbar. Von axe nicht entscheidbare Pruefungen ("incomplete") stehen in
-# Bericht und Zusammenfassung, brechen aber nicht ab.
-# Laufzeit lokal (19.11.2026, Windows, 8 Kerne): Web-Build 95 s, axe 142 s;
-# auf dem 4-Kern-Runner grob das Doppelte plus Installation; dazu der zweite
-# Web-Build mit Test-IDs fuer die Google-Netzpruefung (P31), daher 40 Minuten.
-# Was axe nicht findet (Screenreader-Ablauf, Tastaturfallen, Verstaendlichkeit),
-# bleibt Handarbeit, siehe docs/BARRIEREFREIHEIT.md.
+# axe-core check of the web version (A4). Builds like ci.yml (web-smoke), runs
+# tool/a11y/run.mjs (Playwright + @axe-core/playwright, versions in
+# tool/a11y/package-lock.json) and checks stations, player, history, favorites,
+# settings, alarm, about, the dialogs "Clear storage" and time, the sheets
+# "Sleep timer" and "Export favorites", plus imprint and privacy policy (de/en)
+# at 390 and 1280 px, light and dark (58 runs).
+# Gate: no violation of any impact level (baseline 0), every view
+# reachable. Checks axe cannot decide ("incomplete") appear in the report and
+# summary but do not fail the run.
+# Local runtime (2026-11-19, Windows, 8 cores): web build 95 s, axe 142 s;
+# on the 4-core runner roughly double plus installation; plus the second
+# web build with test IDs for the Google network check (P31), hence 40 minutes.
+# What axe does not find (screen reader flow, keyboard traps, comprehensibility)
+# remains manual work, see docs/BARRIEREFREIHEIT.md.
 
 on:
   pull_request:
   push:
     branches: [main]
-  # Woechentlich, damit neue Fehler auch ohne Commit auffallen.
+  # Weekly, so new failures show up even without a commit.
   schedule:
     - cron: "29 4 * * 5"
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -48,54 +48,54 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write config
         uses: ./.github/actions/write-config
         with:
           app-env: dev
 
-      - name: Web bauen
+      - name: Build web
         run: |
           set -euo pipefail
           mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
           flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file=config/app.json --base-href / "${web_defines[@]}"
 
-      - name: Ersatzschriften und Postbuild
+      - name: Fallback fonts and postbuild
         run: |
-          # Ausserhalb des Pakets starten (nur dart:-Importe), wie in ci.yml.
+          # Run outside the package (dart: imports only), as in ci.yml.
           cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
           dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
           dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
 
-      - name: Node einrichten
+      - name: Set up Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: tool/a11y/package-lock.json
 
-      - name: Pruefwerkzeug installieren
+      - name: Install check tooling
         working-directory: tool/a11y
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
           npx --no-install playwright install --with-deps chromium
 
-      - name: axe-Pruefung
+      - name: axe check
         working-directory: tool/a11y
         timeout-minutes: 12
         run: node run.mjs --web ../../build/web --out out
 
-      # Reichweitenmessung mit Google (P31): ohne IDs keine Anfrage an Google,
-      # mit Test-IDs erst nach Zustimmung. Anfragen an Google bricht der Test
-      # im Browser ab, es geht nichts ins Netz.
-      - name: Google-Netzpruefung ohne IDs
+      # Reach measurement with Google (P31): without IDs no request goes to Google,
+      # with test IDs only after consent. The test aborts requests to Google
+      # in the browser, nothing leaves for the network.
+      - name: Google network check without IDs
         working-directory: tool/a11y
         timeout-minutes: 5
         run: node analytics_net.mjs --web ../../build/web --mode none
 
-      - name: Web mit Test-IDs bauen (GTM-TEST000, G-TEST000000)
+      - name: Build web with test IDs (GTM-TEST000, G-TEST000000)
         run: |
           set -euo pipefail
           mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
@@ -105,29 +105,29 @@ jobs:
           dart run "$RUNNER_TEMP/web_postbuild.dart" build/web_ga --config "$RUNNER_TEMP/app_ga.json"             --hosting-out build/hosting_ga
           grep -q "https://www.googletagmanager.com" build/hosting_ga/nginx/snippets/linefm-headers.conf
           if grep -q "googletagmanager" build/hosting/nginx/snippets/linefm-headers.conf; then
-            echo "::error::CSP ohne IDs enthaelt Google-Quellen"
+            echo "::error::CSP without IDs contains Google sources"
             exit 1
           fi
 
-      - name: Google-Netzpruefung mit Test-IDs
+      - name: Google network check with test IDs
         working-directory: tool/a11y
         timeout-minutes: 5
         run: node analytics_net.mjs --web ../../build/web_ga --mode ids
 
-      - name: Zusammenfassung
+      - name: Summary
         if: ${{ always() }}
         working-directory: tool/a11y
         run: |
           if [ -f out/axe-report.json ]; then
-            jq -r '"**axe:** \(.summary.runs) Laeufe, \(.summary.violations) Verstoesse, \(.summary.unreachable) nicht erreichbar, \(.summary.incomplete) unentschieden (\(.summary.incompleteRules | join(", "))), \(.durationMs / 1000 | floor) s, Commit `\(.commit)`"' out/axe-report.json >> "$GITHUB_STEP_SUMMARY"
+            jq -r '"**axe:** \(.summary.runs) runs, \(.summary.violations) violations, \(.summary.unreachable) unreachable, \(.summary.incomplete) undecided (\(.summary.incompleteRules | join(", "))), \(.durationMs / 1000 | floor) s, Commit `\(.commit)`"' out/axe-report.json >> "$GITHUB_STEP_SUMMARY"
             jq -r '.results[] | select(.error or ((.violations // []) | length > 0)) | "- \(.theme) \(.layout) \(.view): \(.error // ([.violations[] | "\(.id) (\(.impact))"] | join(", ")))"' out/axe-report.json >> "$GITHUB_STEP_SUMMARY"
-            printf '\nUnentschieden je Regel (von Hand pruefen):\n' >> "$GITHUB_STEP_SUMMARY"
-            jq -r '[.results[] | (.incomplete // [])[] | .id] | group_by(.) | map("- \(.[0]): \(length) Ansichten") | .[]' out/axe-report.json >> "$GITHUB_STEP_SUMMARY"
+            printf '\nUndecided per rule (check manually):\n' >> "$GITHUB_STEP_SUMMARY"
+            jq -r '[.results[] | (.incomplete // [])[] | .id] | group_by(.) | map("- \(.[0]): \(length) views") | .[]' out/axe-report.json >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "**axe:** kein Bericht erzeugt" >> "$GITHUB_STEP_SUMMARY"
+            echo "**axe:** no report generated" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Bericht hochladen
+      - name: Upload report
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

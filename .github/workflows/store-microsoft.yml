@@ -1,24 +1,24 @@
 name: Store Microsoft
 
-# Baut ein MSIX mit der Store-Identitaet und reicht es ueber die Microsoft Store Developer CLI
-# (msstore) im Partner Center ein. Das MSIX aus dem Release (build.yml) traegt die Sideload-
-# Identitaet und taugt nicht fuer den Store, deshalb baut dieser Workflow es neu.
-# Ausloeser: release.yml (nur Endversionen) oder manuell mit Tag.
-# Ohne die Secrets/Variablen unten wird sauber uebersprungen. Ungetestet (kein Partner-Center-Konto).
+# Builds an MSIX with the Store identity and submits it to Partner Center via the Microsoft Store
+# Developer CLI (msstore). The MSIX from the release (build.yml) carries the sideload
+# identity and is not suitable for the Store, so this workflow rebuilds it.
+# Trigger: release.yml (final versions only) or manually with a tag.
+# Without the secrets/variables below it is skipped cleanly. Untested (no Partner Center account).
 #
 # Secrets:    MS_STORE_TENANT_ID, MS_STORE_SELLER_ID, MS_STORE_CLIENT_ID, MS_STORE_CLIENT_SECRET
-# Variablen:  MS_STORE_PRODUCT_ID, MS_STORE_IDENTITY_NAME, MS_STORE_PUBLISHER,
-#             MS_STORE_PUBLISHER_DISPLAY_NAME (Werte aus Partner Center > Produktidentitaet)
+# Variables:  MS_STORE_PRODUCT_ID, MS_STORE_IDENTITY_NAME, MS_STORE_PUBLISHER,
+#             MS_STORE_PUBLISHER_DISPLAY_NAME (values from Partner Center > Product identity)
 
 on:
   workflow_call:
     inputs:
       tag:
-        description: Versions-Tag (vX.Y.Z)
+        description: Version tag (vX.Y.Z)
         type: string
         required: true
       commit:
-        description: "true: Einreichung abschicken, false: als Entwurf im Partner Center lassen"
+        description: "true: submit, false: leave as a draft in Partner Center"
         type: boolean
         required: false
         default: false
@@ -36,11 +36,11 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Versions-Tag eines vorhandenen Releases (Form vX.Y.Z)
+        description: Version tag of an existing release (form vX.Y.Z)
         type: string
         required: true
       commit:
-        description: Einreichung abschicken (aus = Entwurf im Partner Center)
+        description: Submit (off = draft in Partner Center)
         type: boolean
         default: false
 
@@ -52,7 +52,7 @@ concurrency:
 
 jobs:
   gate:
-    name: Secret-Gate
+    name: Secret gate
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -66,9 +66,9 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
-      # S3-04: auch bei manuellem Start (workflow_dispatch) muss der Tag zu pubspec.yaml
-      # passen, wie im Job "version" von release.yml.
-      - name: Tag und pubspec-Version vergleichen
+      # S3-04: even on a manual start (workflow_dispatch) the tag must match pubspec.yaml,
+      # as in the "version" job of release.yml.
+      - name: Compare tag and pubspec version
         uses: ./.github/actions/tag-version
         with:
           tag: ${{ inputs.tag }}
@@ -77,7 +77,7 @@ jobs:
         id: gate
         uses: ./.github/actions/secret-gate
         with:
-          label: Microsoft-Store-Einreichung (${{ inputs.tag }})
+          label: Microsoft Store submission (${{ inputs.tag }})
           checks: |
             MS_STORE_TENANT_ID=${{ secrets.MS_STORE_TENANT_ID != '' }}
             MS_STORE_SELLER_ID=${{ secrets.MS_STORE_SELLER_ID != '' }}
@@ -89,7 +89,7 @@ jobs:
             MS_STORE_PUBLISHER_DISPLAY_NAME=${{ vars.MS_STORE_PUBLISHER_DISPLAY_NAME != '' }}
 
   submit:
-    name: Microsoft Store einreichen
+    name: Submit to Microsoft Store
     needs: gate
     if: needs.gate.outputs.ready == 'true'
     runs-on: windows-latest
@@ -104,7 +104,7 @@ jobs:
       PUBLISHER: ${{ vars.MS_STORE_PUBLISHER }}
       PUBLISHER_DISPLAY_NAME: ${{ vars.MS_STORE_PUBLISHER_DISPLAY_NAME }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -115,7 +115,7 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
-      - name: Version bestimmen
+      - name: Determine version
         id: version
         shell: bash
         env:
@@ -124,11 +124,11 @@ jobs:
         run: |
           set -euo pipefail
           if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
-            echo "::error::Ungueltiger Tag: $TAG"
+            echo "::error::Invalid tag: $TAG"
             exit 1
           fi
           if ! [[ "$PRODUCT_ID" =~ ^[A-Za-z0-9]+$ ]]; then
-            echo "::error::MS_STORE_PRODUCT_ID enthaelt unerlaubte Zeichen"
+            echo "::error::MS_STORE_PRODUCT_ID contains invalid characters"
             exit 1
           fi
           label="${TAG#v}"
@@ -139,23 +139,23 @@ jobs:
             echo "build_number=$(( RUN_NUMBER + ${BUILD_NUMBER_OFFSET:-100} ))"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Rust-Toolchain (fuer smtc_windows)
+      - name: Rust toolchain (for smtc_windows)
         shell: bash
         run: |
           set -euo pipefail
           rustup toolchain install stable --profile minimal --no-self-update
           rustup default stable
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write config
         uses: ./.github/actions/write-config
         with:
           app-env: prod
           app-version: ${{ steps.version.outputs.label }}
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
-          # Store-Upload: immer strikt, auch bei manuellem Lauf mit Vorabversion (N7).
+          # Store upload: always strict, even on a manual run with a pre-release (N7).
           legal-strict: true
           web-base-url: ${{ vars.WEB_BASE_URL }}
           features-json: ${{ vars.FEATURES_JSON }}
@@ -170,14 +170,14 @@ jobs:
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
 
-      - name: Windows bauen
+      - name: Build Windows
         shell: bash
         env:
           BUILD_NAME: ${{ steps.version.outputs.build_name }}
           BUILD_NUMBER: ${{ steps.version.outputs.build_number }}
         run: flutter build windows --release --dart-define-from-file=config/app.json --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
-      - name: Store-MSIX erstellen (ohne eigene Signatur, der Store signiert)
+      - name: Create Store MSIX (no own signature, the Store signs)
         id: msix
         shell: pwsh
         env:
@@ -191,15 +191,15 @@ jobs:
             --identity-name $env:IDENTITY_NAME --publisher $env:PUBLISHER `
             --publisher-display-name $env:PUBLISHER_DISPLAY_NAME `
             --version "$env:BUILD_NAME.0" --output-path dist --output-name $name
-          if ($LASTEXITCODE -ne 0) { throw 'msix:create fehlgeschlagen' }
+          if ($LASTEXITCODE -ne 0) { throw 'msix:create failed' }
           $file = Join-Path (Resolve-Path dist).Path "$name.msix"
-          if (-not (Test-Path $file)) { throw "MSIX nicht gefunden: $file" }
+          if (-not (Test-Path $file)) { throw "MSIX not found: $file" }
           "file=$file" >> $env:GITHUB_OUTPUT
 
-      - name: msstore-CLI installieren
+      - name: Install msstore CLI
         uses: microsoft/setup-msstore-cli@cc9910a8d59f2eb55cbb83df0a3800cf3b5300e0 # v1.4
 
-      - name: msstore konfigurieren
+      - name: Configure msstore
         shell: pwsh
         env:
           MS_TENANT_ID: ${{ secrets.MS_STORE_TENANT_ID }}
@@ -210,9 +210,9 @@ jobs:
           $ErrorActionPreference = 'Stop'
           msstore settings --enableTelemetry false
           msstore reconfigure --tenantId $env:MS_TENANT_ID --sellerId $env:MS_SELLER_ID --clientId $env:MS_CLIENT_ID --clientSecret $env:MS_CLIENT_SECRET
-          if ($LASTEXITCODE -ne 0) { throw 'msstore reconfigure fehlgeschlagen' }
+          if ($LASTEXITCODE -ne 0) { throw 'msstore reconfigure failed' }
 
-      - name: Einreichen
+      - name: Submit
         shell: pwsh
         env:
           MSIX_FILE: ${{ steps.msix.outputs.file }}
@@ -221,13 +221,13 @@ jobs:
           $publishArgs = @('publish', (Split-Path $env:MSIX_FILE), '--inputFile', $env:MSIX_FILE, '--appId', $env:PRODUCT_ID)
           if ($env:COMMIT -ne 'true') { $publishArgs += '--noCommit' }
           msstore @publishArgs
-          if ($LASTEXITCODE -ne 0) { throw 'msstore publish fehlgeschlagen' }
+          if ($LASTEXITCODE -ne 0) { throw 'msstore publish failed' }
           "### Microsoft Store" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-          "- Version: $env:TAG, Produkt: $env:PRODUCT_ID" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          "- Version: $env:TAG, product: $env:PRODUCT_ID" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           if ($env:COMMIT -ne 'true') {
-            "- Einreichung liegt als Entwurf im Partner Center. Dort pruefen und abschicken (oder den Workflow mit commit=true starten)." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            "- Submission is a draft in Partner Center. Review and submit it there (or start the workflow with commit=true)." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           } else {
-            "- Einreichung abgeschickt, Zertifizierung laeuft im Partner Center." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            "- Submission sent, certification is running in Partner Center." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
           }
 
   # Zero-warning rule: any warning or error in a job log or a check-run

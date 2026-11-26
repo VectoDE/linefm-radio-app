@@ -1,31 +1,31 @@
-name: Secret-Gate
+name: Secret gate
 description: >
-  Wertet vorab berechnete Verfuegbarkeits-Flags aus (Secrets lassen sich in
-  Job-if-Ausdruecken nicht direkt pruefen). Der aufrufende Job uebergibt je Zeile
-  NAME=true|false (Ausdruck "secrets.NAME != leer" im aufrufenden Workflow ausgewertet).
-  Ergebnis: Output "ready" (alle vorhanden) und eine Zeile pro fehlendem Secret in
-  der Job-Zusammenfassung. Werte werden nie ausgegeben, nur Namen.
+  Evaluates precomputed availability flags (secrets cannot be checked directly in
+  job-level if expressions). The calling job passes one NAME=true|false per line
+  (the expression "secrets.NAME != empty" is evaluated in the calling workflow).
+  Result: the output "ready" (all present) and one line per missing secret in the
+  job summary. Values are never printed, only names.
 
 inputs:
   label:
-    description: Name des abgesicherten Schritts (fuer die Zusammenfassung)
+    description: Name of the guarded step (for the summary)
     required: true
   checks:
-    description: Mehrzeilig, je Zeile NAME=true oder NAME=false
+    description: Multi-line, one NAME=true or NAME=false per line
     required: true
 
 outputs:
   ready:
-    description: "'true', wenn alle genannten Secrets/Variablen gesetzt sind"
+    description: "'true' if all listed secrets/variables are set"
     value: ${{ steps.eval.outputs.ready }}
   missing:
-    description: Kommagetrennte Namen der fehlenden Secrets/Variablen
+    description: Comma-separated names of the missing secrets/variables
     value: ${{ steps.eval.outputs.missing }}
 
 runs:
   using: composite
   steps:
-    - name: Secrets pruefen
+    - name: Check secrets
       id: eval
       shell: bash
       env:
@@ -47,11 +47,11 @@ runs:
         if [ "${#missing[@]}" -eq 0 ]; then
           echo "ready=true" >> "$GITHUB_OUTPUT"
           echo "missing=" >> "$GITHUB_OUTPUT"
-          echo "- $GATE_LABEL: aktiv" >> "$GITHUB_STEP_SUMMARY"
+          echo "- $GATE_LABEL: active" >> "$GITHUB_STEP_SUMMARY"
         else
           joined="$(IFS=, ; echo "${missing[*]}")"
           echo "ready=false" >> "$GITHUB_OUTPUT"
           echo "missing=$joined" >> "$GITHUB_OUTPUT"
-          echo "- $GATE_LABEL: übersprungen, fehlt: ${joined//,/, }" >> "$GITHUB_STEP_SUMMARY"
-          echo "::notice title=$GATE_LABEL übersprungen::fehlt: ${joined//,/, }"
+          echo "- $GATE_LABEL: skipped, missing: ${joined//,/, }" >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=$GATE_LABEL skipped::missing: ${joined//,/, }"
         fi

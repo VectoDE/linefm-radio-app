@@ -1,19 +1,20 @@
 name: Semgrep
 
-# Semgrep Community Edition (CE) ohne Konto und ohne Token, als Ergaenzung zu
-# CodeQL. Dart deckt Semgrep nicht ab (kein Ruleset in der Registry); dafuer
-# flutter analyze in ci.yml. Gezielt geprueft werden Kotlin (android/), Swift
-# (ios/, macos/), JavaScript (web/, tool/a11y), Python (tool/), Bash (tool/*.sh),
-# Dockerfile und Compose (deploy/) sowie die GitHub-Actions-Workflows.
-# - Offizielles Image semgrep/semgrep, per Digest gepinnt (Index-Digest von
-#   Docker Hub). Update: neuen Versions-Tag mindestens 7 Tage alt waehlen, Digest
-#   ueber https://hub.docker.com/v2/repositories/semgrep/semgrep/tags/<version>
-#   (Feld "digest") holen und unten eintragen.
-# - --metrics=off: keine Nutzungsdaten an Semgrep.
-# - CE analysiert nur innerhalb einer Funktion (keine Cross-File-Analyse, die
-#   gibt es nur im kostenpflichtigen Semgrep Code).
-# SARIF geht an Code Scanning (nicht bei Änderungsvorschlägen aus Forks). Jeder Fund laesst den
-# Job scheitern; begruendete Ausnahmen per "nosemgrep: <regel-id>" mit Kommentar.
+# Semgrep Community Edition (CE) without an account and without a token, as a
+# complement to CodeQL. Semgrep does not cover Dart (no ruleset in the registry);
+# flutter analyze in ci.yml covers it instead. Targeted checks cover Kotlin
+# (android/), Swift (ios/, macos/), JavaScript (web/, tool/a11y), Python (tool/),
+# Bash (tool/*.sh), Dockerfile and Compose (deploy/) and the GitHub Actions
+# workflows.
+# - Official semgrep/semgrep image, pinned by digest (index digest from Docker
+#   Hub). To update: pick a new version tag at least 7 days old, fetch the digest
+#   from https://hub.docker.com/v2/repositories/semgrep/semgrep/tags/<version>
+#   (field "digest") and enter it below.
+# - --metrics=off: no usage data is sent to Semgrep.
+# - CE only analyzes within a single function (no cross-file analysis; that is
+#   only available in the paid Semgrep Code).
+# SARIF goes to Code Scanning (not for change proposals from forks). Any finding
+# fails the job; justified exceptions use "nosemgrep: <rule-id>" with a comment.
 
 on:
   pull_request:
@@ -36,12 +37,12 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
-      security-events: write # SARIF an Code Scanning
+      security-events: write # SARIF to Code Scanning
     env:
       SEMGREP_IMAGE: semgrep/semgrep:1.184.0@sha256:cc1b68266f267878b39739373ea9985b9a78e5d64497dd875c8de100b22695ed
       CAN_UPLOAD: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -51,20 +52,20 @@ jobs:
         with:
           persist-credentials: false
 
-      # Ausgeschlossene Regel html.security.audit.missing-integrity: Sie meldet jedes
-      # <link>/<script> ohne integrity, auch canonical/hreflang-Links und eigene
-      # Dateien (legal.css). Subresource Integrity betrifft nur fremde Quellen; die
-      # Web-Seiten laden keine, und die CSP (script-src/style-src 'self') verbietet
-      # sie. Der folgende Schritt stellt sicher, dass das so bleibt.
-      - name: Keine fremden Skripte oder Stylesheets in web/
+      # Excluded rule html.security.audit.missing-integrity: it reports every
+      # <link>/<script> without integrity, including canonical/hreflang links and
+      # own files (legal.css). Subresource Integrity only matters for third-party
+      # sources; the web pages load none, and the CSP (script-src/style-src 'self')
+      # forbids them. The following step makes sure it stays that way.
+      - name: No third-party scripts or stylesheets in web/
         run: |
           set -euo pipefail
           if grep -rnE --include='*.html' '<script[^>]+src="(https?:)?//|<link[^>]+rel="(stylesheet|preload|modulepreload)"[^>]+href="(https?:)?//|<link[^>]+href="(https?:)?//[^"]*"[^>]+rel="(stylesheet|preload|modulepreload)"' web; then
-            echo "::error::Fremde Quelle in web/ gefunden: integrity-Attribut und CSP-Freigabe noetig, Semgrep-Ausschluss pruefen"
+            echo "::error::Third-party source found in web/: an integrity attribute and a CSP allowance are needed, review the Semgrep exclusion"
             exit 1
           fi
 
-      - name: Semgrep scannen
+      - name: Run Semgrep scan
         run: |
           set -euo pipefail
           docker run --rm --network host \
@@ -89,23 +90,23 @@ jobs:
               --exclude-rule html.security.audit.missing-integrity.missing-integrity \
               --sarif --output semgrep.sarif .
 
-      - name: SARIF an Code Scanning
+      - name: Upload SARIF to Code Scanning
         if: always() && env.CAN_UPLOAD == 'true' && hashFiles('semgrep.sarif') != ''
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: semgrep.sarif
           category: semgrep
 
-      - name: Gate und Zusammenfassung
+      - name: Gate and summary
         if: always()
         run: |
           set -euo pipefail
-          test -s semgrep.sarif || { echo "::error::semgrep.sarif fehlt"; exit 1; }
+          test -s semgrep.sarif || { echo "::error::semgrep.sarif is missing"; exit 1; }
           rules="$(jq '[.runs[].tool.driver.rules[]?] | length' semgrep.sarif)"
           n="$(jq '[.runs[].results[]] | length' semgrep.sarif)"
           {
             echo "### Semgrep CE"
-            echo "- Regeln: ${rules}, Funde: ${n}"
+            echo "- Rules: ${rules}, findings: ${n}"
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "$n" != "0" ]; then
             jq -r '.runs[].results[]
@@ -113,7 +114,7 @@ jobs:
             exit 1
           fi
 
-      - name: Bericht hochladen
+      - name: Upload report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

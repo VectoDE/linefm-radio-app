@@ -1,13 +1,13 @@
-// Aktiviert oder deaktiviert die optionale Firebase-Anbindung.
+// Enables or disables the optional Firebase integration.
 //
-//   dart run tool/enable_firebase.dart             aktivieren
-//   dart run tool/enable_firebase.dart --disable   zurueck auf den Stub
+//   dart run tool/enable_firebase.dart             enable
+//   dart run tool/enable_firebase.dart --disable   back to the stub
 //   dart run tool/enable_firebase.dart --merge-config
-//       zusaetzlich FIREBASE_CONFIG_JSON (Umgebungsvariable, JSON-Objekt mit
-//       FIREBASE_*-Schluesseln) in config/app.json einmischen (CI-Weg)
+//       additionally merge FIREBASE_CONFIG_JSON (environment variable, JSON
+//       object with FIREBASE_* keys) into config/app.json (CI route)
 //
-// Standard-Builds enthalten keinen Firebase-Code: das Paket steht nicht in
-// pubspec.yaml. Nur dieses Skript fuegt es hinzu (Spec 2.3).
+// Standard builds contain no Firebase code: the package is not listed in
+// pubspec.yaml. Only this script adds it (spec 2.3).
 import 'dart:convert';
 import 'dart:io';
 
@@ -22,13 +22,13 @@ Future<void> main(List<String> args) async {
   final mergeConfig = args.contains('--merge-config');
 
   if (!File('pubspec.yaml').existsSync()) {
-    _fail('Bitte im Projektstamm ausfuehren (pubspec.yaml fehlt).');
+    _fail('Please run from the project root (pubspec.yaml is missing).');
   }
 
   if (disable) {
     await _flutter(['pub', 'remove', 'linefm_firebase']);
     File(_stubTemplate).copySync(_hookPath);
-    stdout.writeln('Firebase deaktiviert, Stub wiederhergestellt.');
+    stdout.writeln('Firebase disabled, stub restored.');
     return;
   }
 
@@ -37,24 +37,24 @@ Future<void> main(List<String> args) async {
   await _flutter(['pub', 'add', 'linefm_firebase', '--path', _packagePath]);
   File(_hookTemplate).copySync(_hookPath);
   stdout.writeln(
-    'Firebase aktiviert. Fuer den Build FIREBASE_ENABLED=true und die '
-    'FIREBASE_*-Werte in config/app.json setzen (siehe docs/telemetry.md).',
+    'Firebase enabled. For the build, set FIREBASE_ENABLED=true and the '
+    'FIREBASE_* values in config/app.json (see docs/telemetry.md).',
   );
 }
 
 void _mergeConfigFromEnv() {
   final raw = Platform.environment['FIREBASE_CONFIG_JSON'];
   if (raw == null || raw.trim().isEmpty) {
-    _fail('FIREBASE_CONFIG_JSON ist nicht gesetzt.');
+    _fail('FIREBASE_CONFIG_JSON is not set.');
   }
   final Object? decoded;
   try {
     decoded = jsonDecode(raw);
   } on FormatException catch (e) {
-    _fail('FIREBASE_CONFIG_JSON ist kein gueltiges JSON: ${e.message}');
+    _fail('FIREBASE_CONFIG_JSON is not valid JSON: ${e.message}');
   }
   if (decoded is! Map<String, Object?>) {
-    _fail('FIREBASE_CONFIG_JSON muss ein JSON-Objekt sein.');
+    _fail('FIREBASE_CONFIG_JSON must be a JSON object.');
   }
   final file = File(_configPath);
   final current = file.existsSync()
@@ -68,7 +68,7 @@ void _mergeConfigFromEnv() {
   file.writeAsStringSync(
     '${const JsonEncoder.withIndent('  ').convert(current)}\n',
   );
-  stdout.writeln('FIREBASE_* in $_configPath eingemischt.');
+  stdout.writeln('FIREBASE_* merged into $_configPath.');
 }
 
 Future<void> _flutter(List<String> args) async {
@@ -76,7 +76,7 @@ Future<void> _flutter(List<String> args) async {
   stdout.write(result.stdout);
   stderr.write(result.stderr);
   if (result.exitCode != 0) {
-    _fail('flutter ${args.join(' ')} fehlgeschlagen (${result.exitCode}).');
+    _fail('flutter ${args.join(' ')} failed (${result.exitCode}).');
   }
 }
 

@@ -1,17 +1,17 @@
 name: Uptime
 
-# Prueft alle 30 Minuten, ob die Web-Version und die laut.fm-API antworten.
-# Laeuft nur, wenn die Repository-Variable WEB_BASE_URL gesetzt ist (dieselbe
-# Variable wie beim Web-Build, z. B. https://app.linefm.de). Ohne sie
-# ueberspringt sich der Lauf mit einem Hinweis.
+# Checks every 30 minutes whether the web version and the laut.fm API respond.
+# Runs only if the repository variable WEB_BASE_URL is set (the same
+# variable as for the web build, e.g. https://app.linefm.de). Without it
+# the run skips itself with a note.
 #
-# Bei einem Fehler entsteht ein Ticket mit dem Label "uptime". Gibt es schon ein
-# offenes Uptime-Ticket, kommentiert der Lauf dort (hoechstens alle 6 Stunden)
-# statt ein neues anzulegen. Er schliesst nie ein Ticket. Das macht der Betreiber.
-# Wird alles wieder erreichbar, steht einmal ein Hinweis im offenen Ticket.
+# On failure a ticket with the label "uptime" is created. If an open uptime
+# ticket already exists, the run comments there (at most every 6 hours)
+# instead of creating a new one. It never closes a ticket; the operator does that.
+# When everything is reachable again, a single note is added to the open ticket.
 #
-# GitHub fuehrt geplante Laeufe nicht minutengenau aus und kann sie bei hoher
-# Last verzoegern. Das ist ein Hinweisgeber, keine Betriebszusage. Doku:
+# GitHub does not run scheduled workflows to the minute and may delay them
+# under high load. This is an alerting hint, not an operations guarantee. Docs:
 # docs/betrieb/RUNBOOK.md.
 
 on:
@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   probe:
-    name: Erreichbarkeit pruefen
+    name: Check availability
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -38,28 +38,28 @@ jobs:
       REPO: ${{ github.repository }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
 
-      - name: Variable pruefen
+      - name: Check variable
         id: gate
         run: |
           set -euo pipefail
           if [ -z "${WEB_BASE_URL:-}" ]; then
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "### Uptime uebersprungen" >> "$GITHUB_STEP_SUMMARY"
-            echo "Die Repository-Variable WEB_BASE_URL ist nicht gesetzt (Einstellungen > Secrets and variables > Actions > Variables)." >> "$GITHUB_STEP_SUMMARY"
+            echo "### Uptime skipped" >> "$GITHUB_STEP_SUMMARY"
+            echo "The repository variable WEB_BASE_URL is not set (Settings > Secrets and variables > Actions > Variables)." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           if ! [[ "$WEB_BASE_URL" =~ ^https://[A-Za-z0-9.-]+(:[0-9]+)?/?$ ]]; then
-            echo "::error::WEB_BASE_URL muss eine https-Adresse ohne Pfad sein, gefunden: $WEB_BASE_URL"
+            echo "::error::WEB_BASE_URL must be an https address without a path, found: $WEB_BASE_URL"
             exit 1
           fi
           echo "ready=true" >> "$GITHUB_OUTPUT"
 
-      - name: Adressen abfragen
+      - name: Probe addresses
         id: probe
         if: steps.gate.outputs.ready == 'true'
         run: |
@@ -74,7 +74,7 @@ jobs:
               echo "OK   $name $url"
             else
               echo "FAIL $name $url (HTTP $code)"
-              echo "- $name: $url antwortet mit HTTP $code" >> failures.txt
+              echo "- $name: $url responds with HTTP $code" >> failures.txt
             fi
           }
           check "Web-Version" "$base/"
@@ -83,47 +83,47 @@ jobs:
           if [ -s failures.txt ]; then echo "failed=true" >> "$GITHUB_OUTPUT"; else echo "failed=false" >> "$GITHUB_OUTPUT"; fi
           {
             echo "### Uptime"
-            if [ -s failures.txt ]; then cat failures.txt; else echo "Alle Adressen antworten mit HTTP 200."; fi
+            if [ -s failures.txt ]; then cat failures.txt; else echo "All addresses respond with HTTP 200."; fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Ticket anlegen oder kommentieren
+      - name: Create or comment on ticket
         if: steps.probe.outputs.failed == 'true'
         run: |
           set -euo pipefail
           gh label create uptime --repo "$REPO" --color D93F0B \
-            --description "Uptime-Monitor: Dienst nicht erreichbar" 2>/dev/null || true
+            --description "Uptime monitor: service unreachable" 2>/dev/null || true
           number="$(gh issue list --repo "$REPO" --label uptime --state open \
             --json number --jq '.[0].number // empty')"
           {
-            echo "Geprueft: $(date -u '+%d.%m.%Y %H:%M') UTC"
+            echo "Checked: $(date -u '+%Y-%m-%d %H:%M') UTC"
             echo
             cat failures.txt
             echo
-            echo "Lauf: $RUN_URL"
+            echo "Run: $RUN_URL"
           } > body.md
           if [ -z "$number" ]; then
             {
               cat body.md
               echo
-              echo "## Aufgaben"
+              echo "## Tasks"
               echo
-              echo "- [ ] Ursache klaeren (Ablauf: docs/betrieb/INCIDENT.md)"
-              echo "- [ ] Falls noetig Rollback (docs/betrieb/RUNBOOK.md)"
-              echo "- [ ] Dienst wieder erreichbar, Nachbetrachtung bei S1 oder S2"
+              echo "- [ ] Clarify the cause (procedure: docs/betrieb/INCIDENT.md)"
+              echo "- [ ] Roll back if necessary (docs/betrieb/RUNBOOK.md)"
+              echo "- [ ] Service reachable again, post-incident review for S1 or S2"
             } > new.md
             gh issue create --repo "$REPO" --label uptime \
-              --title "Uptime: Dienst nicht erreichbar" --body-file new.md
+              --title "Uptime: service unreachable" --body-file new.md
           else
             last="$(gh issue view "$number" --repo "$REPO"               --json createdAt,comments               --jq '(.comments | last | .createdAt) // .createdAt')"
             age=$(( $(date -u +%s) - $(date -u -d "$last" +%s) ))
             if [ "$age" -ge 21600 ]; then
               gh issue comment "$number" --repo "$REPO" --body-file body.md
             else
-              echo "Letzter Eintrag in #$number ist juenger als 6 Stunden, kein neuer Kommentar."
+              echo "Last entry in #$number is less than 6 hours old, no new comment."
             fi
           fi
 
-      - name: Entwarnung im offenen Ticket vermerken
+      - name: Note recovery in the open ticket
         if: steps.probe.outputs.failed == 'false'
         run: |
           set -euo pipefail
@@ -133,9 +133,9 @@ jobs:
           marker="<!-- uptime-recovered -->"
           lastbody="$(gh issue view "$number" --repo "$REPO" --json comments             --jq '(.comments | last | .body) // ""')"
           if grep -q "uptime-recovered" <<< "$lastbody"; then exit 0; fi
-          # Nur einmal melden: Ist der letzte Kommentar schon die Entwarnung, passiert nichts.
-          printf '%s\nAlle Adressen antworten wieder mit HTTP 200 (%s UTC). Das Ticket schliesst der Betreiber, wenn die Ursache geklaert ist.\n\nLauf: %s\n' \
-            "$marker" "$(date -u '+%d.%m.%Y %H:%M')" "$RUN_URL" > ok.md
+          # Report only once: if the last comment is already the recovery note, nothing happens.
+          printf '%s\nAll addresses respond with HTTP 200 again (%s UTC). The operator closes the ticket once the cause is resolved.\n\nRun: %s\n' \
+            "$marker" "$(date -u '+%Y-%m-%d %H:%M')" "$RUN_URL" > ok.md
           gh issue comment "$number" --repo "$REPO" --body-file ok.md
 
   # Zero-warning rule: any warning or error in a job log or a check-run

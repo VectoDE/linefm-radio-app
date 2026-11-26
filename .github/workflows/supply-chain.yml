@@ -1,25 +1,25 @@
 name: Supply Chain
 
-# Pruefungen, die SECURITY.md verspricht. Die Berichte liegen als Artefakt am
-# Lauf (14 Tage), die Zusammenfassung nennt die Zahl der Funde.
-# - OSV: bekannte Schwachstellen in den Dart-Abhaengigkeiten (pubspec.lock) und im
-#   Pruefwerkzeug der Barrierefreiheit (tool/a11y/package-lock.json) ueber die
-#   offizielle Action google/osv-scanner-action. packages/linefm_firebase hat keine
-#   eigene Lock-Datei (Bibliothekspaket); seine Abhaengigkeiten stehen erst nach
-#   tool/enable_firebase.dart in pubspec.lock und sind dann abgedeckt.
-# - Secret-Scan: gitleaks ueber die gesamte Git-Historie. Als CLI aus dem Release,
-#   weil die gitleaks-Action fuer Organisationen eine Lizenz verlangt. Version und
-#   SHA-256 sind hier fest eingetragen; ein Update aendert beide Werte zusammen.
-# - Trivy: Dateisystem (Abhaengigkeiten inkl. Dev, Secrets, Fehlkonfiguration in
-#   Dockerfile und IaC) und der aus deploy/traefik/Dockerfile gebaute Web-Container.
-#   Als CLI aus dem Release mit fester SHA-256 statt trivy-action: Im Maerz 2026
-#   wurden die Tags von trivy-action und setup-trivy kompromittiert
-#   (GHSA-69fq-xp46-6x23). SARIF (alle Schweregrade) geht an Code Scanning,
-#   HIGH/CRITICAL lassen den Job scheitern (Image: nur behebbare, siehe Schritt).
-#   Begruendete Einzelausnahmen gehoeren nach .trivyignore.yaml.
-# - Workflow-Pruefung: zizmor (SARIF an Code Scanning, Konfiguration in
-#   .github/zizmor.yml) und actionlint (CLI mit fester SHA-256).
-# SARIF-Uploads laufen nur, wenn der Token schreiben darf (nicht bei Änderungsvorschlägen aus Forks).
+# Checks that SECURITY.md promises. The reports are attached to the run as an
+# artifact (14 days); the summary states the number of findings.
+# - OSV: known vulnerabilities in the Dart dependencies (pubspec.lock) and in the
+#   accessibility tooling (tool/a11y/package-lock.json) via the official action
+#   google/osv-scanner-action. packages/linefm_firebase has no lock file of its
+#   own (library package); its dependencies only appear in pubspec.lock after
+#   tool/enable_firebase.dart and are covered from then on.
+# - Secret scan: gitleaks over the entire git history. As a CLI from the release,
+#   because the gitleaks action requires a license for organizations. Version and
+#   SHA-256 are pinned here; an update changes both values together.
+# - Trivy: filesystem (dependencies incl. dev, secrets, misconfiguration in
+#   Dockerfile and IaC) and the web container built from deploy/traefik/Dockerfile.
+#   As a CLI from the release with a pinned SHA-256 instead of trivy-action: in March 2026
+#   the tags of trivy-action and setup-trivy were compromised
+#   (GHSA-69fq-xp46-6x23). SARIF (all severities) goes to code scanning,
+#   HIGH/CRITICAL fail the job (image: fixable only, see step).
+#   Justified individual exceptions belong in .trivyignore.yaml.
+# - Workflow check: zizmor (SARIF to code scanning, configuration in
+#   .github/zizmor.yml) and actionlint (CLI with pinned SHA-256).
+# SARIF uploads only run if the token may write (not for change proposals from forks).
 
 on:
   push:
@@ -37,13 +37,13 @@ concurrency:
 
 jobs:
   osv:
-    name: OSV (pubspec.lock, a11y-Werkzeug)
+    name: OSV (pubspec.lock, a11y tool)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -62,7 +62,7 @@ jobs:
             --lockfile=pubspec.lock
             --lockfile=tool/a11y/package-lock.json
 
-      - name: OSV-Zusammenfassung
+      - name: OSV summary
         if: always()
         run: |
           set -euo pipefail
@@ -71,20 +71,20 @@ jobs:
             if [ -s osv-results.json ]; then
               pkgs="$(jq '[.results[]?.packages[]? | select((.vulnerabilities // []) | length > 0)] | length' osv-results.json)"
               vulns="$(jq '[.results[]?.packages[]?.vulnerabilities[]?] | length' osv-results.json)"
-              echo "- Betroffene Pakete: ${pkgs}, Schwachstellen: ${vulns}"
+              echo "- Affected packages: ${pkgs}, vulnerabilities: ${vulns}"
               if [ "$vulns" != "0" ]; then
                 echo ""
-                echo "| Paket | Version | IDs |"
+                echo "| Package | Version | IDs |"
                 echo "|---|---|---|"
                 jq -r '.results[]?.packages[]? | select((.vulnerabilities // []) | length > 0)
                   | "| \(.package.name) | \(.package.version) | \([.vulnerabilities[].id] | join(", ")) |"' osv-results.json
               fi
             else
-              echo "- Kein Bericht erzeugt (Scanner nicht gelaufen?)"
+              echo "- No report generated (scanner did not run?)"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: OSV-Bericht hochladen
+      - name: Upload OSV report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -94,7 +94,7 @@ jobs:
           retention-days: 14
 
   gitleaks:
-    name: Secret-Scan (gitleaks)
+    name: Secret scan (gitleaks)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -103,18 +103,18 @@ jobs:
       GITLEAKS_VERSION: 8.30.1
       GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
 
-      - name: Checkout (ganze Historie)
+      - name: Checkout (full history)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: gitleaks laden und Pruefsumme pruefen
+      - name: Download gitleaks and verify checksum
         run: |
           set -euo pipefail
           archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
@@ -124,13 +124,13 @@ jobs:
           tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" gitleaks
           "$RUNNER_TEMP/gitleaks" version
 
-      - name: Historie scannen
+      - name: Scan history
         run: |
           set -euo pipefail
           "$RUNNER_TEMP/gitleaks" git --redact --no-banner --exit-code 1 \
             --report-format json --report-path "$RUNNER_TEMP/gitleaks.json" .
 
-      - name: Zusammenfassung
+      - name: Summary
         if: always()
         run: |
           set -euo pipefail
@@ -139,13 +139,13 @@ jobs:
             count="$(jq 'length' "$RUNNER_TEMP/gitleaks.json")"
           fi
           {
-            echo "### Secret-Scan"
-            echo "- gitleaks ${GITLEAKS_VERSION}, Funde (geschwaerzt): ${count}"
+            echo "### Secret scan"
+            echo "- gitleaks ${GITLEAKS_VERSION}, findings (redacted): ${count}"
           } >> "$GITHUB_STEP_SUMMARY"
           cp "$RUNNER_TEMP/gitleaks.json" gitleaks-report.json 2>/dev/null || true
 
-      # Der Bericht ist mit --redact erzeugt: Fundstellen ohne Geheimniswerte.
-      - name: gitleaks-Bericht hochladen
+      # The report is generated with --redact: locations without secret values.
+      - name: Upload gitleaks report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -155,7 +155,7 @@ jobs:
           retention-days: 14
 
   trivy:
-    name: Trivy (Dateisystem, Konfiguration, Web-Container)
+    name: Trivy (filesystem, configuration, web container)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -168,7 +168,7 @@ jobs:
       TRIVY_DISABLE_VEX_NOTICE: "true"
       CAN_UPLOAD: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -178,7 +178,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Trivy laden und Pruefsumme pruefen
+      - name: Download Trivy and verify checksum
         run: |
           set -euo pipefail
           archive="trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
@@ -188,23 +188,23 @@ jobs:
           tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" trivy
           "$RUNNER_TEMP/trivy" --version
 
-      - name: Dateisystem scannen (SARIF, alle Schweregrade)
+      - name: Scan filesystem (SARIF, all severities)
         run: |
           set -euo pipefail
           "$RUNNER_TEMP/trivy" fs --quiet --scanners vuln,secret,misconfig \
             --include-dev-deps --format sarif --output trivy-fs.sarif .
 
-      # Das echte Dockerfile bauen (inkl. apk upgrade), nur mit Platzhaltern statt
-      # Flutter-Build: Die App-Dateien sind statisch und aendern am Betriebssystem
-      # des Images nichts. Gescannt wird damit genau die Paketlage, die ausgeliefert wird.
-      - name: Web-Container bauen und scannen (SARIF)
+      # Build the real Dockerfile (incl. apk upgrade), with placeholders instead of
+      # the Flutter build: the app files are static and do not change the operating
+      # system of the image. This scans exactly the package set that is shipped.
+      - name: Build and scan web container (SARIF)
         id: image
         run: |
           set -euo pipefail
           base="$(sed -n 's/^FROM[[:space:]]\+\([^[:space:]]*\).*/\1/p' deploy/traefik/Dockerfile | head -n 1)"
           case "$base" in
             *@sha256:*) ;;
-            *) echo "::error file=deploy/traefik/Dockerfile::Basisimage nicht per Digest gepinnt: $base"; exit 1 ;;
+            *) echo "::error file=deploy/traefik/Dockerfile::Base image not pinned by digest: $base"; exit 1 ;;
           esac
           mkdir -p build/web build/hosting/nginx build/hosting/traefik
           cp -r deploy/nginx/snippets build/hosting/nginx/
@@ -216,31 +216,31 @@ jobs:
           "$RUNNER_TEMP/trivy" image --quiet --skip-db-update --scanners vuln,secret \
             --format sarif --output trivy-image.sarif "$image"
 
-      - name: SARIF an Code Scanning (Dateisystem)
+      - name: SARIF to code scanning (filesystem)
         if: always() && env.CAN_UPLOAD == 'true' && hashFiles('trivy-fs.sarif') != ''
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: trivy-fs.sarif
           category: trivy-fs
 
-      - name: SARIF an Code Scanning (Web-Container)
+      - name: SARIF to code scanning (web container)
         if: always() && env.CAN_UPLOAD == 'true' && hashFiles('trivy-image.sarif') != ''
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: trivy-image.sarif
           category: trivy-image
 
-      # Gate Dateisystem: jede HIGH/CRITICAL-Meldung laesst den Job scheitern.
-      - name: Gate Dateisystem (HIGH, CRITICAL)
+      # Filesystem gate: any HIGH/CRITICAL finding fails the job.
+      - name: Gate filesystem (HIGH, CRITICAL)
         run: |
           set -euo pipefail
           "$RUNNER_TEMP/trivy" fs --quiet --skip-db-update --scanners vuln,secret,misconfig \
             --include-dev-deps --severity HIGH,CRITICAL --exit-code 1 --format table .
 
-      # Gate Web-Container: nur Luecken mit verfuegbarer Korrektur. Fuer Pakete ohne Fix
-      # gibt es nichts zu aktualisieren; sie stehen trotzdem im SARIF (Code Scanning)
-      # und werden mit jedem Lauf (apk upgrade, Digest-Updates von Dependabot) neu bewertet.
-      - name: Gate Web-Container (HIGH, CRITICAL, behebbar)
+      # Web container gate: only vulnerabilities with an available fix. Packages without
+      # a fix have nothing to update; they still appear in the SARIF (code scanning)
+      # and are re-evaluated on every run (apk upgrade, Dependabot digest updates).
+      - name: Gate web container (HIGH, CRITICAL, fixable)
         env:
           IMAGE: ${{ steps.image.outputs.image }}
         run: |
@@ -248,18 +248,18 @@ jobs:
           "$RUNNER_TEMP/trivy" image --quiet --skip-db-update --scanners vuln,secret \
             --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --format table "$IMAGE"
 
-      - name: Zusammenfassung
+      - name: Summary
         if: always()
         run: |
           set -euo pipefail
-          count() { [ -s "$1" ] && jq '[.runs[].results[]] | length' "$1" || echo "kein Bericht"; }
+          count() { [ -s "$1" ] && jq '[.runs[].results[]] | length' "$1" || echo "no report"; }
           {
             echo "### Trivy ${TRIVY_VERSION}"
-            echo "- Dateisystem (alle Schweregrade): $(count trivy-fs.sarif)"
-            echo "- Web-Container (alle Schweregrade): $(count trivy-image.sarif)"
+            echo "- Filesystem (all severities): $(count trivy-fs.sarif)"
+            echo "- Web container (all severities): $(count trivy-image.sarif)"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Trivy-Berichte hochladen
+      - name: Upload Trivy reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -269,7 +269,7 @@ jobs:
           retention-days: 14
 
   workflows:
-    name: Workflow-Pruefung (zizmor, actionlint)
+    name: Workflow check (zizmor, actionlint)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -280,7 +280,7 @@ jobs:
       ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
       CAN_UPLOAD: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -290,9 +290,9 @@ jobs:
         with:
           persist-credentials: false
 
-      # zizmor aus hash-gepruefter Wheel-Datei (die Action pinnt jede Version per
-      # Hash). Mit Schreibrecht als SARIF an Code Scanning, sonst als Klartext mit
-      # Exit-Code (Änderungsvorschläge aus Forks).
+      # zizmor from a hash-verified wheel file (the action pins every version by
+      # hash). With write access as SARIF to code scanning, otherwise as plain text with
+      # exit code (change proposals from forks).
       - name: zizmor
         id: zizmor
         uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
@@ -301,22 +301,22 @@ jobs:
           persona: regular
           advanced-security: ${{ env.CAN_UPLOAD }}
 
-      # SARIF-Ausgabe setzt keinen Exit-Code: Funde hier zaehlen.
+      # SARIF output sets no exit code: count findings here.
       - name: Gate zizmor
         if: env.CAN_UPLOAD == 'true'
         run: |
           set -euo pipefail
           sarif="$RUNNER_TEMP/zizmor"
-          test -s "$sarif" || { echo "::error::zizmor-SARIF fehlt"; exit 1; }
+          test -s "$sarif" || { echo "::error::zizmor SARIF missing"; exit 1; }
           n="$(jq '[.runs[].results[] | select((.suppressions // []) | length == 0)] | length' "$sarif")"
-          echo "### zizmor: ${n} offene Funde" >> "$GITHUB_STEP_SUMMARY"
+          echo "### zizmor: ${n} open findings" >> "$GITHUB_STEP_SUMMARY"
           if [ "$n" != "0" ]; then
             jq -r '.runs[].results[] | select((.suppressions // []) | length == 0)
               | "::error file=\(.locations[0].physicalLocation.artifactLocation.uri),line=\(.locations[0].physicalLocation.region.startLine)::\(.ruleId): \(.message.text)"' "$sarif"
             exit 1
           fi
 
-      - name: actionlint laden und Pruefsumme pruefen
+      - name: Download actionlint and verify checksum
         run: |
           set -euo pipefail
           archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
@@ -325,9 +325,9 @@ jobs:
           echo "${ACTIONLINT_SHA256}  $RUNNER_TEMP/$archive" | sha256sum -c -
           tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" actionlint
 
-      # Mit shellcheck (auf dem Runner vorinstalliert) fuer die run-Bloecke. Gate ab
-      # Schweregrad "warning"; Stil- und Info-Hinweise (z. B. SC2086 bei bewusst
-      # aufgeteilten Build-Flags, SC2012) brechen nicht ab.
+      # With shellcheck (preinstalled on the runner) for the run blocks. Gate from
+      # severity "warning"; style and info hints (e.g. SC2086 for intentionally
+      # split build flags, SC2012) do not fail the job.
       - name: actionlint
         env:
           SHELLCHECK_OPTS: --severity=warning

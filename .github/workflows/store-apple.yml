@@ -1,16 +1,16 @@
 name: Store Apple
 
-# TestFlight-Upload (iOS) und Mac-App-Store-Upload (macOS), vorbereitet und STANDARDMAESSIG AUS
-# (Entscheidung 21). Laeuft nur, wenn die Repository-Variable APPLE_PUBLISHING_ENABLED auf
-# "true" steht UND alle Secrets unten gesetzt sind. Sonst werden die macOS-Jobs uebersprungen
-# (macOS-Minuten zaehlen im privaten Repo 10-fach) und die Zusammenfassung nennt, was fehlt.
-# Ausloeser: release.yml (nur Endversionen) oder manuell mit Tag.
-# Komplett ungetestet: Es gab weder Apple-Konto noch Mac. Erster echter Lauf nur manuell
-# beobachten.
+# TestFlight upload (iOS) and Mac App Store upload (macOS), prepared and OFF BY DEFAULT
+# (decision 21). Runs only if the repository variable APPLE_PUBLISHING_ENABLED is set to
+# "true" AND all secrets below are set. Otherwise the macOS jobs are skipped
+# (macOS minutes count 10x in a private repo) and the summary names what is missing.
+# Trigger: release.yml (final versions only) or manually with a tag.
+# Completely untested: there was neither an Apple account nor a Mac. Watch the first real run
+# manually.
 #
 # Secrets:    APPLE_TEAM_ID, APPLE_DISTRIBUTION_CERT_P12_BASE64, APPLE_DISTRIBUTION_CERT_PASSWORD,
 #             APPLE_MAC_INSTALLER_CERT_P12_BASE64, APPLE_MAC_INSTALLER_CERT_PASSWORD,
-#             APPLE_IOS_PROVISIONING_PROFILES_BASE64 (je Zeile ein Profil: App und Widget),
+#             APPLE_IOS_PROVISIONING_PROFILES_BASE64 (one profile per line: app and widget),
 #             APPLE_MACOS_PROVISIONING_PROFILE_BASE64,
 #             APP_STORE_CONNECT_API_KEY_ID, APP_STORE_CONNECT_API_KEY_ISSUER_ID,
 #             APP_STORE_CONNECT_API_KEY_P8
@@ -20,16 +20,16 @@ on:
   workflow_call:
     inputs:
       tag:
-        description: Versions-Tag (vX.Y.Z)
+        description: Version tag (vX.Y.Z)
         type: string
         required: true
       ios:
-        description: iOS (TestFlight) einschliessen
+        description: Include iOS (TestFlight)
         type: boolean
         required: false
         default: true
       macos:
-        description: macOS (Mac App Store) einschliessen
+        description: Include macOS (Mac App Store)
         type: boolean
         required: false
         default: true
@@ -59,15 +59,15 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Versions-Tag (Form vX.Y.Z)
+        description: Version tag (form vX.Y.Z)
         type: string
         required: true
       ios:
-        description: iOS (TestFlight) einschliessen
+        description: Include iOS (TestFlight)
         type: boolean
         default: true
       macos:
-        description: macOS (Mac App Store) einschliessen
+        description: Include macOS (Mac App Store)
         type: boolean
         default: true
 
@@ -79,7 +79,7 @@ concurrency:
 
 jobs:
   gate:
-    name: Secret-Gate
+    name: Secret gate
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -94,9 +94,9 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
-      # S3-04: auch bei manuellem Start (workflow_dispatch) muss der Tag zu pubspec.yaml
-      # passen, wie im Job "version" von release.yml.
-      - name: Tag und pubspec-Version vergleichen
+      # S3-04: even on a manual start (workflow_dispatch) the tag must match pubspec.yaml,
+      # as in the "version" job of release.yml.
+      - name: Compare tag and pubspec version
         uses: ./.github/actions/tag-version
         with:
           tag: ${{ inputs.tag }}
@@ -144,7 +144,7 @@ jobs:
     env:
       TAG: ${{ inputs.tag }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -155,14 +155,14 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
-      - name: Version bestimmen
+      - name: Determine version
         id: version
         env:
           RUN_NUMBER: ${{ github.run_number }}
           BUILD_NUMBER_OFFSET: ${{ vars.BUILD_NUMBER_OFFSET }}
         run: |
           set -euo pipefail
-          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then echo "::error::Ungueltiger Tag: $TAG"; exit 1; fi
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then echo "::error::Invalid tag: $TAG"; exit 1; fi
           label="${TAG#v}"
           {
             echo "label=$label"
@@ -170,16 +170,16 @@ jobs:
             echo "build_number=$(( RUN_NUMBER + ${BUILD_NUMBER_OFFSET:-100} ))"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write config
         uses: ./.github/actions/write-config
         with:
           app-env: prod
           app-version: ${{ steps.version.outputs.label }}
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
-          # Store-Upload: immer strikt, auch bei manuellem Lauf mit Vorabversion (N7).
+          # Store upload: always strict, even on a manual run with a pre-release version (N7).
           legal-strict: true
           web-base-url: ${{ vars.WEB_BASE_URL }}
           features-json: ${{ vars.FEATURES_JSON }}
@@ -194,7 +194,7 @@ jobs:
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
 
-      - name: Signierung vorbereiten
+      - name: Prepare signing
         id: signing
         uses: ./.github/actions/apple-signing
         with:
@@ -204,10 +204,10 @@ jobs:
           platform: ios
           team-id: ${{ secrets.APPLE_TEAM_ID }}
 
-      # Erst ohne Signatur bauen und archivieren, dann beim Export je Bundle-ID (App, Widget)
-      # mit dem passenden Profil signieren. So braucht das Xcode-Projekt (automatische
-      # Signierung) keine Aenderung.
-      - name: iOS bauen und archivieren
+      # Build and archive unsigned first, then sign at export time per bundle ID (app, widget)
+      # with the matching profile. This way the Xcode project (automatic signing)
+      # needs no change.
+      - name: Build and archive iOS
         env:
           BUILD_NAME: ${{ steps.version.outputs.build_name }}
           BUILD_NUMBER: ${{ steps.version.outputs.build_number }}
@@ -219,7 +219,7 @@ jobs:
             -archivePath "$RUNNER_TEMP/Runner.xcarchive" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
 
-      - name: IPA exportieren
+      - name: Export IPA
         env:
           EXPORT_OPTIONS: ${{ steps.signing.outputs.export-options }}
         run: |
@@ -228,7 +228,7 @@ jobs:
             -exportOptionsPlist "$EXPORT_OPTIONS" -exportPath "$RUNNER_TEMP/ipa"
           ls -la "$RUNNER_TEMP/ipa"
 
-      - name: Zu TestFlight hochladen
+      - name: Upload to TestFlight
         env:
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
@@ -242,9 +242,9 @@ jobs:
           ipa="$(ls "$RUNNER_TEMP"/ipa/*.ipa | head -n1)"
           xcrun altool --upload-app --type ios --file "$ipa" --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
           echo "### Apple iOS" >> "$GITHUB_STEP_SUMMARY"
-          echo "- $TAG zu App Store Connect hochgeladen. Verarbeitung und TestFlight-Freigabe dort abwarten." >> "$GITHUB_STEP_SUMMARY"
+          echo "- $TAG uploaded to App Store Connect. Wait there for processing and TestFlight approval." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Aufraeumen
+      - name: Clean up
         if: always()
         env:
           KEYCHAIN: ${{ steps.signing.outputs.keychain }}
@@ -264,7 +264,7 @@ jobs:
       TAG: ${{ inputs.tag }}
       APP_PATH: build/macos/Build/Products/Release/LINEFM Radio.app
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -275,14 +275,14 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
-      - name: Version bestimmen
+      - name: Determine version
         id: version
         env:
           RUN_NUMBER: ${{ github.run_number }}
           BUILD_NUMBER_OFFSET: ${{ vars.BUILD_NUMBER_OFFSET }}
         run: |
           set -euo pipefail
-          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then echo "::error::Ungueltiger Tag: $TAG"; exit 1; fi
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then echo "::error::Invalid tag: $TAG"; exit 1; fi
           label="${TAG#v}"
           {
             echo "label=$label"
@@ -290,16 +290,16 @@ jobs:
             echo "build_number=$(( RUN_NUMBER + ${BUILD_NUMBER_OFFSET:-100} ))"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write config
         uses: ./.github/actions/write-config
         with:
           app-env: prod
           app-version: ${{ steps.version.outputs.label }}
           legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
-          # Store-Upload: immer strikt, auch bei manuellem Lauf mit Vorabversion (N7).
+          # Store upload: always strict, even on a manual run with a pre-release version (N7).
           legal-strict: true
           web-base-url: ${{ vars.WEB_BASE_URL }}
           features-json: ${{ vars.FEATURES_JSON }}
@@ -314,7 +314,7 @@ jobs:
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
 
-      - name: Signierung vorbereiten
+      - name: Prepare signing
         id: signing
         uses: ./.github/actions/apple-signing
         with:
@@ -326,7 +326,7 @@ jobs:
           platform: macos
           team-id: ${{ secrets.APPLE_TEAM_ID }}
 
-      - name: macOS bauen
+      - name: Build macOS
         env:
           BUILD_NAME: ${{ steps.version.outputs.build_name }}
           BUILD_NUMBER: ${{ steps.version.outputs.build_number }}
@@ -334,9 +334,9 @@ jobs:
           flutter build macos --release --dart-define-from-file=config/app.json \
             --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
-      # Mac App Store: Sandbox-Entitlements plus Team-/App-Kennung aus dem Profil, Profil in
-      # die App einbetten, dann signiertes .pkg mit dem Installer-Zertifikat bauen.
-      - name: App signieren und .pkg bauen
+      # Mac App Store: sandbox entitlements plus team/app identifier from the profile, embed the
+      # profile in the app, then build a signed .pkg with the installer certificate.
+      - name: Sign app and build .pkg
         env:
           TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
@@ -352,11 +352,11 @@ jobs:
             --sign "Apple Distribution" "$APP_PATH"
           codesign --verify --deep --strict --verbose=2 "$APP_PATH"
           installer="$(security find-identity -v | grep -E 'Installer' | head -n1 | awk '{print $2}')"
-          if [ -z "$installer" ]; then echo "::error::Kein Mac-Installer-Zertifikat in der Keychain"; exit 1; fi
+          if [ -z "$installer" ]; then echo "::error::No Mac installer certificate in the keychain"; exit 1; fi
           productbuild --component "$APP_PATH" /Applications --sign "$installer" "$RUNNER_TEMP/linefm-radio.pkg"
           ls -la "$RUNNER_TEMP/linefm-radio.pkg"
 
-      - name: Zu App Store Connect hochladen
+      - name: Upload to App Store Connect
         env:
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
@@ -369,9 +369,9 @@ jobs:
           printf '%s' "$ASC_KEY_P8" > "$keydir/AuthKey_${ASC_KEY_ID}.p8"
           xcrun altool --upload-app --type macos --file "$RUNNER_TEMP/linefm-radio.pkg" --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
           echo "### Apple macOS" >> "$GITHUB_STEP_SUMMARY"
-          echo "- $TAG zu App Store Connect hochgeladen (Mac App Store). Weiter in App Store Connect." >> "$GITHUB_STEP_SUMMARY"
+          echo "- $TAG uploaded to App Store Connect (Mac App Store). Continue in App Store Connect." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Aufraeumen
+      - name: Clean up
         if: always()
         env:
           KEYCHAIN: ${{ steps.signing.outputs.keychain }}

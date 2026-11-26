@@ -1,11 +1,11 @@
 name: CodeQL
 
-# Dart wird von CodeQL nicht unterstuetzt (dafuer flutter analyze in ci.yml).
-# Analysiert: GitHub-Actions-Workflows (jede Aenderung/jeder Push), Android-Kotlin/Java (woechentlich
-# oder manuell), Swift (nur manuell, macOS-Minuten zaehlen im privaten Repo 10-fach).
-# Ohne Code Scanning (privates Repo ohne GitHub Advanced Security) werden die SARIF-
-# Ergebnisse als Artefakt abgelegt und Befunde lassen den Job scheitern. Mit
-# Repository-Variable CODE_SCANNING_ENABLED=true oder oeffentlichem Repo erfolgt der Upload.
+# CodeQL does not support Dart (flutter analyze in ci.yml covers it).
+# Analyzed: GitHub Actions workflows (every change/push), Android Kotlin/Java (weekly
+# or manual), Swift (manual only, macOS minutes count 10x in a private repo).
+# Without Code Scanning (private repo without GitHub Advanced Security) the SARIF
+# results are stored as an artifact and findings fail the job. With the repository
+# variable CODE_SCANNING_ENABLED=true or a public repo, the results are uploaded.
 
 on:
   pull_request:
@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       swift:
-        description: Swift (iOS/macOS) mitanalysieren (macOS-Runner)
+        description: Also analyze Swift (iOS/macOS, macOS runner)
         type: boolean
         default: false
 
@@ -39,7 +39,7 @@ jobs:
       actions: read
       security-events: write
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -49,21 +49,21 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: CodeQL initialisieren
+      - name: Initialize CodeQL
         uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           languages: actions
           build-mode: none
           queries: security-and-quality
 
-      - name: Analysieren
+      - name: Analyze
         uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           category: /language:actions
           upload: ${{ env.UPLOAD }}
           output: sarif-results
 
-      - name: Ergebnisse
+      - name: Results
         if: always()
         uses: ./.github/actions/codeql-results
         with:
@@ -80,7 +80,7 @@ jobs:
       actions: read
       security-events: write
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -97,32 +97,32 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write config
         uses: ./.github/actions/write-config
         with:
           app-env: dev
 
-      - name: CodeQL initialisieren
+      - name: Initialize CodeQL
         uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           languages: java-kotlin
           build-mode: manual
           queries: security-and-quality
 
-      - name: Android bauen (Kotlin-Extraktion)
+      - name: Build Android (Kotlin extraction)
         run: flutter build apk --debug --dart-define-from-file=config/app.json
 
-      - name: Analysieren
+      - name: Analyze
         uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           category: /language:java-kotlin
           upload: ${{ env.UPLOAD }}
           output: sarif-results
 
-      - name: Ergebnisse
+      - name: Results
         if: always()
         uses: ./.github/actions/codeql-results
         with:
@@ -139,7 +139,7 @@ jobs:
       actions: read
       security-events: write
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -149,34 +149,34 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write config
         uses: ./.github/actions/write-config
         with:
           app-env: dev
 
-      - name: CodeQL initialisieren
+      - name: Initialize CodeQL
         uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           languages: swift
           build-mode: manual
           queries: security-and-quality
 
-      - name: iOS und macOS bauen (Swift-Extraktion)
+      - name: Build iOS and macOS (Swift extraction)
         run: |
           flutter build ios --debug --no-codesign --dart-define-from-file=config/app.json
           flutter build macos --debug --dart-define-from-file=config/app.json
 
-      - name: Analysieren
+      - name: Analyze
         uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           category: /language:swift
           upload: ${{ env.UPLOAD }}
           output: sarif-results
 
-      - name: Ergebnisse
+      - name: Results
         if: always()
         uses: ./.github/actions/codeql-results
         with:

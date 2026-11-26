@@ -77,7 +77,7 @@ void main() {
       files['android/de-DE/title.txt'] = '${'x' * 31}\n';
       expect(
         checkLimits(files),
-        contains(contains('android/de-DE/title.txt hat 31 Zeichen')),
+        contains(contains('android/de-DE/title.txt has 31 characters')),
       );
     });
 
@@ -87,7 +87,7 @@ void main() {
       files['de-DE/keywords.txt'] = '${'ä' * 51}\n';
       expect(
         checkLimits(files),
-        contains(contains('keywords.txt hat 102 Bytes')),
+        contains(contains('keywords.txt has 102 bytes')),
       );
     });
 
@@ -98,9 +98,9 @@ void main() {
         ..remove('en-US/subtitle.txt')
         ..['de-DE/zusatz.txt'] = 'x\n';
       final List<String> problems = checkInSync(expected, actual);
-      expect(problems, contains(contains('de-DE/name.txt weicht')));
-      expect(problems, contains(contains('en-US/subtitle.txt fehlt')));
-      expect(problems, contains(contains('de-DE/zusatz.txt ist unbekannt')));
+      expect(problems, contains(contains('de-DE/name.txt differs')));
+      expect(problems, contains(contains('en-US/subtitle.txt is missing')));
+      expect(problems, contains(contains('de-DE/zusatz.txt is unknown')));
     });
 
     test('fehlende Sprache in der Quelle wird gemeldet', () {
@@ -120,7 +120,7 @@ void main() {
         falsch,
         parseStoreTexts(falsch),
       );
-      expect(problems, contains(contains('nennt 13 Zeichen, gezaehlt 12')));
+      expect(problems, contains(contains('states 13 characters, counted 12')));
     });
 
     test('Platzhalter und Nicht-https-Adressen werden gemeldet', () {
@@ -128,10 +128,10 @@ void main() {
       files['de-DE/privacy_url.txt'] = 'http://example.org/x\n';
       files['en-US/name.txt'] = '{{NAME}}\n';
       final List<String> problems = checkLimits(files);
-      expect(problems, contains(contains('privacy_url.txt ist keine https')));
+      expect(problems, contains(contains('privacy_url.txt is not an https')));
       expect(
         problems,
-        contains(contains('en-US/name.txt enthaelt einen offenen Platzhalter')),
+        contains(contains('en-US/name.txt contains an open placeholder')),
       );
     });
   });

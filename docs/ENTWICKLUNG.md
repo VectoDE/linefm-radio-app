@@ -140,12 +140,12 @@ flutter test
 
 ### Goldens aktualisieren
 
-Referenzbilder hängen von der Rasterung der Plattform ab. Sie gelten deshalb nur dort, wo sie entstanden sind: auf dem CI-Runner des Jobs „Golden-Tests (Windows)“ (`windows-latest`). Die Tests tragen das Tag `golden` (`dart_test.yaml`) und enden auf `_golden_test.dart`; der normale Testjob lässt sie aus.
+Referenzbilder hängen von der Rasterung der Plattform ab. Sie gelten deshalb nur dort, wo sie entstanden sind: auf dem CI-Runner des Jobs „Golden tests (Windows)“ (`windows-latest`). Die Tests tragen das Tag `golden` (`dart_test.yaml`) und enden auf `_golden_test.dart`; der normale Testjob lässt sie aus.
 
 - **Lokal** laufen sie durch (Layout, keine Ausnahmen), vergleichen aber keine Pixel und werden so nicht fälschlich rot. Die Meldung „Golden-Vergleich uebersprungen“ steht im Log. Mit `GOLDENS=1` (PowerShell: `$env:GOLDENS=1`) erzwingst du den Vergleich auch lokal; auf Windows 11 waren die Bilder bei der Einführung byte-gleich zu denen der CI, auf anderen Systemen sind Abweichungen zu erwarten.
 - **Feste Bedingungen** machen die Bilder reproduzierbar: echte App-Schriften aus dem Font-Manifest (nicht Ahem), Fenstergröße fest bei Pixelverhältnis 1, Lauftext aus, keine Netzbilder (Fakes, Senderlogos ohne Netz), Sender ohne ladbares Logo zeigen das Kürzel.
 - **Nach einer gewollten Änderung der Darstellung:**
-  1. Branch pushen. Der Job „Golden-Tests (Windows)“ wird rot und lädt das Artifact `golden-kandidaten` (alle Bilder, auf dem Runner neu erzeugt) und `golden-failures` (Unterschiede je Bild) hoch.
+  1. Branch pushen. Der Job „Golden tests (Windows)“ wird rot und lädt das Artifact `golden-kandidaten` (alle Bilder, auf dem Runner neu erzeugt) und `golden-failures` (Unterschiede je Bild) hoch.
   2. Artifact laden: `gh run download <run-id> -n golden-kandidaten -D tmp-goldens`, die PNGs unter `test/**/goldens/` kopieren.
   3. Die Bilder im Diff ansehen, nur gewollte Änderungen committen, pushen. Der Job wird grün.
 - Alternativ lokal auf Windows 11: `flutter test --update-goldens test/ui/components_golden_test.dart` (je Datei), Bilder prüfen und committen. Die CI bleibt maßgeblich: stimmt sie nicht überein, gilt das Artifact.
@@ -159,7 +159,7 @@ Referenzbilder hängen von der Rasterung der Plattform ab. Sie gelten deshalb nu
 
 Der Job „Tests“ der CI misst Zeilen- und Zweigabdeckung (`flutter test --coverage --branch-coverage`). Lokal nicht nötig; nur in der CI ausführen.
 
-- **Gefiltert:** `lib/l10n/gen/*` zählt nicht mit. Der Code kommt aus `flutter gen-l10n` und wird im Job „Uebersetzungen pruefen“ auf Aktualität geprüft; Tests dafür testen den Generator, nicht die App.
+- **Gefiltert:** `lib/l10n/gen/*` zählt nicht mit. Der Code kommt aus `flutter gen-l10n` und wird im Job „Check translations“ auf Aktualität geprüft; Tests dafür testen den Generator, nicht die App.
 - **Ungeladene Dateien** meldet `flutter test` von sich aus nicht. Ein Import-Lauf (`test/zz_coverage_all_test.dart`, wird nur in der CI erzeugt) holt sie mit 0 % in den Wert. Dateien mit Web-Bibliotheken (`*_web.dart`) lassen sich auf der VM nicht laden; sie stehen im Bericht unter „Ohne Messdaten“ und brauchen Browser-Tests.
 - **Bericht:** Tabelle je Datei in der Job-Zusammenfassung, HTML-Bericht im Artifact `coverage-html`, Rohdaten und Zusammenfassung in `coverage-lcov` (`report/summary.md`, `report/total.txt`).
 - **Check „Coverage darf nicht sinken“:** Auf Änderungsvorschläge vergleicht der Job die Zeilenabdeckung mit dem letzten erfolgreichen main-Lauf (Toleranz 0,10 Prozentpunkte). Ein Pflicht-Check mit 100 % folgt, sobald das erreicht ist.

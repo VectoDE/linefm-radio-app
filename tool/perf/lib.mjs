@@ -1,8 +1,8 @@
-// Gemeinsame Hilfen fuer tool/perf (nur Node-Standardbibliothek).
+// Shared helpers for tool/perf (Node standard library only).
 import { execFileSync } from 'node:child_process';
 import os from 'node:os';
 
-/** Median, Minimum, Maximum, Anzahl und Variationskoeffizient (in %). */
+/** Median, minimum, maximum, count and coefficient of variation (in %). */
 export function stats(values) {
   const v = values.filter((x) => typeof x === 'number' && Number.isFinite(x)).sort((a, b) => a - b);
   if (v.length === 0) return { n: 0, median: null, min: null, max: null, cv: null };
@@ -24,11 +24,11 @@ export function commitSha() {
   try {
     return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   } catch {
-    return 'unbekannt';
+    return 'unknown';
   }
 }
 
-/** Umgebung fuer den Bericht: Runner, CPU, Commit, Lauf-URL. */
+/** Environment for the report: runner, CPU, commit, run URL. */
 export function environment() {
   const cpus = os.cpus();
   const server = process.env.GITHUB_SERVER_URL;
@@ -45,7 +45,7 @@ export function environment() {
       imageVersion: process.env.ImageVersion ?? null,
       arch: process.env.RUNNER_ARCH ?? os.arch(),
     },
-    cpu: { model: cpus[0]?.model ?? 'unbekannt', cores: cpus.length },
+    cpu: { model: cpus[0]?.model ?? 'unknown', cores: cpus.length },
     memGiB: Math.round((os.totalmem() / 2 ** 30) * 10) / 10,
     node: process.version,
     at: new Date().toISOString(),

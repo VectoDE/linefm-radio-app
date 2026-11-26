@@ -476,7 +476,7 @@ Statt der Befehle aus Teil B kannst du ein Skript starten. Es prüft die Vorauss
 | `tool\bauen.ps1` | Windows (PowerShell 5.1 oder neuer, ohne Zusatzmodule) | `windows`, `web`, `apk`, `aab` |
 | `tool/bauen.sh` | Linux und macOS (bash) | `linux`, `macos`, `web`, `apk`, `aab` |
 
-Was geprüft wurde: Die Skripte starten in der CI im Workflow `Bau-Skripte` (`bauen-skripte.yml`) und bauen dort die Web-Version auf Windows (mit Windows PowerShell 5.1) und auf Ubuntu. Die anderen Ziele (windows, apk, aab, linux, macos) wurden mit den Skripten nicht gebaut, nur ihre Eingabeprüfung wurde getestet. Die dahinterliegenden Befehle sind dieselben wie in Teil B.
+Was geprüft wurde: Die Skripte starten in der CI im Workflow `Build scripts` (`build-scripts.yml`) und bauen dort die Web-Version auf Windows (mit Windows PowerShell 5.1) und auf Ubuntu. Die anderen Ziele (windows, apk, aab, linux, macos) wurden mit den Skripten nicht gebaut, nur ihre Eingabeprüfung wurde getestet. Die dahinterliegenden Befehle sind dieselben wie in Teil B.
 
 ### Windows
 
@@ -497,7 +497,7 @@ powershell -File tool\bauen.ps1 -Hilfe
 
 Was `-Oeffnen` tut: bei `windows` startet es die App, bei `web` startet es einen lokalen Server auf einem freien Port (ab 8090) und öffnet den Browser, bei `apk` und `aab` öffnet es den Ordner mit der Datei. Der Web-Server läuft im selben Fenster, beende ihn mit Strg+C.
 
-Du erkennst den Erfolg an der grünen Zeile `FERTIG nach ... Sekunden.` mit dem Pfad zum Ergebnis. Bei einem Fehler steht rot `FEHLER:` mit einer Erklärung, und das Skript endet mit Exit-Code 1 (falsche Eingabe: 2).
+Du erkennst den Erfolg an der grünen Zeile `DONE after ... seconds.` mit dem Pfad zum Ergebnis. Bei einem Fehler steht rot `bauen: ERROR:` mit einer Erklärung, und das Skript endet mit Exit-Code 1 (falsche Eingabe: 2).
 
 **Wenn Windows das Skript blockiert** ("Die Ausführung von Skripts ist auf diesem System deaktiviert" oder "nicht digital signiert"): Das passiert vor allem bei einem ZIP-Download von GitHub, weil Windows die Dateien als "aus dem Internet" markiert. Zwei offizielle Wege:
 

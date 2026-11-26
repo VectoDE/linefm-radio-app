@@ -1,26 +1,26 @@
-name: Sicherheitsfunde
+name: Security findings
 
-# Haelt fuer jeden offenen Sicherheits-Alert genau ein Ticket mit dem Label
-# typ:sicherheit offen und schliesst es, sobald der Alert zu ist.
-# Quellen: Code Scanning (CodeQL, Semgrep, Trivy, zizmor, Scorecard), Dependabot,
+# Keeps exactly one open ticket with the label typ:sicherheit for every open
+# security alert and closes it as soon as the alert is closed.
+# Sources: Code Scanning (CodeQL, Semgrep, Trivy, zizmor, Scorecard), Dependabot,
 # Secret Scanning.
 #
-# Ausloeser: nach jedem Lauf von CodeQL, Semgrep, Scorecard und Supply Chain auf
-# main, dazu woechentlich und von Hand. Es wird kein fremder Code ausgecheckt und
-# kein Artefakt gelesen; der Job liest nur die Alert-APIs und pflegt Tickets.
+# Triggers: after every CodeQL, Semgrep, Scorecard and Supply Chain run on main,
+# plus weekly and manually. No foreign code is checked out and no artifact is
+# read; the job only reads the alert APIs and maintains tickets.
 #
-# Das Repo ist oeffentlich: Die Tickets enthalten absichtlich nur Quelle, Nummer,
-# Schweregrad und den Link zum Alert (sichtbar nur fuer Betreuer), keine Dateipfade,
-# Meldungstexte oder Geheimnistypen.
+# The repo is public: the tickets deliberately contain only source, number,
+# severity and the link to the alert (visible to maintainers only), no file
+# paths, message texts or secret types.
 #
-# Rechte: GITHUB_TOKEN liest Code Scanning (security-events: read) und pflegt Tickets.
-# Dependabot- und Secret-Scanning-Alerts erreicht GITHUB_TOKEN nicht. Ein
-# zusaetzliches Token gibt es nach Entscheidung des Inhabers nicht (22.11.2026):
-# Der Abgleich beschraenkt sich regulaer auf Code Scanning. Dependabot- und
-# Secret-Funde werden ueber die Security-Ansicht des Repos geprueft (SECURITY.md).
+# Permissions: GITHUB_TOKEN reads Code Scanning (security-events: read) and
+# maintains tickets. GITHUB_TOKEN cannot reach Dependabot and Secret Scanning
+# alerts. By the owner's decision (2026-11-22) there is no additional token: the
+# sync is limited to Code Scanning. Dependabot and secret findings are reviewed
+# in the repo's Security view (SECURITY.md).
 
 on:
-  # Ausnahme dangerous-triggers in .github/zizmor.yml begruendet.
+  # The dangerous-triggers exception is justified in .github/zizmor.yml.
   workflow_run: # zizmor: ignore[dangerous-triggers]
     workflows: [CodeQL, Semgrep, OpenSSF Scorecard, Supply Chain]
     types: [completed]
@@ -37,8 +37,8 @@ concurrency:
 
 jobs:
   sync:
-    name: Alerts mit Tickets abgleichen
-    # Nur Laeufe aus Pushes auf main (nicht aus Laeufen von Aenderungsvorschlaegen mit Kopfzweig main aus Forks).
+    name: Sync alerts with tickets
+    # Only runs from pushes to main (not from change proposal runs with head branch main from forks).
     if: >-
       github.event_name != 'workflow_run' ||
       (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'schedule') &&
@@ -49,12 +49,12 @@ jobs:
       issues: write
       security-events: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
 
-      - name: Alerts abgleichen
+      - name: Sync alerts
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -64,21 +64,22 @@ jobs:
           work="$RUNNER_TEMP/alerts"
           mkdir -p "$work"
 
-          # Label anlegen, falls es fehlt.
+          # Create the label if it is missing.
           gh label create "$LABEL" --repo "$REPO" --color B60205 \
-            --description "Sicherheitsfund (automatisch aus Code Scanning, Dependabot, Secret Scanning)" 2>/dev/null || true
+            --description "Security finding (automatic, from Code Scanning, Dependabot, Secret Scanning)" 2>/dev/null || true
 
-          # Offene Alerts als Zeilen "quelle<TAB>nummer<TAB>schweregrad<TAB>werkzeug<TAB>url".
+          # Open alerts as lines "source<TAB>number<TAB>severity<TAB>tool<TAB>url".
           : > "$work/open.tsv"
           gh api --paginate "repos/$REPO/code-scanning/alerts?state=open&per_page=100" \
-            --jq '.[] | ["code-scanning", (.number|tostring), (.rule.security_severity_level // .rule.severity // "unbekannt"), .tool.name, .html_url] | @tsv' \
+            --jq '.[] | ["code-scanning", (.number|tostring), (.rule.security_severity_level // .rule.severity // "unknown"), .tool.name, .html_url] | @tsv' \
             >> "$work/open.tsv"
 
-          # Regulaerer Betrieb: nur Code Scanning. Dependabot und Secret Scanning
-          # sind mit dem Actions-Token nicht lesbar und werden nicht abgeglichen.
-          echo "::notice::Abgleich nur fuer Code Scanning. Dependabot- und Secret-Scanning-Alerts werden in der Security-Ansicht des Repos geprueft (siehe SECURITY.md)."
+          # Regular operation: Code Scanning only. Dependabot and Secret Scanning
+          # cannot be read with the Actions token and are not synced.
+          echo "::notice::Sync covers Code Scanning only. Dependabot and Secret Scanning alerts are reviewed in the repo's Security view (see SECURITY.md)."
 
-          # Vorhandene Tickets mit Marker "<!-- sicherheitsfund:quelle:nummer -->".
+          # Existing tickets with the marker "<!-- sicherheitsfund:source:number -->".
+          # The marker keeps its German key because existing tickets already carry it.
           gh issue list --repo "$REPO" --label "$LABEL" --state all --limit 1000 \
             --json number,state,body \
             --jq '.[] | (.body | capture("<!-- sicherheitsfund:(?<k>[a-z-]+):(?<n>[0-9]+) -->")?) as $m
@@ -92,45 +93,45 @@ jobs:
             if [ -z "$line" ]; then
               body="$(printf '%s\n\n%s\n\n%s\n%s\n%s\n%s\n\n%s\n%s\n%s\n%s\n' \
                 "<!-- sicherheitsfund:$key -->" \
-                "Automatisch angelegt vom Workflow Sicherheitsfunde (security-alerts.yml)." \
-                "- Quelle: $tool" \
+                "Created automatically by the Security findings workflow (security-alerts.yml)." \
+                "- Source: $tool" \
                 "- Alert: $kind #$num" \
-                "- Schweregrad: $sev" \
-                "- Details (nur fuer Betreuer sichtbar): $url" \
-                "## Aufgaben" \
-                "- [ ] Fund pruefen (erreichbar? echte Eingabequelle?)" \
-                "- [ ] Beheben oder mit Begruendung als False Positive/Won't fix schliessen" \
-                "- [ ] Alert ist geschlossen (dieses Ticket schliesst sich dann automatisch)")"
+                "- Severity: $sev" \
+                "- Details (visible to maintainers only): $url" \
+                "## Tasks" \
+                "- [ ] Review the finding (reachable? real input source?)" \
+                "- [ ] Fix it, or close it with a justification as false positive/won't fix" \
+                "- [ ] Alert is closed (this ticket then closes automatically)")"
               gh issue create --repo "$REPO" --label "$LABEL" \
-                --title "Sicherheitsfund: $tool, $kind #$num ($sev)" --body "$body"
+                --title "Security finding: $tool, $kind #$num ($sev)" --body "$body"
               created=$((created + 1))
             else
               inum="$(cut -f2 <<<"$line")"; istate="$(cut -f3 <<<"$line")"
               if [ "$istate" = "CLOSED" ]; then
-                gh issue reopen "$inum" --repo "$REPO" --comment "Der Alert $kind #$num ist wieder offen."
+                gh issue reopen "$inum" --repo "$REPO" --comment "Alert $kind #$num is open again."
                 reopened=$((reopened + 1))
               fi
             fi
           done < "$work/open.tsv"
 
-          # Offene Tickets schliessen, deren Code-Scanning-Alert nicht mehr offen ist.
-          # Tickets anderer Quellen bleiben unangetastet.
+          # Close open tickets whose Code Scanning alert is no longer open.
+          # Tickets from other sources are left untouched.
           while IFS=$'\t' read -r key inum istate; do
             [ "$istate" = "OPEN" ] || continue
             kind="${key%%:*}"
             [ "$kind" = "code-scanning" ] || continue
             if ! awk -F'\t' -v k="$key" '$1":"$2==k {f=1} END {exit !f}' "$work/open.tsv"; then
               gh issue close "$inum" --repo "$REPO" --reason completed \
-                --comment "Der Alert $key ist geschlossen (behoben oder begruendet verworfen)."
+                --comment "Alert $key is closed (fixed or dismissed with a justification)."
               closed=$((closed + 1))
             fi
           done < "$work/tickets.tsv"
 
           {
-            echo "### Sicherheitsfunde"
-            echo "- Offene Alerts: $(wc -l < "$work/open.tsv")"
-            echo "- Quelle: nur Code Scanning (Dependabot/Secret Scanning siehe Security-Ansicht)"
-            echo "- Tickets angelegt: $created, wieder geoeffnet: $reopened, geschlossen: $closed"
+            echo "### Security findings"
+            echo "- Open alerts: $(wc -l < "$work/open.tsv")"
+            echo "- Source: Code Scanning only (for Dependabot/Secret Scanning see the Security view)"
+            echo "- Tickets created: $created, reopened: $reopened, closed: $closed"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # Zero-warning rule: any warning or error in a job log or a check-run

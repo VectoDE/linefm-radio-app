@@ -18,6 +18,9 @@ import 'package:linefm_radio/services/audio/radio_player.dart';
 import 'package:linefm_radio/services/audio/reconnect_policy.dart';
 import 'package:rxdart/rxdart.dart' show BehaviorSubject, ValueStream;
 
+part 'audio_handler_playback.dart';
+part 'audio_handler_session.dart';
+
 /// Liefert die Stream-URL einer Station (Spec 3.3: `stream_url` aus der
 /// API, Rueckfall `https://stream.laut.fm/{slug}`).
 typedef StreamUrlResolver = Future<Uri> Function(Station station);
@@ -387,38 +390,6 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
       ..add(session.becomingNoisyEventStream.listen((_) => stopPlayback()));
   }
 
-  void _onInterruption(AudioInterruptionEvent event) {
-    if (event.begin) {
-      switch (event.type) {
-        case AudioInterruptionType.duck:
-          _ducked = true;
-          unawaited(_applyVolume());
-        case AudioInterruptionType.pause:
-        case AudioInterruptionType.unknown:
-          final wasActive = _desired != null;
-          if (wasActive) {
-            final station = _desired;
-            unawaited(stopPlayback());
-            _recent = station;
-          }
-          _resumeAfterInterruption = wasActive;
-      }
-    } else {
-      switch (event.type) {
-        case AudioInterruptionType.duck:
-          _ducked = false;
-          unawaited(_applyVolume());
-        case AudioInterruptionType.pause:
-          if (_resumeAfterInterruption && _recent != null) {
-            unawaited(playStation(_recent!));
-          }
-          _resumeAfterInterruption = false;
-        case AudioInterruptionType.unknown:
-          _resumeAfterInterruption = false;
-      }
-    }
-  }
-
   /// Fuer Tests: simuliert ein Unterbrechungsereignis.
   void debugInterrupt({required bool begin, bool duck = false}) =>
       _onInterruption(
@@ -427,136 +398,6 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
           duck ? AudioInterruptionType.duck : AudioInterruptionType.pause,
         ),
       );
-
-  // ------------------------------------------------------------- intern
-
-  Future<void> _connect(Station station, int gen) async {
-    _timeoutTimer?.cancel();
-    _timeoutTimer = Timer(connectTimeout, () {
-      if (gen == _generation) _onFailure('timeout');
-    });
-    try {
-      final url = await streamUrlResolver(station);
-      if (gen != _generation) return;
-      await _player.load(url);
-      // A newer switch (or stop) happened while this stream was
-      // loading. Starting it now would play the old station under the UI of
-      // the new one.
-      if (gen != _generation) return;
-      await _player.play();
-    } on Object catch (e) {
-      if (gen == _generation) _onFailure('$e');
-    }
-  }
-
-  void _onSignal(RadioSignal signal) {
-    if (_desired == null) return;
-    switch (signal) {
-      case RadioSignal.playing:
-        _timeoutTimer?.cancel();
-        _reconnectAttempt = 0;
-        _markPlaying();
-      case RadioSignal.buffering:
-        // Kurzes Nachpuffern im laufenden Betrieb aendert den Status nicht.
-        break;
-      case RadioSignal.ended:
-      case RadioSignal.error:
-        _onFailure(signal.name);
-      case RadioSignal.idle:
-        break;
-    }
-  }
-
-  void _markPlaying() {
-    if (_state.status == PlayerStatus.playing) return;
-    final gen = _generation;
-    final started = _connectStartedAt;
-    final elapsed = started == null
-        ? minConnectDuration
-        : DateTime.now().difference(started);
-    final remaining = minConnectDuration - elapsed;
-    if (_state.status == PlayerStatus.connecting && remaining > Duration.zero) {
-      _minDurationTimer?.cancel();
-      _minDurationTimer = Timer(remaining, () {
-        if (gen == _generation && _desired != null) {
-          _emit(_state.copyWith(status: PlayerStatus.playing));
-        }
-      });
-      return;
-    }
-    _emit(_state.copyWith(status: PlayerStatus.playing));
-  }
-
-  void _onFailure(String reason) {
-    final station = _desired;
-    if (station == null) return;
-    // Mehrfachmeldung desselben Abbruchs, Neuverbindung ist schon geplant.
-    if (_reconnectTimer?.isActive ?? false) return;
-    _errorMessage = reason;
-    _timeoutTimer?.cancel();
-    _minDurationTimer?.cancel();
-    // Erstes Verbinden gescheitert: sofort Fehler (UI zeigt Retry).
-    // Abbruch einer laufenden Wiedergabe: automatisch neu verbinden.
-    final wasEstablished =
-        _state.status == PlayerStatus.playing ||
-        _state.status == PlayerStatus.reconnecting;
-    final delay = wasEstablished
-        ? reconnectPolicy.delayFor(_reconnectAttempt)
-        : null;
-    if (delay == null) {
-      _generation++;
-      _desired = null;
-      _cancelTimers();
-      _emit(_state.copyWith(status: PlayerStatus.error));
-      unawaited(_player.stop().catchError((Object _) {}));
-      return;
-    }
-    _reconnectAttempt++;
-    final gen = ++_generation;
-    _emit(_state.copyWith(status: PlayerStatus.reconnecting));
-    unawaited(_player.stop().catchError((Object _) {}));
-    _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(delay, () {
-      if (gen == _generation && _desired == station) {
-        unawaited(_connect(station, gen));
-      }
-    });
-  }
-
-  Future<void> _skip(int step) async {
-    final current = _desired ?? _state.station ?? _recent;
-    final index = current == null ? -1 : stationsCatalog.indexOf(current);
-    final n = stationsCatalog.length;
-    final next = stationsCatalog[((index < 0 ? 0 : index + step) % n + n) % n];
-    await playStation(next);
-  }
-
-  Future<void> _applyVolume() async {
-    final v = _ducked ? _state.volume * 0.3 : _state.volume;
-    try {
-      await _player.setVolume(v);
-    } on Object catch (e) {
-      _errorMessage = '$e';
-    }
-  }
-
-  void _cancelTimers() {
-    _reconnectTimer?.cancel();
-    _timeoutTimer?.cancel();
-    _minDurationTimer?.cancel();
-  }
-
-  void _emit(PlayerUiState s) {
-    _state = s;
-    if (!_controller.isClosed) _controller.add(s);
-    _publishPlaybackState();
-  }
-
-  void _publishPlaybackState() {
-    playbackState.add(
-      playbackStateFor(_state.status, errorMessage: userErrorMessage()),
-    );
-  }
 
   /// Error text for the media session. Android Auto shows it on the car
   /// display, so it is a short localized sentence, never the technical

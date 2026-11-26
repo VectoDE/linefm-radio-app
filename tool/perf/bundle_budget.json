@@ -1,0 +1,33 @@
+{
+  "_comment": "Size budget for the release web build (flutter build web --wasm). gzip sizes use level 5 like nginx in deploy/. Baseline: performance run of 25.11.2026; budgets are about 10 % above it. Raise a value only with a reason in the commit message.",
+  "files_gzip": {
+    "main\\.([0-9a-f]+\\.)?dart\\.wasm": 1650000,
+    "main\\.([0-9a-f]+\\.)?dart\\.mjs": 16000,
+    "main\\.([0-9a-f]+\\.)?dart\\.js": 1400000,
+    "canvaskit/([^/]+/)?skwasm\\.wasm": 1750000,
+    "canvaskit/([^/]+/)?skwasm\\.js": 22000,
+    "flutter_bootstrap\\.js": 12000,
+    "index\\.html": 8000
+  },
+  "startup_gzip": {
+    "patterns": [
+      "main\\.([0-9a-f]+\\.)?dart\\.wasm",
+      "main\\.([0-9a-f]+\\.)?dart\\.mjs",
+      "canvaskit/([^/]+/)?skwasm\\.wasm",
+      "canvaskit/([^/]+/)?skwasm\\.js",
+      "flutter_bootstrap\\.js",
+      "index\\.html"
+    ],
+    "max": 3400000
+  },
+  "groups_raw": {
+    "app_fonts": {
+      "pattern": "^assets/(?!fonts/fallback/).*\\.(ttf|otf|woff2?)$",
+      "max": 450000
+    },
+    "images": {
+      "pattern": "\\.(png|jpe?g|webp|avif|gif|svg)$",
+      "max": 400000
+    }
+  }
+}

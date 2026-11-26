@@ -416,6 +416,11 @@ jobs:
           grep -qF '"useLocalCanvasKit":true' build/web/flutter_bootstrap.js || { echo "::error::flutter_bootstrap.js does not use the bundled CanvasKit"; exit 1; }
           echo "**Web build:** $(du -sh build/web | cut -f1), $(find build/web -type f | wc -l) files" >> "$GITHUB_STEP_SUMMARY"
 
+      # Size budget (tool/perf/bundle_budget.json): fails when the start-up
+      # files or app assets grow past it.
+      - name: Bundle budget
+        run: python3 -I tool/perf/bundle_budget.py build/web
+
       # Hand the finished build (including hidden files such as .well-known) to the hosting smoke tests.
       - name: Upload web build for the hosting tests
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -537,7 +542,6 @@ jobs:
             docker logs "$c" 2>&1 | tail -n 60 || true
             echo "::endgroup::"
           done
-
 
   # Zero-warning rule: any warning or error in a job log or a check-run
   # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json

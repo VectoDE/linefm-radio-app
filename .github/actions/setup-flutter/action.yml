@@ -16,19 +16,110 @@ inputs:
 outputs:
   version:
     description: Installierte Flutter-Version
-    value: ${{ steps.flutter.outputs.VERSION }}
+    value: ${{ steps.flutter.outputs.version }}
 
 runs:
   using: composite
   steps:
+    # The SDK is installed from the official release archive instead of
+    # subosito/flutter-action: that action references actions/cache by tag,
+    # and the repository rule requiring full-length commit SHAs rejects any
+    # nested tag reference at load time, even in skipped steps.
+    - name: Flutter-SDK-Cache
+      id: sdk-cache
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+      with:
+        path: ${{ runner.tool_cache }}/flutter-sdk/${{ inputs.flutter-version }}-${{ runner.arch }}
+        key: flutter-sdk-${{ runner.os }}-${{ runner.arch }}-stable-${{ inputs.flutter-version }}
+
+    - name: Pub-Cache
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+      with:
+        path: ${{ runner.tool_cache }}/pub-cache
+        key: pub-cache-${{ runner.os }}-${{ runner.arch }}-${{ inputs.flutter-version }}-${{ hashFiles('**/pubspec.lock') }}
+
     - name: Flutter-SDK installieren
       id: flutter
-      uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-      with:
-        channel: stable
-        flutter-version: ${{ inputs.flutter-version }}
-        cache: true
-        pub-cache: true
+      shell: bash
+      env:
+        FLUTTER_VERSION: ${{ inputs.flutter-version }}
+        SDK_ROOT: ${{ runner.tool_cache }}/flutter-sdk/${{ inputs.flutter-version }}-${{ runner.arch }}
+        PUB_ROOT: ${{ runner.tool_cache }}/pub-cache
+        CACHE_HIT: ${{ steps.sdk-cache.outputs.cache-hit }}
+      run: |
+        set -euo pipefail
+        case "$RUNNER_OS" in
+          Linux) platform=linux ;;
+          macOS) platform=macos ;;
+          Windows) platform=windows ;;
+          *) echo "::error::Unsupported runner OS $RUNNER_OS"; exit 1 ;;
+        esac
+        case "$RUNNER_ARCH" in
+          X64) arch=x64 ;;
+          ARM64) arch=arm64 ;;
+          *) echo "::error::Unsupported runner arch $RUNNER_ARCH"; exit 1 ;;
+        esac
+
+        if [ "$CACHE_HIT" != "true" ] || [ ! -x "$SDK_ROOT/flutter/bin/flutter" ]; then
+          work="$(mktemp -d)"
+          base="https://storage.googleapis.com/flutter_infra_release/releases"
+          curl -fsSL --retry 3 "$base/releases_${platform}.json" -o "$work/releases.json"
+          entry="$(jq -c --arg v "$FLUTTER_VERSION" --arg a "$arch"             '[.releases[] | select(.channel == "stable" and .version == $v
+              and ((.dart_sdk_arch // "x64") == $a))][0] // empty' "$work/releases.json")"
+          if [ -z "$entry" ]; then
+            echo "::error::Flutter $FLUTTER_VERSION (stable, $platform/$arch) not found in release manifest"
+            exit 1
+          fi
+          archive="$(jq -r '.archive' <<<"$entry")"
+          expected="$(jq -r '.sha256' <<<"$entry")"
+          file="$work/$(basename "$archive")"
+          curl -fsSL --retry 3 "$base/$archive" -o "$file"
+          if command -v sha256sum >/dev/null 2>&1; then
+            actual="$(sha256sum "$file" | cut -d' ' -f1)"
+          else
+            actual="$(shasum -a 256 "$file" | cut -d' ' -f1)"
+          fi
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::SHA-256 mismatch for $archive (expected $expected, got $actual)"
+            exit 1
+          fi
+          rm -rf "$SDK_ROOT"
+          mkdir -p "$SDK_ROOT"
+          case "$file" in
+            *.tar.xz) tar -xJf "$file" -C "$SDK_ROOT" ;;
+            *.zip)
+              if command -v unzip >/dev/null 2>&1; then
+                unzip -q "$file" -d "$SDK_ROOT"
+              else
+                7z x -y -o"$SDK_ROOT" "$file" >/dev/null
+              fi
+              ;;
+            *) echo "::error::Unknown archive format $archive"; exit 1 ;;
+          esac
+          rm -rf "$work"
+        fi
+
+        mkdir -p "$PUB_ROOT"
+        root="$SDK_ROOT/flutter"
+        pub="$PUB_ROOT"
+        git config --global --add safe.directory "$root"
+        if [ "$platform" = windows ]; then
+          root="$(cygpath -w "$root")"
+          pub="$(cygpath -w "$pub")"
+          sep='\'
+        else
+          sep='/'
+        fi
+        {
+          echo "FLUTTER_ROOT=$root"
+          echo "PUB_CACHE=$pub"
+        } >> "$GITHUB_ENV"
+        {
+          echo "${root}${sep}bin"
+          echo "${root}${sep}bin${sep}cache${sep}dart-sdk${sep}bin"
+          echo "${pub}${sep}bin"
+        } >> "$GITHUB_PATH"
+        echo "version=$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
 
     - name: Flutter-Version ausgeben
       shell: bash

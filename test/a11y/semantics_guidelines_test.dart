@@ -15,6 +15,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../app/app_host.dart';
 import '../golden_support.dart';
+import 'full_coverage_contrast.dart';
 
 /// Screens reachable through the navigation provider that make up the app.
 const List<AppScreen> _screens = <AppScreen>[
@@ -27,12 +28,13 @@ const List<AppScreen> _screens = <AppScreen>[
   AppScreen.about,
 ];
 
-/// Screens checked with the pixel-sampling [textContrastGuideline]. On the
-/// others (favorites, settings, alarm, about) the guideline reports ratios
-/// of 1.1 to 4.0 for text whose token colours measure 5.2:1 or better
-/// (test/ui/theme/contrast_test.dart): it samples anti-aliased glyph edges of
-/// small thin text and picks the wrong foreground. Their colours are covered
-/// by the token test instead, and by axe in a11y.yml.
+/// Screens checked with Flutter's [textContrastGuideline]. On the others
+/// (favorites, settings, alarm, about) it reports ratios of 1.1 to 4.0:1 for
+/// text whose rendered colour is the token colour at 5.2:1 or better: it
+/// picks anti-aliased edge pixels as the text colour (see
+/// full_coverage_contrast.dart for the evidence). There the contrast is
+/// checked by [FullCoverageContrastGuideline] instead, which also runs on all
+/// other screens.
 const List<AppScreen> _pixelContrastScreens = <AppScreen>[
   AppScreen.stations,
   AppScreen.player,
@@ -88,13 +90,18 @@ void main() {
           await disposeApp(tester, host);
         });
 
-        if (!_pixelContrastScreens.contains(screen)) continue;
         testWidgets('${screen.name}: text contrast', (tester) async {
           ignoreDelegateWarning();
           final handle = tester.ensureSemantics();
           final host = await _open(tester, screen, brightness);
 
-          await expectLater(tester, meetsGuideline(textContrastGuideline));
+          if (_pixelContrastScreens.contains(screen)) {
+            await expectLater(tester, meetsGuideline(textContrastGuideline));
+          }
+          await expectLater(
+            tester,
+            meetsGuideline(const FullCoverageContrastGuideline()),
+          );
 
           handle.dispose();
           await disposeApp(tester, host);
@@ -134,8 +141,8 @@ void main() {
           height: 720,
         );
 
-        // Tab through one full cycle: focus must wrap around (no trap) and every
-        // stop must be visible.
+        // Tab through two full cycles: focus must wrap around (no trap) and every
+        // stop must be visible, also when re-entering a scrolled list.
         const window = Rect.fromLTWH(0, 0, 1000, 720);
         final stops = <FocusNode>[];
         var period = 0;
@@ -146,12 +153,9 @@ void main() {
           final node = FocusManager.instance.primaryFocus;
           if (node == null || node.context == null) continue;
           stops.add(node);
-          // Every stop is on screen (scrolled into view, not lost off screen).
-          // Only the first cycle is checked: entering an already scrolled lazy
-          // list again from the navigation lands on a node outside the
-          // viewport (known gap, to be fixed separately).
+          // Every stop of every pass is on screen (scrolled into view).
           final box = node.context!.findRenderObject();
-          if (period == 0 && box is RenderBox && box.hasSize) {
+          if (box is RenderBox && box.hasSize) {
             final rect = box.localToGlobal(Offset.zero) & box.size;
             expect(
               window.overlaps(rect),
@@ -162,7 +166,7 @@ void main() {
           if (period == 0 && stops.length > 1 && identical(stops.first, node)) {
             period = stops.length - 1;
           }
-          if (period > 0) break;
+          if (period > 0 && stops.length >= 2 * period) break;
         }
         expect(period, greaterThan(0), reason: 'focus never wrapped around');
         // Navigation first: the first stop is the rail on the left.

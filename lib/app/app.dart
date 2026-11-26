@@ -18,6 +18,7 @@ import 'package:linefm_radio/platform/web_routes.dart';
 import 'package:linefm_radio/services/share/share_feedback.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:linefm_radio/ui/widgets/cover_image.dart';
+import 'package:linefm_radio/ui/widgets/focus_scroll_into_view.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Sprache aus `?lang=de|en` (Web, hreflang-Varianten), sonst `null`
@@ -124,11 +125,13 @@ class _LinefmAppState extends ConsumerState<LinefmApp> {
         setDocumentLang(resolved.languageCode);
         return resolved;
       },
-      builder: (context, child) => DesktopHost(
-        child: AlarmBootstrap(
-          child: ShareFeedbackListener(
-            child: StationUnavailableNotice(
-              child: LoaderGate(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => FocusScrollIntoView(
+        child: DesktopHost(
+          child: AlarmBootstrap(
+            child: ShareFeedbackListener(
+              child: StationUnavailableNotice(
+                child: LoaderGate(child: child ?? const SizedBox.shrink()),
+              ),
             ),
           ),
         ),

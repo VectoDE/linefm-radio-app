@@ -47,6 +47,18 @@
     "reason": "The iOS job is an unsigned compile check by design (no signing secrets outside releases); Flutter prints this notice for every --no-codesign build."
   },
   {
+    "pattern": "^/.+/sentry_flutter-\\d+\\.\\d+\\.\\d+/Sources/sentry_flutter_objc/include/SentryFlutterReplayScreenshotProvider\\.h:\\d+:\\d+: warning: pointer is missing a nullability type specifier",
+    "job": "iOS.widget.light.and.dark",
+    "expires": "2027-02-28",
+    "reason": "Header of sentry_flutter 10.6.0 (latest) compiled into the Runner for the widget snapshot test; the plugin's own Objective-C lacks a nullability annotation. A third-party source file, so no app-side change removes it. To be reported in the getsentry/sentry-dart tracker."
+  },
+  {
+    "pattern": "^1 warning generated\\.$",
+    "job": "iOS.widget.light.and.dark",
+    "expires": "2027-02-28",
+    "reason": "Summary line of the single sentry_flutter header warning allow-listed above; it disappears with it. sentry_flutter 10.6.0 is the latest release, a command-line OTHER_CFLAGS suppression does not reach the Swift package target."
+  },
+  {
     "pattern": "^Warning: 'no file associated with this alert' is not a valid URI in 'instance\\.runs\\[\\d+\\]\\.results\\[\\d+\\]\\.locations\\[0\\]\\.physicalLocation\\.artifactLocation\\.uri'\\.$",
     "job": "Scorecard",
     "expires": "2027-02-28",

@@ -66,9 +66,16 @@ jobs:
       - name: Xcode build cache
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
+          # Only what is expensive to rebuild: compiled intermediates, the
+          # module cache and fetched packages. Index data, logs and products
+          # are left out to keep the cache small (saving a full DerivedData
+          # folder took 11 minutes).
           path: |
-            build/derived-data
-            build/source-packages
+            build/derived-data/Build/Intermediates.noindex
+            build/derived-data/ModuleCache.noindex
+            build/derived-data/SourcePackages
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/org.swift.swiftpm
           key: widget-xcode-${{ runner.os }}-${{ runner.arch }}-${{ steps.sim.outputs.xcode }}-${{ hashFiles('pubspec.lock', 'ios/Podfile.lock', 'ios/Runner.xcodeproj/project.pbxproj') }}
           restore-keys: |
             widget-xcode-${{ runner.os }}-${{ runner.arch }}-${{ steps.sim.outputs.xcode }}-
@@ -91,8 +98,7 @@ jobs:
             -workspace ios/Runner.xcworkspace -scheme Runner \
             -destination "platform=iOS Simulator,id=$UDID,arch=arm64" \
             -derivedDataPath build/derived-data \
-            -clonedSourcePackagesDirPath build/source-packages \
-            CODE_SIGNING_ALLOWED=NO OTHER_CFLAGS='$(inherited) -Wno-nullability-completeness'
+            CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO
 
       - name: Render widget snapshots (light and dark)
         shell: bash
@@ -102,12 +108,16 @@ jobs:
           set -euo pipefail
           out="$RUNNER_TEMP/widget-evidence"
           mkdir -p "$out"
+          # No parallel testing and no concurrent destinations: otherwise
+          # xcodebuild clones and boots extra simulators and runs the suite
+          # once per clone.
           TEST_RUNNER_WIDGET_SNAPSHOT_DIR="$out" xcodebuild test-without-building -quiet \
             -workspace ios/Runner.xcworkspace -scheme Runner \
             -destination "platform=iOS Simulator,id=$UDID,arch=arm64" \
             -derivedDataPath build/derived-data \
+            -parallel-testing-enabled NO -disable-concurrent-destination-testing \
             -only-testing:RunnerTests/WidgetSnapshotTests \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO
           for f in small-light small-dark medium-light medium-dark; do
             test -s "$out/widget-$f.png"
           done
@@ -122,8 +132,7 @@ jobs:
           app=$(find build/derived-data/Build/Products -maxdepth 2 -name Runner.app -path '*iphonesimulator*' | head -n 1)
           test -n "$app"
           test -x "$app/PlugIns/LinefmWidgetExtension.appex/LinefmWidgetExtension"
-          # xcodebuild test may leave the simulator shut down.
-          xcrun simctl boot "$UDID" 2>/dev/null || true
+          # The tests ran on this device (no clones); make sure it is up.
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl install "$UDID" "$app"
           xcrun simctl io "$UDID" recordVideo --codec=h264 --force "$out/simulator.mp4" &

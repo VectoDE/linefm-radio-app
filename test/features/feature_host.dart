@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/providers.dart';
-import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/features/legal/external_link.dart';
@@ -14,6 +13,8 @@ import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
+
+import '../support/test_doubles.dart';
 
 /// Konfiguration mit Umami, damit Telemetrie als konfiguriert gilt.
 const AppConfig telemetryConfig = AppConfig(

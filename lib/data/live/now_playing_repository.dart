@@ -50,59 +50,6 @@ abstract interface class NowPlayingRepository {
   void dispose();
 }
 
-/// Statische Daten ohne Netzwerk.
-class FakeNowPlayingRepository implements NowPlayingRepository {
-  FakeNowPlayingRepository({
-    Map<String, Track> tracks = const <String, Track>{},
-    this.history = const <HistoryEntry>[],
-    this.listeners,
-    // ignore: prefer_initializing_formals
-  }) : _tracks = tracks;
-
-  final Map<String, Track> _tracks;
-  final List<HistoryEntry> history;
-  final int? listeners;
-
-  @override
-  Stream<List<StationLive>> watchStations() =>
-      Stream<List<StationLive>>.value(<StationLive>[
-        for (final s in stationsCatalog)
-          StationLive(station: s, track: _tracks[s.slug]),
-      ]);
-
-  @override
-  Stream<Track?> watchTrack(Station station) =>
-      Stream<Track?>.value(_tracks[station.slug]);
-
-  @override
-  Stream<List<HistoryEntry>> watchHistory(Station station) =>
-      Stream<List<HistoryEntry>>.value(history);
-
-  @override
-  Stream<int?> watchListeners(Station station) => Stream<int?>.value(listeners);
-
-  @override
-  Stream<bool> watchOnline() => Stream<bool>.value(true);
-
-  @override
-  void setActiveStation(Station station) {}
-
-  @override
-  void setForeground({required bool value}) {}
-
-  @override
-  void setPlaying({required bool value}) {}
-
-  @override
-  Future<void> refresh() async {}
-
-  @override
-  void forgetRestored() {}
-
-  @override
-  void dispose() {}
-}
-
 /// Echte Implementierung.
 ///
 /// 1. WebSocket nur, wenn uebergeben (Standard: keiner, `WS_ENABLED=false`)

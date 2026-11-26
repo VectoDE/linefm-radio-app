@@ -68,7 +68,10 @@ final telemetryProvider = Provider<TelemetryHub>(
 
 // ------------------------------------------------------------------- Dienste
 
-final lautApiProvider = Provider<LautApi>((ref) => const StubLautApi());
+/// Set by productionOverrides(); tests use their own doubles.
+final lautApiProvider = Provider<LautApi>(
+  (ref) => throw UnimplementedError('lautApiProvider must be overridden'),
+);
 
 /// Schedule of a station (slug); empty on error or without a schedule.
 final stationScheduleProvider =
@@ -84,11 +87,12 @@ final artworkProvider = Provider<ArtworkService>(
   (ref) => const NoopArtworkService(),
 );
 
-final nowPlayingRepositoryProvider = Provider<NowPlayingRepository>((ref) {
-  final repo = FakeNowPlayingRepository();
-  bindNowPlayingRepository(ref, repo);
-  return repo;
-});
+/// Set by productionOverrides(); tests use their own doubles.
+final nowPlayingRepositoryProvider = Provider<NowPlayingRepository>(
+  (ref) => throw UnimplementedError(
+    'nowPlayingRepositoryProvider must be overridden',
+  ),
+);
 
 /// Bindet den Live-Daten-Motor an die App: gewaehlte Station und laufende
 /// Wiedergabe steuern Timer und Abrufe; `dispose` beendet Timer und

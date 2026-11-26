@@ -4,9 +4,10 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/data/artwork/itunes_artwork.dart';
 import 'package:linefm_radio/domain/track.dart';
+
+import '../../support/test_doubles.dart';
 
 final _hit = File('test/fixtures/itunes/search_hit.json').readAsStringSync();
 final _empty = File('test/fixtures/itunes/search_empty.json')

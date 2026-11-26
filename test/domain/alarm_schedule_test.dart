@@ -3,6 +3,8 @@ import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/alarm/alarm_schedule.dart';
 
+import '../support/test_doubles.dart';
+
 /// Die Zeitumstellungs-Tests mit festen Uhrzeiten gelten fuer Zeitzonen mit
 /// EU-Regel (Europe/Berlin). In anderen Zeitzonen (z. B. UTC in der CI) laufen
 /// stattdessen die zonenunabhaengigen Eigenschaftstests weiter unten.

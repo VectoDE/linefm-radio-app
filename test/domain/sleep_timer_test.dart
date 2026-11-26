@@ -1,7 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/domain/sleep_timer/sleep_timer_logic.dart';
 import 'package:linefm_radio/domain/track.dart';
+
+import '../support/test_doubles.dart';
 
 void main() {
   final t0 = DateTime(2026, 11, 18, 22);

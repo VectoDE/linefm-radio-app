@@ -3,8 +3,9 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/data/api/song_change_socket.dart';
+
+import '../../support/test_doubles.dart';
 
 const _linefm =
     '{"id":12,"title":"River","started_at":"2026-11-18 21:31:46 +0100",'

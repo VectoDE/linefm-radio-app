@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/app.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
-import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/history_entry.dart';
@@ -17,6 +16,8 @@ import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:material_ui/material_ui.dart';
+
+import '../support/test_doubles.dart';
 
 const Track trackMain = Track(artist: 'James Hype', title: "I Was Lovin' You");
 const Track trackRap = Track(

@@ -54,19 +54,6 @@ abstract interface class SongChangeSocket {
   Future<void> close();
 }
 
-class StubSongChangeSocket implements SongChangeSocket {
-  const StubSongChangeSocket();
-
-  @override
-  Stream<SongChange> get changes => const Stream<SongChange>.empty();
-
-  @override
-  Future<void> connect() async {}
-
-  @override
-  Future<void> close() async {}
-}
-
 /// Traffic-Waechter fuer den Titelwechsel-WebSocket.
 ///
 /// Messung 18.11.2026 (10 min, siehe P03-Bericht): Der Kanal liefert die

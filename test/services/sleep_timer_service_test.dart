@@ -1,13 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/sleep_timer/sleep_timer_logic.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
+
+import '../support/test_doubles.dart';
 
 /// Merkt jede Lautstaerke und jeden Stop.
 class _Playback extends NoopPlaybackService {

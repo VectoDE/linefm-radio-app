@@ -25,6 +25,9 @@
 /analytics.js
   Cache-Control: no-cache
 
+/cast.js
+  Cache-Control: no-cache
+
 /sw.js
   Cache-Control: no-cache
 

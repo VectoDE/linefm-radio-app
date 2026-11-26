@@ -8,8 +8,8 @@
 //  3. Replace placeholders (base URL, Search Console verification, build ID in sw.js,
 //     lastmod of the sitemap = build date, SOURCE_DATE_EPOCH if set)
 //  4. Render hosting files from deploy/ (header files, __CSP_CONNECT_EXTRA__,
-//     __CSP_SCRIPT_EXTRA__, __CSP_IMG_EXTRA__; Google sources only with GTM_ID or
-//     GA4_MEASUREMENT_ID in the configuration)
+//     __CSP_SCRIPT_EXTRA__, __CSP_IMG_EXTRA__; www.gstatic.com for Google Cast always,
+//     Google tag sources only with GTM_ID or GA4_MEASUREMENT_ID in the configuration)
 //  5. Remove ballast (source maps, *.symbols, unused engine variants, default Flutter SW)
 //  6. Write asset-manifest.txt with the SHA-256 of all files
 //
@@ -210,9 +210,19 @@ String deriveCspConnectExtra(Map<String, dynamic> config) {
   return sources.join(' ');
 }
 
-/// Additional script-src and img-src sources (only with Google IDs).
-String deriveCspScriptExtra(Map<String, dynamic> config) =>
-    googleTagConfigured(config) ? googleTagScriptSources : '';
+/// Google Cast in the web version: web/cast.js injects the Cast sender script
+/// from www.gstatic.com, which loads the Cast framework from the same host
+/// (developers.google.com/cast/docs/web_sender/integrate). Only after consent;
+/// the CSP merely permits it.
+const String googleCastScriptSources = 'https://www.gstatic.com';
+
+/// Additional script-src sources: Google Cast always, Google tag only with IDs.
+String deriveCspScriptExtra(Map<String, dynamic> config) => <String>[
+  googleCastScriptSources,
+  if (googleTagConfigured(config)) googleTagScriptSources,
+].join(' ');
+
+/// Additional img-src sources (only with Google IDs).
 String deriveCspImgExtra(Map<String, dynamic> config) =>
     googleTagConfigured(config) ? googleTagImgSources : '';
 

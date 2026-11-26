@@ -95,6 +95,15 @@ jobs:
         timeout-minutes: 5
         run: node analytics_net.mjs --web ../../build/web --mode none
 
+      # Google Cast without hardware: tool/a11y/cast_net.mjs serves the build with
+      # the deployed CSP and answers the gstatic cast_sender.js request with a
+      # fake Cast SDK. Checks consent gating, loadMedia (stream URL, metadata),
+      # revocation and that no CSP violation occurs.
+      - name: Google Cast check with a fake Cast SDK
+        working-directory: tool/a11y
+        timeout-minutes: 5
+        run: node cast_net.mjs --web ../../build/web --hosting ../../build/hosting
+
       - name: Build web with test IDs (GTM-TEST000, G-TEST000000)
         run: |
           set -euo pipefail

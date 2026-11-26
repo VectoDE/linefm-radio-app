@@ -14,6 +14,7 @@ const SHELL = [
   'index.html',
   'flutter_bootstrap.js',
   'analytics.js',
+  'cast.js',
   'manifest.webmanifest',
   'favicon.png',
   'icons/Icon-192.png',

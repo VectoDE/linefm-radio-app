@@ -6,6 +6,7 @@ import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/features/about/about_screen.dart';
 import 'package:linefm_radio/features/about/radiogruppe_logo.dart';
 import 'package:linefm_radio/features/alarm/alarm_screen.dart';
+import 'package:linefm_radio/features/consent/cast_consent.dart';
 import 'package:linefm_radio/features/consent/google_consent.dart';
 import 'package:linefm_radio/features/legal/external_link.dart';
 import 'package:linefm_radio/features/legal/legal_document.dart';
@@ -173,6 +174,16 @@ class SettingsScreen extends ConsumerWidget {
                   label: Text(l10n.coverCacheSizeMb(limit.megabytes)),
                 ),
             ],
+          ),
+        if (ref.watch(browserCastBridgeProvider).supported)
+          SettingsSwitch(
+            title: l10n.settingCastTitle,
+            subtitle: ref.watch(castConsentProvider) == true
+                ? l10n.settingCastBodyOn
+                : l10n.settingCastBodyOff,
+            value: ref.watch(castConsentProvider) == true,
+            onChanged: (v) =>
+                ref.read(castConsentProvider.notifier).set(value: v),
           ),
         const _StorageSection(),
         _NavRow(title: l10n.settingAboutTitle, onTap: () => openAbout(context)),

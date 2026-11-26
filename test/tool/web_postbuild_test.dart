@@ -586,14 +586,18 @@ void main() {
     test('ohne IDs keine Google-Quellen, CSP bleibt streng', () {
       const cfg = <String, dynamic>{'GTM_ID': '', 'GA4_MEASUREMENT_ID': ' '};
       expect(googleTagConfigured(cfg), isFalse);
-      expect(deriveCspScriptExtra(cfg), isEmpty);
+      // Only the Cast host (consent-gated in web/cast.js), no tag manager.
+      expect(deriveCspScriptExtra(cfg), 'https://www.gstatic.com');
       expect(deriveCspImgExtra(cfg), isEmpty);
       expect(deriveCspConnectExtra(cfg), isNot(contains('google')));
     });
 
     test('mit IDs: script-, img- und connect-src erweitert', () {
       expect(googleTagConfigured(ids), isTrue);
-      expect(deriveCspScriptExtra(ids), 'https://www.googletagmanager.com');
+      expect(
+        deriveCspScriptExtra(ids),
+        'https://www.gstatic.com https://www.googletagmanager.com',
+      );
       expect(
         deriveCspImgExtra(ids),
         contains('https://*.google-analytics.com'),

@@ -787,6 +787,43 @@ class AppLocalizationsDe extends AppLocalizations {
   String get castDisconnect => 'Übertragung beenden';
 
   @override
+  String get castUnavailable =>
+      'Google Cast ist auf diesem Gerät nicht verfügbar. Auf Android braucht es dafür die Google-Play-Dienste.';
+
+  @override
+  String get castChooseDevice => 'Gerät auswählen';
+
+  @override
+  String get castConsentTitle => 'Übertragen mit Google Cast';
+
+  @override
+  String get castConsentIntro =>
+      'Damit du das Radio auf einen Chromecast oder einen Lautsprecher mit Google Cast schicken kannst, braucht die Seite ein Skript von Google. Es lädt erst, wenn du hier zustimmst.';
+
+  @override
+  String get castConsentRecipient =>
+      'Anbieter ist Google Ireland Limited (Dublin, Irland). Beim Laden erhält Google deine IP-Adresse und Angaben zu Browser und Gerät. Beim Übertragen bekommt das Cast-Gerät Stream-Adresse, Titel, Künstler und Cover und spielt den Stream direkt von laut.fm ab.';
+
+  @override
+  String get castConsentTransfer =>
+      'Google kann die Daten an Google LLC in den USA übermitteln. Grundlage ist das EU-US Data Privacy Framework, für das die EU-Kommission ein angemessenes Datenschutzniveau festgestellt hat.';
+
+  @override
+  String get castConsentOutro =>
+      'Die Einwilligung ist freiwillig und getrennt von der Reichweitenmessung. Du kannst sie jederzeit in den Einstellungen widerrufen. War Cast schon geladen, lädt die Seite dann einmal neu.';
+
+  @override
+  String get settingCastTitle => 'Google Cast (Chromecast)';
+
+  @override
+  String get settingCastBodyOn =>
+      'Erlaubt. Die Seite darf das Cast-Skript von Google laden. Widerrufen geht jederzeit; die Seite lädt dann einmal neu.';
+
+  @override
+  String get settingCastBodyOff =>
+      'Nicht erlaubt. Für Cast lädt die Seite nichts von Google.';
+
+  @override
   String get airplayButton => 'AirPlay';
 
   @override

@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/core/logging.dart';
+import 'package:linefm_radio/features/consent/cast_consent.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/services/cast/browser_cast.dart';
 import 'package:linefm_radio/services/cast/cast_backend.dart';
 import 'package:linefm_radio/services/cast/cast_service.dart';
 import 'package:linefm_radio/ui/theme/station_style.dart';
@@ -23,6 +26,11 @@ import 'package:material_ui/material_ui.dart';
 /// Das Google-Cast-SDK startet erst beim ersten Tippen auf den Knopf (L4):
 /// Vorher zeigt Android/iOS einen schlichten Cast-Knopf, und es geht keine
 /// Anfrage an Google. Erst danach sucht die App nach Geräten.
+///
+/// Web (Chromium-Browser): Vor dem ersten Laden des Google-Cast-Skripts fragt
+/// ein Dialog nach der Einwilligung (web/cast.js). Ohne Zustimmung bleibt es
+/// beim schlichten Knopf, und nichts wird von Google geladen. Die Geräteauswahl
+/// zeigt danach der Browser selbst.
 class CastButton extends ConsumerStatefulWidget {
   const CastButton({super.key});
 
@@ -39,7 +47,8 @@ class _CastButtonState extends ConsumerState<CastButton> {
   /// kein schon gestarteter Dienst, z. B. in Tests übergeben).
   bool get _dormant =>
       castBackend == null &&
-      castPlatformSupported() &&
+      (castPlatformSupported() ||
+          ref.read(browserCastBridgeProvider).supported) &&
       !_initialized &&
       ref.read(castServiceProvider) is NoopCastService;
 
@@ -57,15 +66,48 @@ class _CastButtonState extends ConsumerState<CastButton> {
   /// Erstes Tippen: SDK starten, Dienst neu erzeugen, dann das Sheet.
   Future<void> _activate() async {
     if (_activating) return;
+    if (!await _ensureWebConsent()) return;
+    if (!mounted) return;
     setState(() => _activating = true);
-    await initCast();
+    try {
+      await initCast();
+    } on Object catch (e) {
+      logError('Cast start failed', e);
+    }
     if (!mounted) return;
     _initialized = true;
     ref.invalidate(castServiceProvider);
     _service = ref.read(castServiceProvider);
     setState(() => _activating = false);
+    if (castBackend == null) {
+      // No SDK (e.g. Android without Google Play services): say why instead
+      // of an empty device sheet; the button hides afterwards.
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).castUnavailable)),
+      );
+      return;
+    }
     await _openSheet();
   }
+
+  /// Web: asks for consent before Google's Cast script may load. `true` when
+  /// allowed (now or earlier); always `true` outside the web version.
+  Future<bool> _ensureWebConsent() async {
+    if (!ref.read(browserCastBridgeProvider).supported) return true;
+    if (ref.read(castConsentProvider) == true) return true;
+    final allowed = await showCastConsentDialog(context);
+    if (allowed == null || !mounted) return false;
+    ref.read(castConsentProvider.notifier).set(value: allowed);
+    return allowed;
+  }
+
+  /// Web: the browser shows its own device picker. Tapping the button opens
+  /// it right away (fresh user gesture), no sheet in between.
+  bool _browserPicker(CastState state) =>
+      !state.isCasting &&
+      !state.connecting &&
+      state.devices.length == 1 &&
+      state.devices.first.id == browserPickerDeviceId;
 
   @override
   void dispose() {
@@ -122,6 +164,14 @@ class _CastButtonState extends ConsumerState<CastButton> {
     final label = active
         ? l10n.castConnectedTo(state.connectedDevice!.name)
         : l10n.castButton;
+    if (_browserPicker(state)) {
+      final service = ref.read(castServiceProvider);
+      return _button(
+        label: label,
+        active: false,
+        onTap: () => unawaited(service.connect(state.devices.first)),
+      );
+    }
     return _button(label: label, active: active, onTap: _openSheet);
   }
 
@@ -230,7 +280,9 @@ class CastSheet extends ConsumerWidget {
         rows.add(
           _SheetRow(
             icon: Icons.cast,
-            label: device.name,
+            label: device.id == browserPickerDeviceId
+                ? l10n.castChooseDevice
+                : device.name,
             onTap: () {
               close();
               unawaited(service.connect(device));

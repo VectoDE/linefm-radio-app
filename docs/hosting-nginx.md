@@ -11,7 +11,7 @@ Für einen eigenen Server mit nativ installiertem nginx. Überblick und Cache-Re
 | `build/hosting/nginx/snippets/linefm-locations.conf` | `/etc/nginx/snippets/linefm-locations.conf` |
 | `build/web/` | `/var/www/linefm-app/releases/<version>/` |
 
-Die Snippets kommen aus `build/hosting/` (nach dem Postbuild), nicht aus `deploy/`. Nur dort sind `__CSP_CONNECT_EXTRA__`, `__CSP_SCRIPT_EXTRA__` und `__CSP_IMG_EXTRA__` ersetzt (Telemetrie-Domains, Google-Quellen nur mit `GTM_ID` bzw. `GA4_MEASUREMENT_ID`, sonst leer).
+Die Snippets kommen aus `build/hosting/` (nach dem Postbuild), nicht aus `deploy/`. Nur dort sind `__CSP_CONNECT_EXTRA__`, `__CSP_SCRIPT_EXTRA__` und `__CSP_IMG_EXTRA__` ersetzt (Telemetrie-Domains; `https://www.gstatic.com` in `script-src` immer, für Google Cast, das erst nach Einwilligung lädt; Google-Tag-Quellen nur mit `GTM_ID` bzw. `GA4_MEASUREMENT_ID`, sonst leer).
 
 ## Einrichtung (einmalig)
 

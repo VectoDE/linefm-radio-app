@@ -25,6 +25,9 @@
 		D17A00000000000000000012 /* StationLogos.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D17A00000000000000000011 /* StationLogos.xcassets */; };
 		D17A00000000000000000013 /* StationLogos.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D17A00000000000000000011 /* StationLogos.xcassets */; };
 		D17A00000000000000000017 /* LinefmWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17A00000000000000000016 /* LinefmWidget.swift */; };
+		D17A0000000000000000002C /* LinefmWidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17A0000000000000000002B /* LinefmWidgetViews.swift */; };
+		D17A0000000000000000002D /* LinefmWidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17A0000000000000000002B /* LinefmWidgetViews.swift */; };
+		D17A0000000000000000002F /* WidgetSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17A0000000000000000002E /* WidgetSnapshotTests.swift */; };
 		D17A0000000000000000001C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D17A0000000000000000001B /* PrivacyInfo.xcprivacy */; };
 		D17A0000000000000000001E /* LinefmWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D17A0000000000000000001D /* LinefmWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -99,6 +102,8 @@
 		D17A0000000000000000000F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		D17A00000000000000000011 /* StationLogos.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = StationLogos.xcassets; sourceTree = "<group>"; };
 		D17A00000000000000000016 /* LinefmWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinefmWidget.swift; sourceTree = "<group>"; };
+		D17A0000000000000000002B /* LinefmWidgetViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinefmWidgetViews.swift; sourceTree = "<group>"; };
+		D17A0000000000000000002E /* WidgetSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotTests.swift; sourceTree = "<group>"; };
 		D17A00000000000000000018 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D17A00000000000000000019 /* LinefmWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LinefmWidget.entitlements; sourceTree = "<group>"; };
 		D17A0000000000000000001A /* LinefmWidget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = LinefmWidget.xcconfig; sourceTree = "<group>"; };
@@ -129,6 +134,7 @@
 			isa = PBXGroup;
 			children = (
 				331C807B294A618700263BE5 /* RunnerTests.swift */,
+				D17A0000000000000000002E /* WidgetSnapshotTests.swift */,
 			);
 			path = RunnerTests;
 			sourceTree = "<group>";
@@ -203,6 +209,7 @@
 			isa = PBXGroup;
 			children = (
 				D17A00000000000000000016 /* LinefmWidget.swift */,
+				D17A0000000000000000002B /* LinefmWidgetViews.swift */,
 				D17A00000000000000000018 /* Info.plist */,
 				D17A0000000000000000001B /* PrivacyInfo.xcprivacy */,
 				D17A00000000000000000019 /* LinefmWidget.entitlements */,
@@ -394,6 +401,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */,
+				D17A0000000000000000002D /* LinefmWidgetViews.swift in Sources */,
+				D17A0000000000000000002F /* WidgetSnapshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -416,6 +425,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D17A00000000000000000017 /* LinefmWidget.swift in Sources */,
+				D17A0000000000000000002C /* LinefmWidgetViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -174,7 +174,16 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 - [ ] Screenshots zeigen die echte App und keine Fantasiedaten, nichts Fremdes (keine Cover von Dritten in Großansicht ohne Freigabe).
 - [ ] Altersangabe stimmt: 13+ in allen Stores, OARS Kraftausdrücke moderat (+RAP: Kraftausdrücke möglich).
 - [ ] Google Play: "Datensicherheit" und "App-Inhalte" zur Datenschutzerklärung passend ausgefüllt (siehe [EINRICHTUNG.md](EINRICHTUNG.md), Abschnitt 13.1).
-- [ ] Google Play: Werbung "nein", Werbe-ID "nein", Nachrichten-App "nein", Prüfhinweise ausgefüllt (Schritte 6.5, 6.13).
+- [ ] Google Play: Erklärungen Gesundheit, Finanzen, Behörde, Nachrichten, Werbung und Werbe-ID jeweils "nein", Prüfhinweise ausgefüllt, Kontaktdaten per Code bestätigt (Schritte 6.1, 6.5, 6.13, [G-10](STORE-RICHTLINIEN.md#g-10), [G-35](STORE-RICHTLINIEN.md#g-35), [G-36](STORE-RICHTLINIEN.md#g-36), [G-37](STORE-RICHTLINIEN.md#g-37), [G-38](STORE-RICHTLINIEN.md#g-38), [G-39](STORE-RICHTLINIEN.md#g-39), [G-40](STORE-RICHTLINIEN.md#g-40), [G-53](STORE-RICHTLINIEN.md#g-53)).
+- [ ] Google Play: Vordergrunddienst-Erklärung mit Anwendungsfall und Video, Vollbild-Intent mit Nutzerabfrage ([G-43](STORE-RICHTLINIEN.md#g-43), [G-44](STORE-RICHTLINIEN.md#g-44)).
+- [ ] Datensicherheit: Löschfrage beantwortet, optionale Erhebung gekennzeichnet, SDK-Daten (Sentry, Firebase, Cast) enthalten ([G-45](STORE-RICHTLINIEN.md#g-45), [G-46](STORE-RICHTLINIEN.md#g-46)).
+- [ ] IARC-Fragebogen nach inhaltlichen Änderungen neu eingereicht ([G-49](STORE-RICHTLINIEN.md#g-49)).
+- [ ] Entwicklerverifizierung für das Direkt-APK ([G-41](STORE-RICHTLINIEN.md#g-41), [G-52](STORE-RICHTLINIEN.md#g-52)).
+- [ ] Microsoft: Werbung "nein", Texte und Screenshots bis PEGI 12 (auch Songtitel), Händlerstatus angegeben, laut.fm während der Zertifizierung erreichbar ([M-25](STORE-RICHTLINIEN.md#m-25), [M-26](STORE-RICHTLINIEN.md#m-26), [M-27](STORE-RICHTLINIEN.md#m-27), [M-29](STORE-RICHTLINIEN.md#m-29)).
+- [ ] Radio3FM und FobFM: schriftliche Erlaubnis für Namen, Logos und Streams liegt vor ([M-28](STORE-RICHTLINIEN.md#m-28), [D-03](STORE-RICHTLINIEN.md#d-03)).
+- [ ] Snap: Datenschutz-URL und Kontakt im Eintrag ([S-09](STORE-RICHTLINIEN.md#s-09)).
+- [ ] Flathub: Manifest-Repo von einem Menschen angelegt und gepflegt, KI-Anteil nur gegenüber Flathub offengelegt, Pflege sichtbar, Domain per Datei oder DNS bestätigt ([F-15](STORE-RICHTLINIEN.md#f-15), [F-16](STORE-RICHTLINIEN.md#f-16), [F-20](STORE-RICHTLINIEN.md#f-20)).
+- [ ] Apple (spätere Runde): Händlerstatus je App, keine Werbedaten in den Labels ([A-34](STORE-RICHTLINIEN.md#a-34), [A-43](STORE-RICHTLINIEN.md#a-43)).
 - [ ] Android Auto: Formfaktor hinzugefügt, Auto-Prüfung bestanden (Schritt 6.10, [G-21](STORE-RICHTLINIEN.md#g-21)).
 - [ ] 16-KB-Prüfung ohne Fehler (Schritt 6.11, [G-22](STORE-RICHTLINIEN.md#g-22)).
 - [ ] Google Play: Erklärung zu `USE_FULL_SCREEN_INTENT` (Vollbild-Alarm bei gesperrtem Bildschirm) und Foreground-Service (Dienst für die Wiedergabe im Hintergrund) gestellt, Entscheidung zum Umgang mit einer Ablehnung festgehalten.
@@ -203,13 +212,13 @@ Die Schritte dazu stehen in [EINRICHTUNG.md](EINRICHTUNG.md), Abschnitte 17 bis 
 - [ ] Schriftliche Freigaben Radio3FM und FobFM abgelegt (Schritt 17.8).
 - [ ] `/lizenz/` (de und en) erreichbar, Fremdlizenzen vollständig ([F-07](STORE-RICHTLINIEN.md#f-07), [W-04](STORE-RICHTLINIEN.md#w-04), Schritt 17.9).
 - [ ] Altersfreigabe überall 13+ (IARC bei Google und Microsoft), Zielgruppe 13+, OARS "Kraftausdrücke: moderat", keine Kinderzielgruppe ([G-19](STORE-RICHTLINIEN.md#g-19), [G-20](STORE-RICHTLINIEN.md#g-20), [A-17](STORE-RICHTLINIEN.md#a-17), [M-18](STORE-RICHTLINIEN.md#m-18), [F-10](STORE-RICHTLINIEN.md#f-10)).
-- [ ] Jugendschutz: Anwalt hat geprüft, ob ein Jugendschutzbeauftragter nach § 7 JMStV nötig ist (Schritt 17.10).
+- [ ] Jugendschutz: Anwalt hat entschieden, ob ein Jugendschutzbeauftragter nach § 7 JMStV bestellt wird oder LineFM Studios der FSM beitritt (Schritt 17.10, [D-06](STORE-RICHTLINIEN.md#d-06), [D-07](STORE-RICHTLINIEN.md#d-07)).
 - [ ] GEMA/GVL: schriftliche Bestätigung von laut.fm liegt vor (Schritt 2.1).
-- [ ] Verzeichnis der Verarbeitungstätigkeiten aus dem Muster übernommen und geprüft (Schritt 17.11, [VERARBEITUNGSVERZEICHNIS.md](VERARBEITUNGSVERZEICHNIS.md)).
+- [ ] Verzeichnis der Verarbeitungstätigkeiten aus dem Muster übernommen und geprüft (Schritt 17.11, [VERARBEITUNGSVERZEICHNIS.md](VERARBEITUNGSVERZEICHNIS.md)). Pflicht, keine Ausnahme nach Art. 30 Abs. 5 ([D-05](STORE-RICHTLINIEN.md#d-05), [D-08](STORE-RICHTLINIEN.md#d-08)).
 - [ ] Meldeweg für Datenpannen (72 Stunden) in INCIDENT.md eingetragen (Schritt 17.12).
 - [ ] Speicherdauern in Diensten, Datenschutzerklärung, Verzeichnis und Store-Formularen gleich (Schritt 17.13).
 - [ ] Externe Links (YouTube Music, Spotify, radiogruppe.de, laut.fm, iTunes, `cdn.linefm.de`) in der Datenschutzerklärung genannt (Schritt 17.2).
-- [ ] Freiwillige Erklärung zur Barrierefreiheit unter `/barrierefreiheit/` (de und en) erreichbar (Schritt 17.4).
+- [ ] Freiwillige Erklärung zur Barrierefreiheit unter `/barrierefreiheit/` (de und en) erreichbar, Anwalt hat bestätigt (Schritt 17.4, [W-06](STORE-RICHTLINIEN.md#w-06)).
 
 ### E2. Konten, Kosten und Steuern
 

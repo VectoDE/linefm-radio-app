@@ -304,7 +304,7 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 - **Was:** **Organisationskonto** von LineFM Studios anlegen (Entscheidung des Inhabers: in jedem Store das eigene Organisationskonto des Kunden), 25 US-Dollar einmalig zahlen, Organisation bestätigen (D-U-N-S-Nummer aus Schritt 18.1, Website, offizielle Telefonnummer und E-Mail der Organisation). Tim Hauke als Nutzer einladen (Nutzer und Berechtigungen > Neue Nutzer einladen, mit App-Rechten für Veröffentlichung).
 - **Wozu:** Ohne Konto keine Veröffentlichung. Google verlangt die Identität auch für sideloadbare APKs ab 2027 (Entwicklerverifizierung).
 - **Wo eintragen:** <https://play.google.com/console/signup>.
-- **Woher:** Kreditkarte (keine Prepaid-Karte), D-U-N-S-Nummer. Name und Anschrift müssen exakt dem Eintrag bei Dun & Bradstreet entsprechen. Quelle: <https://support.google.com/googleplay/android-developer/answer/13628312> (abgerufen 26.11.2026). Store-Regeln: [G-25](STORE-RICHTLINIEN.md#g-25), [G-27](STORE-RICHTLINIEN.md#g-27), [D-02](STORE-RICHTLINIEN.md#d-02). Zum Vergleich: Ein **privates** Konto braucht für die Erstveröffentlichung einen geschlossenen Test mit mindestens 12 Testern über mindestens 14 Tage (Schritt 6.8). Ein Organisationskonto mit D-U-N-S-Nummer braucht das nicht. Die Regel ändert Google gelegentlich, vor dem Start prüfen.
+- **Woher:** Kreditkarte (keine Prepaid-Karte), D-U-N-S-Nummer. Name und Anschrift müssen exakt dem Eintrag bei Dun & Bradstreet entsprechen. Quelle: <https://support.google.com/googleplay/android-developer/answer/13628312> (abgerufen 26.11.2026). Entwickler-E-Mail und -Telefon bestätigst du per Einmalcode. Verstöße gegen Richtlinien können zur Entfernung von App oder Konto führen. Store-Regeln: [G-10](STORE-RICHTLINIEN.md#g-10), [G-25](STORE-RICHTLINIEN.md#g-25), [G-27](STORE-RICHTLINIEN.md#g-27), [G-53](STORE-RICHTLINIEN.md#g-53), [D-02](STORE-RICHTLINIEN.md#d-02). Zum Vergleich: Ein **privates** Konto braucht für die Erstveröffentlichung einen geschlossenen Test mit mindestens 12 Testern über mindestens 14 Tage (Schritt 6.8). Ein Organisationskonto mit D-U-N-S-Nummer braucht das nicht. Die Regel ändert Google gelegentlich, vor dem Start prüfen.
 - **Prüfschritt:** Die Console zeigt "Konto verifiziert".
 - [ ] erledigt
 
@@ -342,7 +342,8 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 - **Wo eintragen:** Play Console, App-Inhalte.
 - **Woher:** Hinweise: Der Sender +RAP kann Kraftausdrücke senden, im Fragebogen ehrlich angeben. Die Werbe-ID wird nicht verwendet. Das Manifest entfernt `com.google.android.gms.permission.AD_ID` per `tools:node="remove"`. Nach dem Release-Build mit `aapt dump permissions app-release.apk` nachsehen, ob sie fehlt. Sonst müsste "Werbe-ID: ja" stehen. Die Antworten zu Datensicherheit stehen in Abschnitt 13.
 - **Prüfschritt:** Alle Punkte unter App-Inhalte zeigen einen grünen Haken.
-- Store-Regeln: [G-05](STORE-RICHTLINIEN.md#g-05), [G-12](STORE-RICHTLINIEN.md#g-12), [G-13](STORE-RICHTLINIEN.md#g-13), [G-19](STORE-RICHTLINIEN.md#g-19), [G-20](STORE-RICHTLINIEN.md#g-20), [G-24](STORE-RICHTLINIEN.md#g-24), [G-30](STORE-RICHTLINIEN.md#g-30)
+- **Neue Einstufung:** Ändern sich Inhalte oder Funktionen so, dass der IARC-Fragebogen betroffen ist (zum Beispiel neue Sender), reichst du ihn neu ein.
+- Store-Regeln: [G-05](STORE-RICHTLINIEN.md#g-05), [G-12](STORE-RICHTLINIEN.md#g-12), [G-13](STORE-RICHTLINIEN.md#g-13), [G-19](STORE-RICHTLINIEN.md#g-19), [G-20](STORE-RICHTLINIEN.md#g-20), [G-24](STORE-RICHTLINIEN.md#g-24), [G-30](STORE-RICHTLINIEN.md#g-30), [G-35](STORE-RICHTLINIEN.md#g-35), [G-36](STORE-RICHTLINIEN.md#g-36), [G-37](STORE-RICHTLINIEN.md#g-37), [G-38](STORE-RICHTLINIEN.md#g-38), [G-39](STORE-RICHTLINIEN.md#g-39), [G-40](STORE-RICHTLINIEN.md#g-40), [G-49](STORE-RICHTLINIEN.md#g-49)
 - [ ] erledigt
 
 ### 6.6 Deklarationen: Vordergrunddienst und Vollbild-Benachrichtigung
@@ -352,7 +353,8 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 - **Wo eintragen:** Play Console > Richtlinie > App-Inhalte > "Vordergrunddienste" und "Vollbild-Benachrichtigungen" (genauen Menünamen vor Ort prüfen).
 - **Woher:** Fertige Texte auf Deutsch und Englisch, die Felder der Console und das Skript für das Demo-Video stehen in [STORE-TEXTE.md](STORE-TEXTE.md), Abschnitt "Play-Console-Deklarationen". Das Video nimmst du selbst auf (Hinweise dort).
 - **Prüfschritt:** Beide Deklarationen zeigen den Status "Abgeschickt" bzw. "Genehmigt". Entscheidung zum Umgang mit einer Ablehnung ist festgehalten (Freigabe-Checkliste, Abschnitt C).
-- Store-Regeln: [G-14](STORE-RICHTLINIEN.md#g-14), [G-15](STORE-RICHTLINIEN.md#g-15), [G-16](STORE-RICHTLINIEN.md#g-16), [G-17](STORE-RICHTLINIEN.md#g-17)
+- **Inhalt der Vordergrunddienst-Erklärung:** je Typ der Anwendungsfall, was der Nutzer merkt, wenn das System den Dienst beendet, und ein Video. Beim Vollbild-Intent fragt die App den Nutzer, weil die Berechtigung seit 22.01.2025 nur Anruf- und Wecker-Apps standardmäßig bekommen.
+- Store-Regeln: [G-14](STORE-RICHTLINIEN.md#g-14), [G-15](STORE-RICHTLINIEN.md#g-15), [G-16](STORE-RICHTLINIEN.md#g-16), [G-17](STORE-RICHTLINIEN.md#g-17), [G-43](STORE-RICHTLINIEN.md#g-43), [G-44](STORE-RICHTLINIEN.md#g-44)
 - [ ] erledigt
 
 ### 6.7 Store-Eintrag
@@ -419,6 +421,7 @@ Quelle: <https://developer.android.com/training/cars/distribute> (abgerufen 26.1
 - **Wo eintragen:** Play Console, Bereich Entwicklerverifizierung (Menüname vor Ort prüfen). Registriert wird der Schlüssel, der die GitHub-APK signiert (Upload-Schlüssel, Schritt 6.3).
 - **Woher:** Organisationskonto, Upload-Schlüssel. Gebühren und Details in der FAQ der Quellseite (nicht im Detail abgerufen).
 - **Prüfschritt:** Die Console zeigt die App als registriert, auch für den Vertrieb außerhalb von Play.
+- Store-Regeln: [G-41](STORE-RICHTLINIEN.md#g-41), [G-52](STORE-RICHTLINIEN.md#g-52)
 - [ ] erledigt
 
 ### 6.13 Hinweise für die Prüfung
@@ -481,7 +484,10 @@ Quelle: [packaging/windows/README.md](../packaging/windows/README.md).
 - **Wo eintragen:** Partner Center. Texte aus [STORE-TEXTE.md](STORE-TEXTE.md), Abschnitt "Microsoft Store".
 - **Wozu / Woher:** Sichtbar im Store. Datenschutz-URL `https://app.linefm.de/datenschutz/`.
 - **Prüfschritt:** Die Einreichung zeigt keine offenen Pflichtfelder.
-- Store-Regeln: [M-05](STORE-RICHTLINIEN.md#m-05), [M-07](STORE-RICHTLINIEN.md#m-07), [M-18](STORE-RICHTLINIEN.md#m-18), [M-22](STORE-RICHTLINIEN.md#m-22)
+- **Werbung:** In den Produkteigenschaften "nein" (kein Werbe-SDK, Spots kommen von den Sendern).
+- **Texte und Screenshots bis PEGI 12:** Auch sichtbare Songtitel in Screenshots prüfen.
+- **Erreichbarkeit:** laut.fm und die Webressourcen der App müssen während der Zertifizierung laufen. Nicht einreichen, während eine Störung bekannt ist.
+- Store-Regeln: [M-05](STORE-RICHTLINIEN.md#m-05), [M-07](STORE-RICHTLINIEN.md#m-07), [M-18](STORE-RICHTLINIEN.md#m-18), [M-22](STORE-RICHTLINIEN.md#m-22), [M-26](STORE-RICHTLINIEN.md#m-26), [M-27](STORE-RICHTLINIEN.md#m-27), [M-29](STORE-RICHTLINIEN.md#m-29)
 - [ ] erledigt
 
 ---
@@ -502,6 +508,10 @@ Quelle: [packaging/flathub/README.md](../packaging/flathub/README.md).
 - **Woher:** Inhalt der Verifizierungsdatei von Flathub.
 - **Prüfschritt:** `curl -s https://linefm.de/.well-known/org.flathub.VerifiedApps.txt` liefert den Inhalt. Flathub bestätigt die Verifizierung.
 - **Ehrlicher Hinweis:** Unser Paket enthält die fertig gebaute Binärdatei, nicht den Quelltext. Flathub verlangt bei nicht offener Software meist den Bau aus dem Quelltext oder besondere Regeln. Es kann sein, dass Flathub ablehnt oder eine Ausnahme verlangt. Das klärst du nur durch Nachfragen bei den Flathub-Betreuern (Ticket im Repo `flathub/flathub`). Scheitert es, bleiben Snap Store und der Tarball auf GitHub.
+- **Wer pflegt das Flathub-Repo:** Nach der Aufnahme legt Flathub ein eigenes Repo für das Manifest an. Ein Mensch (LineFM Studios oder in deinem Auftrag Tim Hauke) legt es an und pflegt es. Flathub verbietet KI-erzeugte Inhalte in Manifesten sowie Einreichungen und Antworten durch KI. Der Anteil von KI an der App wird Flathub gegenüber offengelegt, nur dort.
+- **Pflege sichtbar halten:** Flathub achtet auf nachvollziehbare Historie, echte Nutzung und sichtbare Pflege. Releases mit Datum in der Metainfo, Fragen der Betreuer zügig beantworten.
+- **Alternative zur Datei:** Statt der Datei unter `.well-known` geht auch ein DNS-TXT-Eintrag (Wortlaut in der Flathub-Anleitung).
+- Store-Regeln: [F-04](STORE-RICHTLINIEN.md#f-04), [F-12](STORE-RICHTLINIEN.md#f-12), [F-15](STORE-RICHTLINIEN.md#f-15), [F-16](STORE-RICHTLINIEN.md#f-16), [F-20](STORE-RICHTLINIEN.md#f-20)
 - [ ] erledigt
 
 ### 8.2 Snap Store
@@ -511,7 +521,7 @@ Quelle: [packaging/flathub/README.md](../packaging/flathub/README.md).
 - **Wo eintragen:** Secret `SNAPCRAFT_STORE_CREDENTIALS`.
 - **Woher:** Konto auf <https://snapcraft.io/> (Ubuntu One). Name per `snapcraft register linefm-radio`. Zugangsdaten per `snapcraft export-login`, der volle Befehl steht in [secrets.md](secrets.md). Sie laufen ab, dann wiederholen.
 - **Prüfschritt:** Nach einem Release erscheint die Version im Kanal "edge". Dann "candidate" und "stable". Ob die Tray-Funktion unter der strikten Snap-Absicherung läuft, ist noch ungetestet.
-- Store-Regeln: [S-03](STORE-RICHTLINIEN.md#s-03), [S-06](STORE-RICHTLINIEN.md#s-06), [S-07](STORE-RICHTLINIEN.md#s-07), [S-08](STORE-RICHTLINIEN.md#s-08)
+- Store-Regeln: [S-03](STORE-RICHTLINIEN.md#s-03), [S-06](STORE-RICHTLINIEN.md#s-06), [S-07](STORE-RICHTLINIEN.md#s-07), [S-08](STORE-RICHTLINIEN.md#s-08), [S-09](STORE-RICHTLINIEN.md#s-09)
 - [ ] erledigt
 
 ---
@@ -646,8 +656,8 @@ Die Angaben müssen zur Datenschutzerklärung passen. Im Zweifel anwaltlich prü
   - **Cast immer mit bedenken:** Das Cast-SDK der Google Play-Dienste sendet laut Google Nutzungsdaten. Die App startet es erst beim Tippen auf den Cast-Knopf, doch das Plugin kann es auf Android schon beim Beenden der App initialisieren (siehe [ENTWICKLUNG.md](ENTWICKLUNG.md), Abschnitt Google Cast). Gib "App-Aktivität" und "Geräte- oder andere IDs" mit Zweck "App-Funktionen" und Weitergabe an Google an, auch ohne eigene Telemetrie. Die genauen Daten stehen in der aktuellen Google-Dokumentation zum Cast-SDK, vor dem Ausfüllen nachlesen.
   - Umami, GlitchTip, Sentry oder Firebase aktiv: Nutzungsdaten (App-Aktivität) und Absturzdaten angeben, Verschlüsselung bei der Übertragung "ja", Löschung auf Anfrage nach deinem tatsächlichen Verfahren.
   - Google Analytics (nur Web): betrifft die Web-Version, nicht die App.
-- **Prüfschritt:** Die Antworten stimmen mit Abschnitt 7 und 11 der Datenschutzerklärung überein. Löschung und Speicherdauer wie in Schritt 17.13.
-- Store-Regeln: [G-12](STORE-RICHTLINIEN.md#g-12), [G-13](STORE-RICHTLINIEN.md#g-13)
+- **Prüfschritt:** Die Antworten stimmen mit Abschnitt 7 und 11 der Datenschutzerklärung überein. Löschung und Speicherdauer wie in Schritt 17.13. Optionale Erhebung (nach Einwilligung) als optional kennzeichnen, Daten, die nur auf dem Gerät bleiben, nicht angeben. Für das, was Sentry, Firebase und das Cast-SDK erheben, stehst du ein wie für eigenen Code.
+- Store-Regeln: [G-12](STORE-RICHTLINIEN.md#g-12), [G-13](STORE-RICHTLINIEN.md#g-13), [G-45](STORE-RICHTLINIEN.md#g-45), [G-46](STORE-RICHTLINIEN.md#g-46)
 - [ ] erledigt
 
 ### 13.2 Microsoft Store
@@ -718,7 +728,7 @@ iOS, macOS, CarPlay und AirPlay sind im Code vorbereitet. Apple (iOS und Mac App
 - **Wo eintragen:** App Store Connect, Entwicklerportal.
 - **Woher:** die genannten Schritte.
 - **Prüfschritt:** Alle Unterpunkte abgehakt, erst dann `APPLE_PUBLISHING_ENABLED` setzen (15.6).
-- Store-Regeln: [A-01](STORE-RICHTLINIEN.md#a-01), [A-17](STORE-RICHTLINIEN.md#a-17), [A-20](STORE-RICHTLINIEN.md#a-20), [A-22](STORE-RICHTLINIEN.md#a-22), [A-23](STORE-RICHTLINIEN.md#a-23)
+- Store-Regeln: [A-01](STORE-RICHTLINIEN.md#a-01), [A-17](STORE-RICHTLINIEN.md#a-17), [A-20](STORE-RICHTLINIEN.md#a-20), [A-22](STORE-RICHTLINIEN.md#a-22), [A-23](STORE-RICHTLINIEN.md#a-23), [A-34](STORE-RICHTLINIEN.md#a-34). In den Datenschutz-Labels keine Werbedaten angeben.
 - [ ] erledigt (Apple-Runde, später)
 
 ### 15.1 Konto und Team-ID
@@ -856,7 +866,8 @@ Vorprüfung, keine Rechtsberatung. Jeden Punkt lässt du von einem Anwalt bestä
 - **Wozu:** Seit 28.06.2025 gelten die Anforderungen für bestimmte Dienstleistungen im elektronischen Geschäftsverkehr. Ob eine kostenlose Radio-App darunter fällt, ist eine Rechtsfrage.
 - **Wo eintragen:** Platzhalter in `docs/BARRIEREFREIHEIT.md`. Die Seite `/barrierefreiheit/` baut der Entwickler und verlinkt sie im Fuß der Web-App und in der App unter "Über".
 - **Woher:** Anwalt. Gesetzestext: <https://www.gesetze-im-internet.de/bfsg/> (nicht live abgerufen).
-- **Prüfschritt:** `https://app.linefm.de/barrierefreiheit/` und `/en/barrierefreiheit/` antworten mit 200, ohne `{{`-Reste. Die BFSG-Einschätzung des Anwalts liegt schriftlich vor.
+- **Prüfschritt:** `https://app.linefm.de/barrierefreiheit/` und `/en/barrierefreiheit/` antworten mit 200, ohne `{{`-Reste. Die BFSG-Einschätzung des Anwalts liegt schriftlich vor und bestätigt die freiwillige Erklärung.
+- Store-Regeln: [W-06](STORE-RICHTLINIEN.md#w-06)
 - [ ] erledigt
 
 ### 17.5 Händlerstatus nach DSA bei Apple und Google
@@ -866,7 +877,9 @@ Vorprüfung, keine Rechtsberatung. Jeden Punkt lässt du von einem Anwalt bestä
 - **Wo eintragen:** App Store Connect > Business > Compliance (Rolle Account Holder oder Admin). Play Console > Einstellungen > Entwicklerkonto (Menüname vor Ort prüfen).
 - **Woher:** Für Firmen nimmt Apple die Anschrift aus dem D-U-N-S-Eintrag, dazu Telefon und E-Mail (per Code bestätigt) und einen Nachweis zu Name und Anschrift. Quelle Apple: <https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements/> (abgerufen 26.11.2026). Zu Google: Die Kontoangaben stehen auf <https://support.google.com/googleplay/android-developer/answer/13628312> (abgerufen 26.11.2026), den Wortlaut zum Händlerstatus haben wir dort nicht im Detail geprüft. Als Händler verlangt Apple zusätzlich Zahlungskontodaten, falls noch keine hinterlegt sind. Ob du Händler bist, entscheidest du mit dem Anwalt. Eine GmbH oder ein Gewerbe ist es in aller Regel.
 - **Prüfschritt:** Beide Konsolen zeigen den Status als bestätigt. Die angezeigten Daten stimmen mit dem Impressum überein.
-- Store-Regeln: [G-26](STORE-RICHTLINIEN.md#g-26), [A-25](STORE-RICHTLINIEN.md#a-25). Apple erst in der späteren Apple-Runde.
+- **Microsoft:** Fragt das Partner Center nach dem Händlerstatus, dieselben Angaben wie bei Google und Apple.
+- **Apple je App:** Nach der Bestätigung lässt sich der Status je App einstellen (spätere Apple-Runde).
+- Store-Regeln: [G-26](STORE-RICHTLINIEN.md#g-26), [A-25](STORE-RICHTLINIEN.md#a-25), [A-43](STORE-RICHTLINIEN.md#a-43), [M-25](STORE-RICHTLINIEN.md#m-25). Apple erst in der späteren Apple-Runde.
 - [ ] erledigt
 
 ### 17.6 Markenrechte LINEFM
@@ -895,7 +908,7 @@ Vorprüfung, keine Rechtsberatung. Jeden Punkt lässt du von einem Anwalt bestä
 - **Wo eintragen:** Abschnitt A1 der Freigabe-Checkliste, Ablage beim Kunden.
 - **Woher:** Betreiber der Sender.
 - **Prüfschritt:** Zwei Freigaben mit Datum liegen vor. Ohne sie fliegen die Sender aus der App.
-- Store-Regeln: [D-03](STORE-RICHTLINIEN.md#d-03), [G-02](STORE-RICHTLINIEN.md#g-02)
+- Store-Regeln: [D-03](STORE-RICHTLINIEN.md#d-03), [G-02](STORE-RICHTLINIEN.md#g-02), [M-28](STORE-RICHTLINIEN.md#m-28). Ohne schriftliche Erlaubnis für Namen, Logos und Streams keine Andeutung einer Verbindung.
 - [ ] erledigt
 
 ### 17.9 Lizenzen und Seite /lizenz/
@@ -910,21 +923,22 @@ Vorprüfung, keine Rechtsberatung. Jeden Punkt lässt du von einem Anwalt bestä
 
 ### 17.10 Jugendschutz (JMStV)
 
-- **Was:** Die App richtet sich an Nutzer ab 13 Jahren (Entscheidung des Inhabers), in allen Stores mit Altersfreigabe 13+. Die Sender spielen Musik mit gelegentlich derber Sprache. Der Anwalt prüft, ob nach dem Jugendmedienschutz-Staatsvertrag ein Jugendschutzbeauftragter zu benennen ist (§ 7 JMStV) und ob weitere Pflichten bestehen.
+- **Was:** Die App richtet sich an Nutzer ab 13 Jahren (Entscheidung des Inhabers), in allen Stores mit Altersfreigabe 13+. Grund: gelegentlich derbe Sprache in den Streams. Der Anwalt entscheidet, ob nach dem Jugendmedienschutz-Staatsvertrag ein Jugendschutzbeauftragter zu bestellen ist (§ 7 JMStV) oder ob LineFM Studios stattdessen einer Selbstkontrolle wie der FSM beitritt.
 - **Wozu:** Für geschäftsmäßige Telemedien mit möglicherweise entwicklungsbeeinträchtigenden Inhalten kann ein Jugendschutzbeauftragter Pflicht sein.
 - **Wo eintragen:** Ergebnis in Abschnitt A4 der Freigabe-Checkliste. Ist ein Beauftragter nötig, kommen Name und Kontakt ins Impressum (der Entwickler legt dafür einen Platzhalter an).
 - **Woher:** Anwalt. Gesetzestext nicht live abgerufen.
 - **Prüfschritt:** Schriftliche Einschätzung liegt vor.
-- Store-Regeln: [G-19](STORE-RICHTLINIEN.md#g-19), [G-20](STORE-RICHTLINIEN.md#g-20), [A-17](STORE-RICHTLINIEN.md#a-17), [M-18](STORE-RICHTLINIEN.md#m-18), [F-10](STORE-RICHTLINIEN.md#f-10)
+- Store-Regeln: [D-06](STORE-RICHTLINIEN.md#d-06), [D-07](STORE-RICHTLINIEN.md#d-07), [G-19](STORE-RICHTLINIEN.md#g-19), [G-20](STORE-RICHTLINIEN.md#g-20), [A-17](STORE-RICHTLINIEN.md#a-17), [M-18](STORE-RICHTLINIEN.md#m-18), [F-10](STORE-RICHTLINIEN.md#f-10)
 - [ ] erledigt
 
 ### 17.11 Verzeichnis der Verarbeitungstätigkeiten (Art. 30 DSGVO)
 
 - **Was:** Das ausgefüllte Muster [VERARBEITUNGSVERZEICHNIS.md](VERARBEITUNGSVERZEICHNIS.md) übernehmen, prüfen und als dein eigenes Verzeichnis pflegen. Es listet jeden Datenfluss mit Zweck, Rechtsgrundlage, Empfängern, Drittlandübermittlung und Speicherdauer.
-- **Wozu:** Das Verzeichnis ist Pflicht des Verantwortlichen. Aufsichtsbehörden können es anfordern. Es ist die Grundlage für Datenschutzerklärung und Store-Formulare.
+- **Wozu:** Das Verzeichnis ist Pflicht. Die Ausnahme für kleine Unternehmen (Art. 30 Abs. 5 DSGVO) greift nicht, weil die Telemetrie nicht nur gelegentlich verarbeitet. Aufsichtsbehörden können es anfordern. Es ist die Grundlage für Datenschutzerklärung und Store-Formulare.
 - **Wo eintragen:** In deine Unterlagen. Das Muster im Repo bleibt Vorlage, die gepflegte Fassung liegt bei dir.
 - **Woher:** Muster im Repo, deine Konfiguration, die AVV aus Schritt 17.3.
 - **Prüfschritt:** Jede aktive Zeile ist geprüft und datiert, die Speicherdauern stimmen mit der Datenschutzerklärung überein.
+- Store-Regeln: [D-05](STORE-RICHTLINIEN.md#d-05), [D-08](STORE-RICHTLINIEN.md#d-08)
 - [ ] erledigt
 
 ### 17.12 Datenpanne: Meldeweg (Art. 33 und 34 DSGVO)

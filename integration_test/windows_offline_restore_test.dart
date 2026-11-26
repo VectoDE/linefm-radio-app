@@ -133,8 +133,7 @@ void main() {
           _coverFile(coversDir, server.currentCoverUrl).existsSync() &&
           _coverFile(coversDir, server.historyCoverUrl).existsSync() &&
           _paintedCovers(tester, server.currentCoverUrl) > 0 &&
-          snapshotFile.existsSync() &&
-          snapshotFile.readAsStringSync().contains(current),
+          _snapshotHas(snapshotFile, <String>[current, server.historyTitle]),
       'phase 1: covers cached on disk and snapshot saved',
     );
     expect(server.coverRequests, greaterThan(0));
@@ -147,6 +146,12 @@ void main() {
     await _shot(world, '01-online-live-data');
 
     await _disposeWorld(tester, world);
+    await (world.prefs as _FilePrefsStore).flush();
+    expect(
+      _snapshotHas(snapshotFile, <String>[current, server.historyTitle]),
+      isTrue,
+      reason: 'snapshot on disk is valid JSON with track and history',
+    );
     await server.close();
 
     // ------------------------------------------------------------ Phase 2
@@ -397,7 +402,13 @@ class _CountingCoverCache implements CoverDiskCache {
 class _FilePrefsStore extends InMemoryPrefsStore {
   _FilePrefsStore(this._file) {
     writeSettings(
-      const AppSettings(autoplay: false, marquee: false, loadArtwork: false),
+      const AppSettings(
+        autoplay: false,
+        marquee: false,
+        loadArtwork: false,
+        // Fixed language: CI runners use an English system locale.
+        language: AppLanguage.de,
+      ),
     ).ignore();
     setStorageConsent(value: true).ignore();
   }
@@ -408,8 +419,32 @@ class _FilePrefsStore extends InMemoryPrefsStore {
   String? readLiveCache() =>
       _file.existsSync() ? _file.readAsStringSync() : null;
 
+  Future<void> _writes = Future<void>.value();
+
+  /// Writes one after another and atomically (temp file, then rename).
+  /// Overlapping writeAsString calls on the same file can interleave and
+  /// leave invalid JSON, which the restart then silently ignores.
   @override
-  Future<void> writeLiveCache(String json) => _file.writeAsString(json);
+  Future<void> writeLiveCache(String json) => _writes = _writes.then((_) async {
+    final tmp = File('${_file.path}.tmp');
+    await tmp.writeAsString(json, flush: true);
+    await tmp.rename(_file.path);
+  });
+
+  /// Completes when every write so far is on disk.
+  Future<void> flush() => _writes;
+}
+
+/// True when [file] holds valid JSON that contains every one of [texts].
+bool _snapshotHas(File file, List<String> texts) {
+  if (!file.existsSync()) return false;
+  final text = file.readAsStringSync();
+  try {
+    jsonDecode(text);
+  } on FormatException {
+    return false;
+  }
+  return texts.every(text.contains);
 }
 
 File _coverFile(Directory dir, String url) =>

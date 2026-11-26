@@ -32,13 +32,13 @@ Wichtig vorab:
 - **Anwalt:** Alles Rechtliche in dieser Anleitung ist eine Vorprüfung und ersetzt weder Anwalt noch Steuerberater. Sammle die offenen Rechtsfragen und lass sie in einem Termin prüfen. Die Sammelliste steht in Anhang D, die Einzelthemen in Abschnitt 17. Wo ein Schritt davon abhängt, steht kurz "(Anwalt)". Einen passenden Anwalt findest du über die Rechtsanwaltskammer deines Bezirks oder über eine Empfehlung aus deinem Netzwerk, achte auf Erfahrung mit IT-, Medien- und Datenschutzrecht.
 - Apple ist **nicht Teil der ersten Veröffentlichung**. Der Code ist vorbereitet, Abschnitt 15 beschreibt, was später nötig ist.
 
-Haken setzen, sobald ein Schritt erledigt und geprüft ist. Die Haken setzt du in deiner eigenen Kopie dieser Seite (Datei aus dem Repository herunterladen, in einem Texteditor öffnen und `[ ]` durch `[x]` ersetzen) oder schickst dem Entwickler eine kurze Mail ("6.4 erledigt"), er trägt es ein. Es gibt je Schritt einen Haken. Er gilt, wenn alles eingetragen **und** geprüft ist. Prüfungen, die erst ab Version 1.0.0 gehen, bleiben bis dahin offen.
+Haken setzen, sobald ein Schritt erledigt und geprüft ist. Die Haken setzt du in deiner eigenen Kopie dieser Seite (Datei aus dem Repository herunterladen, in einem Texteditor öffnen und `[ ]` durch `[x]` ersetzen) oder schickst dem Entwickler eine kurze Mail ("6.4 erledigt"), er trägt es ein. Es gibt je Schritt einen Haken. Bei Dauerpflichten (19.x, 20.x) sind es zwei: "eingerichtet" und "regelmäßig erledigt". Anhang D ist nur deine Kurzliste und enthält je Eintrag einen eigenen Haken, der Haken im Schritt bleibt der maßgebliche. Er gilt, wenn alles eingetragen **und** geprüft ist. Prüfungen, die erst ab Version 1.0.0 gehen, bleiben bis dahin offen.
 
 **Wer macht was:** Steht bei einem Schritt **[Entwickler]**, brauchst du dafür keine Befehle einzugeben. Der Entwickler (Tim Hauke) erledigt das mit dir zusammen. Alles andere klickst du selbst im Browser. Steht in einem Schritt ein Befehl für die Kommandozeile (zum Beispiel `keytool`, `dig`, `curl`, `snapcraft`, `docker`, `gpg`, `openssl`, `gh`, `base64`), gib ihn nicht selbst ein, sondern gib den Schritt an den Entwickler weiter. Ausnahme sind einfache Prüfbefehle, bei denen die Windows-Schreibweise direkt dabeisteht (`nslookup`, `Get-FileHash`, `curl.exe`). Für DNS- und Zertifikatsprüfungen gibt es Browser-Alternativen, sie stehen bei den Schritten.
 
 **Windows:** Wo ein Schritt einen Befehl mit `grep` oder `dig` zeigt, gilt unter Windows PowerShell: `curl.exe -sI <Adresse> | Select-String <Wort>` statt `curl ... | grep -i <Wort>` (`curl.exe` mit Endung, sonst startet PowerShell einen anderen Befehl), `Resolve-DnsName <Name>` statt `dig`. Im Browser gehen für Zertifikate <https://www.ssllabs.com/ssltest/> und für Antwort-Kopfzeilen die Entwicklerwerkzeuge (F12, Reiter "Netzwerk"). Die Windows-Schreibweisen haben wir nicht auf deinem Rechner geprüft.
 
-**Rollen:** *Du* (Betreiber) bist LineFM Studios, die Person, die diese Anleitung abarbeitet. *Entwickler* und *Repository-Eigentümer* ist Tim Hauke. Mit *Inhaber* ist in den Schritten dieselbe Person gemeint wie du (der Betreiber). *Kunde* meint dein Unternehmen als Auftraggeber der App, also dich. Die Vereinbarung mit laut.fm hast du bereits und behältst sie selbst (Schritte 2.1, 17.7, 17.8). Die Konten (Google, Microsoft und weitere) sind Organisationskonten deines Unternehmens. Name und Rechtsform des Konto-Inhabers trägst du in Schritt 1.6 ein, wir raten sie nicht. Fällt im Text eine andere Rolle, steht sie mit Namen dabei.
+**Rollen:** *Du* (Betreiber) bist LineFM Studios, die Person, die diese Anleitung abarbeitet. *Entwickler* und *Repository-Eigentümer* ist Tim Hauke. Mit *Inhaber* ist in den Schritten dieselbe Person gemeint wie du (der Betreiber). *Kunde* meint dein Unternehmen als Auftraggeber der App, also dich. Die Vereinbarung mit laut.fm hast du bereits und behältst sie selbst (Schritte 2.1, 17.7). Die Konten (Google, Microsoft und weitere) sind Organisationskonten deines Unternehmens. Name und Rechtsform des Konto-Inhabers trägst du in Schritt 1.6 ein, wir raten sie nicht. Fällt im Text eine andere Rolle, steht sie mit Namen dabei.
 
 **Die wichtigsten Begriffe:**
 
@@ -108,14 +108,15 @@ Die Schrittnummern bleiben stabil. In dieser Reihenfolge arbeitest du sie ab, we
 
 | Phase | Schritte | Warum zuerst |
 |---|---|---|
-| 1. Grundlagen | 1.1, 1.2, 1.3, 1.5 | Zugang, Passwortmanager, Secrets |
+| 1. Grundlagen | 1.1, 1.2, 1.3, 1.4, 1.5 | Zugang, Passwortmanager, Secrets |
 | 2. Entscheiden | 1.6 | Hosting, Telemetrie, Stores und Konto-Inhaber bestimmen den Rest |
-| 3. Lange Wartezeiten anstoßen | 18.1 (D-U-N-S), 2.1 bis 2.3 (Bestätigungen), 20.1 und 18.2 (Postfächer, Konten-Regeln) | Dritte antworten spät, Konten brauchen Adressen |
-| 4. Web | 5.1, 5.2, 4.1, 4.2, 4.4, 4.3 | Datenschutz-URL und Domain müssen live sein |
-| 5. Rechtstexte | 3.1 bis 3.4, 2.4, 2.5, 17.1 bis 17.4 | Stores verlangen die URLs und Texte |
-| 6. Google | 6.1, 6.2, 6.3, 6.4, 6.5 bis 6.13 (6.9 erst nach dem ersten Upload), 13.1, 17.5 | |
+| 3. Lange Wartezeiten anstoßen | 18.1 (D-U-N-S), 2.1 bis 2.3 (Bestätigungen), 20.1 (nur das Postfach, die Support-Seite folgt nach der Web-Phase) und 18.2 (Konten-Regeln, die Haken je Konto erst am Ende von Phase 8), Anwaltstermin vereinbaren (Anhang D) | Dritte antworten spät, Konten brauchen Adressen, mehrere Schritte brauchen den Anwalt |
+| 3a. Pflichtwerte | 3.1 (Werte und Platzhalter), 17.7, 17.8, 17.10, 17.13 | Der Release-Build bricht bei offenen Platzhaltern ab, Store-Formulare brauchen diese Antworten |
+| 4. Web | 5.1, 5.2, 4.1, 4.2, 4.4, 4.3 | Datenschutz-URL und Domain müssen live sein. "Domain live" heißt hier: Die Web-App ist unter linefm.de erreichbar. Der "Tag des Live-Gangs" der Apps in den Stores ist etwas anderes (Phase 11) |
+| 5. Rechtstexte | 3.2 bis 3.4, 3.1 abschließen (danach Web neu bauen, Schritt 1.5), Nutzungsbedingungen-Seite (Händlerstatus, Schritt 17.5: Anwalt), 2.4, 2.5, 17.1 bis 17.4 | Stores verlangen die URLs und Texte |
+| 6. Google | 6.1, 17.5, 6.2, 6.3 (Schlüsselsicherung sofort, Schritt 19.3), 6.4, 6.5 bis 6.13 (6.9 erst nach dem ersten Upload), 13.1, 17.5 | |
 | 7. Microsoft | 7.1, 7.6, 7.2, 7.5, 7.7, 7.8, 7.3, 7.4, 13.2 | 7.6 und 7.8 vor 7.3 |
-| 8. Linux | 8.2, 13.3, dann 8.1 (Einreichung bei Flathub, Verifizierungsdatei erst nach Aufnahme) | |
+| 8. Linux | 8.2 (Anmeldedaten sofort sichern, Schritt 19.3), 13.3, dann 8.1 (Einreichung bei Flathub, Verifizierungsdatei erst nach Aufnahme) | |
 | 9. Optional | 9 (Telemetrie), 10.1, 10.3, 10.2, 11, 12 | 10.3 vor 10.2 |
 | 10. Bilder | 14 (früh anstoßen, die Stores brauchen sie in Phase 6 und 7) | |
 | 11. Abnahme | 16, 19.4, 19.5, 19.9 | |
@@ -151,7 +152,7 @@ Die Schrittnummern bleiben stabil. In dieser Reihenfolge arbeitest du sie ab, we
 
 ### 1.1 Zugang zum Repository
 
-- **Was:** Du brauchst ein GitHub-Konto (kostenlos, <https://github.com/signup>, Zwei-Faktor-Anmeldung danach unter Settings > "Password and authentication" einschalten, nicht geprüft). Die Einladung geht an die Mail-Adresse dieses Kontos. Einladung zum Repository `VectoDE/linefm-radio-app` annehmen, Rolle Collaborator.
+- **Was:** Du brauchst ein GitHub-Konto (kostenlos, <https://github.com/signup>, Zwei-Faktor-Anmeldung danach unter Settings > "Password and authentication" einschalten, nicht geprüft). Schicke Tim Hauke vorab deinen GitHub-Benutzernamen (oder die Mail-Adresse des Kontos), sonst kann er dich nicht einladen. Die Einladung geht an die Mail-Adresse dieses Kontos. Einladung zum Repository `VectoDE/linefm-radio-app` annehmen, Rolle Collaborator.
 - **Wozu:** Ohne Schreibrecht auf die Repo-Einstellungen kannst du keine Secrets eintragen.
 - **Wo eintragen:** nichts. Die Einladung kommt per E-Mail von GitHub.
 - **Woher:** Tim Hauke (VectoDE) verschickt sie.
@@ -462,7 +463,7 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 
 ### 6.1 Entwicklerkonto
 
-- **Was:** Vorher klären: Wer ist Konto-Inhaber und welche Rechtsform hat er (Anhang D)? Neue Konten müssen den Händlerstatus nach dem Digital Services Act sofort erklären (Schritt 17.5). **Organisationskonto** von LineFM Studios anlegen (Entscheidung des Inhabers: in jedem Store das eigene Organisationskonto des Kunden), 25 US-Dollar einmalig zahlen, Organisation bestätigen (D-U-N-S-Nummer aus Schritt 18.1, Website, offizielle Telefonnummer und E-Mail der Organisation). Tim Hauke als Nutzer einladen (Nutzer und Berechtigungen > Neue Nutzer einladen, mit App-Rechten für Veröffentlichung).
+- **Was:** Vorher klären: Wer ist Konto-Inhaber und welche Rechtsform hat er (Schritt 1.6)? Neue Konten müssen den Händlerstatus nach dem Digital Services Act sofort erklären (Schritt 17.5). **Organisationskonto** von LineFM Studios anlegen (Entscheidung des Inhabers: in jedem Store das eigene Organisationskonto des Kunden), 25 US-Dollar einmalig zahlen, Organisation bestätigen (D-U-N-S-Nummer aus Schritt 18.1, Website, offizielle Telefonnummer und E-Mail der Organisation). Tim Hauke als Nutzer einladen (Nutzer und Berechtigungen > Neue Nutzer einladen, mit App-Rechten für Veröffentlichung).
 - **Wozu:** Ohne Konto keine Veröffentlichung. Google verlangt die Identität auch für sideloadbare APKs ab 2027 (Entwicklerverifizierung).
 - **Wo eintragen:** <https://play.google.com/console/signup>.
 - **Woher:** Kreditkarte (keine Prepaid-Karte), D-U-N-S-Nummer. Name und Anschrift müssen exakt dem Eintrag bei Dun & Bradstreet entsprechen. Quelle: <https://support.google.com/googleplay/android-developer/answer/13628312> (abgerufen 26.11.2026). Laut Google werden vier Kanäle per Einmalcode bestätigt: Kontakt-E-Mail, Kontakt-Telefon, Entwickler-E-Mail und Entwickler-Telefon, sie müssen für die Lebensdauer des Kontos erreichbar bleiben. Die Telefonnummer der Organisation soll die öffentliche Geschäftsnummer sein. Akzeptiert werden Mastercard, Visa und American Express, Prepaid-Karten nicht. Nach der Anmeldung wartet der Ablauf: Google-Konto (mindestens 18 Jahre), Vertrag "Google Play Developer Distribution Agreement" annehmen, Gebühr zahlen, Kontotyp "Organization", Identität prüfen (<https://support.google.com/googleplay/android-developer/answer/6112435>). Tim Hauke einladen: "Users and permissions" > "Invite new users", Rechte je App "Release apps to testing tracks" und "Release to production, exclude devices, and use Play App Signing", "Invite user". Er muss sich mit genau der Adresse anmelden, an die die Einladung ging, sie läuft nach 30 Tagen ab (<https://support.google.com/googleplay/android-developer/answer/2528691>). Ob Google eine Website verlangt, ist auf der Google-Seite nicht belegt (nicht geprüft) Verstöße gegen Richtlinien können zur Entfernung von App oder Konto führen. Store-Regeln: [G-10](STORE-RICHTLINIEN.md#g-10), [G-25](STORE-RICHTLINIEN.md#g-25), [G-27](STORE-RICHTLINIEN.md#g-27), [G-53](STORE-RICHTLINIEN.md#g-53), [D-02](STORE-RICHTLINIEN.md#d-02). Zum Vergleich: Ein **privates** Konto braucht für die Erstveröffentlichung einen geschlossenen Test mit mindestens 12 Testern über mindestens 14 Tage (Schritt 6.8). Ein Organisationskonto mit D-U-N-S-Nummer braucht das nicht. Die Regel ändert Google gelegentlich, vor dem Start prüfen.
@@ -482,10 +483,10 @@ Quellen: [Play Console](https://play.google.com/console), Signierung in [packagi
 
 ### 6.3 Upload-Schlüssel und Secrets
 
-- **Was:** **[Entwickler]** (Befehl `keytool`): Er erzeugt die Schlüsseldatei mit dir. **Play App Signing** aktiviert lassen (Standard). Google verwaltet dann den eigentlichen App-Schlüssel, neue Apps werden laut Google automatisch mit hybrider Signierung aufgenommen (Seite "Protected with Play" > "Play Store protection" > "Manage Play app signing", <https://support.google.com/googleplay/android-developer/answer/9842756>, abgerufen 26.11.2026). Den Upload-Schlüssel (Java-Keystore, RSA mit mindestens 2048 Bit) erzeugst du einmalig (Befehl in `packaging/android/SIGNING.md`, **[Entwickler]** macht das mit dir).
+- **Was:** **[Entwickler]** (Befehl `keytool`): Er erzeugt die Schlüsseldatei, du sicherst Datei und Passwörter (Schritt 19.3). **Play App Signing** aktiviert lassen (Standard). Google verwaltet dann den eigentlichen App-Schlüssel, neue Apps werden laut Google automatisch mit hybrider Signierung aufgenommen (Seite "Protected with Play" > "Play Store protection" > "Manage Play app signing", <https://support.google.com/googleplay/android-developer/answer/9842756>, abgerufen 26.11.2026). Den Upload-Schlüssel (Java-Keystore, RSA mit mindestens 2048 Bit) erzeugt der Entwickler einmalig (Befehl in `packaging/android/SIGNING.md`).
 - **Wozu:** Mit dem Upload-Schlüssel signiert die Pipeline jeden Upload. Geht er verloren, beantragst du den Reset selbst: neuen Schlüssel erzeugen, sein Zertifikat als PEM-Datei exportieren (`keytool -export -rfc`), unter "Manage Play app signing" im Abschnitt "Upload key certificate" "Request upload key reset" klicken, Grund angeben, `upload_certificate.pem` hochladen.
 - **Wo eintragen:** Datei `upload-keystore.jks` und Passwörter in den Passwortmanager. Secrets `ANDROID_KEYSTORE_BASE64` (Datei als Base64), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (zum Beispiel `upload`), `ANDROID_KEY_PASSWORD`.
-- **Woher:** Du erzeugst die Schlüsseldatei selbst mit `keytool`.
+- **Woher:** Der Entwickler erzeugt die Schlüsseldatei mit `keytool` und übergibt sie dir zur Sicherung.
 - **Prüfschritt:** Der Release-Lauf baut ein signiertes AAB. Fehlt der Schlüssel, bricht `store-google.yml` mit klarer Meldung ab.
 - **Wenn es nicht klappt:** Lauf rot mit "Keystore was tampered with, or password was incorrect": Das Passwort in `ANDROID_KEYSTORE_PASSWORD` passt nicht zur Datei. Meldung zu einem fehlenden Alias: `ANDROID_KEY_ALIAS` prüfen (`keytool -list -keystore upload-keystore.jks` zeigt ihn). Upload-Schlüssel verloren: In der Play Console einen neuen Upload-Schlüssel beantragen ("Manage Play app signing", siehe Schritt 6.3).
 - [ ] erledigt
@@ -609,7 +610,7 @@ Quelle: <https://developer.android.com/training/cars/distribute> (abgerufen 26.1
 - **Woher:** Organisationskonto, Upload-Schlüssel. Die 25 US-Dollar gelten laut FAQ für das Konto in der separaten Android Developer Console (nur für den Vertrieb ganz außerhalb von Play), für ein bestehendes Play-Konto nennt die Play-Seite keine zusätzliche Gebühr.
 - **Prüfschritt:** Die Console zeigt die App als registriert, auch für den Vertrieb außerhalb von Play.
 - Store-Regeln: [G-41](STORE-RICHTLINIEN.md#g-41), [G-52](STORE-RICHTLINIEN.md#g-52)
-- **Wenn es nicht klappt:** Der Paketname ist schon bei einem anderen Entwickler registriert: Andere Paket-ID wählen oder die Registrierung beantragen (zusätzliche Prüfung). Ein Signaturschlüssel ist verloren: Dann lässt sich das Paket nicht registrieren, Schlüssel sicher verwahren (Schritt 19.3).
+- **Wenn es nicht klappt:** Der Paketname ist schon bei einem anderen Entwickler registriert: Die Paket-ID bleibt fest (Schritt 6.2). Stattdessen die Registrierung bei Google beantragen (zusätzliche Prüfung). Ein Signaturschlüssel ist verloren: Dann lässt sich das Paket nicht registrieren, Schlüssel sicher verwahren (Schritt 19.3).
 - [ ] erledigt
 
 ### 6.13 Hinweise für die Prüfung
@@ -618,7 +619,7 @@ Quelle: <https://developer.android.com/training/cars/distribute> (abgerufen 26.1
 - **Wozu:** Prüfer, die eine Funktion nicht finden, lehnen ab.
 - **Wo eintragen:** Play Console > "Monitor and improve" > "Policy and programs" > "App content" > "Sign-in details" (Feld "Any other instructions" für Hinweise). Microsoft: Partner Center > Einreichung > "Hinweise für die Zertifizierung".
 - **Woher:** Textvorschläge in [STORE-TEXTE.md](STORE-TEXTE.md).
-- **Prüfschritt:** Beide Felder ausgefüllt.
+- **Prüfschritt:** Das Google-Feld ist ausgefüllt. Das Microsoft-Feld folgt in Schritt 7.7.
 - Store-Regeln: [G-30](STORE-RICHTLINIEN.md#g-30), [M-03](STORE-RICHTLINIEN.md#m-03), [M-22](STORE-RICHTLINIEN.md#m-22)
 - **Wenn es nicht klappt:** Die Angaben werden abgelehnt: Unter "Manage" korrigieren, "Save", dann in "Publishing overview" bei "Changes ready to send for review" "Send for review" klicken. Die Google-Doku sagt nichts dazu, was bei einer App ohne Anmeldung einzutragen ist. Der Inhalt der Prüfhinweise ist unsere Empfehlung, keine Google-Vorgabe. Die Microsoft-Hinweise stehen in Schritt 7.7.
 - [ ] erledigt
@@ -712,7 +713,7 @@ Quelle: [packaging/windows/README.md](../packaging/windows/README.md).
 - **Wozu:** Die Pipeline meldet sich mit dieser Anwendung beim Partner Center an. Ohne sie kein automatischer Upload.
 - **Wo eintragen:** Die vier Werte landen als Secrets (Schritt 7.3).
 - **Woher:** Entra admin center und Partner Center. **[Entwickler]** macht das mit dir per Bildschirmfreigabe.
-- **Prüfschritt:** Unter "App registrations" steht die Anwendung, im Partner Center unter "Microsoft Entra applications" ebenfalls mit Rolle "Manager".
+- **Prüfschritt:** Unter "App registrations" steht die Anwendung, im Partner Center unter "Microsoft Entra applications" ist sie erst nach Schritt 7.3 mit Rolle "Manager" eingetragen.
 - **Wenn es nicht klappt:** "Create" ist grau oder "Microsoft Entra ID" nicht wählbar: Dein Konto ist nicht zahlend oder hat die Rolle "Tenant Creator" nicht (Microsoft-Hinweis). Dann den Weg über das Azure-Konto gehen oder den Entwickler fragen.
 - [ ] erledigt
 
@@ -942,7 +943,7 @@ Die Angaben müssen zur Datenschutzerklärung passen. Im Zweifel anwaltlich prü
 - **Wozu:** Google zeigt die Antworten auf der Store-Seite. Falsche Angaben können zur Ablehnung führen.
 - **Wo eintragen:** Play Console > "Monitor and improve" > "Policy and programs" > "App content" > "Data safety" > "Start".
 - **Woher:** Die Antworten hängen an deiner Konfiguration:
-  - Keine Telemetrie und kein Cast genutzt: Die App erhebt und teilt keine Daten. Favoriten, Verlauf und Einstellungen bleiben auf dem Gerät.
+  - Keine Telemetrie genutzt: Die App selbst erhebt keine Daten (Cast siehe nächster Punkt, er gilt immer). Favoriten, Verlauf und Einstellungen bleiben auf dem Gerät.
   - **Cast immer mit bedenken:** Das Cast-SDK der Google Play-Dienste sendet laut Google Nutzungsdaten. Die App startet es erst beim Tippen auf den Cast-Knopf, doch das Plugin kann es auf Android schon beim Beenden der App initialisieren (siehe [ENTWICKLUNG.md](ENTWICKLUNG.md), Abschnitt Google Cast). Ob Google Übertragungen an das Cast-SDK als "geteilt" wertet, lässt sich aus der Google-Doku nicht ableiten (nicht geprüft, Übertragungen an Dienstleister zählen laut Google nicht als Teilen). Gib die Daten vorsichtig an: "App-Aktivität" und "Geräte- oder andere IDs" mit Zweck "App-Funktionen", auch ohne eigene Telemetrie, und stimme das mit dem Entwickler und dem Anwalt ab. Die genauen Daten stehen in der aktuellen Google-Dokumentation zum Cast-SDK, vor dem Ausfüllen nachlesen.
   - Umami, GlitchTip, Sentry oder Firebase aktiv: Nutzungsdaten (App-Aktivität) und Absturzdaten angeben, Verschlüsselung bei der Übertragung "ja", Löschung auf Anfrage nach deinem tatsächlichen Verfahren.
   - Google Analytics (nur Web): betrifft die Web-Version, nicht die App.
@@ -1499,7 +1500,7 @@ Das Betriebshandbuch mit Deploy, Rollback und Wiederherstellung ist [betrieb/RUN
 
 ### 19.5 Release-Ablauf
 
-- **Was:** Ein Release entsteht automatisch bei jeder Änderung auf `main` (Ablauf "Release", Version wie in der Einleitung beschrieben). `release.yml` baut alle Plattformen, signiert (Sigstore, Attestierung, optional GPG), hängt die Dateien an das GitHub-Release, dann laden `store-google.yml` (Spur "internal"), `store-microsoft.yml` (Entwurf), `store-snap.yml` (Kanal "edge") und `store-apple.yml` (wenn `APPLE_PUBLISHING_ENABLED` gesetzt ist) hoch, und `deploy-web.yml` rollt das Web nach deiner Freigabe aus. Flathub bekommt ein Update per Änderungsvorschlag (`flathub-prep.yml` bereitet ihn vor).
+- **Was:** Ein Release entsteht automatisch bei jeder Änderung auf `main` (Ablauf "Release", Version wie in der Einleitung beschrieben). `release.yml` baut alle Plattformen, signiert (Sigstore, Attestierung, optional GPG), hängt die Dateien an das GitHub-Release, ab Version 1.0.0 laden `store-google.yml` (Spur "internal"), `store-microsoft.yml` (Entwurf), `store-snap.yml` (Kanal "edge") und `store-apple.yml` (wenn `APPLE_PUBLISHING_ENABLED` gesetzt ist) hoch, und `deploy-web.yml` rollt das Web nach deiner Freigabe aus. Flathub bekommt ein Update per Änderungsvorschlag (`flathub-prep.yml` bereitet ihn vor).
 - **Wozu:** Die Pipelines laden nur hoch. **Die Veröffentlichung in den Stores gibst du selbst frei**: Play Console (Test and release > Production > neue Version aus der Spur "internal" hochstufen, gestaffelter Rollout), Partner Center (die Einreichung im Entwurf prüfen und abschicken), Snap (Kanal "edge" auf "candidate" und "stable" hochstufen, im Snap-Dashboard oder per `snapcraft release`, über den Entwickler), App Store Connect (zur Prüfung einreichen). Die genauen Schaltflächen je Store haben wir nicht live geprüft (nicht geprüft, Anmeldung nötig). Gehe in jeder Console den Weg an einem Testlauf einmal durch, bevor es ernst wird.
 - **Wo eintragen:** nichts. Ablauf: [stores-pipelines.md](stores-pipelines.md), Prüfung: [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).
 - **Woher:** entfällt.
@@ -1512,7 +1513,7 @@ Das Betriebshandbuch mit Deploy, Rollback und Wiederherstellung ist [betrieb/RUN
 
 - **Was:** `uptime.yml` prüft alle 30 Minuten Web-App und laut.fm-Schnittstelle und öffnet bei Ausfall ein Ticket mit dem Label `uptime`. Benachrichtigung einschalten: im Repository oben "Watch" > "Custom" > den Haken für Tickets setzen (die Oberfläche beschriftet ihn englisch). Danach unter <https://github.com/settings/notifications> bei "Watching" sowohl "Email" als auch "On GitHub" einschalten, sonst siehst du nichts im Posteingang bzw. bekommst keine Mail (<https://docs.github.com/en/account-and-profile/managing-subscriptions-and-notifications-on-github/setting-up-notifications/configuring-notifications>, abgerufen 26.11.2026).
 - **Wozu:** Ohne Benachrichtigung merkt niemand das Ticket. GitHub startet geplante Läufe nicht minutengenau, das ist ein Hinweis, keine Garantie.
-- **Wo eintragen:** Variable `WEB_BASE_URL` (Schritt 5.2) aktiviert den Monitor. Zusätzlich ein externer Monitor, weil `uptime.yml` mit GitHub zusammen ausfallen kann. Empfehlung: **UptimeRobot Free**: 50 Monitore, Prüfung alle 5 Minuten, laut Anbieter auch für kommerzielle Projekte (<https://uptimerobot.com/pricing/>, abgerufen 26.11.2026). Alternative Better Stack Free: 10 Monitore, E-Mail-Alarm, aber laut Preisseite nur für private Projekte (<https://betterstack.com/pricing>, abgerufen 26.11.2026), passt daher nicht. Das Konto legt LineFM Studios mit `support@linefm.de` oder einer Betriebsadresse an. **Wichtig:** Im Gratis-Tarif gibt es laut UptimeRobot-Hilfe nur **einen** E-Mail-Kanal pro Konto (<https://help.uptimerobot.com/en/articles/11360953-personal-notification-channels>, abgerufen 26.11.2026). Nimm als Konto-Adresse deshalb ein gemeinsam gelesenes Postfach oder einen Verteiler (legst du bei deinem Mail-Anbieter an, zum Beispiel `betrieb@linefm.de`), den mindestens zwei Personen empfangen. Eine zweite Einzeladresse bräuchte einen kostenpflichtigen "Notify-only"-Platz. Monitore: `https://app.linefm.de/`, `https://app.linefm.de/datenschutz/`, `https://cdn.linefm.de/images/icons/main.png`, `https://api.laut.fm/`. Alarm per E-Mail an den gemeinsamen Verteiler. Der E-Mail-Kanal geht laut Hilfeartikel an die Registrierungsadresse. SMS oder Anruf kosten Guthaben. Ob und welche der fünf Integrationen (zum Beispiel Slack) im Gratis-Tarif frei sind, zeigt die Seite nicht (nicht geprüft). Nach dem Anlegen mit einem Testalarm prüfen.
+- **Wo eintragen:** Variable `WEB_BASE_URL` (Schritt 5.2) aktiviert den Monitor. Zusätzlich ein externer Monitor, weil `uptime.yml` mit GitHub zusammen ausfallen kann. Empfehlung: **UptimeRobot Free**: 50 Monitore, Prüfung alle 5 Minuten, laut Anbieter auch für kommerzielle Projekte (<https://uptimerobot.com/pricing/>, abgerufen 26.11.2026). Alternative Better Stack Free: 10 Monitore, E-Mail-Alarm, aber laut Preisseite nur für private Projekte (<https://betterstack.com/pricing>, abgerufen 26.11.2026), passt daher nicht. Das Konto legt LineFM Studios an, mit dem gemeinsamen Alarm-Postfach (siehe unten). **Wichtig:** Im Gratis-Tarif gibt es laut UptimeRobot-Hilfe nur **einen** E-Mail-Kanal pro Konto (<https://help.uptimerobot.com/en/articles/11360953-personal-notification-channels>, abgerufen 26.11.2026). Nimm als Konto-Adresse deshalb ein gemeinsam gelesenes Postfach oder einen Verteiler (legst du bei deinem Mail-Anbieter an, zum Beispiel `betrieb@linefm.de`), den mindestens zwei Personen empfangen. Eine zweite Einzeladresse bräuchte einen kostenpflichtigen "Notify-only"-Platz. Monitore: `https://app.linefm.de/`, `https://app.linefm.de/datenschutz/`, `https://cdn.linefm.de/images/icons/main.png`, `https://api.laut.fm/`. Alarm per E-Mail an den gemeinsamen Verteiler. Der E-Mail-Kanal geht laut Hilfeartikel an die Registrierungsadresse. SMS oder Anruf kosten Guthaben. Ob und welche der fünf Integrationen (zum Beispiel Slack) im Gratis-Tarif frei sind, zeigt die Seite nicht (nicht geprüft). Nach dem Anlegen mit einem Testalarm prüfen.
 - **Woher:** entfällt.
 - **Prüfschritt:** Actions > "Uptime" läuft grün. Im externen Monitor einen Monitor kurz pausieren bzw. auf eine falsche URL stellen: die Alarm-Mail kommt an. Absturzberichte in Sentry, Firebase Crashlytics und Play Console (Android Vitals) einmal pro Woche ansehen.
 - **Wenn es nicht klappt:** Der Testalarm kommt nicht an: Spam-Ordner prüfen und prüfen, ob der Monitor dem Alarmkontakt zugewiesen ist. Die Klickpfade im UptimeRobot-Dashboard haben wir nicht geprüft (Anmeldung nötig), sie stehen im Hilfebereich <https://help.uptimerobot.com/en/>. Keine Mail von GitHub bei einem Uptime-Ticket: "Email" und "On GitHub" unter Notifications einschalten und den Watch-Haken für Tickets prüfen.
@@ -1608,6 +1609,7 @@ Trag diese Termine mit Erinnerung vier Wochen vorher in einen gemeinsamen Kalend
 
 | Wann | Was | Wer | Quelle |
 |---|---|---|---|
+| 01.02.2027 | Google Play: Händlerstatus (DSA) und 16-KB-Seiten müssen erfüllt sein, sonst keine Updates | LineFM Studios und Entwickler | Schritte 17.5, 6.11 |
 | jährlich, Stichtag bisher 31. August | Google Play: neue Apps und Updates müssen die aktuelle Ziel-API haben. Seit 31.08.2026 Android 16 (API 36), Verlängerung auf Antrag bis 01.11.2026 | Entwickler | <https://developer.android.com/google/play/requirements/target-sdk>, abgerufen 26.11.2026; [G-11](STORE-RICHTLINIEN.md#g-11), [G-34](STORE-RICHTLINIEN.md#g-34) |
 | jährlich, meist Frühjahr (ab der Apple-Runde) | Apple: Uploads nur mit aktuellem Xcode. Seit 28.04.2026 Xcode 26 mit iOS-26-SDK | Entwickler | <https://developer.apple.com/news/upcoming-requirements/>, abgerufen 26.11.2026; [A-18](STORE-RICHTLINIEN.md#a-18), [A-32](STORE-RICHTLINIEN.md#a-32) |
 | jährlich zum Beitrittsdatum (ab der Apple-Runde) | Apple-Mitgliedschaft verlängern (99 US-Dollar), sonst verschwinden die Apps aus dem Store | LineFM Studios | <https://developer.apple.com/programs/enroll/>; [A-26](STORE-RICHTLINIEN.md#a-26) |
@@ -1618,7 +1620,7 @@ Trag diese Termine mit Erinnerung vier Wochen vorher in einen gemeinsamen Kalend
 | bei Aufforderung (ab der Apple-Runde) | neue Apple-Vereinbarungen annehmen, sonst stoppen die Uploads | LineFM Studios | [A-27](STORE-RICHTLINIEN.md#a-27) |
 | spätestens 19.05.2027, dann halbjährlich | `security.txt` erneuern | Entwickler | Schritt 20.3 |
 | monatlich | Store-Richtlinien-Prüfung, Dependabot, Sicherheitsmeldungen | Entwickler | Schritte 19.8, 20.4 |
-| quartalsweise | TLS-Ablauf, laut.fm-Schnittstelle, Wiederherstellungsübung | Entwickler | [betrieb/RUNBOOK.md](betrieb/RUNBOOK.md) |
+| quartalsweise | TLS-Ablauf, laut.fm-Schnittstelle, Wiederherstellungsübung | Entwickler (du bekommst die Rückmeldung) | [betrieb/RUNBOOK.md](betrieb/RUNBOOK.md) |
 | jährlich | DPF-Status der US-Anbieter, AVV noch gültig, Datenschutzerklärung und Store-Formulare abgleichen, Altersfragebögen (Apple fragt bei neuen Systemen nach) | LineFM Studios | Schritte 17.2, 17.3 |
 | jährlich | Wiederherstellung einer Schlüsselsicherung testen, Notfallübung | beide | Schritte 19.3, 19.7 |
 
@@ -1644,7 +1646,7 @@ Trag diese Termine mit Erinnerung vier Wochen vorher in einen gemeinsamen Kalend
 
   | Aufgabe | Rhythmus | Schritt | Wer |
   |---|---|---|---|
-  | Zertifikat und Domain-Ablauf prüfen | quartalsweise | 19.2, 19.1 | du, Entwickler hilft |
+  | Zertifikat und Domain-Ablauf prüfen | quartalsweise | 19.2, 19.1 | Entwickler prüft, du bekommst die Rückmeldung |
   | Sicherungen der Signierschlüssel testweise zurückspielen | einmal im Jahr | 19.3 | du mit Entwickler |
   | Uptime-Alarme und Absturzberichte ansehen | wöchentlich | 19.6 | du |
   | Offene Abhängigkeits-Vorschläge und Sicherheitsmeldungen ansehen | monatlich | 19.8 | Entwickler, du bekommst die Zusammenfassung |
@@ -1667,7 +1669,7 @@ Art: S = Secret, V = Variable. Ohne den Wert fehlt die Funktion, die in der Spal
 
 | Name | Art | Ziel | Bezugsquelle | Schritt |
 |---|---|---|---|---|
-| `ANDROID_KEYSTORE_BASE64` | S | Google Play | selbst erzeugte `upload-keystore.jks` als Base64 | 6.3 |
+| `ANDROID_KEYSTORE_BASE64` | S | Google Play | vom Entwickler erzeugte `upload-keystore.jks` als Base64 | 6.3 |
 | `ANDROID_KEYSTORE_PASSWORD` | S | Google Play | beim Erzeugen vergeben | 6.3 |
 | `ANDROID_KEY_ALIAS` | S | Google Play | beim Erzeugen vergeben | 6.3 |
 | `ANDROID_KEY_PASSWORD` | S | Google Play | beim Erzeugen vergeben | 6.3 |

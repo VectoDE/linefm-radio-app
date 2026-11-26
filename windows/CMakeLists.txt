@@ -60,7 +60,6 @@ third_party_patch_plugins(windows)
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
-third_party_patch_sentry_native()
 
 
 # === Installation ===

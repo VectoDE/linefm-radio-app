@@ -56,20 +56,3 @@ function(third_party_patch_plugins platform)
       "    file(MAKE_DIRECTORY \"\${MIMALLOC_SRC}\")")
   endif()
 endfunction()
-
-# sentry-native sources, fetched by sentry_flutter while its plugin CMake runs.
-# Call after include(flutter/generated_plugins.cmake); compilation happens later.
-function(third_party_patch_sentry_native)
-  set(sn "${CMAKE_BINARY_DIR}/_deps/sn-src")
-  if(NOT EXISTS "${sn}/src/sentry_core.c")
-    message(FATAL_ERROR "third_party_patch: sentry-native sources not found in ${sn}.")
-  endif()
-  # C4047: a pointer was used to initialize a bool.
-  third_party_patch("${sn}/src/sentry_core.c"
-    "bool has_session = options->session;"
-    "bool has_session = options->session != NULL;")
-  # C4267: size_t narrowed to u32 without a cast (the low half is cast already).
-  third_party_patch("${sn}/external/breakpad/src/common/md5.cc"
-    "ctx->bits[1] += len >> 29;"
-    "ctx->bits[1] += static_cast<u32>(len >> 29);")
-endfunction()

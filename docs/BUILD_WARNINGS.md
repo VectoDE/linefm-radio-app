@@ -51,8 +51,6 @@ release with the fix is in `pubspec.lock`.
 | media_kit_libs_windows_audio 1.0.9 | CMake CMP0175: `add_custom_command(TARGET)` without build stage | explicit `POST_BUILD` (the previous implicit behaviour) |
 | media_kit_libs_windows_audio 1.0.9, media_kit_libs_linux 1.2.1 | deprecated `make_directory()` | `file(MAKE_DIRECTORY)` |
 | smtc_windows 1.1.0 (cargokit) | PowerShell `Get-Item` error on the hidden `AppData` folder | `Get-Item -Force -LiteralPath` |
-| sentry-native 0.17.6 (via sentry_flutter) | MSVC C4047 in `sentry_core.c` | compare the session pointer with `NULL` |
-| sentry-native 0.17.6, breakpad `md5.cc` | MSVC C4267 | explicit `u32` cast |
 | sentry-native 0.17.6 on Linux | Clang `-Wc11-extensions` (`_Generic`) | `CMAKE_C_STANDARD 11` in `linux/CMakeLists.txt` |
 
 Fixes in the app itself:

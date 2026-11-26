@@ -173,7 +173,7 @@ Die Schrittnummern bleiben stabil. In dieser Reihenfolge arbeitest du sie ab, we
 | 1. Grundlagen | 1.1, 1.2, 1.3, 1.4, 1.5 | Zugang, Passwortmanager, Secrets |
 | 2. Entscheiden | 1.6 | Hosting, Telemetrie, Stores und Konto-Inhaber bestimmen den Rest |
 | 3. Lange Wartezeiten anstoßen | 18.1 (D-U-N-S), 2.1 bis 2.3 (Bestätigungen), 20.1 (nur das Postfach, die Support-Seite folgt nach der Web-Phase) und 18.2 (Konten-Regeln, die Haken je Konto erst am Ende von Phase 8), Anwaltstermin vereinbaren (Anhang D) | Dritte antworten spät, Konten brauchen Adressen, mehrere Schritte brauchen den Anwalt |
-| 3a. Pflichtwerte | 3.1 (Werte und Platzhalter), 3.2, 3.5, 17.7, 17.8, 17.10, 17.13 (mit Telemetrie vorher 9.1 bis 9.3, weil 3.1 deren Werte braucht) | Der Release-Build bricht bei offenen Platzhaltern ab, Store-Formulare brauchen diese Antworten |
+| 3a. Pflichtwerte | 3.1 (Werte und Platzhalter), 3.2, 3.5, 3.6 (Telemetrie-Entscheidung festlegen, danach 3.1 und 17.13 abschließen, der Dienst selbst folgt in 9.1 bis 9.3), 17.7, 17.8, 17.10, 17.13 | Der Release-Build bricht bei offenen Platzhaltern ab, Store-Formulare brauchen diese Antworten |
 | 4. Web | 5.1, 5.2, 4.1, 4.2, 4.4, 4.3 | Datenschutz-URL und Domain müssen live sein. "Domain live" heißt hier: Die Web-App ist unter linefm.de erreichbar. Der "Tag des Live-Gangs" der Apps in den Stores ist etwas anderes (Phase 11) |
 | 5. Rechtstexte | 3.3, 3.4, 3.1 abschließen (danach Web neu bauen, Schritt 1.5), Nutzungsbedingungen-Seite (Händlerstatus, Schritt 17.5: Anwalt), 2.4, 2.5, 17.3, 17.1, 17.2, 17.4, 17.6, 17.9, 17.11, 17.12, 18.3, 18.4 | Stores verlangen die URLs und Texte |
 | 6. Google | 6.1, 17.5, 6.2, 6.3 (Schlüsselsicherung sofort, Schritt 19.3), 6.4, 6.5 bis 6.13 (6.9 erst nach dem ersten Upload), 13.1, 17.5 | |
@@ -183,7 +183,7 @@ Die Schrittnummern bleiben stabil. In dieser Reihenfolge arbeitest du sie ab, we
 | 10. Bilder | 14 (früh anstoßen, die Stores brauchen sie in Phase 6, 7 und 8) | |
 | 11. Abnahme | 16, 19.4, 19.5, 19.9 | |
 | 12. Dauerbetrieb | 19.1 bis 19.3, 19.6 bis 19.8, 20.2 bis 20.7 | Einrichten, dann regelmäßig |
-| später | 15 (Apple) | nicht Teil der ersten Veröffentlichung |
+| später (Apple-Runde) | 15 | bewusst nicht Teil der ersten Veröffentlichung, Rollen dort jeweils im Schritt |
 
 ## Übersicht: Was kostet das?
 
@@ -321,7 +321,7 @@ Alle Punkte hier sind Vorprüfung, keine Rechtsberatung. Lass Wortlaut und Folge
   > Guten Tag, LineFM Studios betreibt die App "LINEFM Radio". Wir möchten Ihren Sender [Name] als Partnersender in der App zeigen: Sendername, Logo und Stream-Adresse, Wiedergabe über die App und die Web-App `app.linefm.de`. Bitte bestätigen Sie uns schriftlich, dass wir Name, Logo und Stream in dieser Form in der App und in den Store-Einträgen (Google Play, Microsoft Store, Flathub, Snap Store) nutzen dürfen, und ob dafür Bedingungen gelten. Eine Antwort per E-Mail genügt. Freundliche Grüße, [Name, Funktion]
 
   Die Antwort legst du mit Datum ab (Schritt 17.8).
-- **Woher:** Betreiber der beiden Sender.
+- **Woher:** Ansprechpartner bei den beiden Sendern (Sender-Betreiber).
 - **Prüfschritt:** Schriftliche Freigabe je Sender liegt vor. Ohne sie nehmen wir die Sender aus der App.
 - **Wenn es nicht klappt:** Ein Sender lehnt ab oder antwortet nicht: Dem Entwickler Bescheid geben, er nimmt den Sender aus der App.
 - [ ] erledigt
@@ -343,10 +343,10 @@ Alle Punkte hier sind Vorprüfung, keine Rechtsberatung. Lass Wortlaut und Folge
 ### 2.4 Auftragsverarbeitung (AVV) für die Telemetrie
 
 - **Wer:** Betreiber schließt den Vertrag, Entwickler nennt die Anbieter.
-- **Was:** Vorher Schritt 1.6 entscheiden, ob Telemetrie genutzt wird. Entfällt sie, entfällt dieser Teil des Vertrags. Einen Vertrag zur Auftragsverarbeitung nach Art. 28 DSGVO mit dem Betreiber der Statistik- oder Fehlerberichte-Instanz abschließen. Dasselbe mit Hosting- und CDN-Betreiber.
+- **Was:** Vorher Schritt 1.6 entscheiden, ob Telemetrie genutzt wird. Entfällt sie, entfällt dieser Teil des Vertrags. Einen Vertrag zur Auftragsverarbeitung nach Art. 28 DSGVO mit dem Server-Anbieter der Statistik- oder Fehlerberichte-Instanz abschließen. Dasselbe mit Hosting- und CDN-Anbieter. Die vollständige Liste aller Dienste mit Fundort der Verträge steht in Schritt 17.3, dort legst du die Verträge ab. Dieser Schritt ist der frühe Teil (vor der Freigabe der Telemetrie), 17.3 die vollständige Prüfung.
 - **Wozu:** Harte Freigabesperre: Telemetrie bleibt aus, solange kein unterschriebener Vertrag vorliegt. Die Datenschutzerklärung sagt bei aktiver Telemetrie, dass diese Verträge bestehen.
 - **Wo eintragen:** Abschnitt "Harte Freigabesperren" der Freigabe-Checkliste. Erst danach setzt du die Telemetrie-Variablen (Abschnitt 9).
-- **Woher:** Beim eigenen Server schließt du den Vertrag mit dem Betreiber. Bei Cloudflare, Google und Apple gelten die Standardverträge der Anbieter. Ob ein US-Anbieter unter dem EU-US Data Privacy Framework (DPF) zertifiziert ist, zeigt <https://www.dataprivacyframework.gov/list>. Zertifizierungen laufen aus, also vor dem Start und danach regelmäßig nachsehen.
+- **Woher:** Beim eigenen Server schließt du den Vertrag mit dem Server-Anbieter. Bei Cloudflare, Google und Apple gelten die Standardverträge der Anbieter. Ob ein US-Anbieter unter dem EU-US Data Privacy Framework (DPF) zertifiziert ist, zeigt <https://www.dataprivacyframework.gov/list>. Zertifizierungen laufen aus, also vor dem Start und danach regelmäßig nachsehen.
 - **Prüfschritt:** Unterschriebene Verträge liegen vor, DPF-Status mit Datum notiert.
 - **Wenn es nicht klappt:** Anbieter bietet keinen AVV an: Diesen Anbieter nicht nutzen und die Telemetrie aus lassen. Die App läuft ohne sie.
 - [ ] erledigt
@@ -446,12 +446,23 @@ dart run tool/gen_legal_html.dart --values=legal_values.json --fill-assets --str
 ### 3.5 Einwilligungstext in der App
 
 - **Wer:** Betreiber prüft, Entwickler ändert den Text in der App.
-- **Was:** Der Dialog für Statistik und Fehlerberichte nennt den Empfänger (Betreiber der Umami- bzw. Sentry-Instanz (GlitchTip)) und sagt, dass technisch die IP-Adresse übertragen wird. Prüfe, ob das zu deiner Konfiguration passt.
+- **Was:** Der Dialog für Statistik und Fehlerberichte nennt den Empfänger (Server-Anbieter der Umami- bzw. Sentry-Instanz (GlitchTip)) und sagt, dass technisch die IP-Adresse übertragen wird. Prüfe, ob das zu deiner Konfiguration passt.
 - **Wozu:** Die Einwilligung muss informiert sein (DSGVO, TDDDG).
 - **Wo eintragen:** Der Text liegt in den Sprachdateien der App (`lib/l10n/`), nicht in `assets/legal/`. Änderungen macht der Entwickler.
 - **Woher:** Abstimmung mit der Datenschutzerklärung.
 - **Prüfschritt:** Der Dialog erscheint nur, wenn Telemetrie konfiguriert ist.
 - **Wenn es nicht klappt:** Text passt nicht: dem Entwickler den gewünschten Wortlaut schicken. Den Text in den Sprachdateien änderst du nicht selbst.
+- [ ] erledigt
+
+### 3.6 Telemetrie-Entscheidung in die Pflichtwerte übertragen
+
+- **Wer:** Betreiber entscheidet (Schritt 1.6), Entwickler trägt die Werte ein.
+- **Was:** Wenn du in Schritt 1.6 Telemetrie gewählt hast, brauchen Schritt 3.1 (Anbieterliste und Betreiber-Platzhalter wie `{{UMAMI_BETREIBER}}`), Schritt 17.13 (Speicherdauer `{{TELEMETRIE_AUFBEWAHRUNG}}`) und Abschnitt 9 (Dienst einrichten) dieselben Antworten. Lege sie hier einmal fest: Anbieter (Umami, Sentry oder Firebase), Server-Anbieter, Speicherdauer (Vorschlag 90 Tage). Erst danach schließt der Entwickler 3.1 und 17.13 ab. Hast du Telemetrie ausgeschlossen, trägst du bei 3.1 die Telemetrie-Anbieter als nicht genutzt ein und überspringst 17.13 für diese Zeile.
+- **Wozu:** Der Release-Build bricht bei offenen Telemetrie-Platzhaltern ab, aber der Dienst selbst entsteht erst in Abschnitt 9. Ohne diese Festlegung widersprechen sich Rechtstexte und Dienst.
+- **Wo eintragen:** In der Datei aus Schritt 3.1 (`legal_values.json`) und später im Dienst (Schritt 9.3).
+- **Woher:** Deine Entscheidung aus Schritt 1.6, der Vertrag aus Schritt 2.4.
+- **Prüfschritt:** Anbieter, Server-Anbieter und Speicherdauer stehen in der Datei aus 3.1 und sind in 17.13 und 9.3 gleich.
+- **Wenn es nicht klappt:** Du weißt den Server-Anbieter noch nicht: Telemetrie zunächst ausgeschlossen lassen und später nachziehen.
 - [ ] erledigt
 
 ---
@@ -499,7 +510,7 @@ dart run tool/gen_legal_html.dart --values=legal_values.json --fill-assets --str
 - **Wo eintragen:** In der Server- oder CDN-Konfiguration von `cdn.linefm.de`.
 - **Woher:** Wer das CDN betreibt (derselbe Name steht als `{{CDN_ANBIETER}}` in der Datenschutzerklärung).
 - **Prüfschritt:** `curl -sI -H "Origin: https://app.linefm.de" https://cdn.linefm.de/images/icons/main.png | grep -i access-control` zeigt den Header.
-- **Wenn es nicht klappt:** Header fehlt: Den Betreiber von `cdn.linefm.de` bitten, ihn für `/images/icons/` zu setzen. Die App funktioniert bis dahin, nur ohne Cover im Browser.
+- **Wenn es nicht klappt:** Header fehlt: Du (Betreiber) schreibst dem CDN-Anbieter von `cdn.linefm.de` (die Adresse steht in deinem Vertrag oder im Hosting-Konto): "Bitte setzt für `https://cdn.linefm.de/images/icons/` den Antwort-Header `Access-Control-Allow-Origin: *` (oder `https://app.linefm.de`) und bestätigt mir die Änderung." Danach prüft der Entwickler den Header. Die App funktioniert bis dahin, nur ohne Cover im Browser.
 - [ ] erledigt
 
 ---
@@ -896,7 +907,7 @@ Ohne Konfiguration sendet die App nichts und fragt nicht nach Einwilligung. Tech
 - **Was:** Betreiber und Speicherdauer eintragen.
 - **Wozu:** Mit aktiver Telemetrie sind sie Pflicht, leere Werte zählen als offen.
 - **Wo eintragen:** In `legal_values.json` bzw. `LEGAL_VALUES_JSON`: `{{TELEMETRIE_AUFBEWAHRUNG}}`, `{{UMAMI_BETREIBER}}`, `{{SENTRY_BETREIBER}}`.
-- **Woher:** Dein Betreiber der Instanz, deine Löschfristen.
+- **Woher:** Dein Server-Anbieter der Instanz, deine Löschfristen.
 - **Prüfschritt:** Generator mit `--strict` und passendem `--providers` läuft ohne Fehler.
 - **Wenn es nicht klappt:** Generator meldet den Platzhalter weiter als offen: `--providers` passt nicht zu den gesetzten Diensten, oder der Wert ist leer.
 - [ ] erledigt
@@ -1183,7 +1194,9 @@ Die Angaben müssen zur Datenschutzerklärung passen. Im Zweifel anwaltlich prü
 
 ---
 
-## 15. Apple (vorbereitet, vorerst nicht veröffentlicht)
+## 15. Apple (später, Apple-Runde)
+
+**Später (Apple-Runde):** Dieser ganze Abschnitt ist bewusst nicht Teil der ersten Veröffentlichung. Du musst ihn jetzt nicht abarbeiten, die Haken bleiben offen. Die Rollen stehen in jedem Schritt unter "Wer".
 
 iOS, macOS, CarPlay und AirPlay sind im Code vorbereitet. Apple (iOS und Mac App Store) kommt **nicht in die erste Veröffentlichung**, sondern später in einer gemeinsamen Runde für iOS und Mac. Für diese Runde gelten alle Schritte dieses Abschnitts plus die Apple-Teile aus 13.4 (App-Datenschutz), 17.5 (DSA-Händlerstatus), 18.2 und 18.3 (Konto, Vereinbarungen, Steuern), 19.3 (Zertifikate), 20.1 (Support-URL) und dem Fristenkalender 20.5. Regeln: [STORE-RICHTLINIEN.md, Apple](STORE-RICHTLINIEN.md#apple-app-store).
 
@@ -1392,7 +1405,7 @@ Vorprüfung, keine Rechtsberatung. Jeden Punkt lässt du von einem Anwalt bestä
 | Google Analytics 4 | Web-Statistik | GA4 > Verwaltung > Kontoeinstellungen, Datenverarbeitungsbedingungen | ja |
 | Cloudflare | Hosting, CDN, DNS | Cloudflare-DPA, Teil der Nutzungsbedingungen | ja |
 | eigener Server oder Plesk-Hoster | Hosting, Server-Logs | beim Hoster | je nach Hoster |
-| Betreiber von `cdn.linefm.de` | Logos | beim Betreiber | je nach Betreiber |
+| CDN-Anbieter von `cdn.linefm.de` | Logos | beim CDN-Anbieter | je nach Anbieter |
 
 - **Woher:** Die Anbieter. Die genauen Menüpfade haben wir nicht live geprüft. DPF-Liste: <https://www.dataprivacyframework.gov/list>.
 - **Prüfschritt:** Für jede Zeile mit aktivem Dienst liegt ein Vertrag mit Datum vor, der DPF-Status ist mit Abrufdatum notiert.
@@ -1454,7 +1467,7 @@ Vorprüfung, keine Rechtsberatung. Jeden Punkt lässt du von einem Anwalt bestä
 - **Was:** Schriftliche Freigabe beider Sender (Schritt 2.2) als Datei ablegen, damit du sie Prüfern zeigen kannst.
 - **Wozu:** Gleicher Grund wie 17.7.
 - **Wo eintragen:** Abschnitt A1 der Freigabe-Checkliste, Ablage bei dir (Betreiber).
-- **Woher:** Betreiber der Sender.
+- **Woher:** Ansprechpartner bei den Sendern (Sender-Betreiber).
 - **Prüfschritt:** Zwei Freigaben mit Datum liegen vor. Ohne sie fliegen die Sender aus der App.
 - Store-Regeln: [D-03](STORE-RICHTLINIEN.md#d-03), [G-02](STORE-RICHTLINIEN.md#g-02), [M-28](STORE-RICHTLINIEN.md#m-28). Ohne schriftliche Erlaubnis für Namen, Logos und Streams keine Andeutung einer Verbindung.
 - **Wenn es nicht klappt:** Eine Freigabe fehlt: Den Sender ohne sie aus der App nehmen lassen (Entwickler), nicht auf Verdacht ausliefern. Ablage: Datei mit Datum beim Kunden.
@@ -1755,12 +1768,12 @@ Das Betriebshandbuch mit Deploy, Rollback und Wiederherstellung ist [betrieb/RUN
 
 ### 20.3 Meldung von Sicherheitslücken
 
-- **Wer:** Entwickler.
+- **Wer:** Betreiber schaltet die Benachrichtigungen in seinem GitHub-Konto ein (Klickweg unten), Entwickler erneuert `security.txt` rechtzeitig vor dem Ablaufdatum und prüft es.
 - **Was:** Meldungen kommen über das GitHub-Formular aus `SECURITY.md` und `web/.well-known/security.txt` (Schritt 3.3). Benachrichtigung für "Security alerts" einschalten.
 - **Wozu:** Wer eine Lücke findet, braucht einen vertraulichen Weg. Die Datei `security.txt` hat ein Ablaufdatum (`Expires: 2027-05-19`) und muss vorher erneuert werden.
-- **Wo eintragen:** Am Repository oben "Watch" > "Custom" > "Security alerts" anhaken. Dann in den Benachrichtigungs-Einstellungen (Posteingang-Symbol > "Manage notifications" > "Notification settings") bei Dependabot-Alerts mindestens "Email" oder "On GitHub" wählen (<https://docs.github.com/en/code-security/dependabot/dependabot-alerts/configuring-notifications-for-dependabot-alerts>, abgerufen 26.11.2026). Erneuerung von `security.txt` macht der Entwickler.
+- **Wo eintragen:** Am Repository oben "Watch" > "Custom" > "Security alerts" anhaken. Dann in den Benachrichtigungs-Einstellungen (Posteingang-Symbol > "Manage notifications" > "Notification settings") bei Dependabot-Alerts mindestens "Email" oder "On GitHub" wählen (<https://docs.github.com/en/code-security/dependabot/dependabot-alerts/configuring-notifications-for-dependabot-alerts>, abgerufen 26.11.2026). Die Erneuerung von `security.txt` macht der Entwickler, du bekommst Bescheid, wenn sie erfolgt ist.
 - **Woher:** entfällt.
-- **Prüfschritt:** `https://app.linefm.de/.well-known/security.txt` zeigt ein `Expires` in der Zukunft.
+- **Prüfschritt:** `https://app.linefm.de/.well-known/security.txt` zeigt ein `Expires` in der Zukunft (im Browser öffnen, die Zeile `Expires:` lesen). Du bekommst bei einem Test-Alarm oder der nächsten Meldung eine Mail von GitHub.
 - **Wenn es nicht klappt:** Du bekommst keine Meldung: Am Repository unter "Watch" > "Custom" den Punkt "Security alerts" einschalten und in den Einstellungen bei den Dependabot-Alerts "Email" oder "On GitHub" aktivieren. GitHub meldet nur für neu auftretende Schwachstellen, nicht rückwirkend. Wer Benachrichtigungen zu Secret-Scanning- und Code-Scanning-Funden bekommt, ist nicht geprüft.
 - [ ] erledigt
 
@@ -1936,10 +1949,10 @@ Du schreibst die Werte in `legal_values.json` bzw. die Variable `LEGAL_VALUES_JS
 | `{{DATENSCHUTZBEAUFTRAGTER}}` | ja | Datenschutz | Name und Kontakt oder Hinweis, dass keiner benannt werden muss |
 | `{{AUFSICHTSBEHOERDE_DATENSCHUTZ}}` | ja | Datenschutz | Landesdatenschutzbehörde nach Sitz |
 | `{{HOSTING_ANBIETER}}` | ja | Datenschutz | Hoster der Web-Version |
-| `{{CDN_ANBIETER}}` | ja | Datenschutz | Betreiber von `cdn.linefm.de` |
+| `{{CDN_ANBIETER}}` | ja | Datenschutz | CDN-Anbieter von `cdn.linefm.de` |
 | `{{LOG_AUFBEWAHRUNG}}` | ja | Datenschutz | Speicherdauer der Server-Protokolle, zum Beispiel 7 Tage |
 | `{{TELEMETRIE_AUFBEWAHRUNG}}` | nur mit Telemetrie | Datenschutz | Speicherdauer der Statistik- und Fehlerdaten |
-| `{{UMAMI_BETREIBER}}` | nur mit Umami | Datenschutz | Betreiber der Umami-Instanz |
+| `{{UMAMI_BETREIBER}}` | nur mit Umami | Datenschutz | Server-Anbieter der Umami-Instanz |
 | `{{SENTRY_BETREIBER}}` | nur mit Sentry oder GlitchTip | Datenschutz | Betreiber der Instanz |
 | `{{GA4_AUFBEWAHRUNG}}` | nur mit `GTM_ID` oder `GA4_MEASUREMENT_ID` | Datenschutz | Speicherdauer der GA4-Daten, wie in GA4 > Verwaltung > Datenaufbewahrung eingestellt, zum Beispiel 2 Monate |
 | `{{BARRIEREFREIHEIT_KONTAKT}}` | ja | `docs/BARRIEREFREIHEIT.md` | Kontakt für Barrieren, direkt in der Datei eintragen |

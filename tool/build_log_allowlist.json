@@ -50,13 +50,19 @@
     "pattern": "^/.+/sentry_flutter-\\d+\\.\\d+\\.\\d+/Sources/sentry_flutter_objc/include/SentryFlutterReplayScreenshotProvider\\.h:\\d+:\\d+: warning: pointer is missing a nullability type specifier",
     "job": "iOS.widget.light.and.dark",
     "expires": "2027-02-28",
-    "reason": "Header of sentry_flutter 10.6.0 (latest) compiled into the Runner for the widget snapshot test; the plugin's own Objective-C lacks a nullability annotation. A third-party source file, so no app-side change removes it. To be reported in the getsentry/sentry-dart tracker."
+    "reason": "Header of sentry_flutter 10.6.0 (latest) compiled into the Runner for the widget snapshot test; the plugin's own Objective-C lacks a nullability annotation. A third-party source file, so no app-side change removes it. Reported upstream: https://github.com/getsentry/sentry-dart/issues/4232"
   },
   {
     "pattern": "^1 warning generated\\.$",
     "job": "iOS.widget.light.and.dark",
     "expires": "2027-02-28",
     "reason": "Summary line of the single sentry_flutter header warning allow-listed above; it disappears with it. sentry_flutter 10.6.0 is the latest release, a command-line OTHER_CFLAGS suppression does not reach the Swift package target."
+  },
+  {
+    "pattern": "^Warning: Could not fetch system log stream: spawnSync /bin/sh ETIMEDOUT$",
+    "job": "iOS.widget.light.and.dark",
+    "expires": "2027-02-28",
+    "reason": "Printed by the Post step of step-security/harden-runner on the macOS runner when its system-log query times out after the simulator run (seen in 2 of 4 runs, the job itself is green). Only the hardening report is lost, no build or test result. No app-side change removes it; re-check with the next harden-runner release."
   },
   {
     "pattern": "^Warning: 'no file associated with this alert' is not a valid URI in 'instance\\.runs\\[\\d+\\]\\.results\\[\\d+\\]\\.locations\\[0\\]\\.physicalLocation\\.artifactLocation\\.uri'\\.$",

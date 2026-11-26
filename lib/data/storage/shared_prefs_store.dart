@@ -28,12 +28,19 @@ abstract final class PrefsKeys {
   /// in der Web-App nicht.
   static const String loadArtwork = 'linefm-setting-artwork';
   static const String keyboardShortcuts = 'linefm-setting-shortcuts';
+
+  /// App language and cover cache limit. Not in the web app.
+  static const String language = 'linefm-setting-language';
+  static const String coverCacheLimit = 'linefm-setting-cover-cache-limit';
   static const String alarms = 'linefm-alarms';
   static const String telemetryConsent = 'linefm-telemetry-consent';
   static const String coverCache = 'linefm-cover-cache';
 
   /// Zuletzt gueltig nachgeladene Senderliste.
   static const String stationsCache = 'linefm-stations-cache';
+
+  /// Last track and history per station (offline display).
+  static const String liveCache = 'linefm-live-cache';
 
   /// Favoriten-Sender. Gibt es in der Web-App nicht.
   static const String favoriteStations = 'linefm-favorite-stations';
@@ -61,10 +68,13 @@ abstract final class PrefsKeys {
     themeMode,
     loadArtwork,
     keyboardShortcuts,
+    language,
+    coverCacheLimit,
     alarms,
     telemetryConsent,
     coverCache,
     stationsCache,
+    liveCache,
     desktopWindow,
     desktopMini,
   ];
@@ -188,6 +198,8 @@ class SharedPrefsStore implements PrefsStore {
       'themeMode': _readString(PrefsKeys.themeMode),
       'loadArtwork': _readBool(_prefs, PrefsKeys.loadArtwork),
       'keyboardShortcuts': _readBool(_prefs, PrefsKeys.keyboardShortcuts),
+      'language': _readString(PrefsKeys.language),
+      'coverCacheLimit': _readString(PrefsKeys.coverCacheLimit),
     });
   }
 
@@ -211,6 +223,11 @@ class SharedPrefsStore implements PrefsStore {
       await _prefs.setBool(
         PrefsKeys.keyboardShortcuts,
         settings.keyboardShortcuts,
+      );
+      await _prefs.setString(PrefsKeys.language, settings.language.name);
+      await _prefs.setString(
+        PrefsKeys.coverCacheLimit,
+        settings.coverCacheLimit.name,
       );
       return true;
     });
@@ -283,6 +300,15 @@ class SharedPrefsStore implements PrefsStore {
   Future<void> writeStationsCache(String json) async {
     if (!_consent) return;
     await _write(() => _prefs.setString(PrefsKeys.stationsCache, json));
+  }
+
+  @override
+  String? readLiveCache() => _consent ? _readString(PrefsKeys.liveCache) : null;
+
+  @override
+  Future<void> writeLiveCache(String json) async {
+    if (!_consent) return;
+    await _write(() => _prefs.setString(PrefsKeys.liveCache, json));
   }
 
   @override

@@ -17,6 +17,7 @@ import 'package:linefm_radio/platform/desktop/desktop_host.dart';
 import 'package:linefm_radio/platform/web_routes.dart';
 import 'package:linefm_radio/services/share/share_feedback.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
+import 'package:linefm_radio/ui/widgets/cover_image.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Sprache aus `?lang=de|en` (Web, hreflang-Varianten), sonst `null`
@@ -85,6 +86,10 @@ class _LinefmAppState extends ConsumerState<LinefmApp> {
             .read(alarmCoordinatorProvider)
             .rescheduleAll(ref.read(alarmProvider)),
       );
+    });
+    // Cover cache size: applies at once, a lower limit trims the cache.
+    ref.listen(settingsProvider.select((s) => s.coverCacheLimit), (_, next) {
+      unawaited(CoverImage.diskCache?.setMaxBytes(next.bytes));
     });
     // Nachgeladene Senderliste: Wecker neu planen, damit
     // Mitteilungstext und Link einen entfernten Sender durch den Ersatz

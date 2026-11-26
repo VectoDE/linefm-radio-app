@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/domain/alarm/alarm_schedule.dart';
@@ -156,6 +157,22 @@ class SettingsScreen extends ConsumerWidget {
             value: ref.watch(googleConsentProvider) == true,
             onChanged: (v) =>
                 ref.read(googleConsentProvider.notifier).set(value: v),
+          ),
+        // Native only: the web keeps covers in the browser HTTP cache.
+        if (!kIsWeb)
+          _ChoiceRow<CoverCacheLimit>(
+            title: l10n.settingCoverCacheTitle,
+            body: l10n.settingCoverCacheBody,
+            selected: settings.coverCacheLimit,
+            onChanged: (l) =>
+                notifier.update((s) => s.copyWith(coverCacheLimit: l)),
+            segments: <ButtonSegment<CoverCacheLimit>>[
+              for (final limit in CoverCacheLimit.values)
+                ButtonSegment<CoverCacheLimit>(
+                  value: limit,
+                  label: Text(l10n.coverCacheSizeMb(limit.megabytes)),
+                ),
+            ],
           ),
         const _StorageSection(),
         _NavRow(title: l10n.settingAboutTitle, onTap: () => openAbout(context)),

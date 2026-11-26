@@ -42,6 +42,11 @@ abstract interface class PrefsStore {
   String? readStationsCache();
   Future<void> writeStationsCache(String json);
 
+  /// Last known track and history per station as JSON text, so covers and
+  /// history show offline after a restart. Same consent rule as above.
+  String? readLiveCache();
+  Future<void> writeLiveCache(String json);
+
   /// Speicher loeschen: setzt alles inklusive Bestaetigung zurueck, ausser
   /// "Cover laden: aus" (Datenschutz-Praeferenz, R3-P03).
   Future<void> clearAll();
@@ -64,6 +69,7 @@ class InMemoryPrefsStore implements PrefsStore {
   bool? _telemetry;
   String? _coverCache;
   String? _stationsCache;
+  String? _liveCache;
 
   @override
   bool get storageConsent => _consent;
@@ -131,6 +137,12 @@ class InMemoryPrefsStore implements PrefsStore {
   Future<void> writeStationsCache(String json) async => _stationsCache = json;
 
   @override
+  String? readLiveCache() => _liveCache;
+
+  @override
+  Future<void> writeLiveCache(String json) async => _liveCache = json;
+
+  @override
   Future<void> clearAll() async {
     _consent = false;
     _favorites = <Favorite>[];
@@ -143,5 +155,6 @@ class InMemoryPrefsStore implements PrefsStore {
     _telemetry = null;
     _coverCache = null;
     _stationsCache = null;
+    _liveCache = null;
   }
 }

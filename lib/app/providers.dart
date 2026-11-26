@@ -517,6 +517,8 @@ List<Override> productionOverrides({
       clock: ref.watch(clockProvider),
       activeStation: ref.read(activeStationProvider),
       socket: config.wsEnabled ? WebSocketSongChangeSocket() : null,
+      readSnapshot: ref.read(prefsProvider).readLiveCache,
+      writeSnapshot: ref.read(prefsProvider).writeLiveCache,
     );
     ref.listen(stationsCatalogProvider, (_, _) => repo.stationsChanged());
     bindNowPlayingRepository(ref, repo);

@@ -1,3 +1,6 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:linefm_radio/data/artwork/cached_cover_image.dart';
+import 'package:linefm_radio/data/artwork/cover_disk_cache.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/station_art.dart';
@@ -21,6 +24,11 @@ class CoverImage extends StatelessWidget {
     this.semanticLabel,
   });
 
+  /// On-device cover cache (native platforms), set once at start-up.
+  /// Null (web, tests, folder unavailable): plain network image, cached by
+  /// the browser or only in memory.
+  static CoverDiskCache? diskCache;
+
   final Station station;
 
   /// Cover-URL (iTunes 600x600) oder null.
@@ -35,6 +43,19 @@ class CoverImage extends StatelessWidget {
 
   /// Beschreibung fuer Screenreader. Null = dekorativ.
   final String? semanticLabel;
+
+  /// Image provider for [url]: on-device cache first on native platforms.
+  /// Also used by the blurred mini player backdrop.
+  static ImageProvider<Object> providerFor(String url) {
+    final disk = diskCache;
+    if (kIsWeb || disk == null) {
+      return NetworkImage(
+        url,
+        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+      );
+    }
+    return CachedCoverImage(url, cache: disk);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,15 +73,17 @@ class CoverImage extends StatelessWidget {
       children: <Widget>[
         StationArt(station: station, size: size, borderRadius: 0),
         if (cover != null && cover.isNotEmpty)
-          Image.network(
-            cover,
+          Image(
+            image: ResizeImage.resizeIfNeeded(
+              cacheSize,
+              null,
+              providerFor(cover),
+            ),
             key: ValueKey<String>(cover),
             fit: BoxFit.cover,
-            cacheWidth: cacheSize,
             gaplessPlayback: true,
             excludeFromSemantics: true,
             filterQuality: FilterQuality.medium,
-            webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
             frameBuilder: (context, child, frame, sync) => sync
                 ? child
                 : AnimatedOpacity(

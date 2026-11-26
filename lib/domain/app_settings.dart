@@ -15,6 +15,19 @@ enum AppLanguage {
   final String? code;
 }
 
+/// Size limit of the on-device cover cache (native platforms).
+enum CoverCacheLimit {
+  mb20(20),
+  mb40(40),
+  mb100(100);
+
+  const CoverCacheLimit(this.megabytes);
+
+  final int megabytes;
+
+  int get bytes => megabytes * 1024 * 1024;
+}
+
 /// Persistierte Einstellungen (Spec 3.4 settingsProvider).
 class AppSettings {
   const AppSettings({
@@ -26,6 +39,7 @@ class AppSettings {
     this.loadArtwork = true,
     this.keyboardShortcuts = true,
     this.language = AppLanguage.system,
+    this.coverCacheLimit = CoverCacheLimit.mb40,
   });
 
   /// Tolerant: fehlende oder falsch typisierte Felder erhalten den Standard.
@@ -39,6 +53,7 @@ class AppSettings {
 
     final theme = json['themeMode'];
     final language = json['language'];
+    final cacheLimit = json['coverCacheLimit'];
     return AppSettings(
       marquee: flag('marquee', defaults.marquee),
       rememberVolume: flag('rememberVolume', defaults.rememberVolume),
@@ -53,6 +68,10 @@ class AppSettings {
       language: AppLanguage.values.firstWhere(
         (l) => l.name == language,
         orElse: () => defaults.language,
+      ),
+      coverCacheLimit: CoverCacheLimit.values.firstWhere(
+        (l) => l.name == cacheLimit,
+        orElse: () => defaults.coverCacheLimit,
       ),
     );
   }
@@ -80,6 +99,9 @@ class AppSettings {
   /// Gewaehlte App-Sprache; [AppLanguage.system] folgt dem Geraet.
   final AppLanguage language;
 
+  /// Size limit of the on-device cover cache; lowering it trims at once.
+  final CoverCacheLimit coverCacheLimit;
+
   AppSettings copyWith({
     bool? marquee,
     bool? rememberVolume,
@@ -89,6 +111,7 @@ class AppSettings {
     bool? loadArtwork,
     bool? keyboardShortcuts,
     AppLanguage? language,
+    CoverCacheLimit? coverCacheLimit,
   }) => AppSettings(
     marquee: marquee ?? this.marquee,
     rememberVolume: rememberVolume ?? this.rememberVolume,
@@ -98,6 +121,7 @@ class AppSettings {
     loadArtwork: loadArtwork ?? this.loadArtwork,
     keyboardShortcuts: keyboardShortcuts ?? this.keyboardShortcuts,
     language: language ?? this.language,
+    coverCacheLimit: coverCacheLimit ?? this.coverCacheLimit,
   );
 
   Map<String, Object?> toJson() => <String, Object?>{
@@ -109,6 +133,7 @@ class AppSettings {
     'loadArtwork': loadArtwork,
     'keyboardShortcuts': keyboardShortcuts,
     'language': language.name,
+    'coverCacheLimit': coverCacheLimit.name,
   };
 
   @override
@@ -121,7 +146,8 @@ class AppSettings {
       other.themeMode == themeMode &&
       other.loadArtwork == loadArtwork &&
       other.keyboardShortcuts == keyboardShortcuts &&
-      other.language == language;
+      other.language == language &&
+      other.coverCacheLimit == coverCacheLimit;
 
   @override
   int get hashCode => Object.hash(
@@ -133,5 +159,6 @@ class AppSettings {
     loadArtwork,
     keyboardShortcuts,
     language,
+    coverCacheLimit,
   );
 }

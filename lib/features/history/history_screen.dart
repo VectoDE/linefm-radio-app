@@ -80,7 +80,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         final time = entry.isLive || track.startedAt == null
             ? null
             : formatClockFor(context, track.startedAt!);
-        final when = entry.isLive ? l10n.playerLive : time;
+        final when = entry.isLive
+            ? l10n.playerLive
+            : track.lastSeen
+            ? <String>[l10n.trackLastSeen, ?time].join(' ')
+            : time;
         return StaggerIn(
           key: ValueKey<String>('${track.artist}|${track.title}|$index'),
           index: index,
@@ -97,6 +101,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             ].join(', '),
             meta: entry.isLive
                 ? _LiveBadge(label: l10n.playerLive)
+                : track.lastSeen && index == 0
+                ? _LastSeen(label: l10n.trackLastSeen, time: time)
                 : (time == null ? null : _Time(time)),
             trailing: IconAction(
               icon: isFavorite
@@ -131,6 +137,23 @@ class _Time extends StatelessWidget {
         color: context.linefm.muted,
         fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
       ),
+    );
+  }
+}
+
+/// Marks the restored top entry: "Last seen" plus its time, if known.
+class _LastSeen extends StatelessWidget {
+  const _LastSeen({required this.label, this.time});
+
+  final String label;
+  final String? time;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      time == null ? label : '$label · $time',
+      textAlign: TextAlign.end,
+      style: LinefmText.time.copyWith(color: context.linefm.muted),
     );
   }
 }

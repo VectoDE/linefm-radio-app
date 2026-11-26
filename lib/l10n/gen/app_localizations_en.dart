@@ -76,11 +76,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storageNoticeBodyWeb =>
-      'LINEFM Radio stores your settings, favorites and last station in this browser so the app remembers them next time.';
+      'LINEFM Radio stores your settings, favorites, last station and recently played tracks in this browser so the app remembers them next time.';
 
   @override
   String get storageNoticeBodyDevice =>
-      'LINEFM Radio stores your settings, favorites and last station on this device so the app remembers them next time.';
+      'LINEFM Radio stores your settings, favorites, last station and recently played tracks on this device so the app remembers them next time.';
 
   @override
   String get storageNoticePrivacy => 'Privacy';
@@ -235,6 +235,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get historyTitle => 'Recently played';
+
+  @override
+  String get trackLastSeen => 'Last seen';
 
   @override
   String get historyEmpty => 'No tracks in the history yet.';
@@ -465,11 +468,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sleepTimerExpired => 'Sleep timer ended.';
 
   @override
+  String get settingCoverCacheTitle => 'Cover storage';
+
+  @override
+  String get settingCoverCacheBody =>
+      'How much space cached covers may take up on this device. A lower value clears space right away.';
+
+  @override
+  String coverCacheSizeMb(int size) {
+    return '$size MB';
+  }
+
+  @override
   String get settingStorageTitle => 'Storage';
 
   @override
   String get settingStorageBody =>
-      'Stored locally: your last station, volume, favorites, favorite stations, alarms, settings, cached covers and, on a computer, the window position.';
+      'Stored locally: your last station, recently played tracks and history, volume, favorites, favorite stations, alarms, settings, cached covers and, on a computer, the window position.';
 
   @override
   String get settingStorageClear => 'Clear storage';
@@ -479,7 +494,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearStorageConfirmBody =>
-      'Your last station, volume, favorites, favorite stations, alarms, settings and cached covers will be removed. This can’t be undone. Only “Load covers: off” is kept, so no requests go to Apple afterwards.';
+      'Your last station, recently played tracks and history, volume, favorites, favorite stations, alarms, settings and cached covers will be removed. This can’t be undone. Only “Load covers: off” is kept, so no requests go to Apple afterwards.';
 
   @override
   String get clearStorageDone => 'Storage cleared.';

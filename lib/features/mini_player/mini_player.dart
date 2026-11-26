@@ -138,6 +138,9 @@ class MiniPlayer extends ConsumerWidget {
                           marquee: marquee,
                           compact: compact,
                           hint: l10n.miniOpenPlayer,
+                          lastSeen: track?.lastSeen ?? false
+                              ? l10n.trackLastSeen
+                              : null,
                           onTap:
                               onOpenPlayer ??
                               () => ref
@@ -177,6 +180,7 @@ class _TrackArea extends StatelessWidget {
     required this.compact,
     required this.hint,
     required this.onTap,
+    this.lastSeen,
   });
 
   final Station station;
@@ -188,6 +192,9 @@ class _TrackArea extends StatelessWidget {
   final String hint;
   final VoidCallback onTap;
 
+  /// "Last seen" hint for a track restored from the device, else null.
+  final String? lastSeen;
+
   @override
   Widget build(BuildContext context) {
     final coverSize = compact ? 62.0 : 72.0;
@@ -195,7 +202,11 @@ class _TrackArea extends StatelessWidget {
       builder: (_, focused, onFocus, child) => Semantics(
         container: true,
         button: true,
-        label: artist.isEmpty ? title : '$title, $artist',
+        label: <String>[
+          title,
+          if (artist.isNotEmpty) artist,
+          ?lastSeen,
+        ].join(', '),
         hint: hint,
         excludeSemantics: true,
         onTap: onTap,
@@ -241,6 +252,20 @@ class _TrackArea extends StatelessWidget {
                               ),
                         ),
                       ),
+                    if (lastSeen case final String hint)
+                      Padding(
+                        padding: const EdgeInsets.only(top: LinefmSpace.xs),
+                        child: Text(
+                          hint,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: LinefmText.miniArtist(compact: compact)
+                              .copyWith(
+                                color: const Color.fromRGBO(255, 255, 255, .7),
+                                fontStyle: FontStyle.italic,
+                              ),
+                        ),
+                      ),
                     const _SleepRemaining(),
                   ],
                 ),
@@ -278,13 +303,15 @@ class _MiniBackdrop extends StatelessWidget {
               sigmaY: 22,
               tileMode: TileMode.mirror,
             ),
-            child: Image.network(
-              cover,
+            child: Image(
+              image: ResizeImage.resizeIfNeeded(
+                120,
+                null,
+                CoverImage.providerFor(cover),
+              ),
               fit: BoxFit.cover,
-              cacheWidth: 120,
               gaplessPlayback: true,
               excludeFromSemantics: true,
-              webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
               errorBuilder: (context, error, stack) => const SizedBox.shrink(),
             ),
           ),

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
+import 'package:linefm_radio/domain/stations_catalog.dart';
+import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/features/consent/cast_consent.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/services/cast/browser_cast.dart';
@@ -142,6 +144,18 @@ void main() {
       expect(bridge.sdkLoads, 1);
     });
 
+    test('revoked consent: no backend and no further SDK load', () async {
+      final bridge = FakeBrowserCastBridge(decision: true);
+      final first = await createBrowserCastBackend(bridge);
+      expect(first, isNotNull);
+      await first!.dispose();
+      bridge.deny();
+      expect(await createBrowserCastBackend(bridge), isNull);
+      bridge.reset();
+      expect(await createBrowserCastBackend(bridge), isNull);
+      expect(bridge.sdkLoads, 1);
+    });
+
     test('with consent: backend after loading the SDK', () async {
       final bridge = FakeBrowserCastBridge(decision: true);
       final backend = await createBrowserCastBackend(bridge);
@@ -238,6 +252,60 @@ void main() {
       await _settle();
       expect(service.state.isCasting, isTrue);
       expect(service.state.connectedDevice!.name, 'Wohnzimmer TV');
+    });
+
+    test('track change, station change, volume and stop reach the '
+        'receiver', () async {
+      bridge.emit('NOT_CONNECTED');
+      final service = ChromeCastService(
+        backend: backend,
+        resolveStreamUrl: (s) async =>
+            Uri.parse('https://stream.laut.fm/${s.slug}'),
+      );
+      addTearDown(service.dispose);
+      final station = stationsCatalog.first;
+      final other = stationsCatalog[1];
+      await service.connect(browserPickerDevice);
+      await _settle();
+      await service.cast(
+        station,
+        const Track(artist: 'Artist A', title: 'Song A'),
+      );
+      await service.updateTrack(
+        station,
+        const Track(artist: 'Artist B', title: 'Song B'),
+      );
+      expect(bridge.loads.map((l) => l['title']), <String>['Song A', 'Song B']);
+      expect(bridge.loads.last['artist'], 'Artist B');
+      expect(bridge.loads.last['album'], station.displayName);
+      expect(
+        bridge.loads.last['url'],
+        'https://stream.laut.fm/${station.slug}',
+      );
+      // A track update for a station that is not on the receiver is ignored.
+      await service.updateTrack(other, const Track(artist: 'X', title: 'Y'));
+      expect(bridge.loads, hasLength(2));
+      await service.cast(other, null);
+      expect(bridge.loads.last['url'], 'https://stream.laut.fm/${other.slug}');
+      expect(bridge.loads.last['title'], other.displayName);
+      await service.setVolume(1.7);
+      expect(bridge.volumes, <double>[1.0]);
+      await service.stopMedia();
+      expect(bridge.stops, 1);
+      await service.disconnect();
+      await _settle();
+      expect(bridge.sessionEnds, 1);
+      expect(service.state.isCasting, isFalse);
+    });
+
+    test('device name from the SDK, fallback when it is empty', () async {
+      bridge.emit('CONNECTED', device: 'Küche', label: 'k1');
+      await _settle();
+      expect(backend.link.device!.id, 'k1');
+      expect(backend.link.device!.name, 'Küche');
+      bridge.emit('CONNECTED');
+      await _settle();
+      expect(backend.link.device!.name, 'Chromecast');
     });
   });
 

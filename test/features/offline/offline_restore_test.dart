@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/data/api/laut_api.dart';
+import 'package:linefm_radio/data/artwork/cached_cover_image.dart';
 import 'package:linefm_radio/data/artwork/cover_disk_cache.dart';
 import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
@@ -15,6 +17,7 @@ import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/features/history/history_screen.dart';
 import 'package:linefm_radio/features/mini_player/mini_player.dart';
+import 'package:linefm_radio/features/settings/clear_storage.dart';
 import 'package:linefm_radio/ui/widgets/cover_image.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -289,6 +292,52 @@ void main() {
     expect(cache.reads, contains('https://cover/now.jpg'));
     expect(cache.reads, contains('https://cover/before.jpg'));
     expect(api.calls, 0);
+    // Cover and blurred backdrop both use the on-device cache provider.
+    final cached = tester
+        .widgetList<Image>(find.byType(Image))
+        .map((i) => i.image)
+        .map((p) => p is ResizeImage ? p.imageProvider : p)
+        .whereType<CachedCoverImage>()
+        .where((p) => p.url == 'https://cover/now.jpg');
+    expect(cached.length, greaterThanOrEqualTo(3));
+
+    // "Clear storage" forgets the restored data at once.
+    late WidgetRef ref;
+    await tester.pumpWidget(
+      h.app(
+        Consumer(
+          builder: (context, r, _) {
+            ref = r;
+            return const Column(
+              children: <Widget>[
+                Expanded(child: HistoryScreen()),
+                MiniPlayer(),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+    await settle(tester);
+    await tester.runAsync(() => clearAppStorage(ref));
+    await settle(tester);
+    expect(find.text('Now'), findsNothing);
+    expect(find.text('Before'), findsNothing);
+    expect(find.text('Zuletzt gesehen'), findsNothing);
+    expect(find.text('Noch keine Titel im Verlauf.'), findsOneWidget);
+    expect(prefs.readLiveCache(), isNull);
+  });
+
+  test('forgetRestored keeps live data', () async {
+    final prefs = await _firstRun();
+    final r = LiveNowPlayingRepository(
+      api: _OfflineApi(),
+      foreground: false,
+      readSnapshot: prefs.readLiveCache,
+    )..forgetRestored();
+    expect(await r.watchTrack(stationsCatalog.first).first, isNull);
+    expect(await r.watchHistory(stationsCatalog.first).first, isEmpty);
+    r.dispose();
   });
 
   test('clear storage removes the saved tracks and history', () async {

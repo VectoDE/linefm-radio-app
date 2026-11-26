@@ -44,7 +44,9 @@ class CoverImage extends StatelessWidget {
   /// Beschreibung fuer Screenreader. Null = dekorativ.
   final String? semanticLabel;
 
-  static ImageProvider<Object> _provider(String url) {
+  /// Image provider for [url]: on-device cache first on native platforms.
+  /// Also used by the blurred mini player backdrop.
+  static ImageProvider<Object> providerFor(String url) {
     final disk = diskCache;
     if (kIsWeb || disk == null) {
       return NetworkImage(
@@ -75,7 +77,7 @@ class CoverImage extends StatelessWidget {
             image: ResizeImage.resizeIfNeeded(
               cacheSize,
               null,
-              _provider(cover),
+              providerFor(cover),
             ),
             key: ValueKey<String>(cover),
             fit: BoxFit.cover,

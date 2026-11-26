@@ -11,6 +11,8 @@ import 'package:linefm_radio/ui/widgets/cover_image.dart';
 ///
 /// Die laufende Wiedergabe und die gewaehlte Station bleiben unberuehrt.
 Future<void> clearAppStorage(WidgetRef ref) async {
+  // First, so its now empty snapshot is removed with everything else.
+  ref.read(nowPlayingRepositoryProvider).forgetRestored();
   await ref.read(prefsProvider).clearAll();
   await CoverImage.diskCache?.clear();
   await ref.read(telemetryProvider).setConsent(value: false);

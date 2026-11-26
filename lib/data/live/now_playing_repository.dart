@@ -41,6 +41,11 @@ abstract interface class NowPlayingRepository {
 
   Future<void> refresh();
 
+  /// Forgets the tracks and history restored from the device ("clear
+  /// storage"); the UI falls back to the station logo and an empty history
+  /// until live data arrives.
+  void forgetRestored();
+
   /// Schliesst WebSocket und Timer.
   void dispose();
 }
@@ -90,6 +95,9 @@ class FakeNowPlayingRepository implements NowPlayingRepository {
 
   @override
   Future<void> refresh() async {}
+
+  @override
+  void forgetRestored() {}
 
   @override
   void dispose() {}
@@ -305,6 +313,25 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   Future<void> refresh() async {
     _ensureStarted();
     await _pollOnce(force: true, bypassGap: true);
+  }
+
+  @override
+  void forgetRestored() {
+    if (_disposed) return;
+    var changed = false;
+    _current.updateAll((_, t) {
+      if (t == null || !t.lastSeen) return t;
+      changed = true;
+      return null;
+    });
+    for (final slug in _last.keys.toList()) {
+      final kept = _last[slug]!.where((t) => !t.lastSeen).toList();
+      if (kept.length != _last[slug]!.length) {
+        _last[slug] = kept;
+        changed = true;
+      }
+    }
+    if (changed) _emit();
   }
 
   @override

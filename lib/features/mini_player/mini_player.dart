@@ -303,13 +303,15 @@ class _MiniBackdrop extends StatelessWidget {
               sigmaY: 22,
               tileMode: TileMode.mirror,
             ),
-            child: Image.network(
-              cover,
+            child: Image(
+              image: ResizeImage.resizeIfNeeded(
+                120,
+                null,
+                CoverImage.providerFor(cover),
+              ),
               fit: BoxFit.cover,
-              cacheWidth: 120,
               gaplessPlayback: true,
               excludeFromSemantics: true,
-              webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
               errorBuilder: (context, error, stack) => const SizedBox.shrink(),
             ),
           ),

@@ -237,7 +237,10 @@ void main() {
       await s.writeLastStation('fobfm');
       await s.writeTelemetryConsent(value: true);
       await s.writeCoverCache('{}');
+      await s.writeLiveCache('{"v":1}');
+      expect((await reopen()).readLiveCache(), '{"v":1}');
       await s.clearAll();
+      expect(s.readLiveCache(), isNull);
       expect(s.storageConsent, isFalse);
       expect(s.readFavorites(), isEmpty);
       expect(s.readVolume(), isNull);

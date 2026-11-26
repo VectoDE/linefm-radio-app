@@ -82,7 +82,8 @@ void main() {
         'Sleeptimer',
         'Kein Sleeptimer aktiv.',
         'Speicher',
-        'Lokal gespeichert werden: zuletzt gehörter Sender, Lautstärke, '
+        'Lokal gespeichert werden: zuletzt gehörter Sender, zuletzt '
+            'gespielte Titel samt Verlauf, Lautstärke, '
             'Favoriten, Favoriten-Sender, Wecker, Einstellungen, '
             'zwischengespeicherte Cover und am Computer die Fensterposition.',
         'Speicher löschen',

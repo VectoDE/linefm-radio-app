@@ -75,11 +75,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get storageNoticeBodyWeb =>
-      'LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt gehörten Sender in diesem Browser, damit die App sie beim nächsten Start kennt.';
+      'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel in diesem Browser, damit die App sie beim nächsten Start kennt.';
 
   @override
   String get storageNoticeBodyDevice =>
-      'LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt gehörten Sender auf diesem Gerät, damit die App sie beim nächsten Start kennt.';
+      'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel auf diesem Gerät, damit die App sie beim nächsten Start kennt.';
 
   @override
   String get storageNoticePrivacy => 'Datenschutz';
@@ -234,6 +234,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get historyTitle => 'Zuletzt gespielt';
+
+  @override
+  String get trackLastSeen => 'Zuletzt gesehen';
 
   @override
   String get historyEmpty => 'Noch keine Titel im Verlauf.';
@@ -482,7 +485,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingStorageBody =>
-      'Lokal gespeichert werden: zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen, zwischengespeicherte Cover und am Computer die Fensterposition.';
+      'Lokal gespeichert werden: zuletzt gehörter Sender, zuletzt gespielte Titel samt Verlauf, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen, zwischengespeicherte Cover und am Computer die Fensterposition.';
 
   @override
   String get settingStorageClear => 'Speicher löschen';
@@ -492,7 +495,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get clearStorageConfirmBody =>
-      'Zuletzt gehörter Sender, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen. Nur „Cover laden: aus“ bleibt gespeichert, damit danach keine Anfragen an Apple gehen.';
+      'Zuletzt gehörter Sender, zuletzt gespielte Titel samt Verlauf, Lautstärke, Favoriten, Favoriten-Sender, Wecker, Einstellungen und zwischengespeicherte Cover werden entfernt. Das lässt sich nicht rückgängig machen. Nur „Cover laden: aus“ bleibt gespeichert, damit danach keine Anfragen an Apple gehen.';
 
   @override
   String get clearStorageDone => 'Speicher gelöscht.';

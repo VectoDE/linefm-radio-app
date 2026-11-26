@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/core/logging.dart';
@@ -128,8 +129,19 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     this.minRefetchGap = const Duration(seconds: 5),
     this.timer = Timer.new,
     this.periodicTimer = Timer.periodic,
+    String? Function()? readSnapshot,
+    this._writeSnapshot,
   }) : _fixedStations = stations,
-       _active = activeStation ?? (stations ?? stationsCatalog).first;
+       _active = activeStation ?? (stations ?? stationsCatalog).first {
+    _restore(readSnapshot?.call());
+  }
+
+  /// Most history entries kept on the device, across all stations.
+  static const int maxStoredHistory = 50;
+
+  /// Saves the snapshot (last track and history per station) on the device.
+  final Future<void> Function(String json)? _writeSnapshot;
+  String? _lastSnapshot;
 
   final Duration pollInterval;
   final Duration endsAtLead;
@@ -243,7 +255,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     final live = _current[slug];
     final last = _last[slug] ?? const <Track>[];
     return <HistoryEntry>[
-      if (live != null) HistoryEntry(track: live, isLive: true),
+      if (live != null) HistoryEntry(track: live, isLive: !live.lastSeen),
       ...last
           .where((t) => live == null || !_sameSong(t, live))
           .take(10)
@@ -264,7 +276,10 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
     // Antwort stehen zu lassen, sofort neutral (Sendername) anzeigen.
     final known = _current[station.slug];
     final endsAt = known?.endsAt;
-    if (endsAt != null && endsAt.add(endsAtLead).isBefore(_clock.now())) {
+    if (known != null &&
+        !known.lastSeen &&
+        endsAt != null &&
+        endsAt.add(endsAtLead).isBefore(_clock.now())) {
       _current[station.slug] = null;
     }
     _emit();
@@ -542,6 +557,25 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
       _emit();
       return;
     }
+    if (old != null && old.lastSeen) {
+      // Restored track: live data replaces it. Same song keeps its cover.
+      _current[slug] = _sameSong(old, track) && track.artworkUrl == null
+          ? track.copyWith(artworkUrl: old.artworkUrl)
+          : track;
+      if (!_sameSong(old, track)) {
+        final last = _last[slug] ?? const <Track>[];
+        if (last.isEmpty || !_sameSong(last.first, old)) {
+          _last[slug] = <Track>[
+            old.copyWith(lastSeen: false),
+            ...last,
+          ].take(10).toList();
+        }
+      }
+      _emit();
+      final now = _current[slug]!;
+      if (slug == _active.slug) unawaited(_lookupCover(slug, now));
+      return;
+    }
     if (old != null && _sameSong(old, track)) {
       // Gleicher Song: nur fehlende Details nachtragen (z. B. korrigiertes
       // Ende), Cover behalten.
@@ -607,6 +641,67 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
 
   void _emit() {
     if (!_changed.isClosed) _changed.add(null);
+    _persist();
+  }
+
+  // ------------------------------------------------------- Device snapshot
+
+  /// Restores the last track and history per station. Everything restored
+  /// is marked [Track.lastSeen] until live data replaces it.
+  void _restore(String? json) {
+    if (json == null || json.isEmpty) return;
+    try {
+      final data = jsonDecode(json);
+      if (data is! Map || data['stations'] is! Map) return;
+      for (final MapEntry(:key, :value) in (data['stations'] as Map).entries) {
+        if (key is! String || value is! Map) continue;
+        final current = Track.tryFromJson(value['current']);
+        if (current != null) _current[key] = current.copyWith(lastSeen: true);
+        final last = value['last'];
+        if (last is List) {
+          _last[key] = <Track>[
+            for (final item in last.take(10))
+              if (Track.tryFromJson(item) case final Track t)
+                t.copyWith(lastSeen: true),
+          ];
+        }
+      }
+      _lastSnapshot = json;
+    } on FormatException {
+      return;
+    }
+  }
+
+  /// JSON of the current state: active station first, at most
+  /// [maxStoredHistory] history entries in total.
+  String _snapshot() {
+    final slugs = <String>{_active.slug, ..._current.keys, ..._last.keys};
+    var budget = maxStoredHistory;
+    final stations = <String, Object?>{};
+    for (final slug in slugs) {
+      final current = _current[slug];
+      final last = (_last[slug] ?? const <Track>[]).take(budget).toList();
+      budget -= last.length;
+      if (current == null && last.isEmpty) continue;
+      stations[slug] = <String, Object?>{
+        'current': current?.toJson(),
+        'last': <Object?>[for (final t in last) t.toJson()],
+      };
+    }
+    return jsonEncode(<String, Object?>{'v': 1, 'stations': stations});
+  }
+
+  void _persist() {
+    final write = _writeSnapshot;
+    if (write == null || _disposed) return;
+    final json = _snapshot();
+    if (json == _lastSnapshot) return;
+    _lastSnapshot = json;
+    unawaited(
+      write(json).catchError((Object e, StackTrace s) {
+        logError('Speichern fehlgeschlagen', e, s);
+      }),
+    );
   }
 
   static bool _sameSong(Track a, Track b) {

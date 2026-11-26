@@ -138,8 +138,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         find.text(
-          'LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt '
-          'gehörten Sender in diesem Browser, damit die App sie beim nächsten '
+          'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt '
+          'gehörten Sender sowie zuletzt gespielte Titel in diesem Browser, damit die App sie beim nächsten '
           'Start kennt.',
         ),
         findsOneWidget,
@@ -245,8 +245,8 @@ void main() {
         expect(find.text('Speicher auf diesem Gerät'), findsOneWidget);
         expect(
           find.text(
-            'LINEFM Radio speichert Einstellungen, Favoriten und den zuletzt '
-            'gehörten Sender auf diesem Gerät, damit die App sie beim '
+            'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt '
+            'gehörten Sender sowie zuletzt gespielte Titel auf diesem Gerät, damit die App sie beim '
             'nächsten Start kennt.',
           ),
           findsOneWidget,

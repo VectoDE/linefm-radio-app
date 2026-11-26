@@ -1,22 +1,22 @@
 name: Performance
 
-# Reproduzierbare Performance-Messung. Nur messen und berichten:
-# kein Schritt bricht wegen eines Messwerts ab (Budgets folgen spaeter).
+# Reproducible performance measurement. Measure and report only:
+# no step fails because of a measured value (budgets follow later).
 #
-# - web:      Wasm-Build wie ci.yml (web-smoke), ausgeliefert vom nginx-Container
-#             aus deploy/traefik/Dockerfile (gzip und Cache-Header wie in
-#             deploy/nginx/snippets). Lighthouse mobil und Desktop (je 5 Laeufe),
-#             Playwright: Laden kalt/warm, Bedienung, Ton nach Klick
-#             (wenige Einzelmessungen gegen die echten laut.fm-Streams).
-# - windows:  Release-Build, Start bis erstes Bild, Speicher/CPU im Leerlauf,
-#             Ton-Start per Deep Link, Paketgroesse (tool/perf/windows_start.ps1).
-# - android:  APK (arm64, mit --analyze-size) und AAB, nur Groessen.
-#             Kaltstart im Emulator ist eine Folgeaufgabe (docs/PERFORMANCE.md).
-# - bericht:  Tabelle aus allen Ergebnissen in die Zusammenfassung des Laufs.
+# - web:      Wasm build like ci.yml (web-smoke), served by the nginx container
+#             from deploy/traefik/Dockerfile (gzip and cache headers as in
+#             deploy/nginx/snippets). Lighthouse mobile and desktop (5 runs each),
+#             Playwright: cold/warm load, interaction, audio after click
+#             (a few single measurements against the real laut.fm streams).
+# - windows:  Release build, start to first frame, idle memory/CPU,
+#             audio start via deep link, package size (tool/perf/windows_start.ps1).
+# - android:  APK (arm64, with --analyze-size) and AAB, sizes only.
+#             Cold start in the emulator is a follow-up task (docs/PERFORMANCE.md).
+# - report:   Table of all results in the run summary.
 #
-# Die Mess-Builds setzen --dart-define=LINEFM_PERF_MARKS=true
-# (lib/core/perf/perf_marks.dart). Ohne den Schalter entfernt der Compiler die
-# Messpunkte; Nutzer-Builds enthalten sie nicht.
+# The measurement builds set --dart-define=LINEFM_PERF_MARKS=true
+# (lib/core/perf/perf_marks.dart). Without the flag the compiler strips the
+# measurement points; user builds do not contain them.
 
 on:
   pull_request:
@@ -27,7 +27,7 @@ on:
   workflow_dispatch:
     inputs:
       runs:
-        description: Laeufe je Kennzahl (mindestens 5)
+        description: Runs per metric (at least 5)
         type: string
         default: "5"
   schedule:
@@ -50,7 +50,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -60,28 +60,28 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write config
         uses: ./.github/actions/write-config
         with:
           app-env: dev
 
-      - name: Web bauen (mit Messpunkten)
+      - name: Build web (with measurement points)
         run: |
           set -euo pipefail
           mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
           flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file=config/app.json --dart-define=LINEFM_PERF_MARKS=true             --base-href / "${web_defines[@]}"
 
-      - name: Ersatzschriften und Postbuild
+      - name: Fallback fonts and postbuild
         run: |
-          # Ausserhalb des Pakets starten (nur dart:-Importe), wie in ci.yml.
+          # Run outside the package (dart: imports only), as in ci.yml.
           cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
           dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
           dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
 
-      - name: nginx-Container starten (deploy/traefik)
+      - name: Start nginx container (deploy/traefik)
         run: |
           set -euo pipefail
           docker build -f deploy/traefik/Dockerfile -t linefm-perf-web .
@@ -92,7 +92,7 @@ jobs:
           done
           curl -fsS http://127.0.0.1:8080/healthz
 
-      - name: Header und Revalidierung pruefen
+      - name: Check headers and revalidation
         run: |
           set -euo pipefail
           mkdir -p tool/perf/out
@@ -106,52 +106,52 @@ jobs:
               curl -sS -o /dev/null -D - -H 'Accept-Encoding: gzip, br' "$base$path"
             done
             etag=$(curl -sSI "$base/" | tr -d '\r' | awk -F': ' 'tolower($1)=="etag"{print $2}')
-            echo "### / mit If-None-Match: $etag"
+            echo "### / with If-None-Match: $etag"
             curl -sS -o /dev/null -D - -H "If-None-Match: $etag" "$base/"
           } > tool/perf/out/headers.txt
           status304=$(grep -A1 'If-None-Match' tool/perf/out/headers.txt | tail -n1 | awk '{print $2}')
-          echo "Revalidierung von /: HTTP $status304 (erwartet 304)"
-          echo "- Revalidierung von / mit ETag: HTTP $status304 (erwartet 304); Header-Dump im Artefakt (headers.txt)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Revalidation of /: HTTP $status304 (expected 304)"
+          echo "- Revalidation of / with ETag: HTTP $status304 (expected 304); header dump in the artifact (headers.txt)" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Node einrichten
+      - name: Set up Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: tool/perf/package-lock.json
 
-      - name: Messwerkzeug installieren
+      - name: Install measurement tooling
         working-directory: tool/perf
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
           npx --no-install playwright install --with-deps chromium
 
-      - name: Groessen des Web-Builds
+      - name: Web build sizes
         working-directory: tool/perf
         run: node sizes.mjs --web ../../build/web --out out/sizes.json
 
-      - name: Lighthouse (mobil und Desktop)
+      - name: Lighthouse (mobile and desktop)
         working-directory: tool/perf
         timeout-minutes: 30
         run: node lighthouse.mjs --url http://127.0.0.1:8080/ --out out/lighthouse --runs "$RUNS"
 
-      - name: Playwright (Laden, Bedienung, Ton)
+      - name: Playwright (load, interaction, audio)
         working-directory: tool/perf
         timeout-minutes: 35
         run: node web_perf.mjs --base http://127.0.0.1:8080 --out out --runs "$RUNS" --audio
 
-      - name: Zusammenfassung (Web)
+      - name: Summary (web)
         if: ${{ always() }}
         working-directory: tool/perf
         run: |
           node summarize.mjs --in out --out out/perf-summary-web.md >/dev/null || true
           if [ -f out/perf-summary-web.md ]; then cat out/perf-summary-web.md >> "$GITHUB_STEP_SUMMARY"; fi
 
-      - name: nginx-Protokoll
+      - name: nginx log
         if: ${{ always() }}
         run: docker logs linefm-perf-web > tool/perf/out/nginx.log 2>&1 || true
 
-      - name: Ergebnisse hochladen
+      - name: Upload results
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -161,13 +161,13 @@ jobs:
           if-no-files-found: warn
 
   windows:
-    name: Windows (Start, Speicher, CPU, Ton)
+    name: Windows (start, memory, CPU, audio)
     runs-on: windows-latest
     timeout-minutes: 75
     permissions:
       contents: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -177,35 +177,35 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Rust-Toolchain (fuer smtc_windows)
+      - name: Rust toolchain (for smtc_windows)
         shell: bash
         run: |
           set -euo pipefail
           rustup toolchain install stable --profile minimal --no-self-update
           rustup default stable
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write config
         uses: ./.github/actions/write-config
         with:
           app-env: dev
 
-      - name: Windows bauen (Release, mit Messpunkten)
+      - name: Build Windows (release, with measurement points)
         shell: bash
         run: >-
           flutter build windows --release --dart-define-from-file=config/app.json
           --dart-define=LINEFM_PERF_MARKS=true
 
-      - name: Messen
+      - name: Measure
         shell: pwsh
         timeout-minutes: 25
         run: >-
           ./tool/perf/windows_start.ps1 -Exe build/windows/x64/runner/Release/linefm_radio.exe
           -OutDir tool/perf/out -Runs $env:RUNS -Audio
 
-      - name: Ergebnisse hochladen
+      - name: Upload results
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -215,13 +215,13 @@ jobs:
           if-no-files-found: warn
 
   android:
-    name: Android (Groessen)
+    name: Android (sizes)
     runs-on: ubuntu-latest
     timeout-minutes: 50
     permissions:
       contents: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -231,8 +231,8 @@ jobs:
         with:
           persist-credentials: false
 
-      # Wie build.yml: ohne Aufraeumen laeuft der Runner beim NDK-Download voll.
-      - name: Plattenplatz freigeben
+      # As in build.yml: without cleanup the runner runs out of disk during the NDK download.
+      - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost \
             /usr/share/swift /opt/hostedtoolcache/CodeQL \
@@ -247,15 +247,15 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write config
         uses: ./.github/actions/write-config
         with:
           app-env: dev
 
-      - name: APK arm64 mit Groessenanalyse
+      - name: APK arm64 with size analysis
         run: >-
           flutter build apk --release --dart-define-from-file=config/app.json
           --target-platform android-arm64 --analyze-size --code-size-directory build/code-size
@@ -263,7 +263,7 @@ jobs:
       - name: AAB
         run: flutter build appbundle --release --dart-define-from-file=config/app.json
 
-      - name: Groessen festhalten
+      - name: Record sizes
         run: |
           set -euo pipefail
           mkdir -p tool/perf/out
@@ -277,7 +277,7 @@ jobs:
             > tool/perf/out/android-sizes.json
           cat tool/perf/out/android-sizes.json
 
-      - name: Ergebnisse hochladen
+      - name: Upload results
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -286,8 +286,8 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
-  bericht:
-    name: Bericht
+  report:
+    name: Report
     needs: [web, windows, android]
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -295,7 +295,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -305,23 +305,23 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Ergebnisse holen
+      - name: Fetch results
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: perf-*-${{ github.sha }}
           path: perf-in
 
-      - name: Node einrichten
+      - name: Set up Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
 
-      - name: Tabelle erzeugen
+      - name: Generate table
         run: |
           node tool/perf/summarize.mjs --in perf-in --out perf-summary.md --json perf-summary.json >/dev/null
           cat perf-summary.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Bericht hochladen
+      - name: Upload report
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: perf-report-${{ github.sha }}
@@ -335,7 +335,7 @@ jobs:
   # holds the few documented upstream exceptions, each with an expiry date.
   log-gate:
     name: Log gate
-    needs: [web, windows, android, bericht]
+    needs: [web, windows, android, report]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10

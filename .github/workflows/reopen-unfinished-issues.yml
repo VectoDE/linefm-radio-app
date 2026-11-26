@@ -1,9 +1,9 @@
-name: Unfertige Tickets wieder oeffnen
+name: Reopen unfinished tickets
 
-# Hausregel F470: Ein Ticket wird erst geschlossen, wenn alle Aufgaben (Checkboxen) und
-# Unter-Tickets erledigt sind. Wird es mit offenen "- [ ]"-Aufgaben oder offenen Unter-Tickets
-# geschlossen, oeffnet dieser Workflow es sofort wieder und begruendet das im Kommentar.
-# Checkboxen in Code-Bloecken (``` bzw. ~~~) zaehlen nicht.
+# House rule F470: An ticket is only closed once all tasks (checkboxes) and
+# sub-tickets are done. If it is closed with open "- [ ]" tasks or open sub-tickets,
+# this workflow reopens it immediately and explains why in a comment.
+# Checkboxes inside code blocks (``` or ~~~) do not count.
 
 on:
   issues:
@@ -17,34 +17,34 @@ concurrency:
 
 jobs:
   reopen:
-    name: Offene Aufgaben pruefen
+    name: Check for open tasks
     if: ${{ !github.event.issue.pull_request }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       issues: write
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
 
-      - name: Pruefen und ggf. wieder oeffnen
+      - name: Check and reopen if needed
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.issue.number }}
         run: |
           set -euo pipefail
-          # Aktuellen Stand per API lesen (nicht aus dem Event, falls inzwischen bearbeitet).
+          # Read the current state via the API (not from the event, in case it was edited since).
           issue_json="$(gh api "repos/$REPO/issues/$NUMBER")"
           state="$(jq -r '.state' <<< "$issue_json")"
           if [ "$state" != "closed" ]; then
-            echo "Ticket #$NUMBER ist nicht mehr geschlossen, nichts zu tun."
+            echo "Ticket #$NUMBER is no longer closed, nothing to do."
             exit 0
           fi
 
-          # Offene Checkboxen ausserhalb von Code-Bloecken sammeln.
+          # Collect open checkboxes outside of code blocks.
           jq -r '.body // ""' <<< "$issue_json" | tr -d '\r' | awk '
             /^[[:space:]]*(```|~~~)/ { fence = !fence; next }
             fence { next }
@@ -52,8 +52,8 @@ jobs:
               line = $0
               sub(/^[[:space:]]*([-*+]|[0-9]+[.)])[[:space:]]+\[ \][[:space:]]*/, "", line)
               if (length(line) > 160) line = substr(line, 1, 157) "..."
-              # @ entschaerfen (Zero-Width-Space): Der Bot-Kommentar soll niemanden
-              # erwaehnen und keine Team-Benachrichtigung ausloesen (N3-Sec).
+              # Defuse @ (zero-width space): the bot comment must not mention anyone
+              # and must not trigger a team notification (N3-Sec).
               gsub(/@/, "@\342\200\213", line)
               print line
             }
@@ -64,32 +64,32 @@ jobs:
           sub_done="$(jq -r '.sub_issues_summary.completed // 0' <<< "$issue_json")"
           open_subs=$(( sub_total - sub_done ))
 
-          echo "Offene Aufgaben: $open_tasks, offene Unter-Tickets: $open_subs"
+          echo "Open tasks: $open_tasks, open sub-tickets: $open_subs"
           if [ "$open_tasks" -eq 0 ] && [ "$open_subs" -le 0 ]; then
-            echo "Alle Aufgaben erledigt, Ticket bleibt geschlossen." >> "$GITHUB_STEP_SUMMARY"
+            echo "All tasks done, ticket stays closed." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
           {
-            echo "Automatisch wieder geöffnet: Dieses Ticket wurde geschlossen, obwohl noch nicht alles erledigt ist."
+            echo "Reopened automatically: this ticket was closed although not everything is done."
             echo ""
             if [ "$open_tasks" -gt 0 ]; then
-              echo "**Offene Aufgaben ($open_tasks):**"
+              echo "**Open tasks ($open_tasks):**"
               echo ""
               head -n 25 open_tasks.txt | sed 's/^/- /'
-              if [ "$open_tasks" -gt 25 ]; then echo "- … und $((open_tasks - 25)) weitere"; fi
+              if [ "$open_tasks" -gt 25 ]; then echo "- … and $((open_tasks - 25)) more"; fi
               echo ""
             fi
             if [ "$open_subs" -gt 0 ]; then
-              echo "**Offene Unter-Tickets:** $open_subs von $sub_total"
+              echo "**Open sub-tickets:** $open_subs of $sub_total"
               echo ""
             fi
-            echo "Regel: Ein Ticket wird erst geschlossen, wenn alle Aufgaben mit Beleg (Commit, Zusammenführung, CI-Lauf, Messwert) abgehakt und alle Unter-Tickets erledigt sind. Unerledigte Aufgaben werden nachgeholt, nicht gestrichen. Bitte erledigen, abhaken und danach erneut schließen."
+            echo "Rule: a ticket is only closed once all tasks are checked off with evidence (commit, merge, CI run, measurement) and all sub-tickets are done. Unfinished tasks are completed, not removed. Please finish them, check them off and then close the ticket again."
           } > comment.md
 
           gh issue reopen "$NUMBER" --repo "$REPO" --comment "$(cat comment.md)"
           {
-            echo "Ticket #$NUMBER wieder geöffnet."
+            echo "Ticket #$NUMBER reopened."
             echo ""
             cat comment.md
           } >> "$GITHUB_STEP_SUMMARY"

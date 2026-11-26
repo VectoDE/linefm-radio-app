@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Die App-Version kommt nur aus dem Release bzw. Tag. Dieser Check meldet
-# jede fest eingetragene Versionsnummer der App ausserhalb von CHANGELOG.md und
-# Tests. Versionen von Abhaengigkeiten (pubspec-Pakete, Action-Pins, Flutter,
-# Gradle) bleiben erlaubt, sie muessen fest sein.
-# Aufruf: bash tool/check_fixed_versions.sh (im Repository-Wurzelverzeichnis)
+# The app version comes only from the release or tag. This check reports
+# every hard-coded app version number outside CHANGELOG.md and tests.
+# Versions of dependencies (pubspec packages, action pins, Flutter, Gradle)
+# stay allowed; they must be pinned.
+# Usage: bash tool/check_fixed_versions.sh (from the repository root)
 set -euo pipefail
 
 sv='[0-9]+\.[0-9]+\.[0-9]+'
@@ -13,10 +13,10 @@ report() {
   fail=1
 }
 
-# 1. pubspec.yaml traegt nur den Entwicklungs-Platzhalter.
+# 1. pubspec.yaml carries only the development placeholder.
 pub="$(sed -n 's/^version:[[:space:]]*\([^[:space:]#]*\).*/\1/p' pubspec.yaml | head -n1)"
 if ! [[ "$pub" =~ ^0\.0\.0-dev\+[0-9]+$ ]]; then
-  report "pubspec.yaml: version muss 0.0.0-dev+<n> sein (gefunden: $pub)"
+  report "pubspec.yaml: version must be 0.0.0-dev+<n> (found: $pub)"
 fi
 
 excludes=(
@@ -29,7 +29,7 @@ excludes=(
   ':!lib/l10n/gen/**'
 )
 
-# 2. Muster, an denen eine feste App-Version stehen koennte.
+# 2. Patterns where a hard-coded app version might appear.
 patterns=(
   "APP_VERSION[\"'[:space:]:=]+v?$sv"
   "appVersion[[:space:]]*[:=][[:space:]]*'v?$sv"
@@ -45,19 +45,19 @@ patterns=(
   "VERSION_AS_STRING \"[1-9]"
 )
 for p in "${patterns[@]}"; do
-  # 0.0.0-dev ist der erlaubte Entwicklungs-Platzhalter.
+  # 0.0.0-dev is the allowed development placeholder.
   if out="$(git grep -nIE "$p" -- . "${excludes[@]}" | grep -v '0\.0\.0-dev')"; then
-    while IFS= read -r line; do report "Feste Version: $line"; done <<< "$out"
+    while IFS= read -r line; do report "Hard-coded version: $line"; done <<< "$out"
   fi
 done
 
-# 3. Vorlagen und Konfiguration: dort hat keine Versionsnummer etwas zu suchen.
+# 3. Templates and configuration: no version number belongs there.
 if out="$(git grep -nIE "\bv?$sv\b" -- .github/ISSUE_TEMPLATE .github/DISCUSSION_TEMPLATE config)"; then
-  while IFS= read -r line; do report "Feste Version in Vorlage/Konfiguration: $line"; done <<< "$out"
+  while IFS= read -r line; do report "Hard-coded version in template/configuration: $line"; done <<< "$out"
 fi
 
 if [ "$fail" -ne 0 ]; then
-  echo "Die Version kommt aus dem Release. Platzhalter wie vX.Y.Z verwenden."
+  echo "The version comes from the release. Use placeholders such as vX.Y.Z."
   exit 1
 fi
-echo "Keine fest eingetragene App-Version gefunden."
+echo "No hard-coded app version found."

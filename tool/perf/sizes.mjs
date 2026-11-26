@@ -1,9 +1,9 @@
-// Groessen des Web-Builds: roh, gzip Stufe 5 (wie nginx in
-// deploy/) und Brotli Stufe 11 (Vergleich: was Vorkomprimieren bringen wuerde).
+// Sizes of the web build: raw, gzip level 5 (like nginx in
+// deploy/) and Brotli level 11 (comparison: what precompression would bring).
 //
 //   node sizes.mjs --web ../../build/web --out out/sizes.json
 //
-// Nur Node-Standardbibliothek.
+// Node standard library only.
 
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
@@ -33,17 +33,17 @@ const files = walk(WEB).map((p) => ({ path: relative(WEB, p).replaceAll('\\', '/
 function group(path) {
   if (/^main\.[0-9a-f]+\.dart\.wasm$|^main\.dart\.wasm$/.test(path)) return 'main.dart.wasm';
   if (/^main\.[0-9a-f]+\.dart\.mjs$|^main\.dart\.mjs$/.test(path)) return 'main.dart.mjs';
-  if (/^main\.[0-9a-f]+\.dart\.js$|^main\.dart\.js$/.test(path)) return 'main.dart.js (Rueckfall)';
-  if (path.startsWith('canvaskit/') && path.includes('skwasm')) return 'skwasm (Wasm-Renderer)';
-  if (path.startsWith('canvaskit/')) return 'canvaskit (Rueckfall)';
-  if (path.startsWith('assets/fonts/fallback/')) return 'Ersatzschriften (nur bei Bedarf)';
-  if (/\.(ttf|otf|woff2?)$/.test(path)) return 'Schriften (App)';
-  if (/\.(png|jpe?g|webp|avif|gif|svg)$/.test(path)) return 'Bilder';
+  if (/^main\.[0-9a-f]+\.dart\.js$|^main\.dart\.js$/.test(path)) return 'main.dart.js (fallback)';
+  if (path.startsWith('canvaskit/') && path.includes('skwasm')) return 'skwasm (Wasm renderer)';
+  if (path.startsWith('canvaskit/')) return 'canvaskit (fallback)';
+  if (path.startsWith('assets/fonts/fallback/')) return 'Fallback fonts (on demand only)';
+  if (/\.(ttf|otf|woff2?)$/.test(path)) return 'Fonts (app)';
+  if (/\.(png|jpe?g|webp|avif|gif|svg)$/.test(path)) return 'Images';
   if (path.startsWith('assets/audio/')) return 'Audio';
-  return 'Sonstiges';
+  return 'Other';
 }
 
-// Startrelevante Einzeldateien mit Kompressionsvergleich.
+// Individual startup-relevant files with compression comparison.
 const detail = files
   .filter((f) => /^(main\.|flutter_bootstrap\.js|index\.html|analytics\.js)/.test(f.path) || /skwasm[^/]*\.(wasm|js|mjs)$/.test(f.path) || /^assets\/(FontManifest\.json|AssetManifest\.bin|NOTICES)$/.test(f.path) || (/^assets\/.*\.(ttf|otf)$/.test(f.path) && !f.path.includes('/fallback/')))
   .map((f) => {
@@ -67,7 +67,7 @@ for (const f of files) {
 }
 
 const largestImages = files
-  .filter((f) => group(f.path) === 'Bilder')
+  .filter((f) => group(f.path) === 'Images')
   .sort((a, b) => b.bytes - a.bytes)
   .slice(0, 15);
 
@@ -86,4 +86,4 @@ writeFileSync(
     2,
   ),
 );
-console.log(`sizes: ${files.length} Dateien, ${detail.length} startrelevante mit gzip/Brotli-Vergleich`);
+console.log(`sizes: ${files.length} files, ${detail.length} startup-relevant with gzip/Brotli comparison`);

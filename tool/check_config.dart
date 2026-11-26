@@ -1,29 +1,29 @@
-// Prueft den Konfigurationsordner config/ (Aufbau auch fuer die Betreiberangaben).
+// Checks the configuration folder config/ (structure also for the operator details).
 //
-//   dart run tool/check_config.dart              ganzen Ordner pruefen
-//   dart run tool/check_config.dart datei.yaml   nur diese Datei(en)
+//   dart run tool/check_config.dart              check the whole folder
+//   dart run tool/check_config.dart file.yaml    only this file(s)
 //   dart run tool/check_config.dart --defines config/app.json
-//       schreibt die Bauwerte (app + features: Standardwerte, ueberschrieben
-//       von config/app.yaml und config/features.yaml, falls vorhanden) als
-//       flaches JSON fuer `flutter build --dart-define-from-file=...`.
+//       writes the build values (app + features: default values, overridden
+//       by config/app.yaml and config/features.yaml, if present) as
+//       flat JSON for `flutter build --dart-define-from-file=...`.
 //
-// Regeln:
-// - Alle Dateien sind YAML mit Kommentaren. Jede Datei hat einen festen
-//   Namen; unbekannte Dateien sind ein Fehler.
-// - Ueber jedem Schluessel steht ein Kommentar (Bedeutung, Pflicht/optional,
-//   Werte/Format, Standard, Beispiel). Fehlt er, ist das ein Fehler.
-// - Jede *.example.yaml enthaelt ALLE Schluessel ihres Schemas, keine
-//   weiteren, mit dem richtigen Typ und genau dem Standardwert.
-// - Echte Dateien (ohne "example", per .gitignore nicht im Repo) werden
-//   geprueft, wenn sie vorhanden sind.
-// - config/stations.yaml ist die einzige echte Datei im Repo und wird streng
-//   geprueft (lib/domain/stations_config.dart, dieselbe Regel wie in der App).
-// - app.example.yaml muss jeden Wert enthalten, den der App-Code per
-//   String/bool.fromEnvironment liest (ausser denen aus features und den vom Build gesetzten Werten APP_VERSION,
-//   APP_COMMIT, LINEFM_PERF_MARKS).
+// Rules:
+// - All files are YAML with comments. Each file has a fixed
+//   name; unknown files are an error.
+// - Above every key there is a comment (meaning, required/optional,
+//   values/format, default, example). If it is missing, that is an error.
+// - Every *.example.yaml contains ALL keys of its schema, no
+//   others, with the right type and exactly the default value.
+// - Real files (without "example", not in the repo per .gitignore) are
+//   checked if they exist.
+// - config/stations.yaml is the only real file in the repo and is checked
+//   strictly (lib/domain/stations_config.dart, same rule as in the app).
+// - app.example.yaml must contain every value that the app code reads via
+//   String/bool.fromEnvironment (except those from features and the values set
+//   by the build: APP_VERSION, APP_COMMIT, LINEFM_PERF_MARKS).
 //
-// Neues Thema = neuer Eintrag in [_schemas]; Ladeweg und CI bleiben gleich.
-// Exit-Code 0 = alles in Ordnung, 1 = mindestens ein Fehler.
+// New topic = new entry in [_schemas]; loading path and CI stay the same.
+// Exit code 0 = all good, 1 = at least one error.
 
 import 'dart:convert';
 import 'dart:io';
@@ -31,7 +31,7 @@ import 'dart:io';
 import 'package:linefm_radio/domain/stations_config.dart';
 import 'package:yaml/yaml.dart';
 
-/// Typ und Standardwert eines Schluessels.
+/// Type and default value of a key.
 sealed class _Type {
   const _Type();
   Object get standard;
@@ -131,16 +131,16 @@ void main(List<String> args) {
     final notes = <String>[];
     final errors = file.existsSync()
         ? _check(file, name, notes)
-        : <String>['Datei nicht gefunden.'];
+        : <String>['File not found.'];
     for (final n in notes) {
-      stdout.writeln('HINWEIS ${file.path}: $n');
+      stdout.writeln('NOTE    ${file.path}: $n');
     }
     if (errors.isEmpty) {
       stdout.writeln('OK      ${file.path}');
     } else {
       failed = true;
       for (final e in errors) {
-        stderr.writeln('FEHLER  ${file.path}: $e');
+        stderr.writeln('ERROR   ${file.path}: $e');
       }
     }
   }
@@ -160,7 +160,7 @@ List<String> _check(File file, String name, List<String> notes) {
   final schema = match == null ? null : _schemas[match.group(1)];
   if (match == null || schema == null) {
     return <String>[
-      'Unbekannte Datei. Erlaubt sind stations.yaml und '
+      'Unknown file. Allowed are stations.yaml and '
           '${_schemas.keys.map((k) => '$k(.example).yaml').join(', ')}.',
     ];
   }
@@ -172,10 +172,9 @@ List<String> _check(File file, String name, List<String> notes) {
   ];
 }
 
-/// Jeder Schluessel auf oberster Ebene braucht direkt darueber einen
-/// Kommentar; mehrere Schluessel unter einem Kommentar (Gruppe) sind
-/// erlaubt, eine Leerzeile dazwischen nicht. Die Felder der Sender erklaert
-/// der Kommentarblock ueber `sender:`.
+/// Every top-level key needs a comment directly above it; several keys
+/// under one comment (group) are allowed, a blank line in between is not.
+/// The station fields are explained by the comment block above `sender:`.
 List<String> _missingComments(String text) {
   final errors = <String>[];
   final lines = const LineSplitter().convert(text);
@@ -188,8 +187,8 @@ List<String> _missingComments(String text) {
     }
     if (j < 0 || !lines[j].trimLeft().startsWith('#')) {
       errors.add(
-        'Zeile ${i + 1}: Über "${lines[i].split(':').first}" fehlt der '
-        'Kommentar (Bedeutung, Pflicht/optional, Werte, Standard, Beispiel).',
+        'Line ${i + 1}: The comment above "${lines[i].split(':').first}" is '
+        'missing (meaning, required/optional, values, default, example).',
       );
     }
   }
@@ -205,13 +204,13 @@ Map<String, Object?>? _readYaml(String text, List<String> errors) {
       };
     }
     if (data == null) return <String, Object?>{};
-    errors.add('Die Datei muss aus Zeilen "schluessel: wert" bestehen.');
+    errors.add('The file must consist of lines of the form "key: value".');
   } on YamlException catch (e) {
     final span = e.span;
-    final line = span == null ? '' : 'Zeile ${span.start.line + 1}: ';
+    final line = span == null ? '' : 'Line ${span.start.line + 1}: ';
     errors.add(
-      '${line}Kein gültiges YAML (${e.message}). Häufig: Tab statt '
-      'Leerzeichen oder "#" ohne Anführungszeichen.',
+      '${line}Not valid YAML (${e.message}). Common causes: tab instead of '
+      'spaces or "#" without quotes.',
     );
   }
   return null;
@@ -226,41 +225,35 @@ List<String> _checkSchema(
   final data = _readYaml(text, errors);
   if (data == null) return errors;
   for (final key in schema.keys) {
-    if (!data.containsKey(key)) errors.add('Schlüssel "$key" fehlt.');
+    if (!data.containsKey(key)) errors.add('Key "$key" is missing.');
   }
   for (final MapEntry(:key, :value) in data.entries) {
     final type = schema[key];
     if (type == null) {
-      errors.add(
-        'Schlüssel "$key" ist unbekannt. Erlaubt: ${schema.keys.join(', ')}.',
-      );
+      errors.add('Key "$key" is unknown. Allowed: ${schema.keys.join(', ')}.');
       continue;
     }
     switch (type) {
       case _Bool():
         if (value is! bool) {
-          errors.add(
-            '"$key" muss true oder false sein (ohne Anführungszeichen).',
-          );
+          errors.add('"$key" must be true or false (without quotes).');
         }
       case _OneOf(:final values):
         if (value is! String || !values.contains(value)) {
           errors.add(
-            '"$key" muss einer dieser Werte sein: ${values.join(', ')}.',
+            '"$key" must be one of these values: ${values.join(', ')}.',
           );
         }
       case _Str(:final pattern):
         if (value is! String) {
-          errors.add(
-            '"$key" muss Text sein (im Zweifel in Anführungszeichen).',
-          );
+          errors.add('"$key" must be text (in doubt, in quotes).');
         } else if (pattern != null && !RegExp(pattern).hasMatch(value)) {
-          errors.add('"$key" hat ein ungültiges Format: "$value".');
+          errors.add('"$key" has an invalid format: "$value".');
         }
     }
     if (example && value != type.standard) {
       errors.add(
-        '"$key" muss in der Beispieldatei den Standardwert haben '
+        '"$key" must have the default value in the example file '
         '(${jsonEncode(type.standard)}).',
       );
     }
@@ -292,7 +285,7 @@ List<String> _appKeysInCode(String text) {
   return <String>[
     for (final key in read.difference(features).difference(_injectedKeys))
       if (!data.containsKey(key))
-        'Schlüssel "$key" fehlt (liest der App-Code).',
+        'Key "$key" is missing (read by the app code).',
   ];
 }
 
@@ -301,22 +294,22 @@ List<String> _checkStations(File file, List<String> notes) {
   notes.addAll(result.notes.map((n) => n.toString()));
   final errors = <String>[for (final e in result.errors) e.toString()];
   if (!result.ok && errors.isEmpty) {
-    errors.add('Mindestens ein Sender muss angezeigt werden (aktiv: true).');
+    errors.add('At least one station must be shown (aktiv: true).');
   }
   for (final e in result.entries) {
     final asset = e.logoAsset;
     if (asset != null && !File(asset).existsSync()) {
       errors.add(
-        '${e.line == null ? '' : 'Zeile ${e.line}: '}Die Logo-Datei '
-        '"$asset" gibt es nicht. Lege sie dort ab oder lass logoDatei weg.',
+        '${e.line == null ? '' : 'Line ${e.line}: '}The logo file '
+        '"$asset" does not exist. Put it there or omit logoDatei.',
       );
     }
   }
   return errors;
 }
 
-/// Bauwerte fuer --dart-define-from-file: Standardwerte der Schemas,
-/// ueberschrieben von config/app.yaml und config/features.yaml (geprueft).
+/// Build values for --dart-define-from-file: default values of the schemas,
+/// overridden by config/app.yaml and config/features.yaml (validated).
 int _writeDefines(File out) {
   final values = <String, Object>{};
   for (final topic in <String>['app', 'features']) {
@@ -330,7 +323,7 @@ int _writeDefines(File out) {
     final errors = _checkSchema(text, schema, example: false);
     if (errors.isNotEmpty) {
       for (final e in errors) {
-        stderr.writeln('FEHLER  ${real.path}: $e');
+        stderr.writeln('ERROR   ${real.path}: $e');
       }
       return 1;
     }
@@ -338,11 +331,11 @@ int _writeDefines(File out) {
       final v = e.value;
       if (v != null) values[e.key] = v;
     }
-    stdout.writeln('${real.path} übernommen.');
+    stdout.writeln('${real.path} applied.');
   }
   out.writeAsStringSync(
     '${const JsonEncoder.withIndent('  ').convert(values)}\n',
   );
-  stdout.writeln('${out.path} geschrieben.');
+  stdout.writeln('${out.path} written.');
   return 0;
 }

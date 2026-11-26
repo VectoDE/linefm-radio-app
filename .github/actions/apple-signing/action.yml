@@ -1,45 +1,45 @@
-name: Apple-Signierung vorbereiten
+name: Prepare Apple signing
 description: >
-  Importiert Distribution-Zertifikat(e) in eine temporaere Keychain, installiert die
-  Provisioning-Profile und schreibt eine ExportOptions.plist (manuelle Signierung, je
-  Bundle-ID das passende Profil). Nur fuer macOS-Runner. Ungetestet (kein Apple-Konto,
-  kein Mac in der Entwicklung). Die Keychain entfernt der Aufrufer mit
+  Imports distribution certificate(s) into a temporary keychain, installs the
+  provisioning profiles and writes an ExportOptions.plist (manual signing, the
+  matching profile for each bundle ID). For macOS runners only. Untested (no Apple
+  account, no Mac in development). The caller removes the keychain with
   "security delete-keychain" (if: always()).
 
 inputs:
   p12-base64:
-    description: Apple-Distribution-Zertifikat (.p12, base64)
+    description: Apple Distribution certificate (.p12, base64)
     required: true
   p12-password:
     required: true
   installer-p12-base64:
-    description: Mac-Installer-Zertifikat (.p12, base64), nur fuer das Mac-App-Store-Paket
+    description: Mac Installer certificate (.p12, base64), only for the Mac App Store package
     required: false
     default: ""
   installer-p12-password:
     required: false
     default: ""
   profiles-base64:
-    description: Provisioning-Profile, je Zeile ein base64-Profil (App und ggf. Widget)
+    description: Provisioning profiles, one base64 profile per line (app and, if present, widget)
     required: true
   platform:
-    description: ios oder macos
+    description: ios or macos
     required: true
   team-id:
     required: true
 
 outputs:
   export-options:
-    description: Pfad der erzeugten ExportOptions.plist
+    description: Path of the generated ExportOptions.plist
     value: ${{ steps.profiles.outputs.export_options }}
   keychain:
-    description: Pfad der temporaeren Keychain
+    description: Path of the temporary keychain
     value: ${{ steps.keychain.outputs.keychain }}
 
 runs:
   using: composite
   steps:
-    - name: Zertifikate importieren
+    - name: Import certificates
       id: keychain
       shell: bash
       env:
@@ -69,7 +69,7 @@ runs:
         security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
         echo "keychain=$kc" >> "$GITHUB_OUTPUT"
 
-    - name: Profile installieren und ExportOptions schreiben
+    - name: Install profiles and write ExportOptions
       id: profiles
       shell: bash
       env:
@@ -114,9 +114,9 @@ runs:
           bundle="${appid#*.}"
           for d in "${dirs[@]}"; do cp "$raw" "$d/$uuid.$ext"; done
           "$PB" -c "Add :provisioningProfiles:$bundle string $name" "$opts"
-          # Nur Namen, nie Inhalte protokollieren.
-          echo "Profil installiert: $name ($bundle)"
+          # Log names only, never contents.
+          echo "Profile installed: $name ($bundle)"
           rm -f "$plist"
         done <<< "$PROFILES_BASE64"
-        if [ "$n" -eq 0 ]; then echo "::error::Keine Provisioning-Profile uebergeben"; exit 1; fi
+        if [ "$n" -eq 0 ]; then echo "::error::No provisioning profiles provided"; exit 1; fi
         echo "export_options=$opts" >> "$GITHUB_OUTPUT"

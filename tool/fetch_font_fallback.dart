@@ -1,30 +1,30 @@
-// Ersatzschriften fuer Flutter Web selbst hosten (L14).
+// Self-host fallback fonts for Flutter Web (L14).
 //
-// Die Web-Engine laedt fehlende Zeichen (Emoji, Kyrillisch, CJK, Symbole) als
-// Noto-Schriften nach, und zwar von `fontFallbackBaseUrl + <pfad>`. Ohne eigene
-// Dateien unter assets/fonts/fallback/ erscheinen solche Zeichen als Kaestchen.
-// Dieses Werkzeug legt genau die Dateien ab, die die Engine anfragt.
+// The web engine loads missing characters (emoji, Cyrillic, CJK, symbols) as
+// Noto fonts, from `fontFallbackBaseUrl + <path>`. Without our own
+// files under assets/fonts/fallback/ such characters appear as boxes.
+// This tool places exactly the files that the engine requests.
 //
-// Aufrufe:
-//   dart run tool/fetch_font_fallback.dart build/web [Optionen]
-//       Laedt die Dateien aus der Sperrdatei (Pfad, SHA-256, Groesse), prueft
-//       jede Pruefsumme und legt sie unter build/web/assets/fonts/fallback/ ab.
-//   dart run tool/fetch_font_fallback.dart --update-lock [--sdk-data <datei>]
-//       Liest die Liste aus dem Flutter-SDK (font_fallback_data.dart), laedt
-//       alles frisch aus dem Netz (ohne Cache, S3-05) und schreibt die
-//       Sperrdatei neu (nach jedem Flutter-Update).
-//   dart run tool/fetch_font_fallback.dart --check-sdk [--sdk-data <datei>]
-//       Vergleicht Sperrdatei und SDK-Liste; Exit 1 bei Abweichung.
+// Invocations:
+//   dart run tool/fetch_font_fallback.dart build/web [options]
+//       Downloads the files from the lock file (path, SHA-256, size), verifies
+//       every checksum and places them under build/web/assets/fonts/fallback/.
+//   dart run tool/fetch_font_fallback.dart --update-lock [--sdk-data <file>]
+//       Reads the list from the Flutter SDK (font_fallback_data.dart), downloads
+//       everything fresh from the network (no cache, S3-05) and rewrites the
+//       lock file (after every Flutter update).
+//   dart run tool/fetch_font_fallback.dart --check-sdk [--sdk-data <file>]
+//       Compares the lock file and the SDK list; exit 1 on mismatch.
 //
-// Optionen:
-//   --lock <datei>        Standard: tool/font_fallback.lock.json
-//   --groups <liste>      core,cjk (Standard: beide) oder core
-//   --cache <ordner>      Standard: .dart_tool/font_fallback_cache
-//   --source <url>        Standard: https://fonts.gstatic.com/s/
-//   --sdk-data <datei>    Standard: aus dem laufenden Flutter-SDK abgeleitet
-//   --license <datei>     OFL-Text (Standard: assets/fonts/OFL.txt), landet als OFL.txt daneben.
-//                         Fehlt die Datei, bricht der Aufruf mit Exit 1 ab (R3-P07).
-//   --strict              Abweichung zwischen Sperrdatei und SDK ist ein Fehler
+// Options:
+//   --lock <file>         default: tool/font_fallback.lock.json
+//   --groups <list>       core,cjk (default: both) or core
+//   --cache <folder>      default: .dart_tool/font_fallback_cache
+//   --source <url>        default: https://fonts.gstatic.com/s/
+//   --sdk-data <file>     default: derived from the running Flutter SDK
+//   --license <file>      OFL text (default: assets/fonts/OFL.txt), ends up next to it as OFL.txt.
+//                         If the file is missing, the call aborts with exit 1 (R3-P07).
+//   --strict              a mismatch between lock file and SDK is an error
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -36,11 +36,11 @@ const String defaultSource = 'https://fonts.gstatic.com/s/';
 const String defaultLock = 'tool/font_fallback.lock.json';
 const String fallbackSubdir = 'assets/fonts/fallback';
 
-/// Roboto ist die Standardschrift der Engine und kommt ueber dieselbe Basis-URL
-/// (skwasm/skwasm_impl/font_collection.dart und canvaskit/fonts.dart).
+/// Roboto is the engine's default font and comes through the same base URL
+/// (skwasm/skwasm_impl/font_collection.dart and canvaskit/fonts.dart).
 final RegExp _robotoPattern = RegExp(r"fontFallbackBaseUrl\}(roboto/[^']+)'");
 
-/// Familien, deren Dateien gross sind und nur fuer CJK-Text gebraucht werden.
+/// Families whose files are large and only needed for CJK text.
 const List<String> cjkPrefixes = <String>[
   'notosanssc/',
   'notosanstc/',
@@ -74,11 +74,11 @@ class FontFallbackException implements Exception {
   String toString() => 'fetch_font_fallback: $message';
 }
 
-/// Gruppe eines Pfads: `cjk` fuer die grossen CJK-Familien, sonst `core`.
+/// Group of a path: `cjk` for the large CJK families, otherwise `core`.
 String groupOf(String path) =>
     cjkPrefixes.any(path.startsWith) ? 'cjk' : 'core';
 
-/// Liest alle `NotoFont('<name>', '<pfad>', ...)` aus font_fallback_data.dart.
+/// Reads all `NotoFont('<name>', '<path>', ...)` from font_fallback_data.dart.
 List<FallbackFont> parseFallbackFontData(String source) {
   final pattern = RegExp(r"NotoFont\(\s*'([^']+)',\s*'([^']+)'");
   final seen = <String>{};
@@ -92,12 +92,12 @@ List<FallbackFont> parseFallbackFontData(String source) {
   return out;
 }
 
-/// Liest den Roboto-Pfad aus fonts.dart bzw. font_collection.dart.
+/// Reads the Roboto path from fonts.dart or font_collection.dart.
 String? parseRobotoPath(String source) =>
     _robotoPattern.firstMatch(source)?.group(1);
 
-/// Lizenzdatei fuer den Fallback-Ordner: eigener Urheberkopf, danach der
-/// OFL-Text ab "This Font Software is licensed ..." aus der Vorlage.
+/// License file for the fallback folder: own copyright header, followed by the
+/// OFL text from "This Font Software is licensed ..." in the template.
 String renderLicense(String oflTemplate) {
   final start = oflTemplate.indexOf('This Font Software is licensed');
   final body = start >= 0 ? oflTemplate.substring(start) : oflTemplate;
@@ -108,7 +108,7 @@ String renderLicense(String oflTemplate) {
       '$body';
 }
 
-/// Prueft, dass ein Pfad relativ bleibt und keine Ordner verlaesst.
+/// Checks that a path stays relative and does not leave its folder.
 bool isSafeRelativePath(String path) {
   if (path.isEmpty || path.startsWith('/') || path.contains('\\')) {
     return false;
@@ -119,7 +119,7 @@ bool isSafeRelativePath(String path) {
   return path.split('/').every((s) => s.isNotEmpty && s != '.' && s != '..');
 }
 
-/// Liest die Sperrdatei.
+/// Reads the lock file.
 ({String engineRevision, String source, List<FallbackFont> fonts}) parseLock(
   String text,
 ) {
@@ -136,12 +136,10 @@ bool isSafeRelativePath(String path) {
   ];
   for (final f in fonts) {
     if (!isSafeRelativePath(f.path)) {
-      throw FontFallbackException(
-        'unzulaessiger Pfad in der Sperrdatei: ${f.path}',
-      );
+      throw FontFallbackException('invalid path in the lock file: ${f.path}');
     }
     if (f.sha256 == null || !RegExp(r'^[0-9a-f]{64}$').hasMatch(f.sha256!)) {
-      throw FontFallbackException('Pruefsumme fehlt fuer ${f.path}');
+      throw FontFallbackException('checksum missing for ${f.path}');
     }
   }
   return (
@@ -151,7 +149,7 @@ bool isSafeRelativePath(String path) {
   );
 }
 
-/// Schreibt die Sperrdatei (stabil sortiert, damit Diffs lesbar bleiben).
+/// Writes the lock file (stably sorted so that diffs stay readable).
 String encodeLock({
   required String engineRevision,
   required String source,
@@ -161,8 +159,8 @@ String encodeLock({
   int sum(String g) =>
       sorted.where((f) => f.group == g).fold(0, (s, f) => s + (f.bytes ?? 0));
   return '${const JsonEncoder.withIndent('  ').convert(<String, Object?>{
-    'comment': 'Erzeugt mit dart run tool/fetch_font_fallback.dart --update-lock. '
-        'Noto-Schriften und Roboto: SIL Open Font License 1.1 (docs/LIZENZEN-DRITTE.md).',
+    'comment': 'Generated with dart run tool/fetch_font_fallback.dart --update-lock. '
+        'Noto fonts and Roboto: SIL Open Font License 1.1 (docs/LIZENZEN-DRITTE.md).',
     'engineRevision': engineRevision,
     'source': source,
     'totals': <String, int>{'core': sum('core'), 'cjk': sum('cjk'), 'files': sorted.length},
@@ -170,7 +168,7 @@ String encodeLock({
   })}\n';
 }
 
-/// Unterschiede zwischen zwei Pfadlisten (nur im SDK, nur in der Sperrdatei).
+/// Differences between two path lists (only in the SDK, only in the lock file).
 ({List<String> onlySdk, List<String> onlyLock}) diffPaths(
   Iterable<String> sdk,
   Iterable<String> lock,
@@ -184,10 +182,10 @@ String encodeLock({
 }
 
 // ---------------------------------------------------------------------------
-// SDK und Netz
+// SDK and network
 // ---------------------------------------------------------------------------
 
-/// Flutter-Wurzel: FLUTTER_ROOT oder aus dem laufenden Dart abgeleitet
+/// Flutter root: FLUTTER_ROOT or derived from the running Dart
 /// (`<flutter>/bin/cache/dart-sdk/bin/dart`).
 Directory? _flutterRoot() {
   final env = Platform.environment['FLUTTER_ROOT'];
@@ -211,7 +209,7 @@ Directory? _flutterRoot() {
   final data = File(dataPath ?? '${engineDir.path}/font_fallback_data.dart');
   if (!data.existsSync()) {
     throw FontFallbackException(
-      '${data.path} nicht gefunden (flutter precache --web oder --sdk-data angeben)',
+      '${data.path} not found (run flutter precache --web or pass --sdk-data)',
     );
   }
   final fonts = parseFallbackFontData(data.readAsStringSync());
@@ -256,10 +254,10 @@ Future<List<int>> _download(HttpClient client, Uri url) async {
     }
     await Future<void>.delayed(Duration(seconds: attempt));
   }
-  throw FontFallbackException('Download fehlgeschlagen: $url ($last)');
+  throw FontFallbackException('Download failed: $url ($last)');
 }
 
-/// Fuehrt [task] fuer alle Eintraege mit begrenzter Parallelitaet aus.
+/// Runs [task] for all entries with limited parallelism.
 Future<void> _pool<T>(
   List<T> items,
   int parallel,
@@ -275,11 +273,11 @@ Future<void> _pool<T>(
   await Future.wait(List.generate(parallel, (_) => worker()));
 }
 
-/// Holt eine Datei (Cache oder Netz) und prueft die Pruefsumme.
+/// Fetches a file (cache or network) and verifies the checksum.
 ///
-/// Mit [useCache] = false wird immer aus dem Netz geladen (fuer --update-lock:
-/// ohne bekannte Pruefsumme darf ein alter oder fremder Cache-Inhalt nicht in
-/// die Sperrdatei wandern). Das Ergebnis landet trotzdem im Cache.
+/// With [useCache] = false it always loads from the network (for --update-lock:
+/// without a known checksum, old or foreign cache content must not end up in
+/// the lock file). The result still lands in the cache.
 Future<List<int>> fetchVerified(
   HttpClient client,
   FallbackFont font, {
@@ -299,7 +297,7 @@ Future<List<int>> fetchVerified(
   final hash = sha256Hex(bytes);
   if (font.sha256 != null && hash != font.sha256) {
     throw FontFallbackException(
-      'Pruefsumme passt nicht fuer ${font.path}: erwartet ${font.sha256}, erhalten $hash',
+      'Checksum mismatch for ${font.path}: expected ${font.sha256}, got $hash',
     );
   }
   cached
@@ -309,7 +307,7 @@ Future<List<int>> fetchVerified(
 }
 
 // ---------------------------------------------------------------------------
-// Einstieg
+// Entry point
 // ---------------------------------------------------------------------------
 
 Future<void> main(List<String> args) async {
@@ -328,7 +326,7 @@ Future<int> runCli(List<String> args) async {
   for (var i = 0; i < args.length; i++) {
     String next() {
       if (i + 1 >= args.length) {
-        throw FontFallbackException('Wert fuer ${args[i]} fehlt');
+        throw FontFallbackException('value for ${args[i]} is missing');
       }
       return args[++i];
     }
@@ -357,11 +355,11 @@ Future<int> runCli(List<String> args) async {
             .where((s) => s.isNotEmpty)
             .toSet();
         if (groups.difference(<String>{'core', 'cjk'}).isNotEmpty) {
-          stderr.writeln('--groups erlaubt nur core und cjk');
+          stderr.writeln('--groups only allows core and cjk');
           return 64;
         }
       case final a when a.startsWith('--'):
-        stderr.writeln('Unbekannte Option $a');
+        stderr.writeln('Unknown option $a');
         return 64;
       default:
         webPath = args[i];
@@ -380,7 +378,7 @@ Future<int> runCli(List<String> args) async {
         final locked = <FallbackFont>[];
         await _pool(sdk.fonts, 8, (f) async {
           if (!isSafeRelativePath(f.path)) {
-            throw FontFallbackException('unzulaessiger Pfad im SDK: ${f.path}');
+            throw FontFallbackException('invalid path in the SDK: ${f.path}');
           }
           final bytes = await fetchVerified(
             client,
@@ -406,7 +404,7 @@ Future<int> runCli(List<String> args) async {
           ),
         );
         stdout.writeln(
-          'fetch_font_fallback: Sperrdatei $lockPath mit ${locked.length} Dateien geschrieben',
+          'fetch_font_fallback: lock file $lockPath written with ${locked.length} files',
         );
         return 0;
       case 'check':
@@ -417,31 +415,31 @@ Future<int> runCli(List<String> args) async {
           lock.fonts.map((f) => f.path),
         );
         if (d.onlySdk.isEmpty && d.onlyLock.isEmpty) {
-          stdout.writeln('fetch_font_fallback: Sperrdatei passt zum SDK');
+          stdout.writeln('fetch_font_fallback: lock file matches the SDK');
           return 0;
         }
         stderr.writeln(
-          'fetch_font_fallback: Sperrdatei veraltet (${d.onlySdk.length} neu im SDK, '
-          '${d.onlyLock.length} nicht mehr im SDK). --update-lock ausfuehren.',
+          'fetch_font_fallback: lock file outdated (${d.onlySdk.length} new in the SDK, '
+          '${d.onlyLock.length} no longer in the SDK). Run --update-lock.',
         );
         return 1;
     }
 
     if (webPath == null) {
       stderr.writeln(
-        'Aufruf: dart run tool/fetch_font_fallback.dart build/web [Optionen]',
+        'Usage: dart run tool/fetch_font_fallback.dart build/web [options]',
       );
       return 64;
     }
     final web = Directory(webPath);
     if (!web.existsSync()) {
-      throw FontFallbackException('${web.path} existiert nicht');
+      throw FontFallbackException('${web.path} does not exist');
     }
     final ofl = File(licensePath);
     if (!ofl.existsSync()) {
       throw FontFallbackException(
-        '$licensePath fehlt: ohne OFL-Lizenztext duerfen die Schriften nicht '
-        'ausgeliefert werden (--license angeben)',
+        '$licensePath is missing: without the OFL license text the fonts must not '
+        'be shipped (pass --license)',
       );
     }
     final lock = parseLock(File(lockPath).readAsStringSync());
@@ -453,18 +451,18 @@ Future<int> runCli(List<String> args) async {
       );
       if (d.onlySdk.isNotEmpty || d.onlyLock.isNotEmpty) {
         final msg =
-            'Sperrdatei passt nicht zum Flutter-SDK (${d.onlySdk.length} Pfade fehlen), '
-            '--update-lock ausfuehren';
+            'Lock file does not match the Flutter SDK (${d.onlySdk.length} paths missing), '
+            'run --update-lock';
         if (strict) {
           throw FontFallbackException(msg);
         }
-        stderr.writeln('fetch_font_fallback: WARNUNG: $msg');
+        stderr.writeln('fetch_font_fallback: WARNING: $msg');
       }
     } on FontFallbackException catch (e) {
       if (strict) {
         rethrow;
       }
-      stderr.writeln('fetch_font_fallback: WARNUNG: ${e.message}');
+      stderr.writeln('fetch_font_fallback: WARNING: ${e.message}');
     }
 
     final selected = lock.fonts.where((f) => groups.contains(f.group)).toList();
@@ -485,9 +483,9 @@ Future<int> runCli(List<String> args) async {
     File('${target.path}/OFL.txt')
         .writeAsStringSync(renderLicense(ofl.readAsStringSync()));
     stdout.writeln(
-      'fetch_font_fallback: ${selected.length} Dateien '
-      '(${(total / 1048576).toStringAsFixed(1)} MiB, Gruppen ${groups.join(',')}) '
-      'unter ${target.path}',
+      'fetch_font_fallback: ${selected.length} files '
+      '(${(total / 1048576).toStringAsFixed(1)} MiB, groups ${groups.join(',')}) '
+      'under ${target.path}',
     );
     return 0;
   } on FontFallbackException catch (e) {

@@ -1,11 +1,11 @@
-// Lighthouse-Laeufe: je Profil (mobil, desktop) N Laeufe gegen
-// den lokal ausgelieferten Web-Build, simuliertes Throttling (Standard).
+// Lighthouse runs: N runs per profile (mobile, desktop) against the
+// locally served web build, simulated throttling (default).
 //
 //   node lighthouse.mjs --url http://127.0.0.1:8080/ --out out/lighthouse --runs 5
 //
-// Browser: das Chromium von Playwright (gleicher Browser wie web_perf.mjs).
-// Ergebnis: je Lauf <profil>-<n>.report.json/.html, dazu summary.json mit
-// Median und Streuung je Kennzahl und Kategorie.
+// Browser: Playwright's Chromium (same browser as web_perf.mjs).
+// Result: per run <profile>-<n>.report.json/.html, plus summary.json with
+// median and spread per metric and category.
 
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -36,9 +36,9 @@ const METRICS = {
   'cumulative-layout-shift': 'CLS',
   'speed-index': 'Speed Index',
   'server-response-time': 'TTFB (Server)',
-  'total-byte-weight': 'Gesamtgewicht',
-  'mainthread-work-breakdown': 'Hauptthread',
-  'bootup-time': 'JS-Ausfuehrung',
+  'total-byte-weight': 'Total weight',
+  'mainthread-work-breakdown': 'Main thread',
+  'bootup-time': 'JS execution',
 };
 
 function extract(lhr) {
@@ -95,7 +95,7 @@ function main() {
         );
       } catch (e) {
         runs.push({ profile, run: i, error: String(e?.message ?? e).slice(0, 300) });
-        console.log(`${profile} ${i}: FEHLER ${String(e?.message ?? e).slice(0, 200)}`);
+        console.log(`${profile} ${i}: ERROR ${String(e?.message ?? e).slice(0, 200)}`);
       }
     }
   }

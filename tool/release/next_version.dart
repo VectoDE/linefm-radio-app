@@ -1,14 +1,14 @@
-// Berechnet die nächste Release-Version. Aufruf aus release.yml:
+// Computes the next release version. Called from release.yml:
 //
 //   cd tool/release && dart pub get && dart run next_version.dart \
 //     --tags tags.txt --items items.json --subjects subjects.txt
 //
-// --tags      bisherige Release-Tags, einer je Zeile (leer: noch kein Release);
-//             der hoechste nach SemVer gilt als letztes Release
-// --items     Ausgabe von `gh issue list --state open --json labels`
-// --subjects  Commit-Betreffzeilen seit dem letzten Release, eine je Zeile
+// --tags      previous release tags, one per line (empty: no release yet);
+//             the highest by SemVer counts as the last release
+// --items     output of `gh issue list --state open --json labels`
+// --subjects  commit subject lines since the last release, one per line
 //
-// Ausgabe (für $GITHUB_OUTPUT): version=…, tag=…, stage=…, prerelease=…
+// Output (for $GITHUB_OUTPUT): version=…, tag=…, stage=…, prerelease=…
 import 'dart:convert';
 import 'dart:io';
 
@@ -29,7 +29,7 @@ void main(List<String> args) {
 
   final itemsPath = opts['items'];
   if (itemsPath == null) {
-    stderr.writeln('--items fehlt.');
+    stderr.writeln('--items is missing.');
     exit(2);
   }
   final raw = jsonDecode(File(itemsPath).readAsStringSync()) as List<dynamic>;

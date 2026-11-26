@@ -1,22 +1,23 @@
-name: Flathub-Vorbereitung
+name: Flathub preparation
 
-# Fuellt das Flatpak-Manifest mit Tarball-URL und sha256 aus dem Release und legt es als
-# Artefakt samt Einreichungsvorlage ab. Reicht NICHTS bei Flathub ein und legt keine Einreichung an.
-# Ausloeser: release.yml (nur Endversionen) oder manuell mit Tag.
-# Braucht keine Secrets. Voraussetzung fuer Flathub: oeffentliches Repository (die
-# Download-URL muss ohne Anmeldung erreichbar sein), siehe packaging/flathub/README.md.
+# Fills the Flatpak manifest with the tarball URL and sha256 from the release and
+# stores it as an artifact together with a submission template. Submits NOTHING to
+# Flathub and creates no submission.
+# Triggers: release.yml (final versions only) or manually with a tag.
+# Needs no secrets. Prerequisite for Flathub: a public repository (the download URL
+# must be reachable without signing in), see packaging/flathub/README.md.
 
 on:
   workflow_call:
     inputs:
       tag:
-        description: Versions-Tag (vX.Y.Z)
+        description: Version tag (vX.Y.Z)
         type: string
         required: true
   workflow_dispatch:
     inputs:
       tag:
-        description: Versions-Tag eines vorhandenen Releases (Form vX.Y.Z)
+        description: Version tag of an existing release (format vX.Y.Z)
         type: string
         required: true
 
@@ -28,7 +29,7 @@ concurrency:
 
 jobs:
   prep:
-    name: Manifest fuellen
+    name: Fill manifest
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -36,7 +37,7 @@ jobs:
     env:
       TAG: ${{ inputs.tag }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -47,7 +48,7 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
-      - name: Linux-Tarball holen
+      - name: Fetch Linux tarball
         id: release
         uses: ./.github/actions/fetch-release
         with:
@@ -55,7 +56,7 @@ jobs:
           pattern: "*-linux-x64.tar.gz"
           token: ${{ github.token }}
 
-      - name: Manifest fuellen
+      - name: Fill manifest
         env:
           LABEL: ${{ steps.release.outputs.label }}
           REPO: ${{ github.repository }}
@@ -68,35 +69,35 @@ jobs:
           out="flathub/de.linefm.app.yml"
           mkdir -p flathub
           cp packaging/flathub/de.linefm.app.yml "$out"
-          # Nur die mit "# release-tarball" markierten Zeilen ersetzen.
+          # Only replace the lines marked with "# release-tarball".
           sed -E -i "s|^([[:space:]]*url: ).*( # release-tarball)\$|\1${url}\2|" "$out"
           sed -E -i "s|^([[:space:]]*sha256: ).*( # release-tarball)\$|\1'${sha}'\2|" "$out"
-          grep -qF "url: ${url} # release-tarball" "$out" || { echo "::error::URL-Zeile nicht ersetzt"; exit 1; }
-          grep -qF "sha256: '${sha}' # release-tarball" "$out" || { echo "::error::sha256-Zeile nicht ersetzt"; exit 1; }
-          # Version kommt nur aus dem Release: Platzhalter vX.Y.Z bzw. 0.0.0-dev ersetzen.
+          grep -qF "url: ${url} # release-tarball" "$out" || { echo "::error::URL line not replaced"; exit 1; }
+          grep -qF "sha256: '${sha}' # release-tarball" "$out" || { echo "::error::sha256 line not replaced"; exit 1; }
+          # The version comes only from the release: replace the placeholders vX.Y.Z and 0.0.0-dev.
           sed -E -i "s|/vX\.Y\.Z/(.*) # release-tag\$|/${TAG}/\1|" "$out"
-          grep -q 'vX\.Y\.Z' "$out" && { echo "::error::Platzhalter vX.Y.Z im Manifest uebrig"; exit 1; }
+          grep -q 'vX\.Y\.Z' "$out" && { echo "::error::Placeholder vX.Y.Z left in the manifest"; exit 1; }
           cp linux/de.linefm.app.metainfo.xml flathub/
           sed -i "s|<release version=\"0.0.0-dev\" date=\"[0-9-]*\">|<release version=\"${LABEL}\" date=\"$(date -u +%F)\">|" flathub/de.linefm.app.metainfo.xml
-          grep -qF "<release version=\"${LABEL}\"" flathub/de.linefm.app.metainfo.xml || { echo "::error::Release-Version in metainfo nicht gesetzt"; exit 1; }
+          grep -qF "<release version=\"${LABEL}\"" flathub/de.linefm.app.metainfo.xml || { echo "::error::Release version not set in metainfo"; exit 1; }
           {
-            echo "# Einreichungsvorlage fuer flathub/flathub (Version ${LABEL})"
+            echo "# Submission template for flathub/flathub (version ${LABEL})"
             echo ""
-            echo "Titel: Add de.linefm.app"
+            echo "Title: Add de.linefm.app"
             echo ""
-            echo "- Manifest: de.linefm.app.yml (Tarball ${name}, sha256 ${sha})"
-            echo "- Quelle: ${url}"
-            echo "- Pruefen vor dem Einreichen: packaging/flathub/README.md (proprietaere Lizenz, Binaer-Tarball,"
-            echo "  Verified-Domain linefm.de, Screenshots, OARS, Repository oeffentlich)."
-            echo "- Einreichung nur durch den Inhaber, Branch new-pr gegen flathub/flathub."
-          } > flathub/EINREICHUNGSVORLAGE.md
+            echo "- Manifest: de.linefm.app.yml (tarball ${name}, sha256 ${sha})"
+            echo "- Source: ${url}"
+            echo "- Check before submitting: packaging/flathub/README.md (proprietary license, binary tarball,"
+            echo "  verified domain linefm.de, screenshots, OARS, public repository)."
+            echo "- Submission by the owner only, branch new-pr against flathub/flathub."
+          } > flathub/SUBMISSION_TEMPLATE.md
           {
-            echo "### Flathub-Vorbereitung"
+            echo "### Flathub preparation"
             echo "- Version: ${LABEL}, sha256: \`${sha}\`"
-            echo "- Artefakt \`flathub-manifest-${LABEL}\` enthaelt Manifest und Einreichungsvorlage. **Nichts wurde eingereicht.**"
+            echo "- Artifact \`flathub-manifest-${LABEL}\` contains the manifest and the submission template. **Nothing was submitted.**"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Artefakt hochladen
+      - name: Upload artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: flathub-manifest-${{ steps.release.outputs.label }}

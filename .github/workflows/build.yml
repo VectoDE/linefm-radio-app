@@ -1,10 +1,10 @@
 name: Build
 
-# Baut alle sechs Plattformen und legt die Ergebnisse als Artefakte "dist-<plattform>" ab.
-# macOS/iOS laufen nur bei Release-Tags, bei manuellem Start mit apple=true oder in
-# Änderungsvorschlägen mit dem Label "ci:apple" (öffentliches Repo: Actions-Minuten sind frei).
-# Signaturschritte laufen nur ausserhalb von Änderungsvorschlägen und nur, wenn die Secrets gesetzt sind;
-# ohne Secrets entstehen unsignierte Artefakte und die Zusammenfassung nennt, was fehlt.
+# Builds all six platforms and stores the results as artifacts "dist-<platform>".
+# macOS/iOS only run for release tags, on manual start with apple=true, or in
+# change proposals with the label "ci:apple" (public repo: Actions minutes are free).
+# Signing steps only run outside change proposals and only when the secrets are set;
+# without secrets the artifacts are unsigned and the summary lists what is missing.
 
 on:
   pull_request:
@@ -16,8 +16,8 @@ on:
       - windows/**
       - linux/**
       - web/**
-      # Fensterverhalten (Titelleiste, Tray, Mini-Fenster) haengt am
-      # nativen Fenster und gilt erst mit gruenem Desktop-Build als belegt.
+      # Window behavior (title bar, tray, mini window) depends on the
+      # native window and only counts as verified with a green desktop build.
       - lib/platform/desktop/**
       - pubspec.yaml
       - pubspec.lock
@@ -29,22 +29,22 @@ on:
   workflow_dispatch:
     inputs:
       apple:
-        description: macOS- und iOS-Build einschliessen
+        description: Include the macOS and iOS build
         type: boolean
         default: false
   workflow_call:
     inputs:
       version:
-        description: Versions-Tag (vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N)
+        description: Version tag (vX.Y.Z or vX.Y.Z-(alpha|beta|rc).N)
         type: string
         required: false
         default: ""
       apple:
-        description: macOS- und iOS-Build einschliessen
+        description: Include the macOS and iOS build
         type: boolean
         required: false
         default: true
-    # Alle optional: fehlt ein Secret, wird der zugehoerige Signaturschritt uebersprungen.
+    # All optional: if a secret is missing, the matching signing step is skipped.
     secrets:
       ANDROID_KEYSTORE_BASE64:
         required: false
@@ -84,7 +84,7 @@ env:
 
 jobs:
   meta:
-    name: Version und Secret-Gates
+    name: Version and secret gates
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -101,7 +101,7 @@ jobs:
       sign_windows: ${{ steps.windows.outputs.ready == 'true' && steps.version.outputs.may_sign == 'true' }}
       sign_macos: ${{ steps.macos.outputs.ready == 'true' && steps.version.outputs.may_sign == 'true' }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -111,7 +111,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Version bestimmen
+      - name: Determine version
         id: version
         env:
           INPUT_VERSION: ${{ inputs.version }}
@@ -127,7 +127,7 @@ jobs:
         run: |
           set -euo pipefail
           run=true
-          # Ein neues Label loest den Lauf nur aus, wenn es ci:apple ist.
+          # A new label only triggers the run if it is ci:apple.
           if [ "$EVENT_NAME" = "pull_request" ] && [ "$EVENT_ACTION" = "labeled" ] && [ "$LABEL_NAME" != "ci:apple" ]; then
             run=false
           fi
@@ -136,13 +136,13 @@ jobs:
           if [ -z "$version" ] && [ "$REF_TYPE" = "tag" ]; then version="$REF_NAME"; fi
           if [ -n "$version" ]; then
             if ! [[ "$version" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
-              echo "::error::Ungueltige Version: $version (erwartet vX.Y.Z oder vX.Y.Z-suffix)"
+              echo "::error::Invalid version: $version (expected vX.Y.Z or vX.Y.Z-suffix)"
               exit 1
             fi
             label="${version#v}"
             app_env=prod
           else
-            # Ohne Release: eindeutig erkennbare Entwicklungsversion mit Commit.
+            # Without a release: clearly recognizable development version with commit.
             label="0.0.0-dev+${GITHUB_SHA::7}"
             app_env=dev
           fi
@@ -156,11 +156,11 @@ jobs:
           may_sign=false
           if [ "$EVENT_NAME" != "pull_request" ]; then may_sign=true; fi
 
-          # Jeder Tag-Build (prod) braucht vollstaendige Rechtstexte (N7): release.yml
-          # laedt auch Vorabversionen (vX.Y.Z-rc.N) zu Google Play und Snap hoch, also
-          # gilt dieselbe Bedingung wie fuer die Store-Uploads. Dev-Builds melden
-          # offene Platzhalter nur.
-          # Vorabversionen (alpha, beta, rc) gehen in keinen Store.
+          # Every tag build (prod) needs complete legal texts (N7): release.yml
+          # also uploads pre-releases (vX.Y.Z-rc.N) to Google Play and Snap, so
+          # the same condition applies as for the store uploads. Dev builds only
+          # report open placeholders.
+          # Pre-releases (alpha, beta, rc) go to no store.
           legal_strict=false
           if [ "$app_env" = "prod" ] && ! [[ "$label" =~ -(alpha|beta|rc)\. ]]; then legal_strict=true; fi
 
@@ -178,37 +178,37 @@ jobs:
             echo "### Build $label"
             echo "- build-name: \`$build_name\`, build-number: \`$build_number\`, APP_ENV: \`$app_env\`"
             echo "- macOS/iOS: $apple"
-            echo "- Signieren erlaubt (kein Änderungsvorschlag): $may_sign"
-            echo "- Rechtstexte strikt (Pflicht-Platzhalter muessen gefuellt sein): $legal_strict"
+            echo "- Signing allowed (not a change proposal): $may_sign"
+            echo "- Legal texts strict (required placeholders must be filled): $legal_strict"
             echo ""
-            echo "#### Signatur-Gates"
+            echo "#### Signing gates"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Gate Android-Signatur
+      - name: Android signing gate
         id: android
         uses: ./.github/actions/secret-gate
         with:
-          label: Android-Signatur (Upload-Key)
+          label: Android signing (upload key)
           checks: |
             ANDROID_KEYSTORE_BASE64=${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
             ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD != '' }}
             ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS != '' }}
             ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD != '' }}
 
-      - name: Gate Windows-Code-Signing
+      - name: Windows code signing gate
         id: windows
         uses: ./.github/actions/secret-gate
         with:
-          label: Windows-Code-Signing
+          label: Windows code signing
           checks: |
             WINDOWS_CERT_PFX_BASE64=${{ secrets.WINDOWS_CERT_PFX_BASE64 != '' }}
             WINDOWS_CERT_PASSWORD=${{ secrets.WINDOWS_CERT_PASSWORD != '' }}
 
-      - name: Gate macOS-Signatur und Notarisierung
+      - name: macOS signing and notarization gate
         id: macos
         uses: ./.github/actions/secret-gate
         with:
-          label: macOS Developer-ID-Signatur + Notarisierung
+          label: macOS Developer ID signing + notarization
           checks: |
             APPLE_PUBLISHING_ENABLED=${{ vars.APPLE_PUBLISHING_ENABLED == 'true' }}
             APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID != '' }}
@@ -231,7 +231,7 @@ jobs:
       BUILD_NAME: ${{ needs.meta.outputs.build_name }}
       BUILD_NUMBER: ${{ needs.meta.outputs.build_number }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -241,17 +241,17 @@ jobs:
         with:
           persist-credentials: false
 
-      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
-      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
-      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
-      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
-      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+      # L3-08: Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
+      # sources produce identical dates where the tools honor it (postbuild:
+      # sitemap lastmod; ZIP/packers that support it). Bit-identical builds are
+      # therefore NOT guaranteed and not verified (see docs/RELEASE-VERIFIZIEREN.md).
+      - name: Set SOURCE_DATE_EPOCH from the commit
         shell: bash
         run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
-      # Der Release-Build laedt NDK und CMake nach; ohne Aufraeumen lief der Runner
-      # voll und wurde abgebrochen ("runner has received a shutdown signal").
-      - name: Plattenplatz freigeben
+      # The release build downloads NDK and CMake; without cleanup the runner
+      # ran out of space and was cancelled ("runner has received a shutdown signal").
+      - name: Free disk space
         run: |
           df -h /
           sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost \
@@ -267,10 +267,10 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write configuration
         uses: ./.github/actions/write-config
         with:
           app-env: ${{ needs.meta.outputs.app_env }}
@@ -290,7 +290,7 @@ jobs:
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
 
-      - name: Upload-Keystore bereitstellen
+      - name: Provide upload keystore
         if: needs.meta.outputs.sign_android == 'true'
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -308,17 +308,17 @@ jobs:
             echo "keyPassword=$KEY_PASSWORD"
           } > android/key.properties
 
-      - name: APK bauen (universal)
+      - name: Build APK (universal)
         run: flutter build apk $FLUTTER_BUILD_FLAGS --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
-      - name: AAB bauen
+      - name: Build AAB
         run: flutter build appbundle $FLUTTER_BUILD_FLAGS --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
-      - name: Keystore entfernen
+      - name: Remove keystore
         if: always()
         run: rm -f android/app/upload-keystore.jks android/key.properties
 
-      - name: Artefakte einsammeln
+      - name: Collect artifacts
         env:
           SIGNED: ${{ needs.meta.outputs.sign_android }}
         run: |
@@ -329,12 +329,12 @@ jobs:
           cp build/app/outputs/bundle/release/app-release.aab "dist/linefm-radio-${LABEL}-android.aab"
           ls -la dist
           if [ "$SIGNED" = "true" ]; then
-            echo "- Android: mit Upload-Key signiert" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Android: signed with upload key" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "- Android: **unsigniert** (kein Upload-Key bzw. Build eines Änderungsvorschlags)" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Android: **unsigned** (no upload key or build of a change proposal)" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Hochladen
+      - name: Upload
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist-android
@@ -355,7 +355,7 @@ jobs:
       BUILD_NAME: ${{ needs.meta.outputs.build_name }}
       BUILD_NUMBER: ${{ needs.meta.outputs.build_number }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -365,18 +365,18 @@ jobs:
         with:
           persist-credentials: false
 
-      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
-      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
-      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
-      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
-      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+      # L3-08: Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
+      # sources produce identical dates where the tools honor it (postbuild:
+      # sitemap lastmod; ZIP/packers that support it). Bit-identical builds are
+      # therefore NOT guaranteed and not verified (see docs/RELEASE-VERIFIZIEREN.md).
+      - name: Set SOURCE_DATE_EPOCH from the commit
         shell: bash
         run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write configuration
         uses: ./.github/actions/write-config
         with:
           app-env: ${{ needs.meta.outputs.app_env }}
@@ -396,49 +396,49 @@ jobs:
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
 
-      - name: Web bauen
+      - name: Build web
         shell: bash
         run: |
           mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
           # shellcheck disable=SC2086 # FLUTTER_BUILD_FLAGS is a flag list
           flutter build web $FLUTTER_BUILD_FLAGS --wasm --no-web-resources-cdn --base-href /             --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER" "${web_defines[@]}"
 
-      - name: Ersatzschriften selbst hosten (L14)
+      - name: Self-host fallback fonts (L14)
         run: |
-          # Noto-Fallback nach build/web/assets/fonts/fallback/ (Pruefsummen aus tool/font_fallback.lock.json).
+          # Noto fallback into build/web/assets/fonts/fallback/ (checksums from tool/font_fallback.lock.json).
           cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
           dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
 
-      - name: Postbuild (Hashes, Header-Dateien)
+      - name: Postbuild (hashes, header files)
         env:
           LEGAL_STRICT: ${{ needs.meta.outputs.legal_strict }}
-          # App-Links (L3-01): Play-Signaturzertifikat (SHA-256) und Apple-Team-ID sind
-          # oeffentliche Werte; ohne sie entfernt der Postbuild die Vorlagen (Warnung).
+          # App links (L3-01): Play signing certificate (SHA-256) and Apple team ID are
+          # public values; without them the postbuild removes the templates (warning).
           ANDROID_CERT_SHA256: ${{ vars.ANDROID_CERT_SHA256 }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           if [ -f tool/web_postbuild.dart ]; then
             strict=""
             if [ "$LEGAL_STRICT" = "true" ]; then strict="--strict"; fi
-            # Ausserhalb des Pakets starten (nur dart:-Importe), sonst baut "dart run" die Native-Asset-Hooks (GTK).
+            # Start outside the package (dart: imports only), otherwise "dart run" builds the native asset hooks (GTK).
             cp tool/web_postbuild.dart "$RUNNER_TEMP/web_postbuild.dart"
             dart run "$RUNNER_TEMP/web_postbuild.dart" build/web $strict
           else
-            echo "- Web: tool/web_postbuild.dart fehlt (P22), Postbuild uebersprungen" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Web: tool/web_postbuild.dart missing (P22), postbuild skipped" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: ZIP erstellen
+      - name: Create ZIP
         run: |
           set -euo pipefail
           mkdir -p dist
           (cd build/web && zip -q -r -9 "../../dist/linefm-radio-${LABEL}-web.zip" .)
-          # Gerenderte Hosting-Dateien (Header, Redirects, .htaccess) aus dem Postbuild.
+          # Rendered hosting files (headers, redirects, .htaccess) from the postbuild.
           if [ -d build/hosting ]; then
             (cd build/hosting && zip -q -r -9 "../../dist/linefm-radio-${LABEL}-web-hosting.zip" .)
           fi
           ls -la dist
 
-      - name: Hochladen
+      - name: Upload
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist-web
@@ -459,7 +459,7 @@ jobs:
       BUILD_NAME: ${{ needs.meta.outputs.build_name }}
       BUILD_NUMBER: ${{ needs.meta.outputs.build_number }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -469,21 +469,21 @@ jobs:
         with:
           persist-credentials: false
 
-      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
-      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
-      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
-      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
-      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+      # L3-08: Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
+      # sources produce identical dates where the tools honor it (postbuild:
+      # sitemap lastmod; ZIP/packers that support it). Bit-identical builds are
+      # therefore NOT guaranteed and not verified (see docs/RELEASE-VERIFIZIEREN.md).
+      - name: Set SOURCE_DATE_EPOCH from the commit
         shell: bash
         run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
-      - name: Systempakete
+      - name: System packages
         uses: ./.github/actions/linux-deps
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write configuration
         uses: ./.github/actions/write-config
         with:
           app-env: ${{ needs.meta.outputs.app_env }}
@@ -503,14 +503,14 @@ jobs:
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
 
-      - name: Linux bauen
+      - name: Build Linux
         run: flutter build linux $FLUTTER_BUILD_FLAGS --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
-      - name: tar.gz erstellen
+      - name: Create tar.gz
         run: |
           set -euo pipefail
           mkdir -p dist
-          # Inhalt des Bundles liegt direkt im Archiv-Wurzelverzeichnis (Flatpak/Snap entpacken dorthin).
+          # The bundle contents sit directly in the archive root (Flatpak/Snap unpack there).
           tar -C build/linux/x64/release/bundle -czf "dist/linefm-radio-${LABEL}-linux-x64.tar.gz" .
           ls -la dist
 
@@ -551,7 +551,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Hochladen
+      - name: Upload
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist-linux
@@ -572,7 +572,7 @@ jobs:
       BUILD_NAME: ${{ needs.meta.outputs.build_name }}
       BUILD_NUMBER: ${{ needs.meta.outputs.build_number }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -582,15 +582,15 @@ jobs:
         with:
           persist-credentials: false
 
-      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
-      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
-      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
-      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
-      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+      # L3-08: Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
+      # sources produce identical dates where the tools honor it (postbuild:
+      # sitemap lastmod; ZIP/packers that support it). Bit-identical builds are
+      # therefore NOT guaranteed and not verified (see docs/RELEASE-VERIFIZIEREN.md).
+      - name: Set SOURCE_DATE_EPOCH from the commit
         shell: bash
         run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
-      - name: Rust-Toolchain (fuer smtc_windows)
+      - name: Rust toolchain (for smtc_windows)
         shell: bash
         run: |
           set -euo pipefail
@@ -599,12 +599,12 @@ jobs:
           rustc --version
           cargo --version
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      # Installer: Engine (C++, CMake/MSVC) und eigene Setup-Oberflaeche
-      # (Flutter, installer/ui) zuerst, damit Fehler frueh auffallen.
-      - name: Setup-Oberflaeche pruefen (analyze, Tests, Bildschirmfotos)
+      # Installer: engine (C++, CMake/MSVC) and own setup UI
+      # (Flutter, installer/ui) first, so errors surface early.
+      - name: Check setup UI (analyze, tests, screenshots)
         shell: bash
         working-directory: installer/ui
         run: |
@@ -613,11 +613,11 @@ jobs:
           flutter analyze --fatal-infos
           flutter test
 
-      - name: Installer-Engine und Setup-Oberflaeche bauen
+      - name: Build installer engine and setup UI
         shell: pwsh
         run: ./installer/windows/build.ps1 -Stage prepare -Version $env:LABEL
 
-      - name: Konfiguration schreiben
+      - name: Write configuration
         uses: ./.github/actions/write-config
         with:
           app-env: ${{ needs.meta.outputs.app_env }}
@@ -637,11 +637,11 @@ jobs:
           trust-trustpilot-url: ${{ vars.TRUST_TRUSTPILOT_URL }}
           firebase-config-json: ${{ secrets.FIREBASE_CONFIG_JSON }}
 
-      - name: Windows bauen
+      - name: Build Windows
         shell: bash
         run: flutter build windows $FLUTTER_BUILD_FLAGS --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
-      - name: Code-Signing-Zertifikat bereitstellen
+      - name: Provide code signing certificate
         id: cert
         if: needs.meta.outputs.sign_windows == 'true'
         shell: pwsh
@@ -652,7 +652,7 @@ jobs:
           [IO.File]::WriteAllBytes($path, [Convert]::FromBase64String($env:PFX_BASE64))
           "path=$path" >> $env:GITHUB_OUTPUT
 
-      - name: EXE signieren
+      - name: Sign EXE
         if: needs.meta.outputs.sign_windows == 'true'
         shell: pwsh
         env:
@@ -661,23 +661,23 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName -Descending | Select-Object -First 1
-          # App, Setup-Stub (wird auch uninstall.exe) und Setup-Oberflaeche.
+          # App, setup stub (also becomes uninstall.exe) and setup UI.
           $files = @(Get-ChildItem 'build/windows/x64/runner/Release' -Recurse -Include *.exe) +
                    @(Get-Item 'build/installer/engine/Release/setup_stub.exe') +
                    @(Get-ChildItem 'installer/ui/build/windows/x64/runner/Release' -Recurse -Include *.exe)
           foreach ($f in $files) {
             & $signtool.FullName sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $env:PFX_PATH /p $env:PFX_PASSWORD $f.FullName
-            if ($LASTEXITCODE -ne 0) { throw "signtool fehlgeschlagen fuer $($f.Name)" }
+            if ($LASTEXITCODE -ne 0) { throw "signtool failed for $($f.Name)" }
           }
 
-      - name: ZIP erstellen
+      - name: Create ZIP
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           Compress-Archive -Path 'build/windows/x64/runner/Release/*' -DestinationPath "dist/linefm-radio-$env:LABEL-windows-x64.zip" -CompressionLevel Optimal
           Get-ChildItem dist
 
-      - name: MSIX erstellen (Sideload)
+      - name: Create MSIX (sideload)
         if: hashFiles('assets/branding/icon_1024.png') != ''
         shell: pwsh
         env:
@@ -690,30 +690,30 @@ jobs:
           if ($env:PFX_PATH) {
             $msixArgs += @('--certificate-path', $env:PFX_PATH, '--certificate-password', $env:PFX_PASSWORD)
           } else {
-            # Unsigniert verlangt msix eine Publisher-Identitaet; mit Zertifikat kommt sie aus dem Zertifikat.
+            # Unsigned, msix requires a publisher identity; with a certificate it comes from the certificate.
             $msixArgs += @('--sign-msix', 'false', '--publisher', 'CN=LineFM Studios', '--publisher-display-name', 'LineFM Studios')
-            "- Windows: MSIX **unsigniert** (kein Code-Signing-Zertifikat), Sideload erst nach Signatur" | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+            "- Windows: MSIX **unsigned** (no code signing certificate), sideload only after signing" | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
           }
           dart @msixArgs
-          if ($LASTEXITCODE -ne 0) { throw 'msix:create fehlgeschlagen' }
-          # Ohne .msix-Datei ist der Schritt fehlgeschlagen.
+          if ($LASTEXITCODE -ne 0) { throw 'msix:create failed' }
+          # Without an .msix file the step has failed.
           $msix = Get-ChildItem dist -Filter *.msix
-          if (-not $msix) { throw 'msix:create hat keine .msix-Datei erzeugt' }
+          if (-not $msix) { throw 'msix:create did not produce an .msix file' }
           $msix | Select-Object Name, Length | Format-Table | Out-String | Write-Host
 
-      - name: MSIX-Hinweis
+      - name: MSIX notice
         if: hashFiles('assets/branding/icon_1024.png') == ''
         shell: bash
         run: |
-          echo "- Windows: MSIX uebersprungen, assets/branding/icon_1024.png fehlt noch (P05)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Windows: MSIX skipped, assets/branding/icon_1024.png still missing (P05)" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Installer packen (eigene Oberflaeche)
+      - name: Pack installer (own UI)
         shell: pwsh
         run: |
           ./installer/windows/build.ps1 -Stage pack -Version $env:LABEL `
             -Out "dist/linefm-radio-$env:LABEL-windows-x64-setup.exe"
 
-      - name: Installer signieren
+      - name: Sign installer
         if: needs.meta.outputs.sign_windows == 'true'
         shell: pwsh
         env:
@@ -724,15 +724,15 @@ jobs:
           $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName -Descending | Select-Object -First 1
           Get-ChildItem dist -Filter *-setup.exe | ForEach-Object {
             & $signtool.FullName sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $env:PFX_PATH /p $env:PFX_PASSWORD $_.FullName
-            if ($LASTEXITCODE -ne 0) { throw "signtool fehlgeschlagen fuer $($_.Name)" }
+            if ($LASTEXITCODE -ne 0) { throw "signtool failed for $($_.Name)" }
             & $signtool.FullName verify /pa $_.FullName
-            if ($LASTEXITCODE -ne 0) { throw "Signatur ungueltig: $($_.Name)" }
+            if ($LASTEXITCODE -ne 0) { throw "Invalid signature: $($_.Name)" }
           }
 
-      # Installation, Start, Update (laufende App, Einstellungen bleiben),
-      # Downgrade-Sperre, Oberflaeche per UI-Automation, Deinstallation und
-      # "alle Benutzer" auf dem Runner. Fuer das Update entsteht eine zweite
-      # setup.exe mit einer kleineren Version aus denselben Dateien (nur fuer den Test).
+      # Installation, launch, update (running app, settings are kept),
+      # downgrade block, UI via UI automation, uninstall and
+      # "all users" on the runner. For the update a second setup.exe
+      # with a smaller version is built from the same files (test only).
       # Axe.Windows CLI (Microsoft, MIT) scans the setup window for
       # accessibility problems; pinned release, verified by SHA-256.
       - name: Fetch Axe.Windows CLI
@@ -746,7 +746,7 @@ jobs:
           Expand-Archive $zip -DestinationPath $dir -Force
           "AXE_CLI=$(Join-Path $dir 'AxeWindowsCLI.exe')" >> $env:GITHUB_ENV
 
-      - name: Installer testen (Installation, Start, Update, Deinstallation)
+      - name: Test installer (install, launch, update, uninstall)
         shell: pwsh
         run: |
           $old = '0.0.0-0'  # lowest valid SemVer, below every generated version
@@ -754,7 +754,7 @@ jobs:
           ./installer/windows/test-installer.ps1 -Setup "dist/linefm-radio-$env:LABEL-windows-x64-setup.exe" `
             -OldSetup build/installer/setup-old.exe -OldVersion $old -Version $env:LABEL -ArtifactDir build/installer-test
 
-      - name: Installer-Bildschirmfotos und Protokolle hochladen
+      - name: Upload installer screenshots and logs
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -765,23 +765,23 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Zertifikat entfernen
+      - name: Remove certificate
         if: always()
         shell: pwsh
         run: Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $env:RUNNER_TEMP 'codesign.pfx')
 
-      - name: Signatur-Status
+      - name: Signing status
         shell: bash
         env:
           SIGNED: ${{ needs.meta.outputs.sign_windows }}
         run: |
           if [ "$SIGNED" = "true" ]; then
-            echo "- Windows: EXE/Installer signiert" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Windows: EXE/installer signed" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "- Windows: **unsigniert** (kein Zertifikat bzw. Build eines Änderungsvorschlags), SmartScreen-Warnung moeglich" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Windows: **unsigned** (no certificate or build of a change proposal), SmartScreen warning possible" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Hochladen
+      - name: Upload
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist-windows
@@ -806,7 +806,7 @@ jobs:
       # every other build, releases included, stays universal (arm64 + x86_64).
       FLUTTER_MACOS_ARM64_ONLY: ${{ github.event_name == 'pull_request' }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -816,11 +816,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+      - name: Set SOURCE_DATE_EPOCH from the commit
         shell: bash
         run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
         with:
           pub-get: "false"
@@ -862,7 +862,7 @@ jobs:
       # every other build, releases included, stays universal (arm64 + x86_64).
       FLUTTER_MACOS_ARM64_ONLY: ${{ github.event_name == 'pull_request' }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -872,18 +872,18 @@ jobs:
         with:
           persist-credentials: false
 
-      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
-      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
-      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
-      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
-      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+      # L3-08: Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
+      # sources produce identical dates where the tools honor it (postbuild:
+      # sitemap lastmod; ZIP/packers that support it). Bit-identical builds are
+      # therefore NOT guaranteed and not verified (see docs/RELEASE-VERIFIZIEREN.md).
+      - name: Set SOURCE_DATE_EPOCH from the commit
         shell: bash
         run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write configuration
         uses: ./.github/actions/write-config
         with:
           app-env: ${{ needs.meta.outputs.app_env }}
@@ -913,10 +913,10 @@ jobs:
           path: build/macos/SourcePackages
           key: spm-macos-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pubspec.lock', 'macos/Runner.xcodeproj/project.pbxproj') }}
 
-      - name: macOS bauen
+      - name: Build macOS
         run: flutter build macos $FLUTTER_BUILD_FLAGS --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
-      - name: Developer-ID-Zertifikat importieren
+      - name: Import Developer ID certificate
         if: needs.meta.outputs.sign_macos == 'true'
         env:
           CERT_P12_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_CERT_P12_BASE64 }}
@@ -931,13 +931,13 @@ jobs:
           security unlock-keychain -p "$kcpw" "$kc"
           security import "$RUNNER_TEMP/devid.p12" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$kc"
           security set-key-partition-list -S apple-tool:,apple: -k "$kcpw" "$kc" >/dev/null
-          # Bewusst ungequotet: jede vorhandene Keychain wird ein eigenes Argument
-          # (Pfade unter ~/Library/Keychains ohne Leerzeichen).
+          # Deliberately unquoted: each existing keychain becomes its own argument
+          # (paths under ~/Library/Keychains contain no spaces).
           # shellcheck disable=SC2046
           security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
           rm -f "$RUNNER_TEMP/devid.p12"
 
-      - name: App signieren (Hardened Runtime)
+      - name: Sign app (Hardened Runtime)
         if: needs.meta.outputs.sign_macos == 'true'
         env:
           TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -963,7 +963,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-      - name: Keychain entfernen
+      - name: Remove keychain
         if: always()
         run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" 2>/dev/null || true
 
@@ -981,7 +981,7 @@ jobs:
       LABEL: ${{ needs.meta.outputs.label }}
       APP_PATH: build/macos/Build/Products/Release/LINEFM Radio.app
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -991,7 +991,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+      - name: Set SOURCE_DATE_EPOCH from the commit
         shell: bash
         run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
@@ -1010,7 +1010,7 @@ jobs:
           tar -C "$(dirname "$APP_PATH")" -xzf "$RUNNER_TEMP/macos-app/macos-app.tar.gz"
           codesign --verify --deep --strict "$APP_PATH" || [ "$SIGN" != "true" ]
 
-      - name: Developer-ID-Zertifikat importieren
+      - name: Import Developer ID certificate
         if: needs.meta.outputs.sign_macos == 'true'
         env:
           CERT_P12_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_CERT_P12_BASE64 }}
@@ -1025,8 +1025,8 @@ jobs:
           security unlock-keychain -p "$kcpw" "$kc"
           security import "$RUNNER_TEMP/devid.p12" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$kc"
           security set-key-partition-list -S apple-tool:,apple: -k "$kcpw" "$kc" >/dev/null
-          # Bewusst ungequotet: jede vorhandene Keychain wird ein eigenes Argument
-          # (Pfade unter ~/Library/Keychains ohne Leerzeichen).
+          # Deliberately unquoted: each existing keychain becomes its own argument
+          # (paths under ~/Library/Keychains contain no spaces).
           # shellcheck disable=SC2046
           security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
           rm -f "$RUNNER_TEMP/devid.p12"
@@ -1080,7 +1080,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: DMG erstellen
+      - name: Create DMG
         run: |
           set -euo pipefail
           mkdir -p dist
@@ -1093,12 +1093,12 @@ jobs:
             cp -R "$APP_PATH" "$staging/"
             ln -s /Applications "$staging/Applications"
             hdiutil create -volname "LINEFM Radio" -srcfolder "$staging" -ov -format UDZO "$dmg"
-            echo "- macOS: einfaches DMG (packaging/macos/create_dmg.sh aus P26 fehlt noch)" >> "$GITHUB_STEP_SUMMARY"
+            echo "- macOS: plain DMG (packaging/macos/create_dmg.sh from P26 still missing)" >> "$GITHUB_STEP_SUMMARY"
           fi
           hdiutil verify "$dmg"
           ls -la dist
 
-      - name: DMG signieren, notarisieren, heften
+      - name: Sign, notarize and staple DMG
         if: needs.meta.outputs.sign_macos == 'true'
         env:
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
@@ -1118,18 +1118,18 @@ jobs:
           xcrun notarytool submit "$setup" --key "$key" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" --wait
           xcrun stapler staple "$setup"
           rm -f "$key"
-          echo "- macOS: signiert und notarisiert" >> "$GITHUB_STEP_SUMMARY"
+          echo "- macOS: signed and notarized" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Signatur-Hinweis
+      - name: Signing notice
         if: needs.meta.outputs.sign_macos != 'true'
         run: |
-          echo "- macOS: **unsigniert, nicht notarisiert** (Gate APPLE_PUBLISHING_ENABLED/Apple-Secrets bzw. Build eines Änderungsvorschlags); Oeffnen per Rechtsklick > Oeffnen" >> "$GITHUB_STEP_SUMMARY"
+          echo "- macOS: **unsigned, not notarized** (gate APPLE_PUBLISHING_ENABLED/Apple secrets or build of a change proposal); open via right-click > Open" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Keychain entfernen
+      - name: Remove keychain
         if: always()
         run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" 2>/dev/null || true
 
-      - name: Hochladen
+      - name: Upload
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist-macos
@@ -1138,7 +1138,7 @@ jobs:
           retention-days: 14
 
   ios:
-    name: iOS (Kompilierpruefung, ohne Signatur)
+    name: iOS (compile check, no signing)
     needs: meta
     if: needs.meta.outputs.run == 'true' && needs.meta.outputs.apple == 'true'
     runs-on: macos-latest
@@ -1149,7 +1149,7 @@ jobs:
       BUILD_NAME: ${{ needs.meta.outputs.build_name }}
       BUILD_NUMBER: ${{ needs.meta.outputs.build_number }}
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -1159,18 +1159,18 @@ jobs:
         with:
           persist-credentials: false
 
-      # L3-08: Zeitstempel im Build = Commit-Zeit (SOURCE_DATE_EPOCH), damit gleiche
-      # Quellen gleiche Daten erzeugen, wo die Werkzeuge das auswerten (Postbuild:
-      # Sitemap-lastmod; ZIP/Packer, die es kennen). Bit-gleiche Builds sind damit
-      # NICHT zugesichert und nicht geprueft (siehe docs/RELEASE-VERIFIZIEREN.md).
-      - name: SOURCE_DATE_EPOCH aus dem Commit setzen
+      # L3-08: Build timestamps = commit time (SOURCE_DATE_EPOCH), so identical
+      # sources produce identical dates where the tools honor it (postbuild:
+      # sitemap lastmod; ZIP/packers that support it). Bit-identical builds are
+      # therefore NOT guaranteed and not verified (see docs/RELEASE-VERIFIZIEREN.md).
+      - name: Set SOURCE_DATE_EPOCH from the commit
         shell: bash
         run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write configuration
         uses: ./.github/actions/write-config
         with:
           app-env: ${{ needs.meta.outputs.app_env }}
@@ -1180,44 +1180,44 @@ jobs:
           web-base-url: ${{ vars.WEB_BASE_URL }}
           features-json: ${{ vars.FEATURES_JSON }}
 
-      - name: iOS bauen (no-codesign)
+      - name: Build iOS (no-codesign)
         run: flutter build ios $FLUTTER_BUILD_FLAGS --no-codesign --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
-      # Belegt, dass die von Hand gepflegten Teile des Xcode-Projekts wirklich im
-      # Bundle landen: Widget-Erweiterung eingebettet, Info.plist-
-      # Schluessel gesetzt, Privacy-Manifeste kopiert, native Kanaele gelinkt.
-      - name: App-Bundle pruefen
+      # Verifies that the hand-maintained parts of the Xcode project really end up
+      # in the bundle: widget extension embedded, Info.plist keys set, privacy
+      # manifests copied, native channels linked.
+      - name: Check app bundle
         shell: bash
         run: |
           set -euo pipefail
           app=build/ios/iphoneos/Runner.app
           appex="$app/PlugIns/LinefmWidgetExtension.appex"
           fail=0
-          check() { if eval "$2"; then echo "ok    $1"; else echo "FEHLT $1"; fail=1; fi; }
+          check() { if eval "$2"; then echo "ok    $1"; else echo "MISSING $1"; fail=1; fi; }
           val() { /usr/libexec/PlistBuddy -c "Print :$2" "$1" 2>/dev/null || true; }
-          check "Widget-Erweiterung eingebettet" '[ -x "$appex/LinefmWidgetExtension" ]'
-          check "Widget: Bundle-ID de.linefm.app.widget" '[ "$(val "$appex/Info.plist" CFBundleIdentifier)" = "de.linefm.app.widget" ]'
-          check "Widget: WidgetKit-Erweiterungspunkt" '[ "$(val "$appex/Info.plist" NSExtension:NSExtensionPointIdentifier)" = "com.apple.widgetkit-extension" ]'
-          check "Widget: Privacy-Manifest" '[ -f "$appex/PrivacyInfo.xcprivacy" ]'
-          check "App: Privacy-Manifest" '[ -f "$app/PrivacyInfo.xcprivacy" ]'
+          check "Widget extension embedded" '[ -x "$appex/LinefmWidgetExtension" ]'
+          check "Widget: bundle ID de.linefm.app.widget" '[ "$(val "$appex/Info.plist" CFBundleIdentifier)" = "de.linefm.app.widget" ]'
+          check "Widget: WidgetKit extension point" '[ "$(val "$appex/Info.plist" NSExtension:NSExtensionPointIdentifier)" = "com.apple.widgetkit-extension" ]'
+          check "Widget: privacy manifest" '[ -f "$appex/PrivacyInfo.xcprivacy" ]'
+          check "App: privacy manifest" '[ -f "$app/PrivacyInfo.xcprivacy" ]'
           check "App: MinimumOSVersion 16.0" '[ "$(val "$app/Info.plist" MinimumOSVersion)" = "16.0" ]'
           check "App: UIBackgroundModes audio" 'val "$app/Info.plist" UIBackgroundModes | grep -qx "[[:space:]]*audio"'
-          check "App: CarPlay-Szene im Manifest" '[ -n "$(val "$app/Info.plist" UIApplicationSceneManifest:UISceneConfigurations:CPTemplateApplicationSceneSessionRoleApplication:0:UISceneDelegateClassName)" ]'
+          check "App: CarPlay scene in manifest" '[ -n "$(val "$app/Info.plist" UIApplicationSceneManifest:UISceneConfigurations:CPTemplateApplicationSceneSessionRoleApplication:0:UISceneDelegateClassName)" ]'
           check "App: NSLocalNetworkUsageDescription" '[ -n "$(val "$app/Info.plist" NSLocalNetworkUsageDescription)" ]'
-          check "App: AppIcon als Primaersymbol" '[ "$(val "$app/Info.plist" CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName)" = "AppIcon" ]'
-          check "App: Asset-Katalog kompiliert" '[ -f "$app/Assets.car" ]'
+          check "App: AppIcon as primary icon" '[ "$(val "$app/Info.plist" CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName)" = "AppIcon" ]'
+          check "App: asset catalog compiled" '[ -f "$app/Assets.car" ]'
           strings -a "$app/Runner" > "$RUNNER_TEMP/runner.strings" || true
           strings -a "$appex/LinefmWidgetExtension" > "$RUNNER_TEMP/widget.strings" || true
           for s in CarPlaySceneDelegate SceneDelegate AlarmNotifications AirPlayRoutePickerFactory \
                    de.linefm.app/carplay de.linefm.app/alarm_ios de.linefm.app/airplay_route_picker; do
-            check "Binaerdatei enthaelt $s" 'grep -qF "$s" "$RUNNER_TEMP/runner.strings"'
+            check "Binary contains $s" 'grep -qF "$s" "$RUNNER_TEMP/runner.strings"'
           done
-          check "Widget-Binaerdatei enthaelt group.de.linefm.app" 'grep -qF "group.de.linefm.app" "$RUNNER_TEMP/widget.strings"'
+          check "Widget binary contains group.de.linefm.app" 'grep -qF "group.de.linefm.app" "$RUNNER_TEMP/widget.strings"'
           exit "$fail"
 
-      - name: Ergebnis
+      - name: Result
         run: |
-          echo "- iOS: Kompilierpruefung erfolgreich (unsigniert, kein Release-Artefakt; Store-Upload ueber store-apple.yml)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- iOS: compile check succeeded (unsigned, no release artifact; store upload via store-apple.yml)" >> "$GITHUB_STEP_SUMMARY"
 
   # Zero-warning rule: any warning or error in a job log or a check-run
   # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
@@ -1233,7 +1233,7 @@ jobs:
       actions: read
       checks: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit

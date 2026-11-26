@@ -1,36 +1,38 @@
-name: Bau-Skripte
+name: Build scripts
 
-# Beweist, dass die Start-Skripte tool/bauen.ps1 (Windows PowerShell 5.1) und tool/bauen.sh
-# (bash) die Web-Version wirklich bauen. Läuft nur, wenn sich die Skripte oder dieser
-# Workflow ändern, sowie auf Knopfdruck.
+# Proves that the start scripts tool/bauen.ps1 (Windows PowerShell 5.1) and tool/bauen.sh
+# (bash) really build the web version. Runs only when the scripts or this workflow
+# change, and on manual trigger.
 
 on:
   pull_request:
     paths:
-      - tool/bauen.*
-      - .github/workflows/bauen-skripte.yml
+      - tool/bauen.sh
+      - tool/bauen.ps1
+      - .github/workflows/build-scripts.yml
   push:
     branches: [main]
     paths:
-      - tool/bauen.*
-      - .github/workflows/bauen-skripte.yml
+      - tool/bauen.sh
+      - tool/bauen.ps1
+      - .github/workflows/build-scripts.yml
   workflow_dispatch:
 
 permissions: {}
 
 concurrency:
-  group: bauen-skripte-${{ github.event.pull_request.number || github.ref }}
+  group: build-scripts-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   windows:
-    name: bauen.ps1 (Windows, Web)
+    name: bauen.ps1 (Windows, web)
     runs-on: windows-latest
     timeout-minutes: 30
     permissions:
       contents: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -40,39 +42,39 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Ungueltiges Ziel wird mit Exit-Code 2 abgelehnt
+      - name: Invalid target is rejected with exit code 2
         shell: powershell
         run: |
-          powershell -NoProfile -File tool\bauen.ps1 -Ziel unsinn
-          if ($LASTEXITCODE -ne 2) { throw "Exit-Code $LASTEXITCODE statt 2" }
+          powershell -NoProfile -File tool\bauen.ps1 -Ziel invalid
+          if ($LASTEXITCODE -ne 2) { throw "Exit code $LASTEXITCODE instead of 2" }
           exit 0
 
-      - name: Web bauen (nur bauen)
+      - name: Build web (build only)
         shell: powershell
         run: |
           powershell -NoProfile -File tool\bauen.ps1 -Ziel web
-          if ($LASTEXITCODE -ne 0) { throw "bauen.ps1 meldet Exit-Code $LASTEXITCODE" }
+          if ($LASTEXITCODE -ne 0) { throw "bauen.ps1 reported exit code $LASTEXITCODE" }
           exit 0
 
-      - name: Ergebnis pruefen
+      - name: Check result
         shell: bash
         run: |
           set -euo pipefail
           test -f build/web/index.html
           test -f build/web/flutter_bootstrap.js
-          echo "build/web/index.html vorhanden"
+          echo "build/web/index.html present"
 
   linux:
-    name: bauen.sh (Linux, Web)
+    name: bauen.sh (Linux, web)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -82,28 +84,28 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Syntax pruefen
+      - name: Check syntax
         run: bash -n tool/bauen.sh
 
-      - name: Ungueltiges Ziel wird mit Exit-Code 2 abgelehnt
+      - name: Invalid target is rejected with exit code 2
         run: |
           set +e
-          tool/bauen.sh unsinn
+          tool/bauen.sh invalid
           code=$?
-          [ "$code" -eq 2 ] || { echo "Exit-Code $code statt 2"; exit 1; }
+          [ "$code" -eq 2 ] || { echo "Exit code $code instead of 2"; exit 1; }
 
-      - name: Web bauen (nur bauen)
+      - name: Build web (build only)
         run: tool/bauen.sh web
 
-      - name: Ergebnis pruefen
+      - name: Check result
         run: |
           set -euo pipefail
           test -f build/web/index.html
           test -f build/web/flutter_bootstrap.js
-          echo "build/web/index.html vorhanden"
+          echo "build/web/index.html present"
 
   # Zero-warning rule: any warning or error in a job log or a check-run
   # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json

@@ -19,8 +19,8 @@ updates:
       actions:
         patterns: ["*"]
 
-  # Hauptpaket und optionales Firebase-Paket (packages/linefm_firebase hat keine eigene
-  # pubspec.lock, Dependabot liest dort die pubspec.yaml).
+  # Main package and optional Firebase package (packages/linefm_firebase has no
+  # pubspec.lock of its own, Dependabot reads its pubspec.yaml).
   - package-ecosystem: pub
     directories:
       - /
@@ -57,8 +57,8 @@ updates:
       gradle-minor-patch:
         update-types: [minor, patch]
 
-  # Basisimages des Web-Containers (deploy/traefik/Dockerfile) und des Dev-Containers
-  # (.devcontainer/Dockerfile), jeweils per Digest gepinnt.
+  # Base images of the web container (deploy/traefik/Dockerfile) and the dev container
+  # (.devcontainer/Dockerfile), each pinned by digest.
   - package-ecosystem: docker
     directories:
       - /deploy/traefik
@@ -75,7 +75,7 @@ updates:
       - dependencies
       - typ:infra
 
-  # Images in den Compose-Dateien (Traefik-Stack, Telemetrie: Umami, GlitchTip, Datenbanken).
+  # Images in the Compose files (Traefik stack, telemetry: Umami, GlitchTip, databases).
   - package-ecosystem: docker-compose
     directories:
       - /deploy/traefik
@@ -92,7 +92,7 @@ updates:
       - dependencies
       - typ:infra
 
-  # Pruefwerkzeug der Barrierefreiheit (Playwright, axe-core), nur CI.
+  # Accessibility testing tool (Playwright, axe-core), CI only.
   - package-ecosystem: npm
     directory: /tool/a11y
     schedule:

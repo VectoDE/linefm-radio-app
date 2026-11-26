@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
-  # Woechentlich, damit neue Fehler auch ohne Commit auffallen.
+  # Weekly, so new failures show up even without a commit.
   schedule:
     - cron: "11 4 * * 5"
   workflow_dispatch:
@@ -17,13 +17,13 @@ concurrency:
 
 jobs:
   analyze:
-    name: Analyse (Format + Analyzer)
+    name: Analyze (format + analyzer)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -33,8 +33,8 @@ jobs:
         with:
           persist-credentials: false
 
-      # Die App-Version kommt nur aus dem Release; feste Nummern sind ein Fehler.
-      - name: Keine feste App-Version
+      # The app version comes only from the release; hard-coded numbers are an error.
+      - name: No fixed app version
         run: bash tool/check_fixed_versions.sh
 
       # Files describe behaviour in words; no tracker numbers or tracker words.
@@ -45,14 +45,18 @@ jobs:
       - name: Branding
         run: python3 tool/check_branding.py
 
+      # GitHub Actions files are English only.
+      - name: English GitHub Actions
+        run: python3 tool/check_english_ci.py
+
       # dependency_overrides only with a documented reason.
       - name: Dependency overrides documented
         run: bash tool/check_dependency_overrides.sh
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Formatierung pruefen
+      - name: Check formatting
         run: dart format --output=none --set-exit-if-changed .
 
       - name: Analyzer (fatal-infos)
@@ -69,7 +73,7 @@ jobs:
       contents: read
       actions: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -79,34 +83,34 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Systempakete (Native-Asset-Hooks)
+      - name: System packages (native asset hooks)
         uses: ./.github/actions/linux-deps
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfigurationsordner pruefen (config/)
+      - name: Check config folder (config/)
         run: dart run tool/check_config.dart
 
-      # Golden-Tests (*_golden_test.dart, Tag "golden") haengen von der Rasterung des
-      # Betriebssystems ab und laufen deshalb im Job "goldens" (Windows-Runner), nur dort
-      # entstehen und gelten die Referenzbilder.
-      - name: Tests mit Coverage (ohne Goldens)
+      # Golden tests (*_golden_test.dart, tag "golden") depend on the operating
+      # system's rasterization and therefore run in the "goldens" job (Windows runner);
+      # the reference images are created and valid only there.
+      - name: Tests with coverage (without goldens)
         run: |
           mapfile -t files < <(find test -name '*_test.dart' ! -name '*_golden_test.dart' | sort)
           flutter test --coverage --branch-coverage --reporter=expanded "${files[@]}"
 
-      - name: lcov installieren (HTML-Bericht)
+      - name: Install lcov (HTML report)
         if: always()
         run: sudo apt-get install -y -q --no-install-recommends lcov
 
-      # "flutter test --coverage" meldet nur Dateien, die ein Test laedt. Ungeladene Dateien
-      # fehlten sonst im Wert und der Prozentsatz waere zu hoch. Dieser Lauf importiert jede
-      # lib-Datei einmal, damit sie mit ihren (ungetroffenen) Zeilen in die Messung kommt.
-      # Ausgenommen: generierter Code, part-Dateien und Dateien mit Web-Bibliotheken (nur im
-      # Browser kompilierbar). Fehler hier bremsen den Job nicht, der Bericht nennt dann die
-      # Dateien ohne Messdaten.
-      - name: Ungeladene lib-Dateien einmessen
+      # "flutter test --coverage" only reports files that a test loads. Unloaded files
+      # would otherwise be missing from the figure and the percentage would be too high.
+      # This run imports every lib file once so that it enters the measurement with its
+      # (uncovered) lines. Excluded: generated code, part files and files using web
+      # libraries (compilable in the browser only). Failures here do not stop the job; the
+      # report then lists the files without measurement data.
+      - name: Measure unloaded lib files
         if: always()
         run: |
           pkg=$(sed -n 's/^name:[[:space:]]*//p' pubspec.yaml | tr -d '\r')
@@ -127,27 +131,27 @@ jobs:
           flutter test --coverage --branch-coverage --coverage-path coverage/lcov.all.info "$out"
           rm -f "$out"
 
-      - name: Coverage auswerten (gefiltert, je Datei, HTML)
+      - name: Evaluate coverage (filtered, per file, HTML)
         if: always()
         run: |
           if [ ! -f coverage/lcov.info ]; then
-            echo "Keine Coverage-Datei erzeugt." >> "$GITHUB_STEP_SUMMARY"
+            echo "No coverage file produced." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           bash tool/coverage_report.sh coverage/lcov.info coverage/lcov.all.info coverage/report
           cat coverage/report/summary.md >> "$GITHUB_STEP_SUMMARY"
-          # Kein Rueckfall und kein --ignore-errors: ein inkonsistenter Bericht macht den Job rot.
+          # No fallback and no --ignore-errors: an inconsistent report turns the job red.
           genhtml --quiet --branch-coverage --output-directory coverage/html coverage/report/lcov.filtered.info
 
-      # Coverage darf nicht sinken: Vergleich der Zeilenabdeckung mit dem letzten erfolgreichen
-      # Lauf auf main (Artefakt coverage-lcov, Datei report/total.txt). Toleranz 0,10 Prozentpunkte
-      # gegen Messrauschen. Solange main noch keinen Vergleichswert hat, nur Hinweis.
-      - name: Coverage darf nicht sinken
+      # Coverage must not drop: compare line coverage with the last successful run on
+      # main (artifact coverage-lcov, file report/total.txt). Tolerance of 0.10 percentage
+      # points against measurement noise. While main has no reference value yet, notice only.
+      - name: Coverage must not drop
         if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          [ -f coverage/report/total.txt ] || { echo "::error::Keine Coverage-Auswertung vorhanden."; exit 1; }
+          [ -f coverage/report/total.txt ] || { echo "::error::No coverage evaluation available."; exit 1; }
           cur=$(sed -n 's/^lines=//p' coverage/report/total.txt)
           found=""
           for id in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --branch main --event push \
@@ -156,19 +160,19 @@ jobs:
                && [ -f coverage/base/report/total.txt ]; then found="$id"; break; fi
           done
           if [ -z "$found" ]; then
-            echo "::notice::Kein Coverage-Vergleichswert auf main gefunden (erst nach dem ersten main-Lauf mit dieser Auswertung)."
-            echo "**Coverage-Vergleich:** kein Wert auf main, uebersprungen. Aktuell ${cur} %." >> "$GITHUB_STEP_SUMMARY"
+            echo "::notice::No coverage reference value found on main (only available after the first main run with this evaluation)."
+            echo "**Coverage comparison:** no value on main, skipped. Current ${cur} %." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           base=$(sed -n 's/^lines=//p' coverage/base/report/total.txt)
-          echo "main (Lauf ${found}): ${base} %, dieser Lauf: ${cur} %"
-          echo "**Coverage-Vergleich:** main ${base} %, dieser Stand ${cur} %." >> "$GITHUB_STEP_SUMMARY"
+          echo "main (run ${found}): ${base} %, this run: ${cur} %"
+          echo "**Coverage comparison:** main ${base} %, this revision ${cur} %." >> "$GITHUB_STEP_SUMMARY"
           if awk -v c="$cur" -v b="$base" 'BEGIN { exit !(c + 0.10 < b) }'; then
-            echo "::error::Coverage gesunken: ${base} % auf main, ${cur} % hier. Tests fuer neuen Code ergaenzen."
+            echo "::error::Coverage dropped: ${base} % on main, ${cur} % here. Add tests for the new code."
             exit 1
           fi
 
-      - name: Coverage hochladen (lcov, Zusammenfassung)
+      - name: Upload coverage (lcov, summary)
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -180,7 +184,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
-      - name: Coverage-HTML hochladen
+      - name: Upload coverage HTML
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -190,13 +194,13 @@ jobs:
           retention-days: 30
 
   goldens:
-    name: Golden-Tests (Windows)
+    name: Golden tests (Windows)
     runs-on: windows-latest
     timeout-minutes: 30
     permissions:
       contents: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -206,7 +210,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Golden-Tests vorhanden?
+      - name: Golden tests present?
         id: find
         shell: bash
         run: |
@@ -214,18 +218,18 @@ jobs:
           echo "count=${#files[@]}" >> "$GITHUB_OUTPUT"
           echo "files=${files[*]}" >> "$GITHUB_OUTPUT"
 
-      - name: Rust-Toolchain (Native-Asset-Hooks)
+      - name: Rust toolchain (native asset hooks)
         if: steps.find.outputs.count != '0'
         shell: bash
         run: |
           rustup toolchain install stable --profile minimal --no-self-update
           rustup default stable
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         if: steps.find.outputs.count != '0'
         uses: ./.github/actions/setup-flutter
 
-      - name: Golden-Tests
+      - name: Golden tests
         if: steps.find.outputs.count != '0'
         shell: bash
         env:
@@ -234,7 +238,7 @@ jobs:
           read -r -a files <<< "$GOLDEN_FILES"
           flutter test --reporter=expanded --tags golden "${files[@]}"
 
-      - name: Abweichungen hochladen
+      - name: Upload failures
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -243,10 +247,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      # Bei Abweichung oder fehlenden Referenzbildern: Bilder auf diesem Runner neu erzeugen und
-      # als Kandidaten bereitstellen. Nach Sichtpruefung in den Branch kopieren und committen
-      # (docs/ENTWICKLUNG.md, "Goldens aktualisieren"). Der Job bleibt rot.
-      - name: Referenzbilder-Kandidaten erzeugen
+      # On a mismatch or missing reference images: regenerate the images on this runner and
+      # provide them as candidates. After visual review, copy them into the branch and commit
+      # (docs/ENTWICKLUNG.md, "Goldens aktualisieren"). The job stays red.
+      - name: Generate reference image candidates
         if: failure() && steps.find.outputs.count != '0'
         shell: bash
         env:
@@ -255,7 +259,7 @@ jobs:
           read -r -a files <<< "$GOLDEN_FILES"
           flutter test --update-goldens --tags golden "${files[@]}"
 
-      - name: Kandidaten hochladen
+      - name: Upload candidates
         if: failure() && steps.find.outputs.count != '0'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -265,13 +269,13 @@ jobs:
           retention-days: 14
 
   l10n-check:
-    name: Uebersetzungen pruefen
+    name: Check translations
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -281,11 +285,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Fehlende Schluessel in Nicht-Vorlage-Sprachen
+      - name: Missing keys in non-template languages
         run: |
           set -euo pipefail
           template="lib/l10n/$(sed -n 's/^template-arb-file:[[:space:]]*//p' l10n.yaml | tr -d '\r')"
-          echo "Vorlage: $template"
+          echo "Template: $template"
           keys() { jq -r 'keys[] | select(startswith("@") | not)' "$1" | sort; }
           keys "$template" > /tmp/template.keys
           status=0
@@ -295,34 +299,34 @@ jobs:
             extra=$(comm -13 /tmp/template.keys <(keys "$arb"))
             if [ -n "$missing" ]; then
               status=1
-              echo "::error file=$arb::Fehlende Schluessel: $(echo "$missing" | paste -sd, -)"
+              echo "::error file=$arb::Missing keys: $(echo "$missing" | paste -sd, -)"
             fi
             if [ -n "$extra" ]; then
-              echo "::warning file=$arb::Schluessel nicht in der Vorlage: $(echo "$extra" | paste -sd, -)"
+              echo "::warning file=$arb::Keys not in the template: $(echo "$extra" | paste -sd, -)"
             fi
-            echo "$arb: $(keys "$arb" | wc -l) Schluessel, fehlend: $(echo -n "$missing" | grep -c . || true)"
+            echo "$arb: $(keys "$arb" | wc -l) keys, missing: $(echo -n "$missing" | grep -c . || true)"
           done
           exit "$status"
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Generierte Lokalisierung aktuell
+      - name: Generated localization up to date
         run: |
           flutter gen-l10n
           if ! git diff --exit-code -- lib/l10n/gen; then
-            echo "::error::lib/l10n/gen ist veraltet. Lokal 'flutter gen-l10n' ausfuehren und committen."
+            echo "::error::lib/l10n/gen is outdated. Run 'flutter gen-l10n' locally and commit."
             exit 1
           fi
 
   web-smoke:
-    name: Web-Build (Smoke)
+    name: Web build (smoke)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
@@ -332,49 +336,49 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Flutter einrichten
+      - name: Set up Flutter
         uses: ./.github/actions/setup-flutter
 
-      - name: Konfiguration schreiben
+      - name: Write config
         uses: ./.github/actions/write-config
         with:
           app-env: dev
 
-      - name: Web bauen
+      - name: Build web
         shell: bash
         run: |
           mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
           flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file=config/app.json --base-href / "${web_defines[@]}"
 
-      - name: Ersatzschriften selbst hosten (L14)
+      - name: Self-host fallback fonts
         run: |
-          # Noto-Fallback nach build/web/assets/fonts/fallback/ (Pruefsummen aus tool/font_fallback.lock.json).
+          # Noto fallback into build/web/assets/fonts/fallback/ (checksums from tool/font_fallback.lock.json).
           cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
           dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
 
-      - name: Postbuild (falls vorhanden)
+      - name: Postbuild (if present)
         run: |
           if [ -f tool/web_postbuild.dart ]; then
-            # Ausserhalb des Pakets starten (nur dart:-Importe), sonst baut "dart run" die Native-Asset-Hooks (GTK).
+            # Start outside the package (dart: imports only), otherwise "dart run" builds the native asset hooks (GTK).
             cp tool/web_postbuild.dart "$RUNNER_TEMP/web_postbuild.dart"
             dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
           else
-            echo "tool/web_postbuild.dart fehlt noch (Paket P22), Schritt uebersprungen." >> "$GITHUB_STEP_SUMMARY"
+            echo "tool/web_postbuild.dart does not exist yet, step skipped." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Build-Ergebnis pruefen
+      - name: Check build output
         run: |
           set -euo pipefail
           for f in index.html flutter_bootstrap.js; do
-            test -s "build/web/$f" || { echo "::error::build/web/$f fehlt"; exit 1; }
+            test -s "build/web/$f" || { echo "::error::build/web/$f is missing"; exit 1; }
           done
-          ls build/web/main*.dart.js >/dev/null 2>&1 || { echo "::error::kein main*.dart.js"; exit 1; }
-          ls build/web/main*.dart.wasm >/dev/null 2>&1 || { echo "::error::kein main*.dart.wasm"; exit 1; }
-          test -d build/web/canvaskit || { echo "::error::canvaskit/ fehlt (no-web-resources-cdn)"; exit 1; }
+          ls build/web/main*.dart.js >/dev/null 2>&1 || { echo "::error::no main*.dart.js"; exit 1; }
+          ls build/web/main*.dart.wasm >/dev/null 2>&1 || { echo "::error::no main*.dart.wasm"; exit 1; }
+          test -d build/web/canvaskit || { echo "::error::canvaskit/ is missing (no-web-resources-cdn)"; exit 1; }
           # The engine keeps the gstatic.com CanvasKit URL as a default string;
           # what matters is that the build config switches to the bundled copy.
           grep -qF '"useLocalCanvasKit":true' build/web/flutter_bootstrap.js || { echo "::error::flutter_bootstrap.js does not use the bundled CanvasKit"; exit 1; }
-          echo "**Web-Build:** $(du -sh build/web | cut -f1), $(find build/web -type f | wc -l) Dateien" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Web build:** $(du -sh build/web | cut -f1), $(find build/web -type f | wc -l) files" >> "$GITHUB_STEP_SUMMARY"
 
   # Zero-warning rule: any warning or error in a job log or a check-run
   # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
@@ -390,7 +394,7 @@ jobs:
       actions: read
       checks: read
     steps:
-      - name: Runner haerten
+      - name: Harden runner
         uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit

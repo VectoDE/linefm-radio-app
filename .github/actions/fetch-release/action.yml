@@ -1,37 +1,37 @@
-name: Release-Dateien holen
+name: Fetch release files
 description: >
-  Prueft den Versions-Tag (vX.Y.Z oder vX.Y.Z-suffix) und laedt passende Dateien aus
-  dem GitHub-Release herunter. Die Store- und Deploy-Workflows (P27) nutzen damit
-  immer exakt die Artefakte, die release.yml gebaut, geprueft und attestiert hat.
-  Der Aufrufer braucht contents: read.
+  Validates the version tag (vX.Y.Z or vX.Y.Z-suffix) and downloads matching files
+  from the GitHub release. The store and deploy workflows (P27) therefore always use
+  exactly the artifacts that release.yml built, verified and attested.
+  The caller needs contents: read.
 
 inputs:
   tag:
-    description: Versions-Tag, vX.Y.Z oder vX.Y.Z-(alpha|beta|rc).N
+    description: Version tag, vX.Y.Z or vX.Y.Z-(alpha|beta|rc).N
     required: true
   pattern:
-    description: Glob fuer die Asset-Namen (gh release download --pattern)
+    description: Glob for the asset names (gh release download --pattern)
     required: true
   dir:
-    description: Zielordner
+    description: Target folder
     required: false
     default: dist
   token:
-    description: Token mit Leserecht auf das Repository (github.token)
+    description: Token with read access to the repository (github.token)
     required: true
 
 outputs:
   label:
-    description: Version ohne fuehrendes v
+    description: Version without the leading v
     value: ${{ steps.dl.outputs.label }}
   prerelease:
-    description: "'true', wenn der Tag ein Suffix hat (Vorabversion)"
+    description: "'true' if the tag has a suffix (pre-release)"
     value: ${{ steps.dl.outputs.prerelease }}
 
 runs:
   using: composite
   steps:
-    - name: Release-Dateien laden
+    - name: Download release files
       id: dl
       shell: bash
       env:
@@ -43,7 +43,7 @@ runs:
       run: |
         set -euo pipefail
         if ! [[ "$FETCH_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
-          echo "::error::Tag '$FETCH_TAG' ist keine Version (erwartet vX.Y.Z oder vX.Y.Z-suffix)"
+          echo "::error::Tag '$FETCH_TAG' is not a version (expected vX.Y.Z or vX.Y.Z-suffix)"
           exit 1
         fi
         mkdir -p "$FETCH_DIR"

@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# Coverage-Auswertung fuer die CI.
+# Coverage evaluation for CI.
 #
-# Aufruf (im Repo-Root):  tool/coverage_report.sh <lcov-basis> <lcov-zusatz|""> <ausgabeordner>
+# Usage (in the repo root):  tool/coverage_report.sh <lcov-base> <lcov-extra|""> <output-dir>
 #
-# - Filtert generierten Code (lib/l10n/gen/*) aus der Messung. Begruendung: Er wird von
-#   "flutter gen-l10n" erzeugt und im Job "l10n-check" auf Aktualitaet geprueft; Tests dafuer
-#   wuerden den Generator testen, nicht die App.
-# - Ergaenzt Dateien, die "flutter test" nie geladen hat (sie fehlen sonst in lcov.info und
-#   verfaelschen den Wert nach oben), aus dem Zusatz-lcov des Import-Laufs.
-# - Schreibt <ausgabe>/lcov.filtered.info, summary.md (Tabelle je Datei) und total.txt
-#   (Zeilen "lines=NN.NN" und "branches=NN.NN" bzw. "branches=n/a").
+# - Filters generated code (lib/l10n/gen/*) out of the measurement. Reason: it is produced by
+#   "flutter gen-l10n" and checked for freshness in the "l10n-check" job; tests for it
+#   would test the generator, not the app.
+# - Adds files that "flutter test" never loaded (they would otherwise be missing from lcov.info and
+#   skew the value upwards), taken from the extra lcov of the import run.
+# - Writes <output>/lcov.filtered.info, summary.md (table per file) and total.txt
+#   (lines "lines=NN.NN" and "branches=NN.NN" or "branches=n/a").
 set -euo pipefail
 
-base="${1:?lcov-Basisdatei fehlt}"
+base="${1:?lcov base file is missing}"
 extra="${2:-}"
-out="${3:?Ausgabeordner fehlt}"
+out="${3:?output directory is missing}"
 exclude_re='^SF:(.*/)?lib/l10n/gen/'
 
 mkdir -p "$out"
@@ -23,7 +23,7 @@ filtered="$out/lcov.filtered.info"
 {
   tr -d '\r' <"$base"
   if [ -n "$extra" ] && [ -f "$extra" ]; then
-    # Nur Dateien uebernehmen, die in der Basis fehlen.
+    # Only take over files that are missing from the base.
     awk -v basefile="$base" '
       BEGIN {
         while ((getline l < basefile) > 0) {
@@ -39,13 +39,13 @@ filtered="$out/lcov.filtered.info"
   /^SF:/ { drop = ($0 ~ ex) }
   { if (!drop) print }
   /^end_of_record/ { drop = 0 }' | awk '
-  # Konsistenz je Datei (Dart-lcov mit --branch-coverage meldet Zweige (BRDA) auch fuer
-  # Zeilen ohne Zeilendatensatz (DA), z. B. in mehrzeiligen Ausdruecken; genhtml bricht
-  # dann mit "branchcov but no linecov" ab). Zweige ohne DA-Zeile werden verworfen, die
-  # Summen LF/LH/BRF/BRH aus den verbleibenden Zeilen neu berechnet.
+  # Consistency per file (Dart lcov with --branch-coverage reports branches (BRDA) also for
+  # lines without a line record (DA), e.g. in multi-line expressions; genhtml then aborts
+  # with "branchcov but no linecov"). Branches without a DA line are dropped, the
+  # sums LF/LH/BRF/BRH are recomputed from the remaining lines.
   function keep(ln) {
-    # Zweig behalten nur, wenn Zeile und Zweige zueinander passen: genhtml verwirft
-    # "Zeile getroffen, aber kein Zweig ausgewertet" und "Zweig getroffen, Zeile nicht".
+    # Keep a branch only if line and branches match: genhtml rejects
+    # "line hit but no branch evaluated" and "branch hit but line not".
     if (!(ln in da)) return 0
     if (da[ln] > 0 && !(taken[ln] > 0)) return 0
     if (da[ln] == 0 && taken[ln] > 0) return 0
@@ -80,7 +80,7 @@ filtered="$out/lcov.filtered.info"
   { buf[++n] = $0 }
   /^end_of_record/ { flush() }' >"$filtered"
 
-# Tabelle je Datei, aufsteigend nach Zeilenabdeckung.
+# Table per file, ascending by line coverage.
 rows="$out/rows.tmp"
 awk '
   function flush_ranges(f,   i, s, e, r, c, n) {
@@ -91,7 +91,7 @@ awk '
       if (c < 12) { r = r (r == "" ? "" : ", ") (s == e ? s : s "-" e) }
       c++; i++
     }
-    if (c > 12) r = r ", ... (" c " Bereiche)"
+    if (c > 12) r = r ", ... (" c " ranges)"
     return r
   }
   /^SF:/ { f = substr($0, 4); files[++n] = f; next }
@@ -128,22 +128,22 @@ else
 fi
 printf 'lines=%s\nbranches=%s\n' "$lines_pct" "$br_pct" >"$out/total.txt"
 
-# Dateien unter lib/ ohne jede Messdaten (von keinem Test geladen, auch nicht vom Import-Lauf).
+# Files under lib/ without any measurement data (loaded by no test, not even by the import run).
 grep '^SF:' "$filtered" | sed 's/^SF://' | sort -u >"$out/measured.tmp"
 find lib -name '*.dart' ! -path 'lib/l10n/gen/*' | sort >"$out/all.tmp"
 comm -13 "$out/measured.tmp" "$out/all.tmp" >"$out/unmeasured.txt"
 
 {
-  echo "### Coverage lib/ (ohne generierten Code lib/l10n/gen)"
+  echo "### Coverage lib/ (without generated code lib/l10n/gen)"
   echo
-  echo "**Zeilen:** ${lines_pct} % (${tlh}/${tlf}), **Zweige:** ${br_pct}$([ "$br_pct" = "n/a" ] && echo "" || echo " %") (${tbh:-0}/${tbf:-0})"
+  echo "**Lines:** ${lines_pct} % (${tlh}/${tlf}), **Branches:** ${br_pct}$([ "$br_pct" = "n/a" ] && echo "" || echo " %") (${tbh:-0}/${tbf:-0})"
   echo
-  echo "| Datei | Zeilen | Zweige | Fehlende Zeilenbereiche |"
+  echo "| File | Lines | Branches | Missing line ranges |"
   echo "| --- | --- | --- | --- |"
   grep -v '^TOTAL|' "$rows" | sort -t'|' -k1,1n | awk -F'|' '{ printf "| %s | %s | %s | %s |\n", $2, $3, $4, ($5 == "" ? "-" : $5) }'
   if [ -s "$out/unmeasured.txt" ]; then
     echo
-    echo "**Ohne Messdaten (von keinem Test geladen, nicht im Nenner, daher ist der Wert nach oben verzerrt):** $(wc -l <"$out/unmeasured.txt")"
+    echo "**Without measurement data (loaded by no test, not in the denominator, so the value is skewed upwards):** $(wc -l <"$out/unmeasured.txt")"
     echo
     sed 's/^/- `/; s/$/`/' "$out/unmeasured.txt"
   fi

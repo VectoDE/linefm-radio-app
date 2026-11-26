@@ -1,31 +1,31 @@
-// Web-Messung mit Playwright: Laden kalt/warm, Bedienung, Ton.
+// Web measurement with Playwright: cold/warm load, interaction, audio.
 //
-// Aufruf (Server mit Kompression und Cache-Headern wie in deploy/ laeuft,
-// z. B. der nginx-Container aus deploy/traefik/Dockerfile):
+// Usage (with a server running that has compression and cache headers as in
+// deploy/, e.g. the nginx container from deploy/traefik/Dockerfile):
 //   cd tool/perf && npm ci --ignore-scripts && npx playwright install --with-deps chromium
 //   node web_perf.mjs --base http://127.0.0.1:8080 --out out --runs 5 [--audio]
 //
 // Profile:
-//   mobile  412x823, DPR 1.75, CPU 4x langsamer, Netz wie Lighthouse "Slow 4G"
-//           (DevTools-Drosselung: 562,5 ms Latenz, 1474,56 kbit/s runter, 675 hoch)
-//   desktop 1350x940, DPR 1, ohne Drosselung
-// Je Profil und Lauf ein frischer Browser-Kontext (leerer Cache):
-//   1. Kaltstart: TTFB, FCP, LCP, CLS, Long Tasks, Flutter-Marken
-//      (linefm:main ... linefm:first-frame, nur mit LINEFM_PERF_MARKS=true
-//      gebaut), Event "flutter-first-frame", Zeitpunkt, an dem die statische
-//      Huelle verschwindet, Uebertragung je Dateiart.
-//   2. Warmstart: Service Worker aktiv, Seite neu laden, dieselben Werte.
-//   3. Bedienung (eigener Kontext, Speicher-Hinweis bestaetigt, Autoplay aus):
-//      Seitenwechsel und Scrollen per Mausklick auf Koordinaten, die vorab
-//      ueber die Flutter-Semantik ermittelt wurden. Die Messlaeufe selbst
-//      laufen OHNE eingeschaltete Semantik (die kostet Zeit). Gemessen:
-//      Bildabstaende (requestAnimationFrame), Long Tasks, Event Timing
-//      (Dauer vom Klick bis zum naechsten Bild, INP-Naeherung).
-//   4. Ton (nur --audio, nur desktop): Klick auf Sender A bis "playing" am
-//      Audio-Element, danach Wechsel auf Sender B. Wenige Einzelmessungen
-//      gegen die echten laut.fm-Streams, kein Dauerabruf.
+//   mobile  412x823, DPR 1.75, CPU 4x slower, network like Lighthouse "Slow 4G"
+//           (DevTools throttling: 562.5 ms latency, 1474.56 kbit/s down, 675 up)
+//   desktop 1350x940, DPR 1, no throttling
+// Per profile and run a fresh browser context (empty cache):
+//   1. Cold start: TTFB, FCP, LCP, CLS, long tasks, Flutter marks
+//      (linefm:main ... linefm:first-frame, only when built with
+//      LINEFM_PERF_MARKS=true), event "flutter-first-frame", time at which the
+//      static shell disappears, transfer per file type.
+//   2. Warm start: service worker active, reload the page, same values.
+//   3. Interaction (own context, storage notice confirmed, autoplay off):
+//      page changes and scrolling via mouse click on coordinates determined
+//      beforehand through the Flutter semantics. The measured runs themselves
+//      run WITHOUT semantics enabled (it costs time). Measured:
+//      frame gaps (requestAnimationFrame), long tasks, event timing
+//      (duration from click to next frame, INP approximation).
+//   4. Audio (only --audio, desktop only): click on station A until "playing"
+//      on the audio element, then switch to station B. A few single
+//      measurements against the real laut.fm streams, no continuous polling.
 //
-// Ergebnis: <out>/web-perf.json (Rohwerte je Lauf und Statistik).
+// Result: <out>/web-perf.json (raw values per run and statistics).
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -71,7 +71,7 @@ const PROFILES = {
 const STATION_A = { slug: 'linefmrap', name: /\+RAP/ };
 const STATION_B = { slug: 'linefmlofi', name: /\+LOFI/ };
 
-// Laeuft vor jedem Skript der Seite.
+// Runs before every script of the page.
 const INIT = () => {
   const p = {
     fcp: null,
@@ -90,7 +90,7 @@ const INIT = () => {
     try {
       new PerformanceObserver((list) => list.getEntries().forEach(fn)).observe({ type, buffered: true, ...extra });
     } catch {
-      /* Typ nicht unterstuetzt */
+      /* type not supported */
     }
   };
   obs('paint', (e) => {
@@ -134,7 +134,7 @@ const INIT = () => {
       if (shell.hidden && p.shellHidden === null) p.shellHidden = performance.now();
     }).observe(shell, { attributes: true });
   });
-  // Audio-Elemente (just_audio im Web) beobachten: src-Setter und play().
+  // Observe audio elements (just_audio on the web): src setter and play().
   const tracked = new WeakSet();
   const push = (ev, el) => p.media.push({ ev, t: performance.now(), src: el.currentSrc || el.getAttribute('src') || '' });
   const track = (el) => {
@@ -163,8 +163,8 @@ const INIT = () => {
   };
 };
 
-// Fuer Bedienung und Ton: Speicher-Hinweis bestaetigt, Autoplay aus (sonst
-// startet der erste Klick den zuletzt gewaehlten Sender, siehe
+// For interaction and audio: storage notice confirmed, autoplay off (otherwise
+// the first click starts the last selected station, see
 // PlayerController.onUserInteraction).
 const SEED = () => {
   try {
@@ -173,7 +173,7 @@ const SEED = () => {
       localStorage.setItem('flutter.linefm-setting-autoplay', 'false');
     }
   } catch {
-    /* ohne Speicher */
+    /* no storage */
   }
 };
 
@@ -185,7 +185,7 @@ async function newContext(browser, profile, { seed = false } = {}) {
     isMobile: pr.isMobile,
     hasTouch: pr.hasTouch,
     serviceWorkers: 'allow',
-    // Hauptzielgruppe; ohne Angabe startet die App im Runner auf Englisch.
+    // Main target audience; without a value the app starts in English on the runner.
     locale: 'de-DE',
   });
   await context.addInitScript(INIT);
@@ -215,7 +215,7 @@ async function newContext(browser, profile, { seed = false } = {}) {
   return { context, page, cdp };
 }
 
-/** Netzmitschnitt ueber CDP: Bytes auf der Leitung je Anfrage. */
+/** Network capture via CDP: bytes on the wire per request. */
 function recordNetwork(cdp) {
   const reqs = new Map();
   const onResponse = (e) => {
@@ -276,14 +276,14 @@ function summarizeNetwork(list) {
       ? 'skwasm'
       : list.some((r) => category(r.url) === 'canvaskit')
         ? 'canvaskit'
-        : 'unbekannt',
+        : 'unknown',
     uncompressed: own
       .filter((r) => /\.(wasm|mjs|js|json|html|ttf|otf)$/.test(new URL(r.url).pathname) && !r.encoding && (r.bytes ?? 0) > 1024)
       .map((r) => new URL(r.url).pathname),
   };
 }
 
-/** Wartet auf das erste Flutter-Bild (Dart-Marke oder Engine-Event), max. 120 s. */
+/** Waits for the first Flutter frame (Dart mark or engine event), max. 120 s. */
 async function waitFirstFrame(page) {
   await page.waitForFunction(
     () =>
@@ -295,7 +295,7 @@ async function waitFirstFrame(page) {
   );
 }
 
-/** Wartet, bis 3 s lang kein Long Task mehr kam (hoechstens 25 s). */
+/** Waits until no long task occurred for 3 s (at most 25 s). */
 async function waitQuiet(page) {
   const until = Date.now() + 25_000;
   while (Date.now() < until) {
@@ -320,8 +320,8 @@ async function loadMetrics(page) {
         .map((m) => [m.name.slice(7), m.startTime]),
     );
     const firstFrame = marks['first-frame'] ?? p.ffEvent ?? p.shellHidden;
-    // Bedienbar (TTI-Naeherung): Ende des letzten Long Tasks vor einer
-    // Ruhephase von 3 s, fruehestens das erste Flutter-Bild.
+    // Interactive (TTI approximation): end of the last long task before an
+    // idle phase of 3 s, at the earliest the first Flutter frame.
     let quiet = firstFrame ?? 0;
     for (const t of p.longtasks) {
       const end = t.start + t.dur;
@@ -366,7 +366,7 @@ async function measureLoad(browser, profile, run) {
     await waitQuiet(page);
     result.cold = { ...(await loadMetrics(page)), network: summarizeNetwork(net.stop()) };
 
-    // Warmstart: Service Worker abwarten, dann neu laden.
+    // Warm start: wait for the service worker, then reload.
     const sw = await page
       .evaluate(
         () =>
@@ -396,7 +396,7 @@ async function measureLoad(browser, profile, run) {
   return result;
 }
 
-/** Koordinaten der Ziele ueber die Flutter-Semantik (einmal je Profil). */
+/** Coordinates of the targets via the Flutter semantics (once per profile). */
 async function discoverTargets(browser, profile) {
   const { context, page } = await newContext(browser, profile, { seed: true });
   try {
@@ -464,16 +464,16 @@ async function measureInteraction(browser, profile, run, targets) {
     await waitQuiet(page);
     const size = PROFILES[profile].viewport;
     const steps = [
-      ['Seitenwechsel Verlauf', 'click', targets.verlauf],
-      ['Seitenwechsel Favoriten', 'click', targets.favoriten],
-      ['Seitenwechsel Einstellungen', 'click', targets.einstellungen],
-      ['Scrollen Einstellungen', 'scroll', null],
-      ['Seitenwechsel Sender', 'click', targets.sender],
-      ['Scrollen Senderliste', 'scroll', null],
+      ['Page change History', 'click', targets.verlauf],
+      ['Page change Favorites', 'click', targets.favoriten],
+      ['Page change Settings', 'click', targets.einstellungen],
+      ['Scroll Settings', 'scroll', null],
+      ['Page change Stations', 'click', targets.sender],
+      ['Scroll station list', 'scroll', null],
     ];
     for (const [name, kind, target] of steps) {
       if (kind === 'click' && !target) {
-        result.steps.push({ name, skipped: 'Ziel nicht gefunden' });
+        result.steps.push({ name, skipped: 'target not found' });
         continue;
       }
       const t0 = await page.evaluate(() => performance.now());
@@ -533,13 +533,13 @@ async function measureAudio(browser, run, targets) {
   const { context, page } = await newContext(browser, profile, { seed: true });
   const result = { profile, run, switches: [] };
   try {
-    if (!targets.stationA || !targets.stationB) throw new Error('Senderkarten nicht gefunden');
+    if (!targets.stationA || !targets.stationB) throw new Error('Station cards not found');
     await page.goto(`${BASE}/`, { waitUntil: 'load', timeout: 120_000 });
     await waitFirstFrame(page);
     await waitQuiet(page);
     for (const [label, target, station] of [
-      ['Klick bis Ton (erster Sender)', targets.stationA, STATION_A],
-      ['Senderwechsel bis Ton', targets.stationB, STATION_B],
+      ['Click to audio (first station)', targets.stationA, STATION_A],
+      ['Station switch to audio', targets.stationB, STATION_B],
     ]) {
       const before = await page.evaluate(() => performance.now());
       await page.mouse.click(target.x, target.y);
@@ -612,7 +612,7 @@ function aggregate(results) {
     }
   }
   const audio = results.audio.filter((r) => !r.error);
-  for (const label of ['Klick bis Ton (erster Sender)', 'Senderwechsel bis Ton']) {
+  for (const label of ['Click to audio (first station)', 'Station switch to audio']) {
     const rows = audio.map((r) => r.switches.find((s) => s.label === label)).filter((s) => s && s.ok);
     if (!rows.length) continue;
     out[`audio.${label}`] = {
@@ -638,8 +638,8 @@ async function main() {
         const r = await measureLoad(browser, profile, i);
         results.load.push(r);
         console.log(
-          `${profile} Laden ${i}: ` +
-            (r.error ? `FEHLER ${r.error}` : `erstes Bild ${Math.round(r.cold.firstFrame)} ms kalt, ${Math.round(r.warm.firstFrame)} ms warm, ${r.cold.network.bytes} B`),
+          `${profile} Load ${i}: ` +
+            (r.error ? `ERROR ${r.error}` : `first frame ${Math.round(r.cold.firstFrame)} ms cold, ${Math.round(r.warm.firstFrame)} ms warm, ${r.cold.network.bytes} B`),
         );
       }
       let found;
@@ -649,11 +649,11 @@ async function main() {
         found = { error: String(e?.message ?? e).slice(0, 300), targets: {} };
       }
       results.targets[profile] = found;
-      console.log(`${profile} Ziele: ${JSON.stringify(Object.fromEntries(Object.entries(found.targets).map(([k, v]) => [k, v ? v.name : null])))}`);
+      console.log(`${profile} targets: ${JSON.stringify(Object.fromEntries(Object.entries(found.targets).map(([k, v]) => [k, v ? v.name : null])))}`);
       for (let i = 1; i <= RUNS; i++) {
         const r = await measureInteraction(browser, profile, i, found.targets);
         results.interaction.push(r);
-        console.log(`${profile} Bedienung ${i}: ${r.error ?? r.steps.map((s) => `${s.name}=${s.skipped ? 'uebersprungen' : Math.round(s.inputToPaint ?? -1)}`).join(', ')}`);
+        console.log(`${profile} interaction ${i}: ${r.error ?? r.steps.map((s) => `${s.name}=${s.skipped ? 'skipped' : Math.round(s.inputToPaint ?? -1)}`).join(', ')}`);
       }
     }
     if (args.audio) {
@@ -661,7 +661,7 @@ async function main() {
       for (let i = 1; i <= RUNS; i++) {
         const r = await measureAudio(browser, i, targets);
         results.audio.push(r);
-        console.log(`Ton ${i}: ${r.error ?? r.switches.map((s) => `${s.label}=${s.ok ? Math.round(s.playing) + ' ms' : 'kein playing'}`).join(', ')}`);
+        console.log(`Audio ${i}: ${r.error ?? r.switches.map((s) => `${s.label}=${s.ok ? Math.round(s.playing) + ' ms' : 'no playing'}`).join(', ')}`);
       }
     }
   } finally {

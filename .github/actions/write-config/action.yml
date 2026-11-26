@@ -1,28 +1,28 @@
-name: Build-Konfiguration schreiben
+name: Write build configuration
 description: >
-  Erzeugt config/app.json (Bauwerte fuer --dart-define-from-file) aus
-  config/app.example.yaml und config/features.example.yaml und ueberschreibt nur die
-  Werte, die als Eingabe (aus Repository-Variablen/-Secrets) gesetzt sind.
-  Leere Eingaben lassen den Standard aus der Beispieldatei stehen. Alle Werte
-  landen im Binary und sind oeffentlich lesbar: nur oeffentliche IDs uebergeben.
-  Danach optional: Firebase aktivieren (tool/enable_firebase.dart, nur mit
-  Firebase-Konfiguration) und Rechtstexte erzeugen/fuellen (tool/gen_legal_html.dart).
-  Setzt voraus, dass Flutter bereits eingerichtet ist.
+  Generates config/app.json (build values for --dart-define-from-file) from
+  config/app.example.yaml and config/features.example.yaml and overrides only the
+  values that are set as inputs (from repository variables/secrets).
+  Empty inputs keep the default from the example file. All values end up in the
+  binary and are publicly readable: pass public IDs only.
+  Afterwards, optionally: enable Firebase (tool/enable_firebase.dart, only with a
+  Firebase configuration) and generate/fill the legal texts (tool/gen_legal_html.dart).
+  Requires Flutter to be set up already.
 
 inputs:
   features-json:
     description: >
-      Inhalt fuer config/features.yaml als JSON (Repository-Variable FEATURES_JSON),
-      z. B. {"showListenerCount": true}. Leer = Werte aus
-      config/features.example.yaml (alles aus).
+      Content for config/features.yaml as JSON (repository variable FEATURES_JSON),
+      e.g. {"showListenerCount": true}. Empty = values from
+      config/features.example.yaml (everything off).
     required: false
     default: ""
   app-env:
-    description: dev oder prod
+    description: dev or prod
     required: false
     default: prod
   app-version:
-    description: Anzeige-Version (APP_VERSION) aus dem Release (Form X.Y.Z oder X.Y.Z-stufe.N); leer = Entwicklungsversion
+    description: Display version (APP_VERSION) from the release (format X.Y.Z or X.Y.Z-stage.N); empty = development version
     required: false
     default: ""
   web-base-url:
@@ -44,11 +44,11 @@ inputs:
     required: false
     default: ""
   gtm-id:
-    description: Google-Tag-Manager-Container (GTM-...), nur Web, Laden erst nach Einwilligung
+    description: Google Tag Manager container (GTM-...), web only, loaded only after consent
     required: false
     default: ""
   ga4-measurement-id:
-    description: GA4-Mess-ID (G-...), nur Web, Laden erst nach Einwilligung
+    description: GA4 measurement ID (G-...), web only, loaded only after consent
     required: false
     default: ""
   trust-gridinsoft-url:
@@ -59,31 +59,31 @@ inputs:
     default: ""
   firebase-config-json:
     description: >
-      Optionales JSON-Objekt mit FIREBASE_*-Schluesseln (aus dem Secret
-      FIREBASE_CONFIG_JSON). Ist es gesetzt, wird FIREBASE_ENABLED=true und das
-      Firebase-Paket per tool/enable_firebase.dart eingebunden.
+      Optional JSON object with FIREBASE_* keys (from the secret
+      FIREBASE_CONFIG_JSON). If set, FIREBASE_ENABLED=true is set and the
+      Firebase package is wired in via tool/enable_firebase.dart.
     required: false
     default: ""
   legal-values-json:
     description: >
-      JSON-Objekt Platzhalter -> Wert fuer Impressum/Datenschutz (z. B. BETREIBER_NAME),
-      aus der Repository-Variable LEGAL_VALUES_JSON. Leer = Platzhalter bleiben offen.
+      JSON object placeholder -> value for the imprint/privacy policy (e.g. BETREIBER_NAME),
+      from the repository variable LEGAL_VALUES_JSON. Empty = placeholders stay open.
     required: false
     default: ""
   legal-strict:
-    description: "'true' laesst den Build scheitern, solange Pflicht-Platzhalter offen sind."
+    description: "'true' fails the build while required placeholders are still open."
     required: false
     default: "false"
 
 outputs:
   providers:
-    description: Aktive Telemetrie-Anbieter (kommagetrennt)
+    description: Active telemetry providers (comma-separated)
     value: ${{ steps.cfg.outputs.providers }}
 
 runs:
   using: composite
   steps:
-    - name: config/app.json schreiben
+    - name: Write config/app.json
       id: cfg
       shell: pwsh
       env:
@@ -103,8 +103,8 @@ runs:
         CFG_FEATURES_JSON: ${{ inputs.features-json }}
       run: |
         $ErrorActionPreference = 'Stop'
-        # Flache YAML-Dateien aus config/ lesen (Schluessel: Wert, Kommentare
-        # mit #). Format und Werte prueft tool/check_config.dart in der CI.
+        # Read flat YAML files from config/ (key: value, comments
+        # with #). tool/check_config.dart validates format and values in CI.
         function Read-FlatYaml([string]$path) {
           $h = [ordered]@{}
           foreach ($line in Get-Content -Path $path -Encoding utf8) {
@@ -148,14 +148,14 @@ runs:
           $cfg['FIREBASE_ENABLED'] = $true
           $set += 'FIREBASE_ENABLED'
         }
-        # Schalter aus config/features.example.yaml (Standard aus), ueberschrieben
-        # von FEATURES_JSON; nur bekannte Schluessel, nur true/false.
+        # Switches from config/features.example.yaml (default off), overridden
+        # by FEATURES_JSON; known keys only, true/false only.
         $feat = Read-FlatYaml 'config/features.example.yaml'
         if (-not [string]::IsNullOrWhiteSpace($env:CFG_FEATURES_JSON)) {
           $over = $env:CFG_FEATURES_JSON | ConvertFrom-Json -AsHashtable
           foreach ($k in $over.Keys) {
-            if (-not $feat.ContainsKey($k)) { throw "FEATURES_JSON: unbekannter Schluessel $k" }
-            if ($over[$k] -isnot [bool]) { throw "FEATURES_JSON: $k muss true oder false sein" }
+            if (-not $feat.ContainsKey($k)) { throw "FEATURES_JSON: unknown key $k" }
+            if ($over[$k] -isnot [bool]) { throw "FEATURES_JSON: $k must be true or false" }
             $feat[$k] = $over[$k]
             $set += $k
           }
@@ -164,35 +164,35 @@ runs:
         New-Item -ItemType Directory -Force -Path 'config' | Out-Null
         $cfg | ConvertTo-Json -Depth 5 | Set-Content -Path 'config/app.json' -Encoding utf8NoBOM
 
-        # Aktive Telemetrie-Anbieter fuer die Rechtstexte ableiten.
+        # Derive the active telemetry providers for the legal texts.
         $providers = @()
         if ($cfg['UMAMI_URL'] -and $cfg['UMAMI_WEBSITE_ID']) { $providers += 'umami' }
         if ($cfg['SENTRY_DSN']) { $providers += 'sentry' }
         if ($cfg['FIREBASE_ENABLED'] -eq $true) { $providers += 'firebase' }
-        # Rechtstexte: zusaetzlich "ga4" (Abschnitt Google Analytics, nur Web-Seiten
-        # und Web-App; die Store-Pruefung kennt nur die Telemetrie-Anbieter).
+        # Legal texts: additionally "ga4" (Google Analytics section, web pages
+        # and web app only; the store check only knows the telemetry providers).
         $legal = @($providers)
         if ($cfg['GTM_ID'] -or $cfg['GA4_MEASUREMENT_ID']) { $legal += 'ga4' }
         "legal_providers=$($legal -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
         "providers=$($providers -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
         "firebase=$(if ($cfg['FIREBASE_ENABLED'] -eq $true) { 'true' } else { 'false' })" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-        # Nur Schluesselnamen protokollieren, nie Werte.
-        $list = if ($set.Count -gt 0) { ($set | Sort-Object -Unique) -join ', ' } else { 'keine (nur Standardwerte)' }
-        $prov = if ($providers.Count -gt 0) { $providers -join ', ' } else { 'keine' }
-        "config/app.json geschrieben. Gesetzte Schluessel: $list. Telemetrie: $prov"
-        "- Build-Konfiguration: gesetzte Schluessel: $list; Telemetrie-Anbieter: $prov" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+        # Log key names only, never values.
+        $list = if ($set.Count -gt 0) { ($set | Sort-Object -Unique) -join ', ' } else { 'none (defaults only)' }
+        $prov = if ($providers.Count -gt 0) { $providers -join ', ' } else { 'none' }
+        "config/app.json written. Keys set: $list. Telemetry: $prov"
+        "- Build configuration: keys set: $list; telemetry providers: $prov" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
 
-    - name: Firebase einbinden
+    - name: Wire in Firebase
       if: steps.cfg.outputs.firebase == 'true' && hashFiles('tool/enable_firebase.dart') != ''
       shell: bash
-      # Skript ausserhalb des Pakets starten (nur dart:-Importe): sonst baut "dart run"
-      # erst alle Native-Asset-Hooks des Projekts (GTK usw. auf dem Host noetig).
+      # Start the script outside the package (dart: imports only): otherwise "dart run"
+      # first builds all native-asset hooks of the project (GTK etc. needed on the host).
       run: |
         cp tool/enable_firebase.dart "$RUNNER_TEMP/enable_firebase.dart"
         dart run "$RUNNER_TEMP/enable_firebase.dart"
 
-    - name: Rechtstexte erzeugen
+    - name: Generate legal texts
       if: hashFiles('tool/gen_legal_html.dart') != ''
       shell: bash
       env:
@@ -211,14 +211,15 @@ runs:
         if [ -n "$BASE_URL" ]; then args+=("--base-url=$BASE_URL"); fi
         if [ "$LEGAL_STRICT" = "true" ]; then args+=("--strict"); fi
         set +e
-        # Ausserhalb des Pakets starten (siehe Firebase-Schritt), Arbeitsverzeichnis bleibt das Repo.
+        # Start outside the package (see the Firebase step), the working directory stays the repo.
         cp tool/gen_legal_html.dart "$RUNNER_TEMP/gen_legal_html.dart"
         dart run "$RUNNER_TEMP/gen_legal_html.dart" "${args[@]}" 2>&1 | tee "$RUNNER_TEMP/legal.log"
         status=${PIPESTATUS[0]}
         set -e
-        if grep -q "Offene Platzhalter" "$RUNNER_TEMP/legal.log"; then
-          echo "- Rechtstexte: $(grep 'Offene Platzhalter' "$RUNNER_TEMP/legal.log") (Variable LEGAL_VALUES_JSON)" >> "$GITHUB_STEP_SUMMARY"
+        # The grep pattern matches German output of tool/gen_legal_html.dart.
+        if grep -q "Open placeholders" "$RUNNER_TEMP/legal.log"; then
+          echo "- Legal texts: $(grep 'Open placeholders' "$RUNNER_TEMP/legal.log") (variable LEGAL_VALUES_JSON)" >> "$GITHUB_STEP_SUMMARY"
         else
-          echo "- Rechtstexte: alle Platzhalter gefuellt" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Legal texts: all placeholders filled" >> "$GITHUB_STEP_SUMMARY"
         fi
         exit "$status"

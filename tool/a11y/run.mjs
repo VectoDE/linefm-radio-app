@@ -1,36 +1,36 @@
-// axe-Pruefung der Web-Version (A4).
+// axe check of the web version (A4).
 //
-// Aufruf (nach flutter build web, fetch_font_fallback und Postbuild):
+// Usage (after flutter build web, fetch_font_fallback and postbuild):
 //   cd tool/a11y && npm ci && npx playwright install --with-deps chromium
 //   node run.mjs --web ../../build/web --out out
 //
-// Ablauf: kleiner statischer Server auf 127.0.0.1 fuer build/web, Chromium per
-// Playwright, Flutter-Semantik einschalten (der Zugriffsbaum entsteht erst
-// dann), Ansicht ansteuern, axe-core mit WCAG 2.0 bis 2.2 (A, AA, AAA) und Best
-// Practices laufen lassen. Ansichten: Sender, Verlauf, Favoriten,
-// Einstellungen, Dialog "Speicher loeschen", Wecker, Uhrzeit-Dialog des
-// Weckers, Ueber, Player (nur schmal, breit ist er in die Senderliste
-// eingebettet), Sheet "Sleeptimer" und Sheet "Favoriten exportieren"; je 390
-// und 1280 px, hell und dunkel. Dazu Impressum und Datenschutz (de/en) als
-// statische Seiten.
+// Flow: small static server on 127.0.0.1 for build/web, Chromium via
+// Playwright, enable Flutter semantics (the accessibility tree only appears
+// then), navigate to a view, run axe-core with WCAG 2.0 to 2.2 (A, AA, AAA) and
+// best practices. Views: stations, history, favorites,
+// settings, storage-clearing dialog, alarm, alarm time dialog,
+// about, player (narrow only, when wide it is embedded in the station list),
+// sleep timer sheet and favorites export sheet; each at 390
+// and 1280 px, light and dark. Plus imprint and privacy policy (de/en) as
+// static pages.
 //
-// Je Farbschema und Breite laedt die App einmal; zwischen den Ansichten geht es
-// per Escape, "Zurueck" und Navigation zur Startseite zurueck (nur wenn das
-// scheitert, wird neu geladen; der Bericht zaehlt das unter "reloads").
+// Per color scheme and width the app loads once; between views it goes back
+// via Escape, "Back" and navigation to the home page (only if that
+// fails is it reloaded; the report counts that under "reloads").
 //
-// Einwilligungsdialog (Statistik) nur mit --consent und einem eigenen Build mit
-// Test-Umami-Werten, die nirgends hinfuehren (keine echten Daten):
+// Consent dialog (statistics) only with --consent and a dedicated build with
+// test Umami values that lead nowhere (no real data):
 //   flutter build web ... --dart-define=UMAMI_URL=http://127.0.0.1:9
 //     --dart-define=UMAMI_WEBSITE_ID=00000000-0000-0000-0000-000000000000
 //   node run.mjs --web ../../build/web --out out-consent --consent
-// Anfragen an 127.0.0.1:9 werden zusaetzlich im Browser verworfen. Die CI
-// baut nur ohne Telemetrie, dort erscheint der Dialog nicht.
+// Requests to 127.0.0.1:9 are additionally dropped in the browser. CI
+// builds only without telemetry, so the dialog does not appear there.
 //
-// Ergebnis: out/axe-report.json (mit Commit-SHA, Laufzeit, "incomplete" =
-// von axe nicht entscheidbare Pruefungen), Screenshots je Ansicht.
-// Exit 1, sobald irgendein Verstoss auftritt (jede Stufe, Baseline 0) oder
-// eine Ansicht nicht erreichbar ist. "incomplete" bricht nicht ab, steht aber
-// in Bericht und Zusammenfassung.
+// Result: out/axe-report.json (with commit SHA, duration, "incomplete" =
+// checks axe cannot decide), screenshots per view.
+// Exit 1 as soon as any violation occurs (every level, baseline 0) or
+// a view is unreachable. "incomplete" does not abort, but appears
+// in the report and summary.
 
 import { execFileSync } from 'node:child_process';
 import { createReadStream, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
@@ -82,11 +82,11 @@ function commitSha() {
   try {
     return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   } catch {
-    return 'unbekannt';
+    return 'unknown';
   }
 }
 
-/** Statischer Server wie die Hosting-Ziele: Ordner -> index.html, Pfade ohne Endung -> SPA. */
+/** Static server like the hosting targets: folder -> index.html, paths without extension -> SPA. */
 function serve(root) {
   const server = createServer((req, res) => {
     const url = new URL(req.url, 'http://x');
@@ -94,7 +94,7 @@ function serve(root) {
     try {
       decoded = decodeURIComponent(url.pathname);
     } catch {
-      // Kaputte Prozent-Kodierung (z. B. "%E0%A4%A"): Anfrage ablehnen statt abstuerzen.
+      // Broken percent encoding (e.g. "%E0%A4%A"): reject the request instead of crashing.
       res.writeHead(400).end();
       return;
     }
@@ -120,7 +120,7 @@ function serve(root) {
   return new Promise((ok) => server.listen(0, '127.0.0.1', () => ok(server)));
 }
 
-/** Flutter-Semantik einschalten und warten, bis der Zugriffsbaum steht. */
+/** Enable Flutter semantics and wait until the accessibility tree is in place. */
 async function enableSemantics(page) {
   await page.waitForSelector('flt-semantics-placeholder, flt-semantics', {
     state: 'attached',
@@ -133,7 +133,7 @@ async function enableSemantics(page) {
   await page.waitForTimeout(800);
 }
 
-/** Erster Knoten mit einer der Rollen und passendem Namen. */
+/** First node with one of the roles and a matching name. */
 function byRole(page, role, name) {
   const roles = Array.isArray(role) ? role : [role];
   return roles
@@ -143,9 +143,9 @@ function byRole(page, role, name) {
 }
 
 /**
- * Tippen auf einen Semantik-Knoten (Rolle + Name), wie ein Screenreader.
- * Flutter legt nur Knoten im sichtbaren Bereich an; fehlt das Ziel, wird der
- * Inhalt mit dem Mausrad weiterbewegt.
+ * Tap a semantics node (role + name), like a screen reader.
+ * Flutter only creates nodes in the visible area; if the target is missing, the
+ * content is moved on with the mouse wheel.
  */
 async function activate(page, role, name) {
   const target = byRole(page, role, name);
@@ -160,7 +160,7 @@ async function activate(page, role, name) {
   await page.waitForTimeout(900);
 }
 
-/** Struktur fuer den Bericht: h1, Landmarks. */
+/** Structure for the report: h1, landmarks. */
 function structure(page) {
   return page.evaluate(() => {
     const text = (el) => (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 60);
@@ -180,9 +180,9 @@ function structure(page) {
 }
 
 /**
- * Erwartung je Ansicht: entweder eine h1 (belegt, dass die Navigation dort
- * angekommen ist, sonst wuerde axe die Startseite doppelt pruefen; null = keine
- * h1, Player schmal) oder ein Dialog mit Rolle und zugaenglichem Namen.
+ * Expectation per view: either an h1 (proves that navigation arrived there,
+ * otherwise axe would check the home page twice; null = no
+ * h1, narrow player) or a dialog with role and accessible name.
  */
 const EXPECT = {
   sender: { h1: /^ALLE SENDER$/i },
@@ -193,14 +193,14 @@ const EXPECT = {
   ueber: { h1: /^ÜBER LINEFM RADIO$/i },
   player: { h1: null },
   'dialog-speicher-loeschen': { dialog: ['alertdialog', /^Speicher löschen\?$/] },
-  // Im Web nur Texteingabe (siehe timeEntryMode in alarm_screen.dart).
+  // On the web text entry only (see timeEntryMode in alarm_screen.dart).
   'dialog-wecker-uhrzeit': { dialog: ['dialog', /^Uhrzeit eingeben$/] },
   'sheet-sleeptimer': { dialog: ['dialog', /^Sleeptimer$/] },
   'sheet-favoriten-export': { dialog: ['dialog', /^Favoriten exportieren$/] },
   'dialog-einwilligung': { dialog: ['alertdialog', /^Statistik und Fehlerberichte$/] },
 };
 
-/** Erwartete h1 der statischen Rechtsseiten. */
+/** Expected h1 of the static legal pages. */
 const LEGAL = {
   '/impressum/': /^Impressum$/,
   '/datenschutz/': /^Datenschutzerklärung$/,
@@ -209,15 +209,15 @@ const LEGAL = {
 };
 
 /**
- * Ansichten der App: Name -> Schritte ab Startseite (Sender). Reihenfolge so,
- * dass moeglichst wenig zurueckgesetzt werden muss. `seed` = vorher Favoriten
- * in den Speicher legen (der Export erscheint nur mit Favoriten).
+ * Views of the app: name -> steps from the home page (stations). Order chosen
+ * so that as little as possible has to be reset. `seed` = put favorites into
+ * storage beforehand (the export only appears with favorites).
  */
 function appViews(wide) {
-  // Nur Einwilligung: erscheint beim Start eines Builds mit Telemetrie.
+  // Consent only: appears at the start of a build with telemetry.
   if (args.consent) return [['dialog-einwilligung', []]];
-  // Schmal: untere Leiste (Sender, Player, Verlauf) plus Kopf (Favoriten,
-  // Einstellungen). Breit: Navigationsleiste links mit Tabs.
+  // Narrow: bottom bar (stations, player, history) plus header (favorites,
+  // settings). Wide: navigation bar on the left with tabs.
   const nav = ['button', 'tab'];
   const settings = [nav, /^Einstellungen$/i];
   const views = [
@@ -231,21 +231,21 @@ function appViews(wide) {
     ['ueber', [settings, ['button', /^Über LINEFM Radio/]]],
   ];
   if (!wide) views.push(['player', [['button', /^Player$/]]]);
-  // Breit steckt der Player in der Senderliste, schmal ist er ein eigener Bereich.
+  // When wide, the player sits in the station list; when narrow it is its own area.
   views.push([
     'sheet-sleeptimer',
     wide ? [['button', /^Sleeptimer einstellen$/]] : [['button', /^Player$/], ['button', /^Sleeptimer einstellen$/]],
   ]);
   views.push([
     'sheet-favoriten-export',
-    // Mit Favoriten heisst der Knopf im Kopf "Favoriten, 1 Song".
+    // With favorites the button in the header is called "Favoriten, 1 Song".
     [[nav, /^Favoriten(,|$)/i], ['button', /^Favoriten exportieren$/]],
     { seed: true },
   ]);
   return views;
 }
 
-/** Ein Favorit plus Speicher-Einwilligung im Format von shared_preferences (Web). */
+/** One favorite plus storage consent in the shared_preferences format (web). */
 async function seedFavorites(page) {
   await page.evaluate(() => {
     const favorites = [
@@ -264,7 +264,7 @@ async function seedFavorites(page) {
 
 async function main() {
   if (!existsSync(join(WEB, 'index.html'))) {
-    console.error(`a11y: ${WEB}/index.html fehlt (zuerst flutter build web)`);
+    console.error(`a11y: ${WEB}/index.html is missing (run flutter build web first)`);
     process.exit(2);
   }
   const started = Date.now();
@@ -301,8 +301,8 @@ async function main() {
       incomplete,
     });
     console.log(
-      `${violations.length ? 'FEHLER' : 'ok    '} ${entry.theme} ${entry.layout} ${entry.view}: ` +
-        `${violations.length} Verstoesse, ${incomplete.length} unentschieden, h1=${JSON.stringify(s.h1)}`,
+      `${violations.length ? 'ERROR' : 'ok   '} ${entry.theme} ${entry.layout} ${entry.view}: ` +
+        `${violations.length} violations, ${incomplete.length} incomplete, h1=${JSON.stringify(s.h1)}`,
     );
   }
 
@@ -316,13 +316,13 @@ async function main() {
       .catch(() => []);
   }
 
-  /** App frisch laden (erster Aufruf oder wenn das Zuruecksetzen scheitert). */
+  /** Load the app fresh (first call or when the reset fails). */
   async function boot(page) {
     await page.goto(`${base}/`, { waitUntil: 'load' });
     await enableSemantics(page);
   }
 
-  /** Zurueck zur Startseite: Dialoge schliessen, Unterseiten verlassen, Sender waehlen. */
+  /** Back to the home page: close dialogs, leave subpages, pick stations. */
   async function home(page) {
     const open = page.locator('[role="dialog"], [role="alertdialog"]');
     for (let i = 0; i < 3 && (await open.count()) > 0; i++) {
@@ -352,7 +352,7 @@ async function main() {
     }
     const { h1 } = await structure(page);
     const ok = want.h1 === null ? h1.length === 0 : h1.length === 1 && want.h1.test(h1[0]);
-    if (!ok) throw new Error(`Ansicht nicht erreicht: h1=${JSON.stringify(h1)}, erwartet ${want.h1 ?? 'keine'}`);
+    if (!ok) throw new Error(`View not reached: h1=${JSON.stringify(h1)}, expected ${want.h1 ?? 'none'}`);
   }
 
   try {
@@ -365,7 +365,7 @@ async function main() {
           reducedMotion: 'reduce',
         });
         const wide = size.width >= 840;
-        // Test-Umami (--consent) zeigt ins Leere; trotzdem nichts durchlassen.
+        // Test Umami (--consent) points nowhere; let nothing through anyway.
         await context.route(/^https?:\/\/127\.0\.0\.1:9\//, (route) => route.abort());
         const page = await context.newPage();
         // Static shell as a first-time visitor sees it: the engine starts only
@@ -380,7 +380,7 @@ async function main() {
           } catch (error) {
             const message = String(error).split(/\r?\n/)[0];
             results.push({ ...entry, error: message });
-            console.log(`FEHLER ${theme} ${size.name} shell: ${message}`);
+            console.log(`ERROR ${theme} ${size.name} shell: ${message}`);
           }
         }
         // From here on behave like a returning visitor: the app starts on load.
@@ -414,7 +414,7 @@ async function main() {
             await check(page, entry, t0);
           } catch (error) {
             results.push({ ...entry, error: String(error).split('\n')[0], semanticsNodes: await semanticsDump(page) });
-            console.log(`FEHLER ${theme} ${size.name} ${view}: nicht erreichbar (${String(error).split('\n')[0]})`);
+            console.log(`ERROR ${theme} ${size.name} ${view}: unreachable (${String(error).split('\n')[0]})`);
             fresh = false;
           }
         }
@@ -426,16 +426,16 @@ async function main() {
           try {
             const response = await page.goto(`${base}${url}`, { waitUntil: 'load' });
             if (!response || response.status() !== 200) {
-              throw new Error(`HTTP ${response?.status() ?? 'ohne Antwort'}`);
+              throw new Error(`HTTP ${response?.status() ?? 'no response'}`);
             }
             const h1 = await page.locator('h1').allInnerTexts();
             if (h1.length !== 1 || !h1Want.test(h1[0].trim())) {
-              throw new Error(`h1=${JSON.stringify(h1)}, erwartet ${h1Want}`);
+              throw new Error(`h1=${JSON.stringify(h1)}, expected ${h1Want}`);
             }
             await check(page, entry, t0);
           } catch (error) {
             results.push({ ...entry, error: String(error).split('\n')[0] });
-            console.log(`FEHLER ${theme} ${size.name} ${view}: ${String(error).split('\n')[0]}`);
+            console.log(`ERROR ${theme} ${size.name} ${view}: ${String(error).split('\n')[0]}`);
           }
         }
         await context.close();
@@ -454,7 +454,7 @@ async function main() {
     durationMs: Date.now() - started,
     tool: { playwright: (await import('playwright/package.json', { with: { type: 'json' } })).default.version },
     tags: TAGS,
-    gate: 'kein Verstoss (jede Stufe, Baseline 0), jede Ansicht erreichbar; incomplete wird berichtet',
+    gate: 'no violation (every level, baseline 0), every view reachable; incomplete is reported',
     summary: {
       runs: results.length,
       failed: failed.length,
@@ -472,9 +472,9 @@ async function main() {
   };
   writeFileSync(join(OUT, 'axe-report.json'), `${JSON.stringify(report, null, 2)}\n`);
   console.log(
-    `a11y: ${report.summary.runs} Laeufe, ${report.summary.violations} Verstoesse, ` +
-      `${report.summary.unreachable} nicht erreichbar, ${report.summary.incomplete} unentschieden ` +
-      `(${report.summary.incompleteRules.join(', ') || '-'}), ${reloads} Neuladungen, ` +
+    `a11y: ${report.summary.runs} runs, ${report.summary.violations} violations, ` +
+      `${report.summary.unreachable} unreachable, ${report.summary.incomplete} incomplete ` +
+      `(${report.summary.incompleteRules.join(', ') || '-'}), ${reloads} reloads, ` +
       `${Math.round(report.durationMs / 1000)} s, Commit ${report.commit}`,
   );
   process.exit(failed.length ? 1 : 0);

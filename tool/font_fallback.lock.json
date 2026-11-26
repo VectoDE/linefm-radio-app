@@ -1,5 +1,5 @@
 {
-  "comment": "Erzeugt mit dart run tool/fetch_font_fallback.dart --update-lock. Noto-Schriften und Roboto: SIL Open Font License 1.1 (docs/LIZENZEN-DRITTE.md).",
+  "comment": "Generated with dart run tool/fetch_font_fallback.dart --update-lock. Noto fonts and Roboto: SIL Open Font License 1.1 (docs/LIZENZEN-DRITTE.md).",
   "engineRevision": "371f77202a73e8dff57a8b3bff75bca55c090aee",
   "source": "https://fonts.gstatic.com/s/",
   "totals": {

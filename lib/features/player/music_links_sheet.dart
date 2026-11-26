@@ -1,7 +1,7 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
-import 'package:linefm_radio/ui/widgets/named_dialog.dart';
+import 'package:linefm_radio/ui/widgets/linefm_sheet.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -155,29 +155,16 @@ Future<void> showMusicLinksSheet(
   required String title,
   required List<MusicLinkItem> items,
 }) {
-  final colors = context.linefm;
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    showDragHandle: false,
-    backgroundColor: colors.surface,
-    barrierColor: LinefmPalette.scrim,
-    constraints: const BoxConstraints(maxWidth: 520),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(LinefmMetrics.radiusCover),
-      ),
-    ),
-    builder: (sheetContext) => NamedSheet(
-      label: title,
-      child: MusicLinksSheet(
-        title: title,
-        items: items,
-        onSelected: (item) {
-          Navigator.of(sheetContext).pop();
-          item.onOpen();
-        },
-      ),
+  return showLinefmSheet(
+    context,
+    label: title,
+    builder: (sheetContext) => MusicLinksSheet(
+      title: title,
+      items: items,
+      onSelected: (item) {
+        Navigator.of(sheetContext).pop();
+        item.onOpen();
+      },
     ),
   );
 }

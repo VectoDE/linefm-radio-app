@@ -11,7 +11,7 @@ import 'package:linefm_radio/services/cast/cast_service.dart';
 import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/focus_ring.dart';
-import 'package:linefm_radio/ui/widgets/named_dialog.dart';
+import 'package:linefm_radio/ui/widgets/linefm_sheet.dart';
 import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
@@ -121,23 +121,10 @@ class _CastButtonState extends ConsumerState<CastButton> {
   Future<void> _openSheet() async {
     final service = ref.read(castServiceProvider);
     unawaited(service.startDiscovery(activeScan: true));
-    final colors = context.linefm;
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: false,
-      backgroundColor: colors.surface,
-      barrierColor: LinefmPalette.scrim,
-      constraints: const BoxConstraints(maxWidth: 520),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(LinefmMetrics.radiusCover),
-        ),
-      ),
-      builder: (sheetContext) => NamedSheet(
-        label: AppLocalizations.of(sheetContext).castButton,
-        child: const CastSheet(),
-      ),
+    await showLinefmSheet(
+      context,
+      label: AppLocalizations.of(context).castButton,
+      builder: (_) => const CastSheet(),
     );
     // Aktive Suche beenden, passive läuft weiter, solange der Knopf steht.
     if (mounted) unawaited(service.startDiscovery());

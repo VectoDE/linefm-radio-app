@@ -45,6 +45,11 @@ class RuleTest(unittest.TestCase):
             "(node:3120) [DEP0005] DeprecationWarning: Buffer() is deprecated": "warning-mid-line",
             "tool says Warning: disk almost full": "warning-mid-line",
             "The option --foo is deprecated and will be removed": "deprecated",
+            "1 warning generated.": "xcode-warnings-generated",
+            "12 warnings generated.": "xcode-warnings-generated",
+            "note: Run script build phase 'Thin Binary' will be run during every build because the option "
+            'to run the script phase "Based on dependency analysis" is unchecked. (in target Runner)': "xcode-script-phase",
+            "note: Removed stale file '/x/build/ios/Debug-iphonesimulator/Sentry.framework'": "xcode-stale-file",
         }
         for line, rule in cases.items():
             with self.subTest(line=line):

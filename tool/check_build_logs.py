@@ -48,6 +48,10 @@ RULES: list[tuple[str, re.Pattern[str]]] = [
     ("powershell", re.compile(r"FullyQualifiedErrorId|^\s*\+ CategoryInfo\s*:")),
     ("annotation", re.compile(r"^##\[(warning|error)\]")),
     ("dart-analyzer", re.compile(r"^\s*(info|warning|error) [-•] ")),
+    # Xcode build notes that signal a defect in the build setup or the sources.
+    ("xcode-warnings-generated", re.compile(r"^\d+ warnings? generated\.?$")),
+    ("xcode-script-phase", re.compile(r"^note: Run script build phase .* will be run during every build")),
+    ("xcode-stale-file", re.compile(r"^note: Removed stale file")),
     ("pub-outdated", re.compile(r"^!?\s*[a-z0-9_]+ \S+ (\(overridden\) )?\(\S+ available\)$")),
     ("pub-summary", re.compile(r"packages? ha(s|ve) newer versions incompatible")),
     ("pub-discontinued", re.compile(r"\(discontinued")),

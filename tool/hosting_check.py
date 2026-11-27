@@ -271,12 +271,13 @@ class Client:
             conn.close()
 
     def _get_tls(self, path: str, hdrs: dict[str, str], method: str):
-        # Verified connection: the test certificate (SAN includes the IP) is the only trusted CA.
+        # Verified connection: the test certificate is the only trusted CA. SNI carries the virtual
+        # host because the shipped Traefik TLS options use sniStrict and refuse handshakes without it.
         ctx = ssl.create_default_context(cafile=self.cafile)
         request = f"{method} {path} HTTP/1.1\r\nConnection: close\r\n"
         request += "".join(f"{k}: {v}\r\n" for k, v in hdrs.items()) + "\r\n"
         with socket.create_connection((self.host, self.port), timeout=20) as raw:
-            with ctx.wrap_socket(raw, server_hostname=self.host) as tls:
+            with ctx.wrap_socket(raw, server_hostname=self.vhost) as tls:
                 tls.sendall(request.encode("ascii"))
                 resp = http.client.HTTPResponse(tls, method=method)
                 resp.begin()

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Syntax checks for the hosting configs in deploy/ with pinned images. Needs docker and openssl,
 # no accounts and no network apart from pulling the two images.
-#   - docker compose config for both compose files
+#   - docker compose config for both compose files and the telemetry stack (with and without
+#     the Traefik override, using .env.example); the override must expose only ingest routes
 #   - nginx -t: native site config, container config, Plesk directives (wrapped in a server block)
 #   - httpd -t: deploy/plesk/.htaccess inside a Directory block
 # Placeholders such as __CSP_CONNECT_EXTRA__ stay as they are; they are plain text for the parsers.
@@ -18,6 +19,35 @@ chmod 755 "$work"
 for f in deploy/traefik/docker-compose.yml deploy/nginx/docker-compose.yml; do
   echo "== docker compose config: $f"
   (cd "$root/$(dirname "$f")" && docker compose -f "$(basename "$f")" config --quiet)
+done
+
+echo "== docker compose config: deploy/telemetry (plain and with Traefik override)"
+# .env.example leaves the secrets empty on purpose; compose refuses empty required values,
+# so the check fills every empty entry with a throwaway value in a temporary copy.
+sed -E 's/^([A-Z0-9_]+)=$/\1=ci-placeholder/' "$root/deploy/telemetry/.env.example" > "$work/telemetry.env"
+(
+  cd "$root/deploy/telemetry"
+  docker compose --env-file "$work/telemetry.env" -f compose.yml config --quiet
+  merged="$(docker compose --env-file "$work/telemetry.env" -f compose.yml -f compose.traefik.yml config)"
+  for needle in \
+    'traefik.http.routers.umami-ingest.rule: Host(`statistik.example.org`) && Path(`/api/send`)' \
+    'traefik.http.routers.umami.middlewares: umami-admin-only' \
+    'traefik.http.routers.glitchtip.middlewares: glitchtip-admin-only' \
+    'ipallowlist.sourcerange: 203.0.113.10/32'; do
+    if ! grep -qF -- "$needle" <<<"$merged"; then
+      echo "::error::Telemetry Traefik override is missing: $needle"
+      exit 1
+    fi
+  done
+  if grep -qE '^\s+- (mode: ingress|published:)' <<<"$merged"; then
+    echo "::error::Telemetry Traefik override still publishes host ports"
+    exit 1
+  fi
+)
+
+echo "== Traefik dynamic files parse as YAML"
+for f in deploy/traefik/*.dynamic.yml; do
+  python3 -I -c 'import sys, yaml; yaml.safe_load(open(sys.argv[1], encoding="utf-8"))' "$root/$f"
 done
 
 # Throwaway certificate for the paths the site config names.

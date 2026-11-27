@@ -30,6 +30,24 @@ In `.env` stehen nur Namen, keine Zugangsdaten:
 
 Traefik darf nur das Netzwerk `TRAEFIK_NETWORK` mit dem Container teilen. Der HTTP-Router leitet per `redirectscheme` auf HTTPS um. Wer das schon global in Traefik macht, löscht die Labels `linefm-app-http` und `linefm-https`.
 
+## TLS-Optionen
+
+Der Router verweist auf die TLS-Option `linefm@file` (Mindestversion TLS 1.2,
+`sniStrict`, Cipher-Liste nach Mozilla „intermediate“, Richtlinie 6.0, abgerufen am 27.11.2026). Die Option kommt aus
+`deploy/traefik/linefm-tls.dynamic.yml` und muss einmal in das Verzeichnis
+des File-Providers der vorhandenen Traefik-Instanz kopiert werden:
+
+```bash
+# Pfad aus providers.file.directory der Traefik-Konfiguration
+sudo cp deploy/traefik/linefm-tls.dynamic.yml /etc/traefik/dynamic/
+```
+
+Traefik lädt die Datei ohne Neustart, wenn `providers.file.watch` aktiv ist.
+Fehlt die Option, meldet Traefik `unknown TLS options: linefm@file` im Log und
+nutzt die Standardoptionen. Heißt der File-Provider anders, `TRAEFIK_TLS_OPTIONS`
+in `.env` anpassen. Prüfen: `openssl s_client -connect app.linefm.de:443 -tls1_1`
+muss scheitern, `-servername` mit fremdem Namen ebenso.
+
 ## Update und Rollback
 
 Neuer Build, dann `docker compose up -d --build`. Für Rollbacks Images mit Versions-Tag bauen (`WEB_IMAGE=...:1.0.1`) und den alten Tag wieder eintragen.

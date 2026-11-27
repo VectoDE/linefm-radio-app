@@ -27,6 +27,8 @@ services:
       traefik.http.routers.linefm-app.entrypoints: ${TRAEFIK_ENTRYPOINT_SECURE:-websecure}
       traefik.http.routers.linefm-app.tls: "true"
       traefik.http.routers.linefm-app.tls.certresolver: ${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      # TLS options from linefm-tls.dynamic.yml (file provider), see docs/hosting-traefik.md.
+      traefik.http.routers.linefm-app.tls.options: ${TRAEFIK_TLS_OPTIONS:-linefm@file}
       traefik.http.routers.linefm-app.middlewares: linefm-compress
       traefik.http.routers.linefm-app.service: linefm-app
       traefik.http.services.linefm-app.loadbalancer.server.port: "8080"

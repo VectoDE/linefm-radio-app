@@ -514,12 +514,16 @@ jobs:
           mkdir -p "$certdir"
           openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj "/CN=app.linefm.de"             -keyout "$certdir/test.key" -out "$certdir/test.crt"             -addext "subjectAltName=DNS:app.linefm.de,IP:127.0.0.1"             -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=digitalSignature,keyCertSign"
           chmod 644 "$certdir/test.key"
-          printf '%s\n' 'tls:' '  stores:' '    default:' '      defaultCertificate:' '        certFile: /certs/test.crt' '        keyFile: /certs/test.key' > "$certdir/dynamic.yml"
+          # The router references the shipped TLS options (linefm@file, sniStrict), so the file provider
+          # loads them next to the test certificate. sniStrict ignores the default certificate, so the
+          # certificate is listed explicitly as well.
+          printf '%s\n' 'tls:' '  certificates:' '    - certFile: /certs/test.crt' '      keyFile: /certs/test.key' '  stores:' '    default:' '      defaultCertificate:' '        certFile: /certs/test.crt' '        keyFile: /certs/test.key' > "$certdir/dynamic.yml"
+          cp deploy/traefik/linefm-tls.dynamic.yml "$certdir/linefm-tls.yml"
           docker network create traefik
-          docker run -d --name traefik --network traefik             -p 127.0.0.1:8000:80 -p 127.0.0.1:8443:443             -v /var/run/docker.sock:/var/run/docker.sock:ro -v "$certdir:/certs:ro" "$TRAEFIK_IMAGE"             --providers.docker=true --providers.docker.exposedbydefault=false --providers.file.filename=/certs/dynamic.yml             --entrypoints.web.address=:80 --entrypoints.websecure.address=:443
+          docker run -d --name traefik --network traefik             -p 127.0.0.1:8000:80 -p 127.0.0.1:8443:443             -v /var/run/docker.sock:/var/run/docker.sock:ro -v "$certdir:/certs:ro" "$TRAEFIK_IMAGE"             --providers.docker=true --providers.docker.exposedbydefault=false --providers.file.directory=/certs             --entrypoints.web.address=:80 --entrypoints.websecure.address=:443
           docker compose -f deploy/traefik/docker-compose.yml -f tool/hosting/traefik-smoke.yml             up -d --build --wait --wait-timeout 120
           for _ in $(seq 1 30); do
-            curl -sf --cacert "$certdir/test.crt" -o /dev/null -H 'Host: app.linefm.de' https://127.0.0.1:8443/healthz && break
+            curl -sf --cacert "$certdir/test.crt" -o /dev/null --resolve app.linefm.de:8443:127.0.0.1 https://app.linefm.de:8443/healthz && break
             sleep 1
           done
           python3 tool/hosting_check.py smoke --web build/web --port 8443 --tls --cafile "$certdir/test.crt" --redirect-port 8000

@@ -3,7 +3,8 @@ description: >
   Validates the version tag (vX.Y.Z or vX.Y.Z-suffix) and downloads matching files
   from the GitHub release. The store and deploy workflows therefore always use
   exactly the artifacts that release.yml built, verified and attested.
-  The caller needs contents: read.
+  Every file must carry a build provenance attestation from release.yml (built on main).
+  The caller needs contents: read (the repository is public, attestations are readable).
 
 inputs:
   tag:
@@ -49,6 +50,17 @@ runs:
         mkdir -p "$FETCH_DIR"
         gh release download "$FETCH_TAG" --repo "$FETCH_REPO" --pattern "$FETCH_PATTERN" --dir "$FETCH_DIR"
         ls -la "$FETCH_DIR"
+        # Use the files only if release.yml built and attested them for exactly this tag.
+        shopt -s nullglob
+        files=("$FETCH_DIR"/*)
+        if [ "${#files[@]}" -eq 0 ]; then
+          echo "::error::No release files match '$FETCH_PATTERN'"
+          exit 1
+        fi
+        for f in "${files[@]}"; do
+          gh attestation verify "$f" --repo "$FETCH_REPO"             --signer-workflow "$FETCH_REPO/.github/workflows/release.yml"             --source-ref refs/heads/main             --deny-self-hosted-runners > /dev/null
+          echo "Attestation verified: $(basename "$f")"
+        done
         {
           echo "label=${FETCH_TAG#v}"
           if [[ "$FETCH_TAG" == *-* ]]; then echo "prerelease=true"; else echo "prerelease=false"; fi

@@ -28,14 +28,15 @@ Diese Punkte sind offen. Nichts davon ist behoben.
 
 | Bereich | Lücke | Verweis |
 |---|---|---|
-| Alle Plattformen | Nicht mit echten Screenreadern geprüft (TalkBack, VoiceOver, NVDA). Der Zugriffsbaum ist per Test belegt, das Vorlesen nicht. | [Freigabe-Checkliste](../docs/FREIGABE-CHECKLISTE.md), B10 |
+| Alle Plattformen | Vorlesen mit echten Screenreadern nicht vollständig geprüft. TalkBack lief im Android-Emulator und fokussiert die App, ein Durchgang mit Wischgesten war per Fernsteuerung nicht möglich. VoiceOver und NVDA sind nicht geprüft. Die Beschriftungen im Zugriffsbaum sind per Test und im Emulator belegt. Bericht: [Gerätetests](../docs/GERAETETESTS.md) | [Freigabe-Checkliste](../docs/FREIGABE-CHECKLISTE.md), B10 |
 | Desktop | Die Schaltflächen der eigenen Titelleiste (Minimieren, Maximieren, Schließen) sind per Tab nicht erreichbar. Das ist so gebaut und per Test festgehalten. Ob Fenster-Aktionen per Tastatur über das Systemmenü zuverlässig gehen, ist nicht geprüft. | Offen, wird geprüft |
 | Windows-Installer | Die Oberfläche hat Screenreader-Beschriftungen im Code. Mit der UI-Automation-Schnittstelle von Windows oder mit NVDA wurde sie nicht geprüft. | Offen |
 | Desktop, Einstellungen | Bei Fensterbreite 880 bricht die Beschriftung „Systemsprache“ mitten im Wort um. | Offen |
 | Web | Zoom auf 400 Prozent ohne waagerechtes Scrollen ist nicht vollständig geprüft. | [Erklärung](../docs/BARRIEREFREIHEIT.md) |
 | Web | Beim Tabben über das Seitenende hinaus landet der Fokus kurz auf unbeschrifteten Flutter-Elementen. | [Erklärung](../docs/BARRIEREFREIHEIT.md) |
 | App | Ein rotes Herz-Symbol im hellen Schema hat etwa 4,2:1. Das genügt für Bedienelemente (3:1), nicht für Text. | [Erklärung](../docs/BARRIEREFREIHEIT.md) |
-| Radiowecker | Die Systemdialoge des Weckers sind nicht auf Barrierefreiheit geprüft. | Gerätetest B3 |
+| Radiowecker | Der Wecker klingelt im Emulator pünktlich, auch im Doze-Modus (leichte Stufe). Die Systemdialoge des Weckers sind nicht mit Screenreader geprüft. | [Gerätetests](../docs/GERAETETESTS.md) |
+| Android, Schrift 200 % | Bei 200 % Systemschrift laufen die Beschriftungen der unteren Navigation ohne Abstand ineinander („STATIONSPLAYERHISTORY“). Lange Titel werden abgeschnitten oder laufen als Band. | [Gerätetests](../docs/GERAETETESTS.md) |
 | Livestream | Es gibt keine Untertitel und keine Transkripte für gesprochene Inhalte. Das Programm kommt von laut.fm bzw. den Sendern. | keiner |
 
 ### Wie wir prüfen
@@ -88,14 +89,15 @@ These items are open. None of them is fixed.
 
 | Area | Gap | Reference |
 |---|---|---|
-| All platforms | Not tested with real screen readers (TalkBack, VoiceOver, NVDA). The accessibility tree is covered by tests; spoken output is not. | [Release checklist](../docs/FREIGABE-CHECKLISTE.md), B10 (German) |
+| All platforms | Spoken output not fully tested with real screen readers. TalkBack ran on the Android emulator and focuses the app; a swipe walkthrough could not be driven remotely. VoiceOver and NVDA are not tested. Labels in the accessibility tree are covered by tests and confirmed on the emulator. Report: [Device tests](../docs/GERAETETESTS.md) (German) | [Release checklist](../docs/FREIGABE-CHECKLISTE.md), B10 (German) |
 | Desktop | The buttons of the custom title bar (minimize, maximize, close) cannot be reached with Tab. This is by design and pinned by a test. Whether window actions work reliably from the keyboard through the system menu has not been checked. | Open, to be checked |
 | Windows installer | The UI has screen reader labels in code. It has not been checked with Windows UI Automation or NVDA. | Offen |
 | Desktop, Settings | At a window width of 880, the label "Systemsprache" breaks in the middle of the word. | Open |
 | Web | Zoom to 400 percent without horizontal scrolling is not fully checked. | [Statement](../docs/BARRIEREFREIHEIT.md) (German) |
 | Web | Tabbing past the end of the page briefly lands focus on unlabeled Flutter elements. | [Statement](../docs/BARRIEREFREIHEIT.md) (German) |
 | App | A red heart icon in the light theme has about 4.2:1. That is enough for controls (3:1), not for text. | [Statement](../docs/BARRIEREFREIHEIT.md) (German) |
-| Radio alarm | The system dialogs of the alarm have not been checked for accessibility. | Device test B3 |
+| Radio alarm | The alarm rings on time on the emulator, also in light Doze. The system dialogs of the alarm have not been checked with a screen reader. | [Device tests](../docs/GERAETETESTS.md) (German) |
+| Android, 200 % font | At 200 % system font size the bottom navigation labels run into each other without spacing. Long titles are cut off or scroll. | [Device tests](../docs/GERAETETESTS.md) (German) |
 | Live stream | There are no captions and no transcripts for spoken content. The programme comes from laut.fm and the stations. | none |
 
 ### How we test

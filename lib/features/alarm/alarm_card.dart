@@ -33,7 +33,7 @@ class _AlarmCard extends StatelessWidget {
       alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
     );
     // Ausgeschaltet: Uhrzeit in `muted` (mind. 4,5:1) statt per Deckkraft
-    // gedimmt; der Rest bleibt voll lesbar und bedienbar (A11Y-09).
+    // gedimmt; der Rest bleibt voll lesbar und bedienbar.
     final timeColor = rule.enabled ? c.text : c.muted;
 
     return DecoratedBox(
@@ -231,7 +231,6 @@ class _StationPicker extends ConsumerWidget {
                   child: DropdownButton<String>(
                     value: fallback.slug,
                     isExpanded: true,
-                    itemHeight: LinefmMetrics.minTarget,
                     dropdownColor: c.surfaceRaised,
                     borderRadius: BorderRadius.circular(
                       LinefmMetrics.radiusPopover,

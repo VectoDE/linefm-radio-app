@@ -103,7 +103,7 @@ class PlayerView extends StatelessWidget {
   final Widget? castSlot;
   final Widget? airPlaySlot;
 
-  /// Oeffnet die Sleeptimer-Auswahl (U2). `null` blendet den Knopf aus.
+  /// Oeffnet die Sleeptimer-Auswahl. `null` blendet den Knopf aus.
   final VoidCallback? onSleepTimer;
 
   /// Sleeptimer laeuft: Knopf hervorgehoben.

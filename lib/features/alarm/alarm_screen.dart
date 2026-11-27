@@ -69,7 +69,7 @@ String alarmRepeatSummary(AppLocalizations l10n, Set<int> weekdays) {
 class AlarmScreen extends ConsumerWidget {
   const AlarmScreen({super.key});
 
-  /// Neuer Wecker: zuerst die Uhrzeit waehlen (U2). Abbrechen legt nichts
+  /// Neuer Wecker: zuerst die Uhrzeit waehlen. Abbrechen legt nichts
   /// an; erst danach entsteht der Wecker fuer den aktuellen Sender.
   Future<void> _add(BuildContext context, WidgetRef ref) async {
     final picked = await showTimePicker(
@@ -116,7 +116,7 @@ class AlarmScreen extends ConsumerWidget {
         ? l10n.alarmNoteDesktop
         : l10n.alarmNoteAndroid;
 
-    // Eigene Seite: als Hauptinhalt kennzeichnen (NEU-2, Landmarke).
+    // Eigene Seite: als Hauptinhalt kennzeichnen (Landmarke).
     return Semantics(
       container: true,
       explicitChildNodes: true,

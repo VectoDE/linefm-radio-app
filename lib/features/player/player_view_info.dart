@@ -94,7 +94,7 @@ class _TrackInfo extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: MarqueeText(
-                // Syncopate ohne Kapitaelchen: Grossbuchstaben (D80-10).
+                // Syncopate ohne Kapitaelchen: Grossbuchstaben.
                 title.toUpperCase(),
                 enabled: data.marquee,
                 textAlign: TextAlign.center,

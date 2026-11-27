@@ -51,6 +51,17 @@ cosign verify-blob \
 
 Erwartete Ausgabe: `Verified OK`. Am sichersten prüfst du zuerst `SHA256SUMS.txt` mit seinem Bundle und danach die Downloads mit `sha256sum -c` (Schritt 1).
 
+Mehrere cosign-Versionen nacheinander prüfen (für Betreiber und Prüfer): Das Skript `tool/release/verify_cosign.sh` lädt die in `tool/release/cosign-pins.txt` festgelegten Versionen (2.4.3, 2.6.5, 3.1.4, 3.1.6) von sigstore/cosign, vergleicht jeden Download mit dem festgelegten SHA-256 und prüft danach alle Bundles eines Ordners:
+
+```sh
+# Release-Dateien samt .sigstore.json in einen leeren Ordner laden, dann:
+tool/release/verify_cosign.sh matrix ./release-dateien ./cosign-cache
+# nur eine Version:
+tool/release/verify_cosign.sh matrix ./release-dateien ./cosign-cache 3.1.4
+# mit einer schon vorhandenen Binärdatei:
+tool/release/verify_cosign.sh verify /pfad/zu/cosign ./release-dateien
+```
+
 Seit der Umstellung entsteht jedes Release beim Merge auf `main`. Die Identität ist deshalb für alle Versionen gleich. Welche Version eine Datei ist, belegen ihr Name und `SHA256SUMS.txt`; aus welchem Commit sie stammt, zeigt die Attestierung (Schritt 2).
 
 ## 4. GPG-Signatur (optional)

@@ -33,9 +33,16 @@ mkdir -p "$(dirname "$DMG_PATH")"
 rm -f "$DMG_PATH"
 
 STAGING="$(mktemp -d)"
-trap 'rm -rf "$STAGING"' EXIT
+STAGING_BG="$(mktemp -d)"
+trap 'rm -rf "$STAGING" "$STAGING_BG"' EXIT
 cp -R "$APP_PATH" "$STAGING/"
 cp "$README_SRC" "$STAGING/LIES-MICH-ZUERST.txt"
+
+# CI runners have Homebrew but not create-dmg; without it the DMG has no
+# styled window, so install it there. Locally nothing is installed silently.
+if ! command -v create-dmg >/dev/null 2>&1 && [ "${CI:-}" = "true" ] && command -v brew >/dev/null 2>&1; then
+  HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install --quiet create-dmg
+fi
 
 if command -v create-dmg >/dev/null 2>&1; then
   args=(
@@ -43,14 +50,21 @@ if command -v create-dmg >/dev/null 2>&1; then
     --window-pos 200 120
     --window-size 660 420
     --icon-size 110
-    --icon "$APP_NAME" 170 190
+    --icon "$APP_NAME" 170 170
     --hide-extension "$APP_NAME"
-    --app-drop-link 490 190
-    --icon "LIES-MICH-ZUERST.txt" 330 340
+    --app-drop-link 490 170
+    --icon "LIES-MICH-ZUERST.txt" 590 350
     --no-internet-enable
   )
   if [ -f "$BACKGROUND" ]; then
-    args+=(--background "$BACKGROUND")
+    # Retina: tiffutil merges 1x and 2x into one HiDPI background (macOS only).
+    BACKGROUND_2X="$HERE/dmg-background@2x.png"
+    if [ -f "$BACKGROUND_2X" ] && command -v tiffutil >/dev/null 2>&1; then
+      tiffutil -cathidpicheck "$BACKGROUND" "$BACKGROUND_2X" -out "$STAGING_BG/background.tiff"
+      args+=(--background "$STAGING_BG/background.tiff")
+    else
+      args+=(--background "$BACKGROUND")
+    fi
   fi
   # create-dmg legt die Applications-Verknuepfung selbst an (--app-drop-link).
   create-dmg "${args[@]}" "$DMG_PATH" "$STAGING"

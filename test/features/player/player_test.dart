@@ -13,12 +13,12 @@ import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/features/player/player_actions.dart';
 import 'package:linefm_radio/features/player/player_screen.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
-import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/share/share_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../support/service_doubles.dart';
 import '../../support/test_doubles.dart';
 
 class _RecordingHub extends TelemetryHub {
@@ -65,6 +65,7 @@ class _Harness {
   _Harness() {
     container = ProviderContainer(
       overrides: [
+        ...noopServiceOverrides(playback: false, share: false),
         prefsProvider.overrideWithValue(InMemoryPrefsStore()),
         // Hoererzahl eingeschaltet (features.yaml), Standard waere aus.
         appConfigProvider.overrideWithValue(

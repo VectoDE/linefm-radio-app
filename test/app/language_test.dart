@@ -15,6 +15,7 @@ import 'package:linefm_radio/l10n/system_l10n.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../support/service_doubles.dart';
 import 'app_host.dart';
 
 const _noAutoplay = AppSettings(autoplay: false);
@@ -96,7 +97,10 @@ void main() {
     test('Wahl bleibt nach Neustart des Providers, Loeschen setzt zurueck', () {
       final prefs = InMemoryPrefsStore();
       ProviderContainer open() => ProviderContainer(
-        overrides: [prefsProvider.overrideWithValue(prefs)],
+        overrides: [
+          ...noopServiceOverrides(),
+          prefsProvider.overrideWithValue(prefs),
+        ],
       );
 
       final first = open();

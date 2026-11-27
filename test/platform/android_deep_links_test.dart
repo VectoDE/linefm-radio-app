@@ -10,7 +10,8 @@ import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/platform/deep_links.dart';
-import 'package:linefm_radio/services/audio/playback_service.dart';
+
+import '../support/service_doubles.dart';
 
 class _Playback extends NoopPlaybackService {
   final List<String> plays = <String>[];

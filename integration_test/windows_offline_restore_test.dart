@@ -45,10 +45,11 @@ import 'package:linefm_radio/features/history/history_screen.dart';
 import 'package:linefm_radio/features/loader/app_loader.dart';
 import 'package:linefm_radio/features/mini_player/mini_player.dart';
 import 'package:linefm_radio/platform/desktop/desktop_init.dart';
-import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/ui/widgets/cover_image.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:window_manager/legacy.dart' show WindowManager;
+
+import '../test/support/service_doubles.dart';
 
 const String _outDefine = String.fromEnvironment('ITEST_OUT');
 const String _slug = 'linefm';
@@ -458,6 +459,7 @@ class _World {
       overrides: <Override>[
         prefsProvider.overrideWithValue(prefs),
         playbackServiceProvider.overrideWithValue(NoopPlaybackService()),
+        ...noopServiceOverrides(playback: false, artwork: false),
         lautApiProvider.overrideWithValue(api),
         telemetryConsentProvider.overrideWith(_ConsentGiven.new),
         artworkProvider.overrideWithValue(const ApiCoverOnlyArtworkService()),

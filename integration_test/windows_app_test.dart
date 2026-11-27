@@ -41,11 +41,11 @@ import 'package:linefm_radio/platform/desktop/desktop_controller.dart';
 import 'package:linefm_radio/platform/desktop/desktop_init.dart';
 import 'package:linefm_radio/platform/desktop/title_bar.dart';
 import 'package:linefm_radio/platform/desktop/window_caption.dart';
-import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:window_manager/legacy.dart' show DragToMoveArea, WindowManager;
 
+import '../test/support/service_doubles.dart';
 import '../test/support/test_doubles.dart';
 
 /// Zielordner der Bilder (CI: `--dart-define=ITEST_OUT=...`).
@@ -492,6 +492,7 @@ class _World {
       overrides: <Override>[
         prefsProvider.overrideWithValue(prefs),
         playbackServiceProvider.overrideWithValue(playback),
+        ...noopServiceOverrides(playback: false),
         lautApiProvider.overrideWithValue(api),
         telemetryConsentProvider.overrideWith(_ConsentGiven.new),
         nowPlayingRepositoryProvider.overrideWith((ref) {

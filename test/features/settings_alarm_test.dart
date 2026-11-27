@@ -21,6 +21,7 @@ import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
 import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../support/service_doubles.dart';
 import 'feature_host.dart';
 
 class _FakeSleepTimer implements SleepTimerService {
@@ -246,6 +247,8 @@ void main() {
       useSize(tester, 420, 2600);
       final alarms = _RecordingAlarms();
       final host = FeatureHost(
+        noopAlarm: false,
+
         config: telemetryConfig,
         extra: <Override>[alarmCoordinatorProvider.overrideWithValue(alarms)],
       );
@@ -293,6 +296,8 @@ void main() {
     testWidgets('Speicher loeschen behaelt "Cover laden: aus"', (tester) async {
       useSize(tester, 420, 2600);
       final host = FeatureHost(
+        noopAlarm: false,
+
         extra: <Override>[
           alarmCoordinatorProvider.overrideWithValue(_RecordingAlarms()),
         ],
@@ -373,6 +378,8 @@ void main() {
       useSize(tester, 420, 800);
       late _FakeSleepTimer fake;
       final host = FeatureHost(
+        noopSleepTimer: false,
+
         extra: <Override>[
           currentTrackProvider.overrideWithValue(AsyncData<Track?>(track)),
           sleepTimerServiceProvider.overrideWith(
@@ -504,6 +511,8 @@ void main() {
       useSize(tester, 420, 1400);
       final alarms = _RecordingAlarms();
       final host = FeatureHost(
+        noopAlarm: false,
+
         extra: <Override>[alarmCoordinatorProvider.overrideWithValue(alarms)],
       );
       await tester.pumpWidget(host.app(const AlarmScreen(), scaffold: false));
@@ -621,6 +630,8 @@ void main() {
     useSize(tester, 420, 2600);
     var exact = false;
     final host = FeatureHost(
+      noopAlarm: false,
+
       extra: <Override>[
         alarmCoordinatorProvider.overrideWithValue(_RecordingAlarms()),
         alarmStatusCheckProvider.overrideWithValue(

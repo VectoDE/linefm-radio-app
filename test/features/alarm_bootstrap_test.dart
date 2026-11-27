@@ -12,8 +12,8 @@ import 'package:linefm_radio/features/alarm/alarm_hooks.dart';
 import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
 import 'package:linefm_radio/services/alarm/alarm_permissions.dart';
 import 'package:linefm_radio/services/alarm/alarm_wiring.dart';
-import 'package:linefm_radio/services/audio/playback_service.dart';
 
+import '../support/service_doubles.dart';
 import '../support/test_doubles.dart';
 
 class _Platform implements AlarmPlatform {
@@ -105,6 +105,7 @@ void main() {
     ]);
     final container = ProviderContainer(
       overrides: [
+        ...noopServiceOverrides(alarm: false, sleepTimer: false),
         prefsProvider.overrideWithValue(prefs),
         ...alarmAndSleepOverrides(
           permissions: gateway,

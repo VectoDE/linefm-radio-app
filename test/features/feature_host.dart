@@ -15,6 +15,7 @@ import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../support/service_doubles.dart';
 import '../support/test_doubles.dart';
 
 /// Konfiguration mit Umami, damit Telemetrie als konfiguriert gilt.
@@ -33,11 +34,14 @@ class FeatureHost {
     LegalAssetLoader? legalLoader,
     NowPlayingRepository? repository,
     List<Override> extra = const <Override>[],
+    bool noopSleepTimer = true,
+    bool noopAlarm = true,
   }) : prefs = prefs ?? InMemoryPrefsStore(),
        clock = FakeClock(now ?? DateTime(2026, 11, 18, 6)),
        opened = <Uri>[] {
     ignoreCupertinoDelegateWarning();
     overrides = <Override>[
+      ...noopServiceOverrides(sleepTimer: noopSleepTimer, alarm: noopAlarm),
       prefsProvider.overrideWithValue(this.prefs),
       appConfigProvider.overrideWithValue(config),
       telemetryProvider.overrideWithValue(TelemetryHub(config: config)),

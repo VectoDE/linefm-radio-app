@@ -14,8 +14,8 @@ import 'package:linefm_radio/services/alarm/alarm_inapp.dart';
 import 'package:linefm_radio/services/alarm/alarm_ios.dart';
 import 'package:linefm_radio/services/alarm/alarm_permissions.dart';
 import 'package:linefm_radio/services/alarm/alarm_texts.dart';
-import 'package:linefm_radio/services/audio/playback_service.dart';
 
+import '../support/service_doubles.dart';
 import '../support/test_doubles.dart';
 
 class _FakeAlarmApi implements AndroidAlarmApi {

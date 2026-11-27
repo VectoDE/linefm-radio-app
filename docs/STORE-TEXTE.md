@@ -8,7 +8,7 @@ Vor dem Einfügen: Die Freigabe in [FREIGABE-CHECKLISTE.md](FREIGABE-CHECKLISTE.
 
 Regeln, an die sich die Texte halten:
 
-- Keine Aussage wie "offizielle App der RadioGruppe". Der Hinweis "LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe" entspricht dem Impressum.
+- Keine Aussage wie "offizielle App der RadioGruppe". Der Hinweis "LINEFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe" entspricht dem Impressum.
 - Radio3FM und FobFM heißen Partnersender, weil sie keine LINEFM-Sender sind.
 - Kein Wettbewerbsvergleich, keine Superlative, keine Zahlen ohne Beleg.
 - Chromecast nur für Android, Android Auto nur für Android, das Widget nur für Android.
@@ -25,7 +25,7 @@ Regeln, an die sich die Texte halten:
 
 **Kurzbeschreibung** (70 von 80 Zeichen)
 
-> LineFM live hören, mit Favoriten, Verlauf, Sleeptimer und Radiowecker.
+> LINEFM live hören, mit Favoriten, Verlauf, Sleeptimer und Radiowecker.
 
 **Beschreibung** (1275 von 4000 Zeichen)
 
@@ -47,7 +47,7 @@ Regeln, an die sich die Texte halten:
 >
 > Hinweis: Das Programm kommt von laut.fm. Je nach Sender können Lieder Kraftausdrücke enthalten. Die Namen und Logos der Sender gehören den jeweiligen Betreibern.
 >
-> LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Entwickelt von Tim Hauke (VectoDE).
+> LINEFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Entwickelt von Tim Hauke (VectoDE).
 
 **Neuerungen** (14 von 500 Zeichen)
 
@@ -61,7 +61,7 @@ Regeln, an die sich die Texte halten:
 
 **Short description** (70 of 80 characters)
 
-> Listen to LineFM live, with favorites, history, sleep timer and alarm.
+> Listen to LINEFM live, with favorites, history, sleep timer and alarm.
 
 **Description** (1227 of 4000 characters)
 
@@ -83,7 +83,7 @@ Regeln, an die sich die Texte halten:
 >
 > Note: The programme comes from laut.fm. Depending on the station, songs may contain strong language. Station names and logos belong to their respective operators.
 >
-> LineFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).
+> LINEFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).
 
 **What's new** (14 of 500 characters)
 
@@ -122,7 +122,7 @@ Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf
 >
 > Hinweis: Das Programm kommt von laut.fm. Je nach Sender können Lieder Kraftausdrücke enthalten. Die Namen und Logos der Sender gehören den jeweiligen Betreibern.
 >
-> LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Entwickelt von Tim Hauke (VectoDE).
+> LINEFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Entwickelt von Tim Hauke (VectoDE).
 
 **Schlüsselwörter** (Bytes, höchstens 100)
 
@@ -171,7 +171,7 @@ Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf
 >
 > Note: The programme comes from laut.fm. Depending on the station, songs may contain strong language. Station names and logos belong to their respective operators.
 >
-> LineFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).
+> LINEFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).
 
 **Keywords** (bytes, at most 100)
 
@@ -205,7 +205,7 @@ Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf
 
 **Kurzbeschreibung** (kurz gehalten, damit sie in jeder Ansicht passt)
 
-> LineFM live hören, mit Favoriten, Sleeptimer, Wecker, Tray-Symbol und Mini-Fenster.
+> LINEFM live hören, mit Favoriten, Sleeptimer, Wecker, Tray-Symbol und Mini-Fenster.
 
 **Beschreibung**
 
@@ -217,7 +217,7 @@ Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf
 >
 > Favoriten, Verlauf und Einstellungen bleiben auf deinem Gerät. Statistik und Absturzberichte gehen nur raus, wenn du zustimmst.
 >
-> LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Entwickelt von Tim Hauke (VectoDE).
+> LINEFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Entwickelt von Tim Hauke (VectoDE).
 
 **Neu in dieser Version**
 
@@ -231,7 +231,7 @@ Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf
 
 **Short description** (kept short so it fits every view)
 
-> Listen to LineFM live, with favorites, sleep timer, alarm, tray icon and mini window.
+> Listen to LINEFM live, with favorites, sleep timer, alarm, tray icon and mini window.
 
 **Description**
 
@@ -243,7 +243,7 @@ Entwurf für die spätere Veröffentlichung. Er enthält nur Funktionen, die auf
 >
 > Favorites, history and settings stay on your device. Usage statistics and crash reports are only sent if you agree.
 >
-> LineFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).
+> LINEFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).
 
 **What's new**
 
@@ -263,9 +263,9 @@ Felder in `packaging/snap/snapcraft.yaml`: `summary` (höchstens 78 Zeichen) und
 
 > Listen to LineFM +MAIN, +RAP, +GAMING and +LOFI live, plus the partner stations Radio3FM and FobFM. Favorites, history, sleep timer, radio alarm, tray icon, mini window and media keys. No account, no ads.
 >
-> Deutsch: LineFM live hören, mit Favoriten, Verlauf, Sleeptimer und Radiowecker. Ohne Konto, ohne Werbung.
+> Deutsch: LINEFM live hören, mit Favoriten, Verlauf, Sleeptimer und Radiowecker. Ohne Konto, ohne Werbung.
 >
-> LineFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).
+> LINEFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).
 
 ---
 
@@ -282,6 +282,23 @@ Felder in `linux/de.linefm.app.metainfo.xml`. Flathub empfiehlt eine Zusammenfas
 > Live-Radio der LINEFM-Sender
 
 Die Beschreibung steht bereits in der Metainfo (Englisch und Deutsch). Wenn sich die Funktionen ändern, dort und hier gemeinsam anpassen.
+
+---
+
+## Altersfreigabe und Zielgruppe (Antworten für alle Stores)
+
+Entscheidung des Inhabers: Altersfreigabe 13+ überall, Zielgruppe 13+, keine Kinderzielgruppe. Grund: Die Sender spielen ungefilterte Musik, einzelne Lieder (vor allem +RAP) enthalten Kraftausdrücke. Die Antworten trägt der Inhaber in den Konsolen ein, die Stores berechnen das Ergebnis selbst.
+
+| Store | Wo | Antwort |
+|---|---|---|
+| Google Play | Play Console > Zielgruppe und Inhalte | Zielgruppe nur "13 und älter", keine Kinder |
+| Google Play | Play Console > Einstufung des Inhalts (IARC) | Kategorie Musik-/Streaming-App. Gewalt, Sexualität, Glücksspiel, Drogen: nein. Kraftausdrücke: ja, ungefilterte Musik mit Kraftausdrücken. Nutzerinteraktion, Käufe, Standort: nein. Erwartetes Ergebnis 12+/13+ je Region |
+| App Store | App Store Connect > App-Informationen > Altersfreigabe | Fragen des aktuellen Systems ehrlich beantworten (Kraftausdrücke gelegentlich), Ziel 13+ |
+| Microsoft Store | Partner Center > Altersfreigaben (IARC) | Gleiche Antworten wie bei Google Play, Ziel 13+ |
+| Flathub | `linux/de.linefm.app.metainfo.xml` | OARS 1.1, `language-profanity` = `moderate`, alle anderen Attribute leer |
+| Snap Store | – | Der Snap Store kennt keine Altersangabe |
+
+Ändern sich Inhalte oder Funktionen (zum Beispiel Chat oder Käufe), müssen Fragebögen neu eingereicht werden.
 
 ---
 

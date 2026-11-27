@@ -170,7 +170,7 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 ## C. Store-Texte und Datenschutzangaben
 
 - [ ] Kurz- und Langbeschreibung auf Deutsch und Englisch gelesen und freigegeben (Entwürfe in [STORE-TEXTE.md](STORE-TEXTE.md)). Sie nennen nur, was die App wirklich kann. Plattform-Hinweise stimmen (kein CarPlay, solange Apple fehlt).
-- [ ] Keine Aussagen wie "offizielle App der RadioGruppe", wenn LineFM Studios das nicht bestätigt hat. Der Hinweis "LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe" entspricht der Web-App.
+- [ ] Keine Aussagen wie "offizielle App der RadioGruppe", wenn LineFM Studios das nicht bestätigt hat. Der Hinweis "LINEFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe" entspricht der Web-App.
 - [ ] Screenshots zeigen die echte App und keine Fantasiedaten, nichts Fremdes (keine Cover von Dritten in Großansicht ohne Freigabe).
 - [ ] Altersangabe stimmt: 13+ in allen Stores, OARS Kraftausdrücke moderat (+RAP: Kraftausdrücke möglich).
 - [ ] Google Play: "Datensicherheit" und "App-Inhalte" zur Datenschutzerklärung passend ausgefüllt (siehe [EINRICHTUNG.md](EINRICHTUNG.md), Abschnitt 13.1).

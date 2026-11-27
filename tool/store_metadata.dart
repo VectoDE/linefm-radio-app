@@ -290,7 +290,9 @@ Map<String, String> readMetadataDir(Directory metadataDir) {
   final Map<String, String> out = <String, String>{};
   if (!metadataDir.existsSync()) return out;
   for (final FileSystemEntity e in metadataDir.listSync(recursive: true)) {
-    if (e is! File) continue;
+    // Screenshots and graphics live next to the texts (images/); only the
+    // .txt files are store texts.
+    if (e is! File || !e.path.endsWith('.txt')) continue;
     final String rel = e.path
         .substring(metadataDir.path.length)
         .replaceAll('\\', '/')
@@ -356,7 +358,12 @@ void main(List<String> args) {
       return;
     }
     final Directory dir = Directory('$root/fastlane/metadata');
-    if (dir.existsSync()) dir.deleteSync(recursive: true);
+    // Replace the texts only; screenshots and graphics (images/) stay.
+    if (dir.existsSync()) {
+      for (final FileSystemEntity e in dir.listSync(recursive: true)) {
+        if (e is File && e.path.endsWith('.txt')) e.deleteSync();
+      }
+    }
     for (final MapEntry<String, String> e in expected.entries) {
       File('${dir.path}/${e.key}')
         ..createSync(recursive: true)

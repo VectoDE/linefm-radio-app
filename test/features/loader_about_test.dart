@@ -38,6 +38,10 @@ void main() {
           scaffold: false,
         ),
       );
+      // First frame: only the loader; the child builds in the next frame.
+      expect(find.byType(AppLoader), findsOneWidget);
+      expect(find.text('App'), findsNothing);
+      await tester.pump();
       expect(find.byType(AppLoader), findsOneWidget);
       expect(find.text('App'), findsOneWidget);
 
@@ -67,6 +71,7 @@ void main() {
           scaffold: false,
         ),
       );
+      await tester.pump();
       await tester.tap(find.text('Tippen'), warnIfMissed: false);
       expect(taps, 0);
       await tester.pump(const Duration(milliseconds: 600));

@@ -6,8 +6,23 @@ import 'dart:io';
 /// geschluckt: die Messung darf die App nie stoeren.
 void writeMark(String name) {
   final path = Platform.environment['LINEFM_PERF_FILE'];
-  if (path == null || path.isEmpty) return;
+  if (path == null || path.isEmpty) {
+    // Android has no way to set environment variables for a launched app:
+    // the measurement run reads the marks from logcat instead
+    // (tool/perf/android_start.sh).
+    if (Platform.isAndroid) logMark(name, _nowMicros());
+    return;
+  }
   writeMarkTo(path, name);
+}
+
+int _nowMicros() => DateTime.now().toUtc().microsecondsSinceEpoch;
+
+/// Prints one measurement line to logcat (`I/flutter`):
+/// `LINEFM_PERF <name> <microseconds since 1970, UTC>`.
+void logMark(String name, int micros) {
+  // ignore: avoid_print
+  print('LINEFM_PERF $name $micros');
 }
 
 /// Schreibt eine Messzeile nach [path] (getrennt fuer Tests).

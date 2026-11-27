@@ -64,7 +64,10 @@ void main() {
       await tester.pumpWidget(host(const MarqueeText(long), width: 120));
       await tester.pump();
       expect(find.text(long), findsNWidgets(2));
-      expect(tester.hasRunningAnimations, isTrue);
+      // The band moves on a timer in whole pixels, not on a ticker.
+      final before = tester.getTopLeft(find.text(long).first).dx;
+      await tester.pump(const Duration(seconds: 1));
+      expect(tester.getTopLeft(find.text(long).first).dx, lessThan(before));
       expect(find.bySemanticsLabel(long), findsOneWidget);
       handle.dispose();
     });

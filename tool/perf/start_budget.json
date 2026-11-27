@@ -1,0 +1,9 @@
+{
+  "_comment": "Start-time budget, checked by tool/perf/start_budget.py against medians of the CI measurement. Baseline = state before the performance work, see docs/PERFORMANCE.md. Halved = at most half of that baseline.",
+  "windows_first_frame_ms": 535,
+  "web_mobile_lcp_ms": 750,
+  "web_desktop_lcp_ms": 150,
+  "android_first_frame_regression_factor": 1.1,
+  "android_first_frame_goal_factor": 0.5,
+  "android_first_frame_ms": null
+}

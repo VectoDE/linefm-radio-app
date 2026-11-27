@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -108,49 +111,205 @@ class _Band extends StatefulWidget {
   State<_Band> createState() => _BandState();
 }
 
-class _BandState extends State<_Band> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: widget.duration,
-  );
+/// One timer for all running bands.
+///
+/// Every band advancing on its own timer would each trigger a frame at its
+/// own moment, so several bands on screen add up to a frame on nearly every
+/// vsync. The shared clock ticks once for all of them, at the rate of the
+/// fastest band (one physical pixel per tick, at most one tick per display
+/// frame), and each band only rebuilds when its pixel position changed.
+class _MarqueeClock {
+  _MarqueeClock._();
 
-  // The band only moves while the app is in the foreground. Hidden routes
-  // and covered subtrees are muted through TickerMode by the ticker itself.
+  static final _MarqueeClock instance = _MarqueeClock._();
+
+  static const int _minPeriodMicros = 16667;
+
+  final Set<_BandState> _bands = <_BandState>{};
+  Timer? _timer;
+  int _periodMicros = 0;
+
+  /// Time the clock has run, advanced in whole ticks.
+  int elapsedMicros = 0;
+
+  void add(_BandState band) {
+    if (_bands.add(band)) _retime();
+  }
+
+  void remove(_BandState band) {
+    if (_bands.remove(band)) _retime();
+  }
+
+  void _retime() {
+    if (_bands.isEmpty) {
+      _timer?.cancel();
+      _timer = null;
+      _periodMicros = 0;
+      return;
+    }
+    final period = math.max(
+      _minPeriodMicros,
+      _bands.map((band) => band.pixelPeriodMicros).reduce(math.min),
+    );
+    if (period == _periodMicros && _timer != null) return;
+    _timer?.cancel();
+    _periodMicros = period;
+    _timer = Timer.periodic(Duration(microseconds: period), (_) {
+      elapsedMicros += _periodMicros;
+      for (final band in _bands.toList()) {
+        band.tick();
+      }
+    });
+  }
+}
+
+/// Moves the band in whole physical pixels on the shared [_MarqueeClock].
+///
+/// A ticker would rebuild the band on every vsync although the text only
+/// moves a fraction of a pixel per frame (one loop of 18 s over a few hundred
+/// pixels is roughly 20 px per second).
+///
+/// The band holds still, and schedules nothing, while it cannot be seen:
+/// app not in the foreground, tickers muted ([TickerMode], e.g. hidden routes
+/// or the desktop mini window) or the band scrolled out of its viewport
+/// (cards kept alive in the cache area of a list).
+class _BandState extends State<_Band> {
   late final AppLifecycleListener _lifecycle = AppLifecycleListener(
     onStateChange: (_) => _syncRunning(),
   );
+
+  bool _running = false;
+
+  /// Time this band has moved, kept across pauses.
+  int _movedMicros = 0;
+
+  /// Clock time at which [_movedMicros] was zero, while running.
+  int _clockBase = 0;
+
+  /// Current position in physical pixels within one loop.
+  int _pixel = 0;
+
+  double _pixelRatio = 1;
+
+  ScrollPosition? _scroll;
+  bool _tickersEnabled = true;
+  bool _onScreen = true;
+  bool _visibilityCheckPending = false;
 
   @override
   void initState() {
     super.initState();
     _lifecycle;
-    _syncRunning();
   }
 
-  void _syncRunning() {
-    final state = WidgetsBinding.instance.lifecycleState;
-    final foreground = state == null || state == AppLifecycleState.resumed;
-    if (foreground && !_controller.isAnimating) {
-      _controller.repeat();
-    } else if (!foreground && _controller.isAnimating) {
-      _controller.stop(canceled: false);
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _tickersEnabled = TickerMode.valuesOf(context).enabled;
+    final scroll = Scrollable.maybeOf(context)?.position;
+    if (!identical(scroll, _scroll)) {
+      _scroll?.removeListener(_onScroll);
+      _scroll = scroll?..addListener(_onScroll);
     }
+    _restart();
+    // Visibility needs layout; check once this frame is laid out.
+    _onScroll();
   }
 
   @override
   void didUpdateWidget(_Band old) {
     super.didUpdateWidget(old);
-    if (old.duration != widget.duration) {
-      _controller.duration = widget.duration;
-      if (_controller.isAnimating) _controller.repeat();
+    if (old.duration != widget.duration || old.cycle != widget.cycle) {
+      _restart();
     }
   }
 
   @override
   void dispose() {
+    _stop();
+    _scroll?.removeListener(_onScroll);
     _lifecycle.dispose();
-    _controller.dispose();
     super.dispose();
+  }
+
+  /// Physical pixels in one loop.
+  int get _loopPixels => math.max(1, (widget.cycle * _pixelRatio).round());
+
+  /// Time for one physical pixel.
+  int get pixelPeriodMicros =>
+      math.max(1, widget.duration.inMicroseconds ~/ _loopPixels);
+
+  // Scroll notifications arrive before the new layout; measure after it.
+  void _onScroll() {
+    if (_visibilityCheckPending) return;
+    _visibilityCheckPending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _visibilityCheckPending = false;
+      if (!mounted) return;
+      final visible = _computeOnScreen();
+      if (visible != _onScreen) {
+        _onScreen = visible;
+        _syncRunning();
+      }
+    });
+  }
+
+  bool _computeOnScreen() {
+    final box = context.findRenderObject();
+    final viewport = Scrollable.maybeOf(context)?.context.findRenderObject();
+    if (box is! RenderBox || !box.attached || !box.hasSize) return true;
+    if (viewport is! RenderBox || !viewport.attached || !viewport.hasSize) {
+      return true;
+    }
+    final mine = MatrixUtils.transformRect(
+      box.getTransformTo(null),
+      Offset.zero & box.size,
+    );
+    final view = MatrixUtils.transformRect(
+      viewport.getTransformTo(null),
+      Offset.zero & viewport.size,
+    );
+    return mine.overlaps(view);
+  }
+
+  bool get _shouldRun {
+    final state = WidgetsBinding.instance.lifecycleState;
+    final foreground = state == null || state == AppLifecycleState.resumed;
+    return foreground && _tickersEnabled && _onScreen;
+  }
+
+  void _syncRunning() {
+    if (!mounted) return;
+    final run = _shouldRun;
+    if (run && !_running) {
+      _running = true;
+      _clockBase = _MarqueeClock.instance.elapsedMicros - _movedMicros;
+      _MarqueeClock.instance.add(this);
+    } else if (!run && _running) {
+      _stop();
+    }
+  }
+
+  void _stop() {
+    if (!_running) return;
+    _running = false;
+    _movedMicros = _MarqueeClock.instance.elapsedMicros - _clockBase;
+    _MarqueeClock.instance.remove(this);
+  }
+
+  void _restart() {
+    _pixelRatio = MediaQuery.devicePixelRatioOf(context);
+    _stop();
+    _syncRunning();
+  }
+
+  /// Called by the clock: rebuild only when the pixel position changed.
+  void tick() {
+    if (!mounted) return;
+    final moved = _MarqueeClock.instance.elapsedMicros - _clockBase;
+    final micros = math.max(1, widget.duration.inMicroseconds);
+    final pixel = (moved % micros) * _loopPixels ~/ micros;
+    if (pixel != _pixel) setState(() => _pixel = pixel);
   }
 
   @override
@@ -161,6 +320,7 @@ class _BandState extends State<_Band> with SingleTickerProviderStateMixin {
       maxLines: 1,
       softWrap: false,
     );
+    final offset = -_pixel / _pixelRatio;
     return RepaintBoundary(
       child: ShaderMask(
         blendMode: BlendMode.dstIn,
@@ -178,12 +338,8 @@ class _BandState extends State<_Band> with SingleTickerProviderStateMixin {
             alignment: AlignmentDirectional.centerStart,
             minWidth: 0,
             maxWidth: double.infinity,
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) => Transform.translate(
-                offset: Offset(-_controller.value * widget.cycle, 0),
-                child: child,
-              ),
+            child: Transform.translate(
+              offset: Offset(offset, 0),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[

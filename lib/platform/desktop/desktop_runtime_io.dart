@@ -6,7 +6,9 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' show WidgetsBinding;
 import 'package:linefm_radio/platform/desktop/desktop_controller.dart';
+import 'package:linefm_radio/platform/desktop/hotkeys.dart';
 import 'package:linefm_radio/platform/desktop/hotkeys_impl.dart';
 import 'package:linefm_radio/platform/desktop/tray_impl.dart';
 import 'package:linefm_radio/platform/desktop/window_caption_impl.dart';
@@ -57,14 +59,17 @@ Future<void> initDesktopRuntime() async {
       ..active = true;
 
     final tray = TrayManagerTrayController(desktop);
-    desktop.tray = tray;
-    await tray.init();
-    // Ohne Tray-Symbol darf Schliessen das Fenster nicht verstecken.
-    window.trayAvailable = tray.isAvailable;
-
-    final hotkeys = HotkeyManagerDesktopHotkeys(desktop);
-    desktop.hotkeys = hotkeys;
-    await hotkeys.register();
+    desktop
+      ..tray = tray
+      ..hotkeys = HotkeyManagerDesktopHotkeys(desktop);
+    // Tray icon and global hotkeys are not needed for the first frame:
+    // start them once it is on screen, so their native setup does not
+    // delay the window.
+    unawaited(
+      WidgetsBinding.instance.waitUntilFirstFrameRasterized.then(
+        (_) => _startTrayAndHotkeys(window, tray, desktop.hotkeys),
+      ),
+    );
 
     singleInstanceChannel.setMethodCallHandler((call) async {
       if (call.method != 'secondInstance') return;
@@ -78,6 +83,21 @@ Future<void> initDesktopRuntime() async {
     });
   } on Object catch (e) {
     // Desktop-Extras sind optional: die App muss auch ohne starten.
+    debugPrint('Desktop-Extras nicht gestartet: $e');
+  }
+}
+
+Future<void> _startTrayAndHotkeys(
+  WindowManagerDesktopWindow window,
+  TrayManagerTrayController tray,
+  DesktopHotkeys hotkeys,
+) async {
+  try {
+    await tray.init();
+    // Ohne Tray-Symbol darf Schliessen das Fenster nicht verstecken.
+    window.trayAvailable = tray.isAvailable;
+    await hotkeys.register();
+  } on Object catch (e) {
     debugPrint('Desktop-Extras nicht gestartet: $e');
   }
 }

@@ -248,18 +248,27 @@ class _LoaderGateState extends State<LoaderGate> {
   bool _visible = false;
   bool _fading = false;
 
+  /// False during the cold-start frame: the opaque loader covers the child,
+  /// so the first frame paints only the loader and the child builds in the
+  /// next frame. Keeps the shell's build and layout off the path to the
+  /// first frame.
+  bool _childReady = true;
+
   @override
   void initState() {
     super.initState();
     if (loaderShownThisProcess) return;
     loaderShownThisProcess = true;
     _visible = true;
+    _childReady = false;
     final reveal = pendingWindowReveal;
-    if (reveal == null) {
-      _startTimer();
-    } else {
-      unawaited(reveal.then((_) => _startTimer()));
-    }
+    // The fade starts only once the child has been built behind the loader.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _childReady = true);
+      if (reveal == null) _startTimer();
+    });
+    if (reveal != null) unawaited(reveal.then((_) => _startTimer()));
   }
 
   void _startTimer() {
@@ -296,7 +305,10 @@ class _LoaderGateState extends State<LoaderGate> {
       children: <Widget>[
         ExcludeSemantics(
           excluding: !_fading,
-          child: IgnorePointer(ignoring: !_fading, child: widget.child),
+          child: IgnorePointer(
+            ignoring: !_fading,
+            child: _childReady ? widget.child : const SizedBox.shrink(),
+          ),
         ),
         Positioned.fill(
           child: IgnorePointer(

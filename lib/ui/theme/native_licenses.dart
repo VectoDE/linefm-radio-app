@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 /// Native Bibliotheken der Desktop-Wiedergabe (Windows, Linux) auf der
-/// Lizenzseite (L20). `just_audio_media_kit`/`media_kit` spielen dort ueber
+/// Lizenzseite. `just_audio_media_kit`/`media_kit` spielen dort ueber
 /// libmpv, das FFmpeg, libass und libplacebo nutzt. Die Dart-Pakete meldet
 /// Flutter selbst, diese nativen Teile nicht.
 ///

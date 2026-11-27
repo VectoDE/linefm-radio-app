@@ -142,7 +142,7 @@ class NoopCastService implements CastService {
   Future<void> dispose() async {}
 }
 
-/// Startet das Cast-SDK, erst beim ersten Tippen auf den Cast-Knopf (L4),
+/// Startet das Cast-SDK, erst beim ersten Tippen auf den Cast-Knopf,
 /// nicht beim App-Start: Vorher sendet das SDK nichts an Google. Ohne
 /// Cast-Unterstützung (Web, Desktop, fehlende Google Play Services) bleibt
 /// [castBackend] `null`. Mehrfachaufrufe teilen sich einen Start.

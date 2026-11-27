@@ -21,7 +21,7 @@ final googleAnalyticsEnabledProvider = Provider<bool>(
   (ref) => ref.watch(appConfigProvider).googleAnalyticsConfigured,
 );
 
-/// Einwilligung "Reichweitenmessung mit Google" (nur Web, P31), getrennt von
+/// Einwilligung "Reichweitenmessung mit Google" (nur Web), getrennt von
 /// "Statistik und Fehlerberichte". `null` = nicht konfiguriert oder noch nicht
 /// entschieden. Standard ist abgelehnt: ohne Zustimmung laedt nichts von Google.
 class GoogleConsentNotifier extends Notifier<bool?> {

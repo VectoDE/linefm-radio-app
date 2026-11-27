@@ -96,7 +96,7 @@ Jeder Merge zählt die letzte Zahl hoch. Eine Stufe fällt nie zurück, auch wen
 
 Alpha-, Beta- und RC-Versionen sind GitHub-Vorabversionen und gehen in keinen Store. Erst ab `1.0.0` laden die Store-Abläufe zu Google Play, Snap, Microsoft, Apple und Flathub hoch und die Web-Version wird aktualisiert, soweit eingerichtet. Der Windows-Installer kommt später dazu.
 
-Eine selbst gebaute App (A2, A6) zeigt unter „Über“ statt einer Nummer „Entwicklungsversion“ mit der Kurz-ID des Commits.
+Eine selbst gebaute App (A2) zeigt unter „Über“ statt einer Nummer „Entwicklungsversion“ mit der Kurz-ID des Commits.
 
 ### A5 Die Ergebnisse öffnen und nutzen
 

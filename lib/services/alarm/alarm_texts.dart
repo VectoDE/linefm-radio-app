@@ -3,7 +3,7 @@ import 'package:linefm_radio/l10n/system_l10n.dart';
 
 /// Texte der System-Benachrichtigung des Weckers (Android-Dienst und iOS-
 /// Mitteilung laufen ausserhalb des Widget-Baums, daher ohne BuildContext).
-/// Quelle sind die ARB-Dateien (I05): `alarmNotificationTitle`,
+/// Quelle sind die ARB-Dateien: `alarmNotificationTitle`,
 /// `alarmDismiss`, `alarmSnooze`, `alarmNotificationBody`. Folgt der
 /// Systemsprache: Deutsch, sonst Englisch.
 class AlarmTexts {

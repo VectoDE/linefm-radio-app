@@ -24,7 +24,7 @@ abstract final class PrefsKeys {
   static const String closeToTray = 'linefm-setting-close-to-tray';
   static const String themeMode = 'linefm-setting-theme';
 
-  /// Cover von Apple laden (L5) und Ein-Zeichen-Kuerzel (A11Y-08). Gibt es
+  /// Cover von Apple laden und Ein-Zeichen-Kuerzel. Gibt es
   /// in der Web-App nicht.
   static const String loadArtwork = 'linefm-setting-artwork';
   static const String keyboardShortcuts = 'linefm-setting-shortcuts';
@@ -45,12 +45,12 @@ abstract final class PrefsKeys {
   /// Favoriten-Sender. Gibt es in der Web-App nicht.
   static const String favoriteStations = 'linefm-favorite-stations';
 
-  /// Fenstergroesse/-position und Mini-Fenster (Desktop, P18).
+  /// Fenstergroesse/-position und Mini-Fenster (Desktop).
   static const String desktopWindow = 'linefm-desktop-window';
   static const String desktopMini = 'linefm-desktop-mini';
 
   /// Datenschutz-Praeferenzen, die auch ohne Speicher-Bestaetigung bleiben
-  /// (technisch notwendig, N4): "Cover laden: aus" muss beim naechsten
+  /// (technisch notwendig): "Cover laden: aus" muss beim naechsten
   /// Start gelten, sonst ginge wieder eine Anfrage an Apple raus. Gespeichert
   /// wird nur das "aus"; "an" ist der Standard und entfernt den Eintrag.
   static const List<String> privacyPreferences = <String>[loadArtwork];
@@ -87,7 +87,7 @@ abstract final class PrefsKeys {
 /// * Ohne Speicher-Bestaetigung wird nichts geschrieben, Lesen liefert die
 ///   Standardwerte. Beim Start ohne Bestaetigung werden Altdaten entfernt.
 /// * [clearAll] loescht alle Daten samt Bestaetigung, behaelt aber
-///   "Cover laden: aus" (R3-P03), damit danach keine Anfrage an Apple startet.
+///   "Cover laden: aus", damit danach keine Anfrage an Apple startet.
 /// * Die Telemetrie-Einwilligung zaehlt ebenfalls als Speicherung und folgt
 ///   derselben Regel; ohne Bestaetigung wird die Entscheidung nicht gemerkt.
 /// * Ausnahme: "Cover laden: aus" wird auch ohne Bestaetigung gemerkt

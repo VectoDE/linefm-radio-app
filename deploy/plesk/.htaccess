@@ -17,7 +17,7 @@ FileETag MTime Size
     AddType text/javascript .js .mjs
     AddType application/manifest+json .webmanifest
     AddType application/json .json
-    # App-Links (L3-01): Datei ohne Endung, Apple verlangt application/json.
+    # App-Links: Datei ohne Endung, Apple verlangt application/json.
     <Files "apple-app-site-association">
         ForceType application/json
     </Files>
@@ -48,7 +48,7 @@ FileETag MTime Size
     <If "%{REQUEST_URI} =~ m#^/assets/(AssetManifest[^/]*|FontManifest\.json|NOTICES)$#">
         Header always set Cache-Control "no-cache"
     </If>
-    # Ersatzschriften (L14): versionierte Pfade, unveraenderlich.
+    # Ersatzschriften: versionierte Pfade, unveraenderlich.
     <If "%{REQUEST_URI} =~ m#^/assets/fonts/fallback/#">
         Header always set Cache-Control "public, max-age=31536000, immutable"
     </If>
@@ -71,7 +71,7 @@ FileETag MTime Size
 # alles andere liefert index.html.
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    # Punktdateien und -ordner (.git, .env, .htaccess ...) mit 404 sperren, .well-known bleibt (S3-01).
+    # Punktdateien und -ordner (.git, .env, .htaccess ...) mit 404 sperren, .well-known bleibt.
     RewriteRule (^|/)\.(?!well-known(/|$)) - [R=404,L]
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d

@@ -11,7 +11,7 @@ import 'package:material_ui/material_ui.dart';
 /// Speicher-Hinweis als Banner, nur im Browser (Entscheidung vom 21.11.2026
 /// ersetzt Entscheidung 39). In der App und auf dem Desktop zeigt stattdessen
 /// ein Popup den Hinweis (`StorageNoticeDialog`), das Banner bleibt dort leer.
-/// Sachlicher Wortlaut (L13/C16): was gespeichert wird und wozu.
+/// Sachlicher Wortlaut: was gespeichert wird und wozu.
 ///
 /// Erscheint im Browser, solange die Speicher-Bestaetigung fehlt. "Verstanden"
 /// setzt sie, "Speicher loeschen" in den Einstellungen setzt sie zurueck. Die
@@ -74,7 +74,7 @@ class _NoticeCard extends ConsumerWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 760),
         child: DecoratedBox(
-          // Deckend: Karten und Ticker duerfen nicht durchscheinen (D2).
+          // Deckend: Karten und Ticker duerfen nicht durchscheinen.
           decoration: BoxDecoration(
             color: c.surface,
             border: Border.all(color: c.line),
@@ -108,7 +108,7 @@ class _NoticeCard extends ConsumerWidget {
                 if (box.maxWidth < 520) {
                   // Schmal: Text links, die beiden Knoepfe rechts
                   // untereinander. Das spart gegenueber Text-ueber-Knoepfen
-                  // eine ganze Zeile (U1, A11Y-13).
+                  // eine ganze Zeile.
                   return Row(
                     children: <Widget>[
                       Expanded(

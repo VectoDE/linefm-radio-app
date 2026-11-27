@@ -289,9 +289,7 @@ void main() {
       expect(find.text('Speicher gelöscht.'), findsOneWidget);
     });
 
-    testWidgets('Speicher loeschen behaelt "Cover laden: aus" (R3-P03)', (
-      tester,
-    ) async {
+    testWidgets('Speicher loeschen behaelt "Cover laden: aus"', (tester) async {
       useSize(tester, 420, 2600);
       final host = FeatureHost(
         extra: <Override>[

@@ -205,7 +205,7 @@ bool loaderShownThisProcess = false;
 /// ist aber fuer Bedienung und Screenreader gesperrt, solange der Loader
 /// steht. Ein Neuaufbau im selben Prozess (Warmstart) zeigt keinen Loader.
 ///
-/// Dauer: Web hoechstens 400 ms (P30-03; die alte Web-App hielt 2 s und
+/// Dauer: Web hoechstens 400 ms (die alte Web-App hielt 2 s und
 /// verzoegerte so den ersten Inhalt), nativ 300 ms, weil davor schon der
 /// native Splash steht.
 class LoaderGate extends StatefulWidget {

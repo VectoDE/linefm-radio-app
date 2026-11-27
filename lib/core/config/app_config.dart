@@ -75,7 +75,7 @@ class AppConfig {
   final bool wsEnabled;
   final String gscVerification;
 
-  /// Google Tag Manager (`GTM-...`) bzw. GA4 (`G-...`), nur Web (P31). Geladen
+  /// Google Tag Manager (`GTM-...`) bzw. GA4 (`G-...`), nur Web. Geladen
   /// wird erst nach eigener Einwilligung "Reichweitenmessung mit Google"
   /// (web/analytics.js, Consent Mode v2). Ohne gueltige ID ist alles aus.
   final String gtmId;
@@ -115,7 +115,7 @@ class AppConfig {
   /// Firebase nur dort, wo `LinefmFirebase.supported` es zulaesst (Web,
   /// Android, iOS, macOS). Auf Windows und Linux startet kein Firebase, also
   /// duerfen Einwilligung und Datenschutzerklaerung dort auch keine Google-
-  /// bzw. USA-Angaben machen (R4-S05). Muss mit
+  /// bzw. USA-Angaben machen. Muss mit
   /// `packages/linefm_firebase` gleich bleiben (Test in app_config_test).
   static bool get firebasePlatformSupported =>
       kIsWeb ||

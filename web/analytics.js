@@ -1,4 +1,4 @@
-// Reichweitenmessung mit Google (GA4 / Google Tag Manager), nur Web (P31).
+// Reichweitenmessung mit Google (GA4 / Google Tag Manager), nur Web.
 //
 // Grundsatz: Ohne Einwilligung geht keine einzige Anfrage an Google.
 //  - Beim Laden setzt diese Datei nur den Consent-Mode-v2-Standard "denied" in

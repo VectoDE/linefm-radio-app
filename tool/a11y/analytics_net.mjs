@@ -1,4 +1,4 @@
-// Netzpruefung "Reichweitenmessung mit Google" (P31, Consent Mode v2).
+// Netzpruefung "Reichweitenmessung mit Google" (Consent Mode v2).
 //
 // Prueft im echten Web-Build (nach flutter build web, fetch_font_fallback und
 // Postbuild), dass Google erst nach Zustimmung geladen wird:

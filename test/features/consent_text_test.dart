@@ -16,7 +16,7 @@ void main() {
   const sentry = AppConfig(sentryDsn: 'https://k@s.example/1');
   const firebase = AppConfig(firebaseEnabled: true);
 
-  test('nennt nur die aktiven Anbieter (R3-P05)', () {
+  test('nennt nur die aktiven Anbieter', () {
     final text = telemetryConsentText(de, umami);
     expect(text, contains('Umami'));
     expect(text, isNot(contains('GlitchTip')));
@@ -56,7 +56,7 @@ void main() {
     );
   });
 
-  group('Firebase nur auf unterstuetzten Plattformen (R4-S05)', () {
+  group('Firebase nur auf unterstuetzten Plattformen', () {
     tearDown(() => debugDefaultTargetPlatformOverride = null);
 
     for (final platform in <TargetPlatform>[

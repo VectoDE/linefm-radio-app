@@ -21,7 +21,7 @@ import 'package:linefm_radio/core/clock.dart';
 /// Gleiche URL in Arbeit -> selbes Future (Deduplizierung). Bei
 /// Netzwerkfehlern wird ein vorhandener (auch veralteter) Eintrag geliefert;
 /// er traegt dann den Header [staleHeader]. Jede Anfrage bricht nach
-/// [timeout] ab und zaehlt dann als Netzwerkfehler (S5).
+/// [timeout] ab und zaehlt dann als Netzwerkfehler.
 class HttpCache {
   HttpCache({
     http.Client? client,

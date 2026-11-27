@@ -324,7 +324,7 @@ class FavoritesNotifier extends Notifier<List<Favorite>> {
     );
   }
 
-  /// "Rueckgaengig" nach dem Entfernen (U3): setzt [favorite] wieder an
+  /// "Rueckgaengig" nach dem Entfernen: setzt [favorite] wieder an
   /// [index]. Ist er inzwischen wieder da, bleibt die Liste unveraendert.
   void restore(Favorite favorite, int index) {
     if (FavoritesLogic.contains(state, favorite.key)) return;
@@ -493,7 +493,7 @@ List<Override> productionOverrides({
   }),
   artworkProvider.overrideWith((ref) {
     // Schalter "Cover laden" aus: keine Anfrage an
-    // Apple, nur Cover aus der laut.fm-API, sonst Senderlogo (L5).
+    // Apple, nur Cover aus der laut.fm-API, sonst Senderlogo.
     if (!ref.watch(settingsProvider.select((s) => s.loadArtwork))) {
       return const ApiCoverOnlyArtworkService();
     }
@@ -532,7 +532,7 @@ List<Override> productionOverrides({
   castServiceProvider.overrideWith(createCastService),
 ];
 
-/// Speicherfehler nicht verschlucken (Q-14): loggen; die Daten bleiben im
+/// Speicherfehler nicht verschlucken: loggen; die Daten bleiben im
 /// Speicher der laufenden App und werden beim naechsten Schreiben erneut
 /// gesichert.
 void _logPrefsError(Object error, StackTrace stack) =>

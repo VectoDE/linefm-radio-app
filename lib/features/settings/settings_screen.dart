@@ -42,7 +42,7 @@ class SettingsScreen extends ConsumerWidget {
     final telemetry = ref.watch(telemetryProvider);
     final consent = ref.watch(telemetryConsentProvider);
     // Breite der Inhaltsflaeche, nicht des Fensters: im breiten Layout
-    // stehen links die Navigation und rechts der Player (A11Y-06).
+    // stehen links die Navigation und rechts der Player.
     return LayoutBuilder(
       builder: (context, box) => _list(context, ref, box.maxWidth, <Widget>[
         SectionHeading(l10n.settingsTitle),

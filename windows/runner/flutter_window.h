@@ -11,7 +11,7 @@
 #include "win32_window.h"
 
 // Kennung der WM_COPYDATA-Nachricht, mit der ein zweiter Programmstart seine
-// Kommandozeile an die erste Instanz uebergibt (Single-Instance, P18).
+// Kommandozeile an die erste Instanz uebergibt (Single-Instance).
 constexpr ULONG_PTR kSingleInstanceCopyData = 0x4C46;
 
 // Fallback: reveal the cloaked window this long after the first frame even

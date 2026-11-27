@@ -21,7 +21,7 @@ bool shouldAskTelemetryConsent({
   required bool? decision,
 }) => consentRequired && decision == null;
 
-/// Einwilligungstext aus den aktiven Anbietern (R3-P05): nennt nur die
+/// Einwilligungstext aus den aktiven Anbietern: nennt nur die
 /// Dienste, die in [config] wirklich konfiguriert sind; bei Firebase zusaetzlich
 /// Google als Empfaenger und die USA-Uebermittlung (EU-US Data Privacy
 /// Framework). Absaetze durch Leerzeile getrennt.

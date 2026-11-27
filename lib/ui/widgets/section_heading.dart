@@ -10,7 +10,7 @@ import 'package:material_ui/material_ui.dart';
 /// "Exportieren"). Fuer Screenreader ist das Element als Ueberschrift der
 /// Ebene 1 markiert (Seitentitel, im Web `h1`). Passt das laengste Wort nicht
 /// in die Zeile (z. B. "EINSTELLUNGEN" bei 320 dp), wird die Schrift so weit
-/// verkleinert, dass kein Wort mitten im Wort umbricht (A11Y-06).
+/// verkleinert, dass kein Wort mitten im Wort umbricht.
 class SectionHeading extends StatelessWidget {
   const SectionHeading(
     this.text, {

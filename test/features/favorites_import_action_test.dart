@@ -24,7 +24,7 @@ Favorite _fav(String slug, String artist, String title) => Favorite(
   artist: artist,
 );
 
-/// Q-05: Import-Ablauf um den (gut getesteten) Parser herum: Dialog-Fehler,
+/// Import-Ablauf um den (gut getesteten) Parser herum: Dialog-Fehler,
 /// Groessenlimit, kaputtes UTF-8, Abbruch und Ergebnis-Meldung.
 void main() {
   Future<FeatureHost> run(

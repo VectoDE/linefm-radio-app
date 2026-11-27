@@ -115,20 +115,17 @@ List<NotoFont> getFallbackFontList() => <NotoFont>[
     );
   });
 
-  test(
-    'fehlende OFL.txt bricht vor jedem Download mit Exit 1 ab (R3-P07)',
-    () async {
-      final tmp = Directory.systemTemp.createTempSync('fff');
-      addTearDown(() => tmp.deleteSync(recursive: true));
-      final code = await runCli(<String>[
-        tmp.path,
-        '--license',
-        '${tmp.path}/fehlt/OFL.txt',
-        '--source',
-        'http://127.0.0.1:9/',
-      ]);
-      expect(code, 1);
-      expect(Directory('${tmp.path}/$fallbackSubdir').existsSync(), isFalse);
-    },
-  );
+  test('fehlende OFL.txt bricht vor jedem Download mit Exit 1 ab', () async {
+    final tmp = Directory.systemTemp.createTempSync('fff');
+    addTearDown(() => tmp.deleteSync(recursive: true));
+    final code = await runCli(<String>[
+      tmp.path,
+      '--license',
+      '${tmp.path}/fehlt/OFL.txt',
+      '--source',
+      'http://127.0.0.1:9/',
+    ]);
+    expect(code, 1);
+    expect(Directory('${tmp.path}/$fallbackSubdir').existsSync(), isFalse);
+  });
 }

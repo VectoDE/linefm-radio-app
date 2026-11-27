@@ -15,7 +15,7 @@ enum AutoMenuSection { favoriteStations, stations, recent }
 
 /// Ein Ordner des Auto-Menues mit seinen Sendern. Plattformneutral, damit
 /// Android Auto ([BrowseTree.children]) und CarPlay (Kanal
-/// `de.linefm.app/carplay`, P17) dieselben drei Eintraege zeigen.
+/// `de.linefm.app/carplay`) dieselben drei Eintraege zeigen.
 class AutoMenuFolder {
   const AutoMenuFolder({
     required this.section,

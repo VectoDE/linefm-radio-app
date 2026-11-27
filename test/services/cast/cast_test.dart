@@ -445,7 +445,7 @@ void main() {
       },
     );
 
-    test('mit Backend (Q-02): echter Dienst, Zustand erreicht den Player, '
+    test('mit Backend: echter Dienst, Zustand erreicht den Player, '
         'Sitzung uebergibt den Sender mit Titel', () async {
       final backend = FakeCastBackend();
       castBackend = backend;
@@ -473,7 +473,7 @@ void main() {
     });
   });
 
-  group('Cast erst nach Tippen (L4)', () {
+  group('Cast erst nach Tippen', () {
     final defaultFactory = castBackendFactory;
     tearDown(() {
       castBackend = null;

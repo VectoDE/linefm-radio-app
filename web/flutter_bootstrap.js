@@ -13,7 +13,7 @@ function linefmEvaluateFlutterLoader() {
 (function () {
   // COEP bleibt bewusst aus (Fremdbilder), Skwasm laeuft einthreadig; Warnung daher stumm.
   // Ersatzschriften (fehlende Zeichen, z. B. Emoji oder kyrillische Titel)
-  // nicht von fonts.gstatic.com laden (L14, keine IP-Adresse an Google).
+  // nicht von fonts.gstatic.com laden (keine IP-Adresse an Google).
   // Die App bringt Poppins und Syncopate selbst mit; was dort fehlt, sucht
   // die Engine unter assets/fonts/fallback/ auf dem eigenen Server.
   var config = {
@@ -24,8 +24,7 @@ function linefmEvaluateFlutterLoader() {
 
   // Nach dem Start zeichnet Flutter die Oberflaeche. Die statische Huelle
   // bleibt fuer Crawler im DOM, ist aber fuer Screenreader und Tastatur
-  // weg: kein zweites h1, keine unsichtbaren 0x0-Links im Tab-Weg (A11Y-03,
-  // A11Y-07).
+  // weg: kein zweites h1, keine unsichtbaren 0x0-Links im Tab-Weg.
   function showApp() {
     var shell = document.getElementById('static-shell');
     if (!shell) return;

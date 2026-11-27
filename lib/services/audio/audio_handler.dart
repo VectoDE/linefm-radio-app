@@ -49,7 +49,7 @@ class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   final Duration minConnectDuration;
   final Duration connectTimeout;
 
-  /// Kann von der App-Schicht (P11) gesetzt werden, um `stream_url` aus der
+  /// Kann von der App-Schicht gesetzt werden, um `stream_url` aus der
   /// laut.fm-API zu verwenden.
   StreamUrlResolver streamUrlResolver;
 

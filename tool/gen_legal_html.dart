@@ -25,7 +25,7 @@ import 'dart:io';
 const Set<String> telemetryProviders = <String>{'umami', 'sentry', 'firebase'};
 
 /// Further providers with their own consent that do not fall under
-/// `telemetry`: `ga4` = reach measurement with Google (GTM/GA4, web only, P31).
+/// `telemetry`: `ga4` = reach measurement with Google (GTM/GA4, web only).
 const Set<String> knownProviders = <String>{...telemetryProviders, 'ga4'};
 
 /// Loose placeholder pattern, character for character identical to

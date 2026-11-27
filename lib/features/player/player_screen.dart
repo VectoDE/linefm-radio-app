@@ -55,7 +55,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.macOS);
 
-  /// Sleeptimer direkt aus dem Player (U2): dieselbe Auswahl wie in den
+  /// Sleeptimer direkt aus dem Player: dieselbe Auswahl wie in den
   /// Einstellungen, als Sheet.
   Future<void> _openSleepTimer(BuildContext context) {
     final c = context.linefm;

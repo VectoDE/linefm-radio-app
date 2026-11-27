@@ -126,7 +126,7 @@ class StationsScreen extends ConsumerWidget {
     }
 
     // Favoriten-Sender (Stern) oben als eigene Gruppe, nur wenn welche
-    // gemerkt sind (U4). Die Gesamtliste darunter bleibt vollstaendig.
+    // gemerkt sind. Die Gesamtliste darunter bleibt vollstaendig.
     final hasFavorites = favoriteStations.isNotEmpty;
 
     return RefreshIndicator(

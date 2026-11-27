@@ -13,12 +13,12 @@
 //  5. Remove ballast (source maps, *.symbols, unused engine variants, default Flutter SW)
 //  6. Write asset-manifest.txt with the SHA-256 of all files
 //
-// Beforehand: security.txt without placeholders, fallback fonts including OFL.txt (R3-P07),
+// Beforehand: security.txt without placeholders, fallback fonts including OFL.txt,
 // app links under .well-known/ (assetlinks.json, apple-app-site-association) with
 // values from the environment or configuration: ANDROID_CERT_SHA256 (SHA-256 of the
 // Play signing certificate, several comma-separated) and APPLE_TEAM_ID. Without a value
 // the file is removed from the output (warning, abort with --strict), so that
-// no placeholder goes live (L3-01).
+// no placeholder goes live.
 //
 // Optionen:
 //  --config <file>             Dart define file (default: config/app.json, if present)
@@ -389,7 +389,7 @@ String rewriteBaseUrl(String text, String baseUrl) {
 }
 
 // ---------------------------------------------------------------------------
-// App-Links (.well-known, L3-01)
+// App-Links (.well-known)
 // ---------------------------------------------------------------------------
 
 /// Templates under .well-known/ with their placeholder.
@@ -612,7 +612,7 @@ List<String> runPostbuild(PostbuildOptions o) {
     stderr.writeln('web_postbuild: note: $msg');
   }
 
-  // 0b. Fallback fonts (L14): without Noto files under assets/fonts/fallback/
+  // 0b. Fallback fonts: without Noto files under assets/fonts/fallback/
   // the app shows emoji, Cyrillic and CJK as boxes. Flutter itself only puts
   // Roboto-Regular.ttf there, so only .woff2 files count.
   if (!hasFontFallback(web)) {

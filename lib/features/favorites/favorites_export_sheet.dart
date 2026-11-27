@@ -11,7 +11,7 @@ import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Export-Einstieg: Auswahl CSV oder Text, danach uebergibt der
-/// `ShareService` (P21) die Datei bzw. den Text an Teilen-Dialog, Download oder
+/// `ShareService` die Datei bzw. den Text an Teilen-Dialog, Download oder
 /// Download-Ordner (je Plattform). Meldet `export_favorites`.
 Future<void> startFavoritesExport(BuildContext context, WidgetRef ref) async {
   final favorites = ref.read(favoritesProvider);

@@ -30,7 +30,7 @@ class PlayerStrings {
     this.sleepTimer = 'Sleeptimer',
   });
 
-  /// Knopf "Sleeptimer einstellen" im Player (U2).
+  /// Knopf "Sleeptimer einstellen" im Player.
   final String sleepTimer;
 
   factory PlayerStrings.of(AppLocalizations l10n) => PlayerStrings(

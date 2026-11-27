@@ -1,4 +1,4 @@
-# iOS und macOS: native Teile (P17)
+# iOS und macOS: native Teile
 
 Diese Seite beschreibt den nativen Code der Apple-Plattformen. Veröffentlicht
 wird für Apple vorerst nicht (Entscheidung 21); alles ist so vorbereitet, dass

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 12+ (S10): weder Cloud-Sicherung noch Geraete-Umzug.
+<!-- Android 12+: weder Cloud-Sicherung noch Geraete-Umzug.
      Einwilligung und Speicher-Hinweis gelten je Geraet; Favoriten lassen sich
      ueber den CSV-Export umziehen. Aeltere Versionen: allowBackup="false". -->
 <data-extraction-rules>

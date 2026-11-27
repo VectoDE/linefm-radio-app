@@ -236,7 +236,7 @@ void main() {
     });
   });
 
-  group('Eingecheckte Seiten (N01)', () {
+  group('Eingecheckte Seiten', () {
     // web/impressum und web/datenschutz liegen im Repo, damit lokale Builds
     // und Plesk-Uploads Rechtstexte haben. Sie muessen dem Generator ohne
     // Werte und ohne Telemetrie entsprechen; sonst liefern sie alten Text.
@@ -294,7 +294,7 @@ void main() {
     });
   });
 
-  group('Pflicht-Regeln (R3-P01/P02)', () {
+  group('Pflicht-Regeln', () {
     final Map<String, Object?> registry =
         (jsonDecode(File('assets/legal/placeholders.json').readAsStringSync())
                 as Map<String, Object?>)['placeholders']!
@@ -386,7 +386,7 @@ void main() {
     });
   });
 
-  group('R4-S01/S02/S03', () {
+  group('Platzhalter-Erkennung wie im Store-Check', () {
     test('Muster ist identisch mit legal_store_check.py', () {
       final String py = File('tool/legal_store_check.py').readAsStringSync();
       final String block = RegExp(
@@ -511,7 +511,7 @@ void main() {
       expect(() => parseProviders('umami,matomo'), throwsFormatException);
     });
 
-    test('ga4 ist bekannt, zaehlt aber nicht als telemetry (P31)', () {
+    test('ga4 ist bekannt, zaehlt aber nicht als telemetry', () {
       expect(parseProviders('ga4,umami'), <String>{'ga4', 'umami'});
       expect(requirementMet('telemetry', <String>{'ga4'}), isFalse);
       expect(requirementMet('!telemetry', <String>{'ga4'}), isTrue);

@@ -70,5 +70,5 @@ Future<PlaybackService> initAudio() async {
   return handler;
 }
 
-/// Kanalname der Wiedergabe-Benachrichtigung aus der ARB (I07).
+/// Kanalname der Wiedergabe-Benachrichtigung aus der ARB.
 String _channelName() => systemLocalizations().notificationChannelName;

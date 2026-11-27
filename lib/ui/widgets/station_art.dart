@@ -101,7 +101,7 @@ class StationArt extends StatelessWidget {
       return Image.asset(
         asset,
         fit: BoxFit.cover,
-        // Nur in Anzeigegroesse dekodieren (P30-10): die Logos liegen gross
+        // Nur in Anzeigegroesse dekodieren: die Logos liegen gross
         // vor, in Liste und Ticker reichen 48 dp.
         cacheWidth: cachePx,
         excludeFromSemantics: true,

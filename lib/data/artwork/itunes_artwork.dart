@@ -48,7 +48,7 @@ class NoopArtworkService implements ArtworkService {
 }
 
 /// Ohne iTunes-Suche: nur ein Cover, das die laut.fm-API schon mitliefert
-/// (Einstellung "Cover laden" aus, L5).
+/// (Einstellung "Cover laden" aus).
 class ApiCoverOnlyArtworkService implements ArtworkService {
   const ApiCoverOnlyArtworkService();
 
@@ -81,11 +81,11 @@ class CoverCacheStore {
 ///   Anfragestarts, Prioritaet vor Verlauf; bei 403/429 [penalty] Pause.
 /// - Hat der Track schon ein Cover aus der laut.fm-API, wird es ohne
 ///   Anfrage zurueckgegeben (Rueckfall-Kette Spec 3.3).
-/// - Treffer werden geprueft (D8): Kuenstler und Titel muessen nach
+/// - Treffer werden geprueft: Kuenstler und Titel muessen nach
 ///   [normalize] zum laufenden Titel passen ([matchesTrack]). Sonst gilt die
 ///   Suche als Fehltreffer und die App zeigt das Senderlogo. Die Web-App nahm
 ///   den ersten Treffer ungeprueft (Biene-Maja-Cover zu "Zusammen").
-/// - Jede Anfrage bricht nach [timeout] ab (S5).
+/// - Jede Anfrage bricht nach [timeout] ab.
 class ItunesArtworkService implements ArtworkService {
   ItunesArtworkService({
     http.Client? client,
@@ -141,7 +141,7 @@ class ItunesArtworkService implements ArtworkService {
   /// Anzahl echter Anfragen (Tests/Diagnose).
   int networkRequests = 0;
 
-  /// Version 2: Treffer sind geprueft (D8); ungepruefte Eintraege der
+  /// Version 2: Treffer sind geprueft; ungepruefte Eintraege der
   /// Version 1 werden verworfen.
   static const int _cacheVersion = 2;
 

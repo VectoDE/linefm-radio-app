@@ -132,7 +132,7 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
   final Color onAccent;
 
   /// Schatten unter dem Header (dunkel wie das Web 50 % Schwarz, hell nur
-  /// ein Hauch, sonst liegt ein grauer Balken unter dem Header, D1).
+  /// ein Hauch, sonst liegt ein grauer Balken unter dem Header).
   final Color headerShadow;
 
   /// Schatten unter schwebenden Hinweisen (Speicher-Hinweis).
@@ -224,7 +224,7 @@ abstract final class LinefmSpace {
 }
 
 /// Schriftgroessenskala (modular, Faktor etwa 1,25): 12/14/16/20/25/32.
-/// Untergrenze 12 sp (D7, A11Y-17). `hero` gilt nur fuer die Wortmarke im
+/// Untergrenze 12 sp. `hero` gilt nur fuer die Wortmarke im
 /// Ladebildschirm auf breiten Geraeten.
 abstract final class LinefmType {
   static const double caption = 12;

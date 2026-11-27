@@ -84,7 +84,7 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
-      # S3-04: even on a manual start (workflow_dispatch) the tag must match pubspec.yaml,
+      # Even on a manual start (workflow_dispatch) the tag must match pubspec.yaml,
       # as in the "version" job of release.yml.
       - name: Compare tag and pubspec version
         uses: ./.github/actions/tag-version
@@ -125,7 +125,7 @@ jobs:
       # are checked, using the check script from the checkout of the tag: tags that do not
       # contain the script yet fail here (intended, no upload without a check).
       # The active telemetry providers are derived as in write-config from the same
-      # variables/secrets that build.yml used to build the AAB (R3-P02).
+      # variables/secrets that build.yml used to build the AAB.
       - name: Check legal texts in the AAB
         if: steps.gate.outputs.ready == 'true'
         env:

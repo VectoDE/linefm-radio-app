@@ -43,7 +43,7 @@
 		</dict>
 	</array>
 	<!-- Links (linefm://, spaeter Universal Links) gehen als
-	     Routeninformation an Flutter (DeepLinkObserver, P21). -->
+	     Routeninformation an Flutter (DeepLinkObserver). -->
 	<key>FlutterDeepLinkingEnabled</key>
 	<true/>
 	<!-- Nur HTTPS/TLS des Systems, keine eigene Verschluesselung. -->

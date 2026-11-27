@@ -227,6 +227,18 @@ jobs:
           path: dist
           merge-multiple: true
 
+      # Station list for apps that reload it from the latest release
+      # (STATIONS_URL = .../releases/latest/download/stations.json). Fixed
+      # name without version; checksum, provenance and cosign bundle follow
+      # in the next steps like for every other release file. The YAML source
+      # is validated in CI (tool/check_config.dart); here only the shape.
+      - name: Station list asset
+        run: |
+          set -euo pipefail
+          yq -o=json '.' config/stations.yaml > dist/stations.json
+          jq -e '(.sender | type == "array" and length > 0)' dist/stations.json > /dev/null
+          echo "stations.json: $(jq '.sender | length' dist/stations.json) stations"
+
       # The installer with its own setup UI exists for every desktop OS
       # and is part of every release (checksum, cosign bundle, provenance
       # follow in the next steps like for every other file).

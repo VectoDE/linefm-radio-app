@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data' show BytesBuilder;
 
+import 'package:crypto/crypto.dart' show sha256;
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 import 'package:http/http.dart' as http;
@@ -51,10 +52,15 @@ enum StationsUpdateOutcome {
 /// Sicherheit:
 /// - Nur https, Host exakt der konfigurierte, keine Weiterleitungen (auch
 ///   nicht auf denselben Host; die Datei liegt fest unter der Adresse).
+///   Single exception: a `github.com` release download may redirect once to
+///   the release asset host ([releaseRedirectTarget]).
 /// - Groesse vor (Content-Length) und beim Lesen (gestreamt) begrenzt.
 /// - Nur YAML/JSON/Text (Content-Type), strenges Schema ([parseStationsConfig]).
 /// - Ungueltige oder leere Listen werden nie uebernommen; die bisherige
 ///   Liste bleibt.
+/// - The SHA-256 of the file must match its line in `SHA256SUMS.txt` from
+///   the same directory (for a release: the same release). Missing list,
+///   missing line or mismatch: rejected, the previous list stays.
 /// - Streams laufen immer ueber `stream.laut.fm/<kuerzel>`; die Datei kann
 ///   keine Stream-Adressen setzen.
 ///
@@ -150,20 +156,32 @@ class StationsUpdater {
   }
 
   Future<StationsUpdateOutcome> _refresh(http.Client client, Uri target) async {
-    final request = http.Request('GET', target)
-      ..followRedirects = false
-      ..headers['Accept'] =
-          'application/yaml, application/json;q=0.9, text/plain;q=0.5';
     final etag = _etag;
-    if (_conditional && etag != null) request.headers['If-None-Match'] = etag;
+    http.Request build(Uri uri) {
+      final request = http.Request('GET', uri)
+        ..followRedirects = false
+        ..headers['Accept'] =
+            'application/yaml, application/json;q=0.9, text/plain;q=0.5';
+      if (_conditional && etag != null) {
+        request.headers['If-None-Match'] = etag;
+      }
+      return request;
+    }
 
-    final response = await client.send(request);
+    var response = await client.send(build(target));
+    // A GitHub release download answers with one redirect to the release
+    // asset host. That single hop is the only redirect ever followed.
+    final hop = releaseRedirectTarget(response, target);
+    if (hop != null) {
+      await _discard(response);
+      response = await client.send(build(hop));
+    }
     final status = response.statusCode;
     if (status == 304 && etag != null) {
       await _discard(response);
       return StationsUpdateOutcome.notModified;
     }
-    final reason = rejectReason(response, target);
+    final reason = rejectReason(response, target, requested: hop);
     if (reason != null) {
       await _discard(response);
       logError('Senderliste verworfen: $reason');
@@ -172,6 +190,11 @@ class StationsUpdater {
     final bytes = await readLimited(response.stream, stationsConfigMaxBytes);
     if (bytes == null) {
       logError('Senderliste verworfen: groesser als erlaubt');
+      return StationsUpdateOutcome.rejected;
+    }
+    final checksum = await _verifyChecksum(client, target, bytes);
+    if (checksum != null) {
+      logError('Senderliste verworfen: $checksum');
       return StationsUpdateOutcome.rejected;
     }
     final result = parseStationsConfigBytes(
@@ -200,18 +223,95 @@ class StationsUpdater {
         : StationsUpdateOutcome.unchanged;
   }
 
+  /// Upper bound for SHA256SUMS.txt (one line per release file).
+  @visibleForTesting
+  static const int checksumsMaxBytes = 64 * 1024;
+
+  /// Address of the checksum list next to [target]: same directory, file
+  /// `SHA256SUMS.txt` (for a release download the same release).
+  @visibleForTesting
+  static Uri checksumsUrl(Uri target) {
+    final r = target.resolve('SHA256SUMS.txt');
+    return Uri(
+      scheme: r.scheme,
+      host: r.host,
+      port: r.hasPort ? r.port : null,
+      path: r.path,
+    );
+  }
+
+  /// Fetches SHA256SUMS.txt (same rules as the list itself, including the
+  /// one release redirect, no conditional request) and compares the SHA-256
+  /// of [bytes] with the line for the list's file name. Returns the reason
+  /// for a rejection, or null if the checksum matches.
+  Future<String?> _verifyChecksum(
+    http.Client client,
+    Uri target,
+    List<int> bytes,
+  ) async {
+    final sumsUrl = checksumsUrl(target);
+    http.Request build(Uri uri) => http.Request('GET', uri)
+      ..followRedirects = false
+      ..headers['Accept'] = 'text/plain, application/octet-stream;q=0.5';
+    var response = await client.send(build(sumsUrl));
+    final hop = releaseRedirectTarget(response, sumsUrl);
+    if (hop != null) {
+      await _discard(response);
+      response = await client.send(build(hop));
+    }
+    final reason = rejectReason(response, sumsUrl, requested: hop);
+    if (reason != null) {
+      await _discard(response);
+      return 'Pruefsumme nicht abrufbar ($reason)';
+    }
+    final raw = await readLimited(response.stream, checksumsMaxBytes);
+    if (raw == null) return 'Pruefsummenliste zu gross';
+    final name = target.pathSegments.isEmpty ? '' : target.pathSegments.last;
+    final expected = expectedChecksum(
+      utf8.decode(raw, allowMalformed: true),
+      name,
+    );
+    if (expected == null) return 'keine Pruefsumme fuer $name';
+    final actual = sha256.convert(bytes).toString();
+    return actual == expected ? null : 'Pruefsumme stimmt nicht';
+  }
+
+  /// Hex SHA-256 for [fileName] from `sha256sum` output (`<hex>  <name>` or
+  /// `<hex> *<name>`), lower case; null if missing or malformed.
+  @visibleForTesting
+  static String? expectedChecksum(String sums, String fileName) {
+    if (fileName.isEmpty) return null;
+    final line = RegExp(r'^([0-9a-fA-F]{64}) [ *](.+)$');
+    for (final raw in const LineSplitter().convert(sums)) {
+      final m = line.firstMatch(raw.trimRight());
+      if (m != null && m.group(2) == fileName) return m.group(1)!.toLowerCase();
+    }
+    return null;
+  }
+
   /// Grund zum Verwerfen einer Antwort, sonst null.
   @visibleForTesting
-  static String? rejectReason(http.BaseResponse response, Uri target) {
+  static String? rejectReason(
+    http.BaseResponse response,
+    Uri target, {
+    Uri? requested,
+  }) {
     final status = response.statusCode;
     if (status >= 300 && status < 400) return 'Weiterleitung ($status)';
     if (status != 200) return 'Status $status';
     // Plattformen, die Weiterleitungen selbst folgen (Browser), melden die
     // endgueltige Adresse: sie muss die konfigurierte sein.
+    bool isReleaseHost(Uri uri) =>
+        _isGitHub(target) &&
+        uri.scheme == 'https' &&
+        releaseAssetHosts.contains(uri.host.toLowerCase());
+    var fromReleaseHost = requested != null && isReleaseHost(requested);
     if (response is http.BaseResponseWithUrl) {
       final finalUrl = response.url;
+      final host = finalUrl.host.toLowerCase();
+      fromReleaseHost = isReleaseHost(finalUrl);
       if (finalUrl.scheme != 'https' ||
-          finalUrl.host.toLowerCase() != target.host.toLowerCase()) {
+          (host != target.host.toLowerCase() && !fromReleaseHost)) {
         return 'fremder Host';
       }
     }
@@ -219,9 +319,49 @@ class StationsUpdater {
     if (length != null && length > stationsConfigMaxBytes) return 'zu gross';
     final type = (response.headers['content-type'] ?? '').toLowerCase();
     // YAML (oder JSON als Teilmenge); manche Server liefern text/plain.
-    const allowed = <String>['yaml', 'json', 'text/plain'];
+    // The release asset host serves every asset as octet-stream; the strict
+    // schema check below still applies.
+    final allowed = <String>[
+      'yaml',
+      'json',
+      'text/plain',
+      if (fromReleaseHost) 'application/octet-stream',
+    ];
     if (!allowed.any(type.contains)) return 'kein YAML/JSON ($type)';
     return null;
+  }
+
+  /// Hosts GitHub redirects release downloads to.
+  @visibleForTesting
+  static const Set<String> releaseAssetHosts = <String>{
+    'objects.githubusercontent.com',
+    'release-assets.githubusercontent.com',
+  };
+
+  static bool _isGitHub(Uri target) =>
+      target.host.toLowerCase() == 'github.com';
+
+  /// The one allowed redirect: from a `github.com` release download to the
+  /// release asset host, https only, without credentials or a custom port.
+  /// Returns the next address, otherwise null (the response is then judged
+  /// by [rejectReason], which rejects every other redirect).
+  @visibleForTesting
+  static Uri? releaseRedirectTarget(http.BaseResponse response, Uri target) {
+    const redirects = <int>{301, 302, 303, 307, 308};
+    if (!_isGitHub(target) || !redirects.contains(response.statusCode)) {
+      return null;
+    }
+    final location = response.headers['location'];
+    if (location == null) return null;
+    final next = Uri.tryParse(location.trim());
+    if (next == null ||
+        next.scheme != 'https' ||
+        !releaseAssetHosts.contains(next.host.toLowerCase()) ||
+        next.userInfo.isNotEmpty ||
+        (next.hasPort && next.port != 443)) {
+      return null;
+    }
+    return next;
   }
 
   /// Liest hoechstens [limit] Bytes; mehr bricht ab und liefert null.

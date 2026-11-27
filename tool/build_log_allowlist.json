@@ -122,5 +122,11 @@
     "job": "Build.and.upload.snap",
     "expires": "2027-02-28",
     "reason": "snapcraft warns about license: Proprietary but rejects the lowercase 'proprietary' it suggests when packing (unknown license). The app has no SPDX licence; Proprietary is the only value snapcraft accepts."
+  },
+  {
+    "pattern": "^Warning: Could not fetch system log stream: spawnSync /bin/sh ETIMEDOUT$",
+    "job": "^macOS.(setup.UI|Gatekeeper)",
+    "expires": "2027-02-28",
+    "reason": "Printed by the post step of step-security/harden-runner v2.23.0 on macOS runners (setup UI and Gatekeeper evidence jobs): after the job it dumps the agent's unified log via a spawnSync shell call with a fixed timeout, which can time out on a busy runner. Purely diagnostic output of a third-party action, not of the build; the action documents no input that turns it off."
   }
 ]

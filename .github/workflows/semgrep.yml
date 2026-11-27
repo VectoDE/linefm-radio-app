@@ -103,13 +103,15 @@ jobs:
           set -euo pipefail
           test -s semgrep.sarif || { echo "::error::semgrep.sarif is missing"; exit 1; }
           rules="$(jq '[.runs[].tool.driver.rules[]?] | length' semgrep.sarif)"
-          n="$(jq '[.runs[].results[]] | length' semgrep.sarif)"
+          # In-source suppressions (nosemgrep) stay in the SARIF; they do not count.
+          n="$(jq '[.runs[].results[] | select((.suppressions // []) | length == 0)] | length' semgrep.sarif)"
           {
             echo "### Semgrep CE"
             echo "- Rules: ${rules}, findings: ${n}"
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "$n" != "0" ]; then
             jq -r '.runs[].results[]
+              | select((.suppressions // []) | length == 0)
               | "::error file=\(.locations[0].physicalLocation.artifactLocation.uri),line=\(.locations[0].physicalLocation.region.startLine)::\(.ruleId)"' semgrep.sarif
             exit 1
           fi

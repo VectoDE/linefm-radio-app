@@ -55,6 +55,12 @@ abstract final class PrefsKeys {
   /// wird nur das "aus"; "an" ist der Standard und entfernt den Eintrag.
   static const List<String> privacyPreferences = <String>[loadArtwork];
 
+  /// Explicit user choice that is stored right away, even without the
+  /// storage notice: the app language. Only a non-default value is stored;
+  /// the system language removes the entry. Survives [SharedPrefsStore.open]
+  /// and a revoked confirmation, but not "clear storage".
+  static const List<String> explicitChoices = <String>[language];
+
   /// Alle Daten-Schluessel, also alles ausser der Speicher-Bestaetigung.
   static const List<String> data = <String>[
     favorites,
@@ -93,6 +99,9 @@ abstract final class PrefsKeys {
 /// * Ausnahme: "Cover laden: aus" wird auch ohne Bestaetigung gemerkt
 ///   ([PrefsKeys.privacyPreferences]) und uebersteht [clearAll]. Zurueck auf
 ///   "an" geht es nur ueber den Schalter selbst.
+/// * Ausnahme: die gewaehlte App-Sprache wird sofort und auch ohne
+///   Bestaetigung gespeichert ([PrefsKeys.explicitChoices]), ist aber mit
+///   [clearAll] weg.
 /// * Die Lautstaerke wird nur gelesen und geschrieben, solange
 ///   "Lautstaerke merken" aktiv ist.
 ///
@@ -188,7 +197,10 @@ class SharedPrefsStore implements PrefsStore {
     const defaults = AppSettings();
     if (!_consent) {
       final artwork = _readBool(_prefs, PrefsKeys.loadArtwork);
-      return defaults.copyWith(loadArtwork: artwork ?? defaults.loadArtwork);
+      return defaults.copyWith(
+        loadArtwork: artwork ?? defaults.loadArtwork,
+        language: _readLanguage(),
+      );
     }
     return AppSettings.fromJson(<String, Object?>{
       'marquee': _readBool(_prefs, PrefsKeys.marquee),
@@ -211,6 +223,7 @@ class SharedPrefsStore implements PrefsStore {
             ? _prefs.remove(PrefsKeys.loadArtwork)
             : _prefs.setBool(PrefsKeys.loadArtwork, false),
       );
+      await _writeLanguage(settings.language);
       return;
     }
     await _write(() async {
@@ -224,14 +237,28 @@ class SharedPrefsStore implements PrefsStore {
         PrefsKeys.keyboardShortcuts,
         settings.keyboardShortcuts,
       );
-      await _prefs.setString(PrefsKeys.language, settings.language.name);
       await _prefs.setString(
         PrefsKeys.coverCacheLimit,
         settings.coverCacheLimit.name,
       );
       return true;
     });
+    await _writeLanguage(settings.language);
   }
+
+  AppLanguage _readLanguage() {
+    final stored = _readString(PrefsKeys.language);
+    return AppLanguage.values.firstWhere(
+      (l) => l.name == stored,
+      orElse: () => AppLanguage.system,
+    );
+  }
+
+  Future<void> _writeLanguage(AppLanguage language) => _write(
+    () => language == AppLanguage.system
+        ? _prefs.remove(PrefsKeys.language)
+        : _prefs.setString(PrefsKeys.language, language.name),
+  );
 
   @override
   String? readLastStation() =>
@@ -314,16 +341,17 @@ class SharedPrefsStore implements PrefsStore {
   @override
   Future<void> clearAll() async {
     _consent = false;
-    await _removeData();
+    await _removeData(keepChoices: false);
     await _write(() => _prefs.remove(PrefsKeys.storageConsent));
   }
 
-  Future<void> _removeData() async {
+  Future<void> _removeData({bool keepChoices = true}) async {
     for (final key in PrefsKeys.data) {
       if (PrefsKeys.privacyPreferences.contains(key) &&
           _readBool(_prefs, key) == false) {
         continue;
       }
+      if (keepChoices && PrefsKeys.explicitChoices.contains(key)) continue;
       await _write(() => _prefs.remove(key));
     }
   }

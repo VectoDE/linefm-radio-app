@@ -122,7 +122,7 @@ class PlayerView extends StatelessWidget {
   static const double _chromeHeight = 330;
 
   /// Smallest cover the full-screen player shrinks to; below that it scrolls.
-  static const double _minCover = 140;
+  static const double _minCover = 120;
 
   @override
   Widget build(BuildContext context) {

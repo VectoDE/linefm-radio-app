@@ -260,7 +260,7 @@ void main() {
         await tester.tap(find.text('Deutsch'));
         await settleApp(tester);
         expect(
-          find.descendant(of: rail, matching: find.text('EINSTELLUNGEN')),
+          find.descendant(of: rail, matching: find.text('FAVORITEN')),
           findsOneWidget,
         );
         expect(tester.takeException(), isNull);

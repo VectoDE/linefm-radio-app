@@ -152,7 +152,7 @@ void main() {
       expect(find.bySemanticsLabel('Stream starten'), findsOneWidget);
       expect(find.bySemanticsLabel('Song merken'), findsOneWidget);
       expect(find.bySemanticsLabel('Zufälligen Sender abspielen'), findsOne);
-      expect(find.bySemanticsLabel('Song öffnen in …'), findsOneWidget);
+      expect(find.bySemanticsLabel('Song öffnen'), findsOneWidget);
       expect(find.bySemanticsLabel('Song teilen'), findsOneWidget);
     });
 
@@ -267,7 +267,7 @@ void main() {
       expect(h.share.shared, <Track>[_track]);
       expect(h.hub.names, contains('share_song'));
 
-      await tester.tap(find.bySemanticsLabel('Song öffnen in …'));
+      await tester.tap(find.bySemanticsLabel('Song öffnen'));
       await tester.pumpAndSettle();
       expect(find.text('Spotify'), findsOneWidget);
       expect(find.text('YouTube Music'), findsOneWidget);
@@ -321,7 +321,7 @@ void main() {
         'Zufälligen Sender abspielen',
         'Stream starten',
         'Song merken',
-        'Song öffnen in …',
+        'Song öffnen',
         'Song teilen',
       ]) {
         final data = tester

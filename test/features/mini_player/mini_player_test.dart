@@ -8,6 +8,7 @@ import 'package:linefm_radio/domain/sleep_timer/sleep_timer_logic.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/features/mini_player/mini_player.dart';
 import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
+import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/volume_steps.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -40,6 +41,26 @@ class _FakeSleepTimer extends NoopSleepTimerService {
 }
 
 void main() {
+  testWidgets('Hell-Theme: Grundflaeche aus miniPlayerBg, nicht dunkel', (
+    tester,
+  ) async {
+    setSize(tester, 390);
+    final h = Harness(brightness: Brightness.light);
+    addTearDown(h.container.dispose);
+    await tester.pumpWidget(slotHost(h, const MiniPlayer()));
+    await settle(tester);
+
+    final base = tester
+        .widgetList<ColoredBox>(
+          find.descendant(
+            of: find.byType(MiniPlayer),
+            matching: find.byType(ColoredBox),
+          ),
+        )
+        .map((b) => b.color);
+    expect(base, contains(LinefmColors.light.miniPlayerBg));
+  });
+
   testWidgets('zeigt Titel, Kuenstler; Play startet, Stop stoppt, Ereignisse', (
     tester,
   ) async {

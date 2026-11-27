@@ -108,7 +108,7 @@ ThemeData buildLinefmTheme(Brightness brightness) {
       ),
       iconTheme: WidgetStateProperty.resolveWith<IconThemeData>(
         (states) => IconThemeData(
-          size: 20,
+          size: LinefmMetrics.navIcon,
           color: states.contains(WidgetState.selected)
               ? tokens.accent
               : tokens.muted,

@@ -320,6 +320,17 @@ void main() {
       expect(ctx.telemetry.screens, <String>['favorites']);
     });
 
+    testWidgets('Leerzustand fuehrt mit "Sender entdecken" zu den Sendern', (
+      tester,
+    ) async {
+      final ctx = await _pump(tester, const FavoritesScreen());
+      final action = find.widgetWithText(OutlinedButton, 'Sender entdecken');
+      expect(action, findsOneWidget);
+      await tester.tap(action);
+      await _settle(tester);
+      expect(ctx.container.read(navigationProvider), AppScreen.stations);
+    });
+
     testWidgets('Liste, Entfernen mit Papierkorb, Ereignis', (tester) async {
       final ctx = await _pump(
         tester,

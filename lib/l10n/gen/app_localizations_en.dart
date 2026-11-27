@@ -206,7 +206,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trackLoading => 'Loading track …';
 
   @override
-  String get playerOpenSongIn => 'Open song in …';
+  String get playerOpenSongIn => 'Open song';
 
   @override
   String get playerShareSong => 'Share song';
@@ -250,6 +250,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get favoritesEmpty => 'No favorites saved yet.';
+
+  @override
+  String get favoritesDiscover => 'Discover stations';
 
   @override
   String favoritesRemove(String title) {

@@ -205,7 +205,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trackLoading => 'Titel wird geladen …';
 
   @override
-  String get playerOpenSongIn => 'Song öffnen in …';
+  String get playerOpenSongIn => 'Song öffnen';
 
   @override
   String get playerShareSong => 'Song teilen';
@@ -249,6 +249,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get favoritesEmpty => 'Noch keine Favoriten gespeichert.';
+
+  @override
+  String get favoritesDiscover => 'Sender entdecken';
 
   @override
   String favoritesRemove(String title) {

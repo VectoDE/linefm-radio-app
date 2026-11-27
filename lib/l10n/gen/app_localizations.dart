@@ -431,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @playerOpenSongIn.
   ///
   /// In de, this message translates to:
-  /// **'Song öffnen in …'**
+  /// **'Song öffnen'**
   String get playerOpenSongIn;
 
   /// No description provided for @playerShareSong.
@@ -505,6 +505,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Noch keine Favoriten gespeichert.'**
   String get favoritesEmpty;
+
+  /// No description provided for @favoritesDiscover.
+  ///
+  /// In de, this message translates to:
+  /// **'Sender entdecken'**
+  String get favoritesDiscover;
 
   /// No description provided for @favoritesRemove.
   ///

@@ -1,8 +1,8 @@
 @Tags(<String>['golden'])
 library;
 
-// Bildvergleich des App-Rahmens (Header mit Favoriten-Badge, Navigation,
-// Mini-Player) und der Einstellungen in Dark und Hell. Referenzbilder
+// Bildvergleich des App-Rahmens (Header mit Zahnrad, Navigation mit
+// Favoriten-Zaehler, Mini-Player) und der Einstellungen in Dark und Hell. Referenzbilder
 // entstehen auf dem CI-Runner, siehe docs/ENTWICKLUNG.md ("Goldens
 // aktualisieren").
 import 'package:flutter_test/flutter_test.dart';
@@ -73,6 +73,26 @@ void main() {
         await settleApp(tester);
         await settleImages(tester);
         await _matches('shell_settings_390', brightness);
+        await disposeApp(tester, host);
+      });
+
+      testWidgets('App-Rahmen Handy: Favoriten aktiv, Englisch', (
+        tester,
+      ) async {
+        ignoreDelegateWarning();
+        useGoldenSize(tester, const Size(390, 844));
+        final host = _host(brightness);
+        await pumpApp(
+          tester,
+          host,
+          uri: Uri.parse('https://app.linefm.de/?lang=en'),
+        );
+        host.container
+            .read(navigationProvider.notifier)
+            .go(AppScreen.favorites);
+        await settleApp(tester);
+        await settleImages(tester);
+        await _matches('shell_favorites_390_en', brightness);
         await disposeApp(tester, host);
       });
     });

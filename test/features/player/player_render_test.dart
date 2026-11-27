@@ -11,6 +11,7 @@ import 'package:linefm_radio/features/player/player_strings.dart';
 import 'package:linefm_radio/features/player/player_view.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
+import 'package:linefm_radio/ui/widgets/cover_image.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Rendert den Player in mehreren Groessen nach `build/p13_screens/*.png`
@@ -234,4 +235,43 @@ void main() {
       });
     });
   }
+
+  testWidgets('Covergroesse haengt nur von der Panelbreite ab', (tester) async {
+    Future<double> coverAt(Size size) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildLinefmTheme(Brightness.dark),
+          locale: const Locale('de'),
+          localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+            AppLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => PlayerView(
+              data: PlayerViewData(station: main, track: _hype),
+              strings: PlayerStrings.of(AppLocalizations.of(context)),
+              embedded: true,
+              onTogglePlayback: () {},
+              onShuffle: () {},
+              onToggleFavorite: () {},
+              onShare: () {},
+              onOpenMusicLinks: () {},
+              onNextStation: () {},
+              onPreviousStation: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return tester.widget<CoverImage>(find.byType(CoverImage)).size;
+    }
+
+    addTearDown(tester.view.reset);
+    final tall = await coverAt(const Size(420, 1000));
+    final short = await coverAt(const Size(420, 640));
+    expect(short, tall);
+  });
 }

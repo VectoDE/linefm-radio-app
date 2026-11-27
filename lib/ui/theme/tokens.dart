@@ -252,9 +252,6 @@ abstract final class LinefmPalette {
   /// Reines Schwarz nur als Zielwert beim Abdunkeln von Senderfarben.
   static const Color black = Color(0xFF000000);
 
-  /// Unterlage des Mini-Players unter der Senderfarbe.
-  static const Color miniPlayerBase = Color(0xFF1B1D2B);
-
   /// Endfarbe des Verlaufs hinter dem Senderlogo.
   static const Color artGradientEnd = Color(0xFF171929);
 
@@ -291,11 +288,23 @@ abstract final class LinefmMetrics {
   /// Kleinste Tippflaeche (Material 48 dp, WCAG 2.5.8 verlangt mindestens 24).
   static const double minTarget = 48;
 
-  /// Hoehe der Bottom-Navigation.
-  static const double navHeight = 69;
+  /// Hoehe der Bottom-Navigation (8-dp-Raster), in allen Sprachen gleich.
+  static const double navHeight = 72;
+
+  /// Icongroesse in Bottom-Navigation und Seitenleiste.
+  static const double navIcon = 20;
+
+  /// Aktiv-Indikator (Pill hinter dem Icon) der Bottom-Navigation, gleiche
+  /// Form wie in der Seitenleiste.
+  static const double navIndicatorWidth = 56;
+  static const double navIndicatorHeight = 32;
 
   /// Hoehe des Headers.
   static const double headerHeight = 80;
+
+  /// Abstand der Seitenleiste nach oben: Die Mitte des ersten Icons liegt
+  /// auf der Mittellinie des Headers ([headerHeight] / 2).
+  static const double railTopInset = 16;
 
   /// Feste Breite der seitlichen Navigation (NavigationRail) in allen
   /// Sprachen. Vorher richtete sich die Leiste nach der laengsten

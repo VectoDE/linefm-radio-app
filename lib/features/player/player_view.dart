@@ -136,10 +136,10 @@ class PlayerView extends StatelessWidget {
         final height = constraints.maxHeight;
         final gutter = (width * 0.06).clamp(22.0, 88.0);
         final short = height < 760;
-        final roomy = width >= 600 && height >= 800;
-        final coverMax = roomy ? 380.0 : (short ? 250.0 : 310.0);
-        final coverFactor = short ? 0.58 : 0.68;
-        final coverSize = math.min(width * coverFactor, coverMax);
+        // Cover size depends on the panel width only: same width, same
+        // cover, whatever page is open next to it.
+        final coverMax = width >= 600 ? 380.0 : 310.0;
+        final coverSize = math.min(width * 0.68, coverMax);
         final radius = width < 600
             ? LinefmMetrics.radiusCoverCompact
             : LinefmMetrics.radiusCover;

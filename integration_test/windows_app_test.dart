@@ -19,6 +19,7 @@ import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:linefm_radio/app/app.dart';
 import 'package:linefm_radio/app/providers.dart';
@@ -193,12 +194,10 @@ void main() {
       final world = _World(settings: _settings(AppLanguage.de));
       await _pumpWorld(tester, world);
 
-      // Einstellungen ueber die Rail oeffnen.
+      // Einstellungen ueber das Zahnrad im Header oeffnen (nicht in der Rail).
       final rail = find.byKey(const ValueKey<String>('shell-rail'));
       expect(rail, findsOneWidget);
-      await tester.tap(
-        find.descendant(of: rail, matching: find.text('EINSTELLUNGEN')),
-      );
+      await tester.tap(find.byIcon(FontAwesomeIcons.gear.data));
       await _pumpFor(tester, const Duration(milliseconds: 600));
       await _reveal(tester, find.text('Sprache'));
       expect(find.text('Sprache'), findsOneWidget);

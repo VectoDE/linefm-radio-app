@@ -19,6 +19,7 @@ class MarqueeText extends StatelessWidget {
     this.textAlign = TextAlign.start,
     this.loopDuration = LinefmMetrics.marqueeLoop,
     this.gap = LinefmMetrics.marqueeGap,
+    this.bandInset = 0,
   });
 
   final String text;
@@ -32,6 +33,11 @@ class MarqueeText extends StatelessWidget {
 
   final Duration loopDuration;
   final double gap;
+
+  /// Seitlicher Innenabstand nur fuer das laufende Band: Es blendet dann
+  /// innerhalb dieses Abstands aus statt an der Kante des Elternelements.
+  /// Text, der passt, nutzt weiter die volle Breite.
+  final double bandInset;
 
   @override
   Widget build(BuildContext context) {
@@ -64,14 +70,17 @@ class MarqueeText extends StatelessWidget {
         return Semantics(
           label: text,
           excludeSemantics: true,
-          child: SizedBox(
-            height: height,
-            child: _Band(
-              text: text,
-              style: style,
-              cycle: textWidth + gap,
-              gap: gap,
-              duration: loopDuration,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: bandInset),
+            child: SizedBox(
+              height: height,
+              child: _Band(
+                text: text,
+                style: style,
+                cycle: textWidth + gap,
+                gap: gap,
+                duration: loopDuration,
+              ),
             ),
           ),
         );

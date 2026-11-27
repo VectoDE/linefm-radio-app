@@ -47,6 +47,9 @@ dependencies:
   # Konfigurationsdateien in config/ sind YAML mit Kommentaren.
   # Stand schon transitiv im Lock (3.1.4), offizielles Dart-Paket.
   yaml: ^3.1.3
+  # SHA-256 check of the reloaded station list against SHA256SUMS.txt.
+  # Already transitive in the lock (3.0.8); official Dart package.
+  crypto: ^3.0.6
   # On-device cover cache folder (getApplicationCacheDirectory). Already
   # transitive via shared_preferences; official flutter.dev package.
   path_provider: ^2.1.5
@@ -84,6 +87,8 @@ flutter:
     # Die Schriftdateien selbst kommen ueber "fonts:".
     - assets/fonts/OFL.txt
     - assets/fonts/LICENSE-Syncopate-Apache2.txt
+    # LGPL/GPL texts and source notice for libmpv/FFmpeg (registerNativeLicenses).
+    - assets/licenses/
     # assets/branding/ wird zur Laufzeit nicht gebraucht (Icons entstehen beim
     # Build, das RadioGruppe-Logo laedt von radiogruppe.de, Entscheidung 47).
   fonts:

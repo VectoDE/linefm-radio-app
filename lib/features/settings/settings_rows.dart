@@ -18,6 +18,36 @@ class _ChoiceRow<T> extends StatelessWidget {
   final T selected;
   final ValueChanged<T> onChanged;
 
+  /// Space a segment needs besides its label: horizontal padding (2 x 12),
+  /// icon (18) with gap (8) and the border.
+  static const double _segmentChrome = 52;
+
+  /// True if every label fits on one line in an equal share of [width].
+  /// Otherwise the segments stack, so no label ever breaks inside a word
+  /// (long words like "Systemsprache", large text scale, narrow screens).
+  bool _segmentsFitInline(BuildContext context, double width) {
+    if (segments.isEmpty) return true;
+    final share = width / segments.length - _segmentChrome;
+    if (share <= 0) return false;
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    for (final s in segments) {
+      final label = s.label;
+      final text = label is Text ? label.data : null;
+      if (text == null) continue;
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: LinefmText.listMeta),
+        textDirection: direction,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      final needed = painter.width;
+      painter.dispose();
+      if (needed > share) return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.linefm;
@@ -53,11 +83,9 @@ class _ChoiceRow<T> extends StatelessWidget {
               builder: (context, box) => SizedBox(
                 width: double.infinity,
                 child: SegmentedButton<T>(
-                  direction:
-                      box.maxWidth <
-                          330 * MediaQuery.textScalerOf(context).scale(1)
-                      ? Axis.vertical
-                      : Axis.horizontal,
+                  direction: _segmentsFitInline(context, box.maxWidth)
+                      ? Axis.horizontal
+                      : Axis.vertical,
                   showSelectedIcon: false,
                   style: SegmentedButton.styleFrom(
                     foregroundColor: c.text,

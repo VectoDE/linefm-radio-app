@@ -16,7 +16,10 @@ function linefmEvaluateFlutterLoader() {
   // nicht von fonts.gstatic.com laden (keine IP-Adresse an Google).
   // Die App bringt Poppins und Syncopate selbst mit; was dort fehlt, sucht
   // die Engine unter assets/fonts/fallback/ auf dem eigenen Server.
+  // Nonce for the style elements the engine creates (CSP style-src); the
+  // postbuild replaces the placeholder with a random value per build.
   var config = {
+    nonce: '__CSP_STYLE_NONCE__',
     suppressMultithreadingWarning: true,
     fontFallbackBaseUrl: 'assets/fonts/fallback/',
   };
@@ -28,9 +31,9 @@ function linefmEvaluateFlutterLoader() {
   function showApp() {
     var shell = document.getElementById('static-shell');
     if (!shell) return;
-    // Fade like the in-app loader (LoaderGate, 350 ms), then take it out.
+    // Fade like the in-app loader (LoaderGate, 150 ms), then take it out.
     shell.classList.add('leaving');
-    setTimeout(function () { shell.hidden = true; }, 350);
+    setTimeout(function () { shell.hidden = true; }, 150);
     shell.setAttribute('aria-hidden', 'true');
     shell.setAttribute('inert', '');
   }

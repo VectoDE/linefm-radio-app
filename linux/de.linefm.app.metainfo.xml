@@ -25,12 +25,12 @@
   <description>
     <p>Listen to the LINEFM stations live: LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM and FobFM.</p>
     <p>See the current song with cover, browse the recent history and save your favorites. The tray icon keeps the radio running in the background, a mini player stays on top of other windows, and media keys and global shortcuts control playback.</p>
-    <p>LineFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).</p>
+    <p>LINEFM is an offering of RadioGruppe Deutschland on behalf of the LINEFM Group. LineFM Studios is owned by Julian Gebauer. Developed by Tim Hauke (VectoDE).</p>
   </description>
   <description xml:lang="de">
     <p>Höre die LINEFM-Sender live: LineFM +MAIN, +RAP, +GAMING, +LOFI, Radio3FM und FobFM.</p>
     <p>Die App zeigt den aktuellen Song mit Cover, den Verlauf und deine Favoriten. Das Tray-Symbol hält das Radio im Hintergrund am Laufen, ein Mini-Player bleibt über anderen Fenstern, und Medientasten sowie globale Tastenkürzel steuern die Wiedergabe.</p>
-    <p>LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Entwickelt von Tim Hauke (VectoDE).</p>
+    <p>LINEFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Entwickelt von Tim Hauke (VectoDE).</p>
   </description>
   <launchable type="desktop-id">de.linefm.app.desktop</launchable>
   <provides>
@@ -58,8 +58,8 @@
     <display_length compare="ge">360</display_length>
   </requires>
   <!-- OARS 1.1: reines Live-Radio ohne Chat, Kauf oder Standort. Die Sender
-       (u. a. +RAP) können Lieder mit Kraftausdrücken spielen. TODO(Inhaber):
-       Einstufung mit https://hughsie.github.io/oars/generate.html bestätigen. -->
+       (u. a. +RAP) können Lieder mit Kraftausdrücken spielen. Entscheidung
+       des Inhabers: 13+, language-profanity moderate. -->
   <content_rating type="oars-1.1">
     <content_attribute id="language-profanity">moderate</content_attribute>
   </content_rating>

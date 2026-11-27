@@ -91,8 +91,32 @@ void main() {
       expect(find.text('App'), findsOneWidget);
     });
 
-    test('Dauer: nativ kuerzer als Web', () {
-      expect(LoaderGate.nativeMinDuration < LoaderGate.webMinDuration, isTrue);
+    test('no fixed minimum time, short fade', () {
+      expect(const LoaderGate(child: SizedBox()).minDuration, Duration.zero);
+      expect(LoaderGate.fadeDuration, const Duration(milliseconds: 150));
+    });
+
+    testWidgets('default gate fades out right after the first frame', (
+      tester,
+    ) async {
+      loaderShownThisProcess = false;
+      await tester.pumpWidget(
+        FeatureHost().app(
+          const LoaderGate(child: Text('App')),
+          scaffold: false,
+        ),
+      );
+      expect(find.byType(AppLoader), findsOneWidget);
+      await tester.pump();
+      await tester.pump(LoaderGate.fadeDuration);
+      await tester.pump();
+      expect(find.byType(AppLoader), findsNothing);
+      expect(
+        find.text('App'),
+        findsOneWidget,
+      ); // The dot animation is gone with the loader: no ticker left when idle.
+      expect(tester.binding.transientCallbackCount, 0);
+      expect(tester.binding.hasScheduledFrame, isFalse);
     });
   });
 

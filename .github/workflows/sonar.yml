@@ -1,0 +1,92 @@
+name: SonarCloud
+
+# SonarCloud (free plan for public repositories). Runs when the secret
+# SONAR_TOKEN exists. Without it (not yet created, or change proposals from
+# forks, which get no secrets) the job skips the analysis and says so with a
+# notice, not a warning. Project settings: sonar-project.properties.
+# SonarCloud analyzes no Dart; flutter analyze in ci.yml covers it.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 5 * * 5"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: sonar-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  scan:
+    name: SonarCloud scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Check token
+        id: token
+        run: |
+          set -euo pipefail
+          if [ -n "$SONAR_TOKEN" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=SonarCloud skipped::SONAR_TOKEN is not available (secret not created yet, or a run from a fork). No analysis."
+            echo "### SonarCloud" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Skipped: no SONAR_TOKEN in this run." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Checkout
+        if: steps.token.outputs.present == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # Sonar needs the full history for blame and new-code detection
+          persist-credentials: false
+
+      - name: SonarCloud scan
+        if: steps.token.outputs.present == 'true'
+        uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65 # v8.4.1
+        with:
+          args: -Dsonar.qualitygate.wait=true
+
+  # Zero-warning rule: any warning or error in a job log or a check-run
+  # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented upstream exceptions, each with an expiry date.
+  log-gate:
+    name: Log gate
+    needs: [scan]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan job logs and annotations
+        uses: ./.github/actions/log-gate
+        with:
+          job-name: Log gate
+          token: ${{ github.token }}

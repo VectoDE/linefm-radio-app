@@ -2,10 +2,11 @@
   "version": 1,
   "lang": "en",
   "title": "Imprint",
-  "updated": "2026-11-19",
+  "updated": "2026-11-27",
   "reviewNote": "DRAFT. A lawyer must review this and the operator data must be filled in before publication. Sources: Section 5 DDG, Section 18(2) MStV, Section 27a UStG. The German version is the legally binding one.",
   "blocks": [
     {"type": "h1", "text": "Imprint"},
+    {"type": "p", "text": "DRAFT: This imprint has not yet been reviewed by a lawyer and may still change."},
     {"type": "p", "text": "Information pursuant to Section 5 of the German Digital Services Act (DDG)."},
     {"type": "h2", "text": "Provider"},
     {"type": "p", "text": "{{BETREIBER_NAME}}\n{{BETREIBER_RECHTSFORM}}\n{{BETREIBER_STRASSE}}\n{{BETREIBER_PLZ_ORT}}"},

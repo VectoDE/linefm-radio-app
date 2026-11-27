@@ -78,16 +78,16 @@ Die App nutzt Pfad-URLs. Alle Pfade ohne Dateiendung liefern `index.html`. Pfade
 Die CSP erlaubt nur die eigene Herkunft, dazu gezielt:
 
 - Skripte: `'self'` und `'wasm-unsafe-eval'` (nötig, damit der Browser das Wasm-Modul kompiliert). Kein `unsafe-inline`, kein `unsafe-eval`. Dazu `https://www.gstatic.com` für Google Cast: `cast.js` lädt das Cast-Skript von dort erst, wenn jemand der Übertragung zugestimmt hat.
-- Stile: `'self'` und `'unsafe-inline'`. **Dokumentierte Ausnahme:** Die Flutter-Engine setzt zur Laufzeit Inline-Stile (`style`-Attribute an `flt-*`-Elementen), und die statische Startseite bringt ein eigenes `<style>`. Beides lässt sich ohne Nonce oder Hash nicht erlauben, und ein Nonce pro Antwort geht bei statischem Hosting nicht. Das Risiko ist begrenzt, weil `script-src` kein `unsafe-inline` hat: Wer Stile einschleust, führt dadurch keinen Code aus. Wird die Ausnahme eng, wäre der Weg ein Hash für das Start-`<style>` und, sobald die Engine es erlaubt, der Verzicht auf `unsafe-inline`. Vor jedem Flutter-Update neu prüfen.
+- Stile: `'self'`, SHA-256-Hashes und eine Nonce, kein `unsafe-inline`. In den Vorlagen unter `deploy/` steht noch `'unsafe-inline'`; `tool/web_postbuild.dart` ersetzt es beim Bau. Die `<style>`-Blöcke der fertigen `index.html` (Startseite, `<noscript>`) bekommen je einen Hash. Die Flutter-Engine legt zur Laufzeit zwei `<style>`-Elemente mit Inhalt an (`flt-internals-stylesheet`, `flt-text-editing-stylesheet`), deren Text je Browser verschieden ist; sie tragen die Nonce aus `config.nonce` in `web/flutter_bootstrap.js`. Die Nonce erzeugt der Bau zufällig (128 Bit), sie gilt für den ganzen Build und nicht je Antwort, weil das Hosting statisch ist. Grenze: Die Nonce steht öffentlich in `flutter_bootstrap.js`. Wer HTML einschleusen kann, könnte damit Stile einschleusen, aber keine Skripte (`script-src` ohne Nonce und ohne `unsafe-inline`). Geprüft lokal mit Chromium (Playwright): keine CSP-Meldung, App startet. Vor jedem Flutter-Update erneut prüfen.
 - Bilder und Abrufe: `api.laut.fm` (auch `wss:`), `itunes.apple.com`, `*.mzstatic.com` (Cover), `cdn.linefm.de` (Senderlogos), `assets.laut.fm`, `radiogruppe.de` (RadioGruppe-Logo).
 - Audio: `*.laut.fm` (Streams laufen über `<sender>.stream.laut.fm`).
 - Zusätzlich je nach Konfiguration die Telemetrie-Domains.
 
 Bewusste Entscheidungen:
 
-- **Kein COEP (`Cross-Origin-Embedder-Policy`).** Mit `require-corp` bräuchten Cover und Logos von Fremdservern CORP-Header. Folge: Skwasm läuft einthreadig. Das ist für diese App unproblematisch.
-- **HSTS mit `preload`.** Der Header allein trägt die Domain nicht in die Preload-Liste ein. Eine Anmeldung auf hstspreload.org ist ein eigener Schritt und betrifft `linefm.de` samt allen Subdomains. Das entscheidet der Betreiber der Hauptdomain.
-- **`interest-cohort` fehlt in der Permissions-Policy**, weil Chrome das Feature nicht mehr kennt und dafür eine Konsolenwarnung ausgibt.
+- Kein COEP (`Cross-Origin-Embedder-Policy`). Mit `require-corp` bräuchten Cover und Logos von Fremdservern CORP-Header. Folge: Skwasm läuft einthreadig. Das ist für diese App unproblematisch.
+- HSTS mit `preload`. Der Header allein trägt die Domain nicht in die Preload-Liste ein. Eine Anmeldung auf hstspreload.org ist ein eigener Schritt und betrifft `linefm.de` samt allen Subdomains. Das entscheidet der Betreiber der Hauptdomain.
+- `interest-cohort` fehlt in der Permissions-Policy, weil Chrome das Feature nicht mehr kennt und dafür eine Konsolenwarnung ausgibt.
 
 ## Automatische Prüfung in der CI
 

@@ -1,13 +1,16 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 /// Native Bibliotheken der Desktop-Wiedergabe (Windows, Linux) auf der
 /// Lizenzseite. `just_audio_media_kit`/`media_kit` spielen dort ueber
 /// libmpv, das FFmpeg, libass und libplacebo nutzt. Die Dart-Pakete meldet
 /// Flutter selbst, diese nativen Teile nicht.
 ///
-/// Angaben nach `docs/LIZENZEN-DRITTE.md` (Stand 19.11.2026). Welche
-/// Lizenzvariante der jeweilige libmpv-Build hat (GPL oder LGPL), haengt vom
-/// Build ab und ist dort als offen vermerkt; der Text sagt das ehrlich.
+/// Angaben nach `docs/LIZENZEN-DRITTE.md` (Stand 27.11.2026): Windows,
+/// Flatpak und Snap liefern LGPL-Builds (mpv mit `-Dgpl=false`, FFmpeg ohne
+/// `--enable-gpl`). Die vollstaendigen Texte der LGPL 3 und GPL 3 sowie der
+/// Quellenhinweis liegen unter [nativeLicenseAssets] und erscheinen ebenfalls
+/// auf der Lizenzseite.
 /// Die Bibliotheken liegen als eigene Dateien (.so/.dll) bei und lassen sich
 /// austauschen.
 void registerNativeLicenses({TargetPlatform? platform, bool web = kIsWeb}) {
@@ -22,10 +25,25 @@ void registerNativeLicenses({TargetPlatform? platform, bool web = kIsWeb}) {
     for (final lib in nativeLibraries) {
       yield LicenseEntryWithLineBreaks(<String>[lib.name], lib.notice);
     }
+    const packages = <String>['libmpv', 'FFmpeg'];
+    for (final asset in nativeLicenseAssets) {
+      yield LicenseEntryWithLineBreaks(
+        packages,
+        await rootBundle.loadString(asset),
+      );
+    }
   });
 }
 
 bool _registered = false;
+
+/// License texts and source notice shipped for libmpv/FFmpeg. Also installed
+/// as files next to the Windows executable and in the installer.
+const List<String> nativeLicenseAssets = <String>[
+  'assets/licenses/NATIVE-LIBRARIES.txt',
+  'assets/licenses/LGPL-3.0.txt',
+  'assets/licenses/GPL-3.0.txt',
+];
 
 /// Eintrag fuer eine native Bibliothek.
 @immutable
@@ -49,15 +67,16 @@ class NativeLibrary {
 const List<NativeLibrary> nativeLibraries = <NativeLibrary>[
   NativeLibrary(
     'libmpv',
-    'GPL-2.0-or-later oder LGPL-2.1-or-later, je nach Build '
-        '(GPL-2.0-or-later or LGPL-2.1-or-later, depending on the build)',
+    'LGPL-2.1-or-later (Build mit / built with -Dgpl=false); '
+        'Windows-DLL mit FFmpeg: LGPL-3.0-or-later',
     'https://github.com/mpv-player/mpv',
-    'Windows: Audio-Build von media-kit '
+    'Windows: Audio-Build von media-kit, Release 2023-09-24 '
         '(https://github.com/media-kit/libmpv-win32-audio-build).',
   ),
   NativeLibrary(
     'FFmpeg',
-    'LGPL-2.1-or-later (Build ohne --enable-gpl / built without '
+    'Windows, Snap: LGPL-3.0-or-later (--enable-version3); Flatpak: '
+        'LGPL-2.1-or-later (Build ohne --enable-gpl / built without '
         '--enable-gpl)',
     'https://ffmpeg.org',
   ),

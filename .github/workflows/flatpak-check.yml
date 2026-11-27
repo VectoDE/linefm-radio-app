@@ -1,0 +1,158 @@
+name: Flatpak check
+
+# Build-only check of the Flatpak manifest (packaging/flathub/de.linefm.app.yml)
+# for proposed changes that touch it, the bundled license texts or the LGPL check.
+# Builds the Linux bundle from the proposed change, swaps it in for the release
+# tarball, runs flatpak-builder in the official container and then checks
+# that libmpv/FFmpeg are LGPL builds (tool/check_native_lgpl.py) and that the
+# license files are installed. Publishes nothing and submits nothing to Flathub.
+
+on:
+  pull_request:
+    paths:
+      - packaging/flathub/**
+      - assets/licenses/**
+      - tool/check_native_lgpl.py
+      - .github/workflows/flatpak-check.yml
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: flatpak-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bundle:
+    name: Linux bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: System packages
+        uses: ./.github/actions/linux-deps
+
+      - name: Set up Flutter
+        uses: ./.github/actions/setup-flutter
+
+      # Default build values (no config/app.json), like the snap fallback:
+      # this job only checks packaging and licenses.
+      - name: Build Linux
+        run: flutter build linux --release
+
+      - name: Create tar.gz
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          tar -C build/linux/x64/release/bundle -czf dist/linefm-radio-linux-x64.tar.gz .
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux-bundle
+          path: dist/linefm-radio-linux-x64.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+
+  flatpak:
+    name: Build Flatpak and check licenses
+    needs: bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    container:
+      # Official flatpak-builder image for the GNOME 50 runtime of the manifest.
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50@sha256:1de59efef01a946d9f28f1ec3458bf6f61dcee3507d7fecdd473f8134da4ec77
+      options: --privileged
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download bundle
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: linux-bundle
+          path: flatpak-ci
+
+      # Replace the release tarball and the LICENSE download (both pinned to a
+      # release tag) with the local bundle and the checked-out LICENSE.
+      - name: Prepare local manifest
+        run: |
+          set -euo pipefail
+          out=flatpak-ci/de.linefm.app.yml
+          cp packaging/flathub/de.linefm.app.yml "$out"
+          cp LICENSE flatpak-ci/LICENSE
+          tar_sha="$(sha256sum flatpak-ci/linefm-radio-linux-x64.tar.gz | cut -d' ' -f1)"
+          lic_sha="$(sha256sum flatpak-ci/LICENSE | cut -d' ' -f1)"
+          sed -E -i "s|^([[:space:]]*)url: .* # release-tarball\$|\1path: linefm-radio-linux-x64.tar.gz|" "$out"
+          sed -E -i "s|^([[:space:]]*sha256: ).*( # release-tarball)\$|\1'${tar_sha}'|" "$out"
+          sed -E -i "/# release-tag\$/{s|^([[:space:]]*)url: .*|\1path: LICENSE|;n;s|^([[:space:]]*sha256: ).*|\1${lic_sha}|}" "$out"
+          grep -qF 'path: linefm-radio-linux-x64.tar.gz' "$out" || { echo "::error::Tarball source not replaced"; exit 1; }
+          grep -qF 'path: LICENSE' "$out" || { echo "::error::LICENSE source not replaced"; exit 1; }
+          if grep -qE 'vX\.Y\.Z|^[[:space:]]*(url|sha256): .*# release-' "$out"; then echo "::error::Release placeholders left in the manifest"; exit 1; fi
+
+      - name: Build Flatpak
+        uses: flatpak/flatpak-github-actions/flatpak-builder@79327416609af08178ad73b352877e51450790b3 # v6.8
+        with:
+          manifest-path: flatpak-ci/de.linefm.app.yml
+          bundle: linefm-radio.flatpak
+          build-dir: flatpak_app
+          artifact-name: flatpak-check
+
+      - name: Check libmpv and FFmpeg are LGPL
+        run: python3 -I tool/check_native_lgpl.py flatpak_app/files/lib
+
+      - name: Check installed license files
+        run: |
+          set -euo pipefail
+          dir=flatpak_app/files/share/licenses/de.linefm.app
+          for f in LICENSE LGPL-3.0.txt GPL-3.0.txt NATIVE-LIBRARIES.txt; do
+            test -s "$dir/$f" || { echo "::error::Missing $dir/$f"; exit 1; }
+          done
+          grep -q 'GNU LESSER GENERAL PUBLIC LICENSE' "$dir/LGPL-3.0.txt"
+          grep -q 'GNU GENERAL PUBLIC LICENSE' "$dir/GPL-3.0.txt"
+          echo "License files present in $dir"
+
+  # Zero-warning rule: any warning or error in a job log or a check-run
+  # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented upstream exceptions, each with an expiry date.
+  log-gate:
+    name: Log gate
+    needs: [bundle, flatpak]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan job logs and annotations
+        uses: ./.github/actions/log-gate
+        with:
+          job-name: Log gate
+          token: ${{ github.token }}

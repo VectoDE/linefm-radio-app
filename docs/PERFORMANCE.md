@@ -98,7 +98,7 @@ Nach erwarteter Wirkung sortiert. Belegt heißt: Messwert aus dem Lauf oben und 
 | 3 | `lib/services/audio/audio_handler.dart:37` (`minConnectDuration` 1 s), `:425-427` | High | Ton-Marke `player-playing` frühestens nach 1 s, auch wenn der Stream schneller ist | Mindestdauer nur für die Anzeige, nicht für den Zustand; oder auf 0 setzen. Spart bis 1 s bei schnellem Stream |
 | 4 | Ton nach Klick, Stream-Puffer von laut.fm | High | Web: URL nach ca. 60 ms bekannt, `playing` erst nach 4,3 s; der Rest ist Puffern des Icecast-Streams im Browser bzw. in media_kit | Nur teilweise beeinflussbar: Verbindung vorwärmen (`preconnect` zu `*.stream.laut.fm`), Stream-URLs beim Start vorab holen (`lib/app/player_controller.dart:291`), media_kit-Puffergröße prüfen. Faktor 3 hier unsicher |
 | 5 | Windows `runApp` bis erstes Bild, `lib/main.dart:62-78` | High | 139 ms bis `runApp`, dann ca. 0,93 s bis zum ersten gerasterten Bild | Erstes Bild schlanker (Loader ohne Blur/Netzbilder), Schriften und Shader vorwärmen; Trace im Folgelauf |
-| 6 | `lib/features/loader/app_loader.dart:213-215` | Medium | Fester Ladebildschirm 400 ms (Web) bzw. 300 ms (nativ) plus 350 ms Ausblenden nach dem ersten Bild | Entscheidung des Inhabers (21.11.2026): Splash ohne feste Mindestzeit, nur kurz einblenden. Mindestdauer entfällt, Ausblenden kürzen. Bis 0,75 s schneller bedienbar. Entwurf liegt vor |
+| 6 | `lib/features/loader/app_loader.dart:213-215` | Medium | Fester Ladebildschirm 400 ms (Web) bzw. 300 ms (nativ) plus 350 ms Ausblenden nach dem ersten Bild | Entscheidung des Inhabers (21.11.2026): Splash ohne feste Mindestzeit, nur kurz einblenden. Umgesetzt: keine Mindestdauer, Ausblenden nach dem ersten Bild in 150 ms (vorher 400/300 ms plus 350 ms). Bis 0,6 s schneller bedienbar |
 | 7 | `deploy/nginx/snippets/linefm-headers.conf:26-31` | Medium | Nur gzip 5; Startdateien 3,03 MB statt 2,33 MB mit Brotli 11 | Vorkomprimierte `.br`-Dateien im Build und `brotli_static`, bzw. Brotli bei Cloudflare. Mobil ca. 0,7 MB weniger, bei Slow-4G rund 3,5 s |
 | 8 | `web/index.html:189-190` | Medium | `main.dart.wasm` und `skwasm.wasm` werden erst nach `flutter_bootstrap.js` und `main.dart.mjs` angefordert (Kaskade); `analytics.js` blockiert den Parser vor dem Bootstrap | `<link rel="preload">` bzw. `modulepreload` für die gehashten Startdateien (Postbuild kennt die Namen), `analytics.js` mit `defer`. Spart mindestens eine Runde Netzlatenz |
 | 9 | `pubspec.yaml:72-81` | Low | Schriften als TTF, 0,39 MB roh, 0,29 MB übertragen | Untermengen bilden; Flutter Web lädt nur TTF/OTF, daher kein WOFF2. Ca. 0,2 MB weniger |
@@ -127,11 +127,11 @@ Je Maßnahme ein eigener Änderungsvorschlag mit Vorher/Nachher aus diesem Workf
 
 ## Ist Faktor 3 erreichbar?
 
-- **Laden im Browser, Desktop:** wahrscheinlich ja für „erstes Bild“ und „bedienbar“, weil künstliche Wartezeiten, Kaskade und Hauptthread-Arbeit zusammen einen großen Teil ausmachen.
-- **Laden im Browser, mobil:** für „erstes Bild“ (15 s auf 5 s) nicht allein mit unseren Mitteln. Der Großteil ist Übertragung von rund 2 MB über Slow-4G plus Wasm-Kompilierung. Brotli und Preload bringen geschätzt 25 bis 35 %. Für „bedienbar“ (40 s) ist Faktor 3 erreichbar, wenn der Hauptthread entlastet wird.
-- **App-Start Windows:** offen. 139 ms bis `runApp` sind schon gut; ob das erste Bild auf 357 ms kommt, zeigt erst ein Trace.
-- **Ton nach Klick:** eher nicht. Rund 3 s entfallen auf das Puffern der laut.fm-Streams. Realistisch sind 1 bis 1,5 s weniger (Engpässe 3 und 4), also etwa Faktor 1,3 bis 1,5.
-- **Bedienung:** offen bis die Seitenwechsel gemessen sind. Die Scrollwerte auf dem GPU-losen Runner sind als Vergleichsgröße brauchbar, nicht als absoluter Nutzerwert.
+- Laden im Browser, Desktop: wahrscheinlich ja für „erstes Bild“ und „bedienbar“, weil künstliche Wartezeiten, Kaskade und Hauptthread-Arbeit zusammen einen großen Teil ausmachen.
+- Laden im Browser, mobil: für „erstes Bild“ (15 s auf 5 s) nicht allein mit unseren Mitteln. Der Großteil ist Übertragung von rund 2 MB über Slow-4G plus Wasm-Kompilierung. Brotli und Preload bringen geschätzt 25 bis 35 %. Für „bedienbar“ (40 s) ist Faktor 3 erreichbar, wenn der Hauptthread entlastet wird.
+- App-Start Windows: offen. 139 ms bis `runApp` sind schon gut; ob das erste Bild auf 357 ms kommt, zeigt erst ein Trace.
+- Ton nach Klick: eher nicht. Rund 3 s entfallen auf das Puffern der laut.fm-Streams. Realistisch sind 1 bis 1,5 s weniger (Engpässe 3 und 4), also etwa Faktor 1,3 bis 1,5.
+- Bedienung: offen bis die Seitenwechsel gemessen sind. Die Scrollwerte auf dem GPU-losen Runner sind als Vergleichsgröße brauchbar, nicht als absoluter Nutzerwert.
 
 ## Public web quality checks
 
@@ -167,7 +167,7 @@ web output; the scores and findings go into the tracker.
 
 `tool/perf/bundle_budget.json` hält die Obergrenzen. Das Skript `tool/perf/bundle_budget.py` prüft sie und lässt die CI scheitern, sobald ein Wert überschritten ist oder eine budgetierte Datei im Build fehlt.
 
-- **Web** (`ci.yml`, Schritt "Bundle budget"): gzip-Größe (Stufe 5, wie nginx) von `main.dart.wasm`, `main.dart.mjs`, `main.dart.js`, `skwasm.wasm`, `skwasm.js`, `flutter_bootstrap.js` und `index.html`, dazu die Summe der Startdateien sowie rohe Größe der App-Schriften und Bilder. Ausgangswert ist der Messlauf vom 25.11.2026, die Grenzen liegen etwa 10 % darüber.
-- **Android** (`build.yml`, Schritt "APK size budget"): rohe Größe des Universal-APK gegen `apk_bytes`. Solange der Wert `null` ist, wird die Größe nur ausgegeben. Er wird nach dem ersten CI-Lauf auf Messwert plus etwa 10 % gesetzt.
-- **Anheben:** nur mit Begründung in der Commit-Nachricht, nie stillschweigend.
-- **Lokal:** `python3 -I tool/perf/bundle_budget.py build/web` oder `--apk <Datei>`; Tests: `python -m unittest discover -s test/tool -p "test_bundle_budget.py"`.
+- Web (`ci.yml`, Schritt "Bundle budget"): gzip-Größe (Stufe 5, wie nginx) von `main.dart.wasm`, `main.dart.mjs`, `main.dart.js`, `skwasm.wasm`, `skwasm.js`, `flutter_bootstrap.js` und `index.html`, dazu die Summe der Startdateien sowie rohe Größe der App-Schriften und Bilder. Ausgangswert ist der Messlauf vom 25.11.2026, die Grenzen liegen etwa 10 % darüber.
+- Android (`build.yml`, Schritt "APK size budget"): rohe Größe des Universal-APK gegen `apk_bytes` (83.300.000 Byte, Messwert 75.659.931 Byte vom 27.11.2026 plus etwa 10 %).
+- Anheben: nur mit Begründung in der Commit-Nachricht, nie stillschweigend.
+- Lokal: `python3 -I tool/perf/bundle_budget.py build/web` oder `--apk <Datei>`; Tests: `python -m unittest discover -s test/tool -p "test_bundle_budget.py"`.

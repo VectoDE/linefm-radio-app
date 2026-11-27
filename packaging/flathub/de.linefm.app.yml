@@ -60,6 +60,11 @@ modules:
       - --disable-debug
       - --enable-gnutls
       - --enable-pic
+      # No NVIDIA hardware codecs: an audio app does not need them, and the
+      # nv-codec-headers of the GNOME 50 runtime no longer fit FFmpeg 8.0.
+      - --disable-ffnvcodec
+      # Upstream code, not ours: compiler warnings would only fill the CI log.
+      - --extra-cflags=-w
     sources:
       - type: archive
         url: https://ffmpeg.org/releases/ffmpeg-8.0.tar.xz
@@ -78,12 +83,14 @@ modules:
       - -Dlcms=disabled
       - -Ddemos=false
       - -Dtests=false
+      - -Dc_args=-w
+      - -Dcpp_args=-w
     sources:
       # Git statt Tarball, damit die Submodule (glad usw.) mitkommen.
       - type: git
         url: https://code.videolan.org/videolan/libplacebo.git
-        tag: v7.360.1
-        commit: cee9b076f2c63104ccfd497fa79c39a867293ec4
+        tag: v7.387.0
+        commit: 275f7dea27924cdd34ab2e6c20e448b6bc4fab65
     cleanup:
       - /include
       - /lib/pkgconfig
@@ -102,6 +109,7 @@ modules:
       - -Dtests=false
       - -Dmanpage-build=disabled
       - -Dhtml-build=disabled
+      - -Dc_args=-w
     sources:
       - type: archive
         url: https://github.com/mpv-player/mpv/archive/refs/tags/v0.42.0.tar.gz
@@ -122,6 +130,9 @@ modules:
       - install -Dm644 share/metainfo/de.linefm.app.metainfo.xml -t /app/share/metainfo/
       - cp -a share/icons /app/share/
       - install -Dm644 LICENSE -t /app/share/licenses/de.linefm.app/
+      # LGPL/GPL texts and source notice for libmpv/FFmpeg; they ship inside the
+      # Flutter assets of the release tarball (assets/licenses/).
+      - install -Dm644 data/flutter_assets/assets/licenses/LGPL-3.0.txt data/flutter_assets/assets/licenses/GPL-3.0.txt data/flutter_assets/assets/licenses/NATIVE-LIBRARIES.txt -t /app/share/licenses/de.linefm.app/
     sources:
       # Platzhalter bis zum ersten Release, setzt flathub-prep.yml.
       - type: archive # release-tarball

@@ -5,6 +5,7 @@ import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/stations_config.dart';
 import 'package:linefm_radio/features/loader/app_loader.dart';
+import 'package:linefm_radio/features/mini_player/mini_player.dart';
 import 'package:linefm_radio/ui/theme/contrast.dart';
 import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
@@ -264,5 +265,66 @@ void main() {
         }
       }
     });
+  });
+
+  group('Mini player', () {
+    for (final (name, c) in <(String, LinefmColors)>[
+      ('dark', LinefmColors.dark),
+      ('light', LinefmColors.light),
+    ]) {
+      final base = Color.alphaBlend(c.miniPlayerBg, c.background);
+      for (final station in parseStationsConfig(
+        File('config/stations.yaml').readAsStringSync(),
+      ).active.map(stationFromConfig)) {
+        for (final hasCover in <bool>[false, true]) {
+          test(
+            '$name, ${station.displayName}, cover $hasCover: text 4.5:1',
+            () {
+              final bgs = MiniPlayerContrast.textBackgrounds(
+                station: station.color,
+                base: base,
+                background: c.background,
+                hasCover: hasCover,
+              );
+              final worst = MiniPlayerContrast.worstTextBackground(
+                station: station.color,
+                base: base,
+                background: c.background,
+                hasCover: hasCover,
+                text: c.text,
+              );
+              for (final fg in <Color>[
+                c.text,
+                MiniPlayerContrast.secondary(c.text, worst, 0.82),
+                MiniPlayerContrast.secondary(c.text, worst, 0.7),
+              ]) {
+                for (final bg in bgs) {
+                  expect(
+                    Contrast.ratioOver(fg, bg),
+                    greaterThanOrEqualTo(Contrast.aaText),
+                    reason: '$fg on $bg',
+                  );
+                }
+              }
+            },
+          );
+        }
+        test('$name, ${station.displayName}: buttons 3:1', () {
+          final icon = MiniPlayerContrast.buttonColor(station.color, base);
+          for (var u = 0.72; u <= 1.0001; u += 0.04) {
+            final bg = MiniPlayerContrast.backgroundAt(
+              u,
+              station: station.color,
+              base: base,
+            );
+            expect(
+              Contrast.ratio(icon, bg),
+              greaterThanOrEqualTo(Contrast.aaLarge),
+              reason: 'u $u',
+            );
+          }
+        });
+      }
+    }
   });
 }

@@ -79,3 +79,6 @@ GoogleService-Info.plist
 # a11y-Pruefung (tool/a11y)
 /tool/a11y/node_modules/
 /tool/a11y/out/
+
+# Playwright MCP session output
+.playwright-mcp/

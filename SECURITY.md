@@ -49,7 +49,7 @@ Nicht dazu gehören Lücken in Diensten Dritter (laut.fm, Apple iTunes Search, G
 
 ## Bekannte, bewusst akzeptierte Punkte
 
-- Die Content-Security-Policy erlaubt `style-src 'unsafe-inline'`, weil die Flutter-Engine Inline-Stile setzt. Begründung und Gegenmaßnahmen: [docs/hosting-uebersicht.md](docs/hosting-uebersicht.md), Abschnitt Security-Header.
+- Die Content-Security-Policy erlaubt Inline-Stile nur per SHA-256-Hash und Build-Nonce, ohne `unsafe-inline`. Hashes und Nonce erzeugt der Bau. Einzelheiten: [docs/hosting-uebersicht.md](docs/hosting-uebersicht.md), Abschnitt Security-Header.
 - Telemetrie-Schlüssel (Umami-Website-ID, Sentry-DSN) stehen im Binary. Das sind öffentliche Kennungen, keine Geheimnisse (siehe [docs/telemetry.md](docs/telemetry.md)).
 
 ## So wird die Sicherheit geprüft
@@ -77,12 +77,12 @@ Signierte Releases: Jede Release-Datei trägt eine GitHub-Attestierung und eine 
 
 ## Vom Fund bis zur Behebung
 
-1. **Erkennen:** Die Scanner aus der Tabelle laufen bei jedem Push auf `main` (also nach jedem Merge), bei jedem Änderungsvorschlag und wöchentlich. Ihre Ergebnisse landen in Code Scanning, Dependabot-Alerts oder Secret Scanning.
-2. **Erfassen:** Nach jedem Lauf von CodeQL, Semgrep, Scorecard und Supply Chain auf `main` (und montags) gleicht `security-alerts.yml` die offenen Alerts ab. Für jeden neuen Alert entsteht ein Ticket mit dem Label `typ:sicherheit` und einer Aufgabenliste. Weil das Repository öffentlich ist, nennt das Ticket nur Quelle, Nummer, Schweregrad und den Link zum Alert; Details sehen nur Betreuer. Ein echter, ausnutzbarer Fund wird zusätzlich als privates Security Advisory geführt, nie in einem öffentlichen Ticket beschrieben.
-3. **Bewerten:** Jeder Fund wird gegengeprüft (erreichbarer Pfad, echte Eingabequelle). Critical und High zuerst.
-4. **Beheben:** Korrektur per Änderungsvorschlag mit Zuordnung zum Ticket im Commit-Text. Die CI muss grün sein. Dependabot-Sicherheitsupdates sind aktiv; ihre Änderungsvorschläge werden nach grüner CI zeitnah gemergt.
-5. **Abschließen:** Nach dem Merge laufen die Scanner auf `main` erneut. Ist der Alert zu, schließt `security-alerts.yml` das Ticket automatisch; öffnet er sich wieder, wird das Ticket wieder geöffnet.
-6. **Verwerfen nur mit Begründung:** Ein Alert wird nur als „False positive“ oder „Won't fix“ verworfen, wenn das sachlich begründet ist (z. B. strukturell nicht erreichbare Scorecard-Checks, siehe unten). Die Begründung steht im Alert.
+1. Erkennen: Die Scanner aus der Tabelle laufen bei jedem Push auf `main` (also nach jedem Merge), bei jedem Änderungsvorschlag und wöchentlich. Ihre Ergebnisse landen in Code Scanning, Dependabot-Alerts oder Secret Scanning.
+2. Erfassen: Nach jedem Lauf von CodeQL, Semgrep, Scorecard und Supply Chain auf `main` (und montags) gleicht `security-alerts.yml` die offenen Alerts ab. Für jeden neuen Alert entsteht ein Ticket mit dem Label `typ:sicherheit` und einer Aufgabenliste. Weil das Repository öffentlich ist, nennt das Ticket nur Quelle, Nummer, Schweregrad und den Link zum Alert; Details sehen nur Betreuer. Ein echter, ausnutzbarer Fund wird zusätzlich als privates Security Advisory geführt, nie in einem öffentlichen Ticket beschrieben.
+3. Bewerten: Jeder Fund wird gegengeprüft (erreichbarer Pfad, echte Eingabequelle). Critical und High zuerst.
+4. Beheben: Korrektur per Änderungsvorschlag mit Zuordnung zum Ticket im Commit-Text. Die CI muss grün sein. Dependabot-Sicherheitsupdates sind aktiv; ihre Änderungsvorschläge werden nach grüner CI zeitnah gemergt.
+5. Abschließen: Nach dem Merge laufen die Scanner auf `main` erneut. Ist der Alert zu, schließt `security-alerts.yml` das Ticket automatisch; öffnet er sich wieder, wird das Ticket wieder geöffnet.
+6. Verwerfen nur mit Begründung: Ein Alert wird nur als „False positive“ oder „Won't fix“ verworfen, wenn das sachlich begründet ist (z. B. strukturell nicht erreichbare Scorecard-Checks, siehe unten). Die Begründung steht im Alert.
 
 Dependabot- und Secret-Scanning-Alerts kann der Standard-Token der Actions nicht lesen. Der Inhaber hat entschieden, dafür kein zusätzliches Token einzurichten. `security-alerts.yml` gleicht deshalb regulär nur Code Scanning ab und weist mit einem Hinweis darauf hin. Dependabot- und Secret-Funde werden über die Security-Ansicht des Repositories geprüft.
 
@@ -92,11 +92,11 @@ Der Branch-Schutz von `main` verlangt keine Pflicht-Freigabe durch eine zweite P
 
 ### Scorecard-Checks, die strukturell nicht voll erreichbar sind
 
-- **Code-Review:** Das Projekt hat einen einzigen Entwickler. Scorecard zählt nur Änderungen, die eine zweite Person freigegeben hat; Selbstfreigaben sind auf GitHub nicht möglich.
-- **Fuzzing:** Die Parser werden mit zufallsbasierten Tests geprüft (siehe oben). Scorecard erkennt für Dart keine Fuzzing-Integration.
-- **CII Best Practices:** Der Eintrag bei bestpractices.dev setzt eine Open-Source-Lizenz voraus; die App ist proprietär.
-- **Maintained:** Scorecard vergibt 0 Punkte, solange das Repository jünger als 90 Tage ist. Das erledigt sich mit der Zeit.
-- **SAST und CI-Tests:** Scorecard bewertet die letzten 30 Commits bzw. Änderungsvorschläge. Ältere Merges ohne Prüfung fallen nach und nach aus diesem Fenster; laufen CodeQL, Semgrep und die CI bei jedem Änderungsvorschlag.
+- Code-Review: Das Projekt hat einen einzigen Entwickler. Scorecard zählt nur Änderungen, die eine zweite Person freigegeben hat; Selbstfreigaben sind auf GitHub nicht möglich.
+- Fuzzing: Die Parser werden mit zufallsbasierten Tests geprüft (siehe oben). Scorecard erkennt für Dart keine Fuzzing-Integration.
+- CII Best Practices: Der Eintrag bei bestpractices.dev setzt eine Open-Source-Lizenz voraus; die App ist proprietär.
+- Maintained: Scorecard vergibt 0 Punkte, solange das Repository jünger als 90 Tage ist. Das erledigt sich mit der Zeit.
+- SAST und CI-Tests: Scorecard bewertet die letzten 30 Commits bzw. Änderungsvorschläge. Ältere Merges ohne Prüfung fallen nach und nach aus diesem Fenster; laufen CodeQL, Semgrep und die CI bei jedem Änderungsvorschlag.
 
 ## In English
 

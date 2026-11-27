@@ -8,6 +8,7 @@ Konfigurationen für die Verteilung außerhalb von `flutter build`. Gebaut werde
 | `flathub/` | Flatpak-Manifest, Hinweise zu Flathub-Regeln | Flathub |
 | `snap/` | `snapcraft.yaml` (strict, core24) | Snap Store |
 | `macos/` | `create_dmg.sh`, Öffnen-Anleitung, DMG-Hintergrund | GitHub Releases (unsigniertes DMG) |
+| `linux/` | `build-packages.sh` (.deb, .rpm, App-AppImage), CI-Tests, [README](linux/README.md) (englisch) | GitHub Releases |
 | `android/` | Signierung und `versionCode` | Google Play, APK/AAB im Release |
 | `ios/` | `ExportOptions`-Vorlagen (App Store, Ad Hoc) | App Store Connect, Testgeräte |
 

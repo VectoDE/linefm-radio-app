@@ -4,7 +4,8 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/rendering.dart' show RenderProxyBox;
-import 'package:flutter/semantics.dart' show OrdinalSortKey, SemanticsRole;
+import 'package:flutter/semantics.dart'
+    show OrdinalSortKey, SemanticsRole, SemanticsService;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -14,7 +15,6 @@ import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/features/about/about_screen.dart';
 import 'package:linefm_radio/features/alarm/alarm_screen.dart';
-import 'package:linefm_radio/features/favorites/favorites_header_button.dart';
 import 'package:linefm_radio/features/favorites/favorites_screen.dart';
 import 'package:linefm_radio/features/history/history_screen.dart';
 import 'package:linefm_radio/features/legal/legal_document.dart';
@@ -32,6 +32,7 @@ import 'package:linefm_radio/ui/theme/breakpoints.dart';
 import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
+import 'package:linefm_radio/ui/widgets/focus_ring.dart';
 import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
@@ -111,7 +112,10 @@ class _AppShellState extends ConsumerState<AppShell> {
       ..listenManual<AppScreen>(navigationProvider, (previous, next) {
         if (next.isShellScreen) {
           _lastShellScreen = next;
-          if (previous != next) _screenEvent(next);
+          if (previous != next) {
+            _screenEvent(next);
+            _announceScreen(next);
+          }
           return;
         }
         // Wecker, Ueber, Recht: eigene Route, Shell bleibt beim letzten
@@ -132,6 +136,26 @@ class _AppShellState extends ConsumerState<AppShell> {
     _lifecycle.dispose();
     _focus.dispose();
     super.dispose();
+  }
+
+  /// Screen readers hear the name of the new area: switching areas keeps the
+  /// same route, so nothing else would tell them the page changed.
+  void _announceScreen(AppScreen screen) {
+    final l10n = AppLocalizations.of(context);
+    final name = switch (screen) {
+      AppScreen.stations => l10n.navStations,
+      AppScreen.player => l10n.navPlayer,
+      AppScreen.history => l10n.navHistory,
+      AppScreen.favorites => l10n.navFavorites,
+      _ => l10n.navSettings,
+    };
+    unawaited(
+      SemanticsService.sendAnnouncement(
+        View.of(context),
+        name,
+        Directionality.of(context),
+      ),
+    );
   }
 
   void _screenEvent(AppScreen screen) {
@@ -582,9 +606,9 @@ class _ExpandedLayout extends ConsumerWidget {
       AppScreen.stations,
       AppScreen.history,
       AppScreen.favorites,
-      AppScreen.settings,
     ];
     final index = railScreens.indexOf(shown);
+    final favorites = ref.watch(favoritesProvider.select((f) => f.length));
 
     // Tab- und Screenreader-Reihenfolge wie die Optik: Navigation, Header,
     // Inhalt, Hinweise, Player. Ohne feste Ordnung kam der Header
@@ -605,23 +629,36 @@ class _ExpandedLayout extends ConsumerWidget {
                 child: SizedBox(
                   key: const ValueKey<String>('shell-rail'),
                   width: LinefmMetrics.railWidth,
-                  child: NavigationRail(
-                    minWidth: LinefmMetrics.railWidth,
-                    selectedIndex: index < 0 ? null : index,
-                    labelType: NavigationRailLabelType.all,
-                    groupAlignment: -0.85,
-                    onDestinationSelected: (i) => ref
-                        .read(navigationProvider.notifier)
-                        .go(railScreens[i]),
-                    destinations: <NavigationRailDestination>[
-                      _railItem(FontAwesomeIcons.play, l10n.navStations),
-                      _railItem(
-                        FontAwesomeIcons.clockRotateLeft,
-                        l10n.navHistory,
-                      ),
-                      _railItem(FontAwesomeIcons.heart, l10n.navFavorites),
-                      _railItem(FontAwesomeIcons.gear, l10n.navSettings),
-                    ],
+                  // Das erste Ziel sitzt auf der Mittellinie des Headers, die
+                  // Wortmarke bleibt im Header.
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      top: LinefmMetrics.railTopInset,
+                    ),
+                    child: NavigationRail(
+                      minWidth: LinefmMetrics.railWidth,
+                      selectedIndex: index < 0 ? null : index,
+                      labelType: NavigationRailLabelType.all,
+                      groupAlignment: -1,
+                      onDestinationSelected: (i) => ref
+                          .read(navigationProvider.notifier)
+                          .go(railScreens[i]),
+                      destinations: <NavigationRailDestination>[
+                        _railItem(FontAwesomeIcons.play, l10n.navStations),
+                        _railItem(
+                          FontAwesomeIcons.clockRotateLeft,
+                          l10n.navHistory,
+                        ),
+                        _railItem(
+                          FontAwesomeIcons.heart,
+                          l10n.navFavorites,
+                          badge: favorites,
+                          semanticLabel: favorites > 0
+                              ? l10n.favoritesButtonCount(favorites)
+                              : null,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -689,25 +726,37 @@ class _ExpandedLayout extends ConsumerWidget {
     );
   }
 
-  static NavigationRailDestination _railItem(FaIconData icon, String label) =>
-      NavigationRailDestination(
-        icon: FaIcon(icon, size: 18),
-        // Feste Breite: Lange Woerter (z. B. "EINSTELLUNGEN") werden
-        // verkleinert statt die Leiste zu verbreitern oder abgeschnitten zu
-        // werden. Der Screenreader liest immer den vollen Text.
-        label: SizedBox(
-          width: LinefmMetrics.railWidth - 16,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label.toUpperCase(),
-              maxLines: 1,
-              softWrap: false,
-              textAlign: TextAlign.center,
-            ),
+  static NavigationRailDestination _railItem(
+    FaIconData icon,
+    String label, {
+    int badge = 0,
+    String? semanticLabel,
+  }) => NavigationRailDestination(
+    // The counter is part of the spoken name (semanticLabel), not a separate
+    // "1" read before the destination.
+    icon: ExcludeSemantics(
+      child: _NavIcon(icon: icon, badge: badge),
+    ),
+    // Feste Breite: Lange Woerter (z. B. "EINSTELLUNGEN") werden
+    // verkleinert statt die Leiste zu verbreitern oder abgeschnitten zu
+    // werden. Der Screenreader liest immer den vollen Text.
+    label: Semantics(
+      label: semanticLabel ?? label,
+      excludeSemantics: true,
+      child: SizedBox(
+        width: LinefmMetrics.railWidth - 16,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label.toUpperCase(),
+            maxLines: 1,
+            softWrap: false,
+            textAlign: TextAlign.center,
           ),
         ),
-      );
+      ),
+    ),
+  );
 }
 
 // -------------------------------------------------------------- Header
@@ -729,6 +778,7 @@ class _Header extends ConsumerWidget {
     final c = context.linefm;
     final top = inset ? MediaQuery.paddingOf(context).top : 0.0;
     final station = ref.watch(activeStationProvider);
+    final onSettings = ref.watch(navigationProvider) == AppScreen.settings;
     final tint = transparent
         ? StationStyle.onPlayerTop(
             station.color,
@@ -781,8 +831,8 @@ class _Header extends ConsumerWidget {
               ),
             ),
           ),
-          FavoritesHeaderButton(color: tint),
-          const SizedBox(width: 4),
+          // Favorites live in the navigation; the header keeps only the
+          // gear so no destination appears twice.
           QuietTooltip(
             message: l10n.settingsButton,
             child: IconButton(
@@ -794,10 +844,11 @@ class _Header extends ConsumerWidget {
                   nav.go(AppScreen.settings);
                 }
               },
+              isSelected: onSettings,
               icon: FaIcon(
                 FontAwesomeIcons.gear,
-                size: 18,
-                color: tint,
+                size: LinefmMetrics.navIcon,
+                color: onSettings && !transparent ? c.accent : tint,
                 semanticLabel: l10n.settingsButton,
               ),
             ),
@@ -810,9 +861,10 @@ class _Header extends ConsumerWidget {
 
 // ---------------------------------------------------------- Navigation
 
-/// Untere Navigation der Web-App: STATIONEN (play) · PLAYER (headphones) ·
-/// VERLAUF (clock-rotate-left). Favoriten und Einstellungen markieren keinen
-/// Eintrag.
+/// Untere Navigation: SENDER (play) · PLAYER (headphones) · VERLAUF
+/// (clock-rotate-left) · FAVORITEN (heart). Gleiche Ziele und Reihenfolge wie
+/// die Seitenleiste, dazu der Player, der breit immer sichtbar ist. Die
+/// Einstellungen liegen auf jeder Breite im Header.
 class _BottomNav extends ConsumerWidget {
   const _BottomNav({required this.screen});
 
@@ -827,27 +879,41 @@ class _BottomNav extends ConsumerWidget {
       (AppScreen.stations, FontAwesomeIcons.play, l10n.navStations),
       (AppScreen.player, FontAwesomeIcons.headphones, l10n.navPlayer),
       (AppScreen.history, FontAwesomeIcons.clockRotateLeft, l10n.navHistory),
+      (AppScreen.favorites, FontAwesomeIcons.heart, l10n.navFavorites),
     ];
+    final favorites = ref.watch(favoritesProvider.select((f) => f.length));
     // Landmarke und Name setzt die Shell (_ordered).
     return Semantics(
       container: true,
       explicitChildNodes: true,
       child: DecoratedBox(
+        key: const ValueKey<String>('shell-bottom-nav'),
         decoration: BoxDecoration(
           color: c.navBg,
           border: Border(top: BorderSide(color: c.line)),
         ),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 3, 20, bottom),
+          // Schmaler Rand: Vier Ziele passen ab 360 dp ohne verkleinerte
+          // Beschriftung.
+          padding: EdgeInsets.fromLTRB(
+            LinefmSpace.sm,
+            0,
+            LinefmSpace.sm,
+            bottom,
+          ),
           child: SizedBox(
-            height: LinefmMetrics.navHeight - 3,
+            height: LinefmMetrics.navHeight,
             child: Row(
               children: <Widget>[
                 for (final (target, icon, label) in items)
                   Expanded(
                     child: _NavItem(
                       icon: icon,
-                      label: label,
+                      label: target == AppScreen.favorites && favorites > 0
+                          ? l10n.favoritesButtonCount(favorites)
+                          : label,
+                      text: label,
+                      badge: target == AppScreen.favorites ? favorites : 0,
                       selected: screen == target,
                       onTap: () =>
                           ref.read(navigationProvider.notifier).go(target),
@@ -862,16 +928,30 @@ class _BottomNav extends ConsumerWidget {
   }
 }
 
+/// Eintrag der Bottom-Navigation: Pill-Indikator hinter dem Icon wie in der
+/// Seitenleiste, Hover-Flaeche und sichtbarer Fokusring (2 dp, accent).
+/// Feste Hoehe: Die Beschriftung wird verkleinert, nie umbrochen, damit die
+/// Leiste in jeder Sprache gleich hoch bleibt.
 class _NavItem extends StatelessWidget {
   const _NavItem({
     required this.icon,
     required this.label,
+    required this.text,
     required this.selected,
     required this.onTap,
+    this.badge = 0,
   });
 
   final FaIconData icon;
+
+  /// Name fuer den Screenreader (bei Favoriten mit Anzahl).
   final String label;
+
+  /// Sichtbare Beschriftung.
+  final String text;
+
+  /// Zaehler am Icon, 0 blendet ihn aus.
+  final int badge;
   final bool selected;
   final VoidCallback onTap;
 
@@ -895,29 +975,73 @@ class _NavItem extends StatelessWidget {
         onTap: onTap,
         child: child,
       ),
-      child: InkResponse(
-        onTap: onTap,
-        containedInkWell: true,
-        highlightShape: BoxShape.rectangle,
-        child: SizedBox(
-          height: 58,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              FaIcon(icon, size: 18, color: color),
-              const SizedBox(height: 8),
-              // Verkleinern statt Ausblenden, falls eine Sprache laenger ist
-              // als der feste Platz.
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  label.toUpperCase(),
-                  maxLines: 1,
-                  softWrap: false,
-                  style: LinefmText.nav.copyWith(color: color),
-                ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: LinefmSpace.xs,
+          vertical: LinefmSpace.sm,
+        ),
+        child: FocusRing(
+          offset: 0,
+          child: InkResponse(
+            onTap: onTap,
+            containedInkWell: true,
+            highlightShape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
+            hoverColor: c.accent.withValues(alpha: 0.08),
+            // Der Fokus zeigt sich ueber den Ring, nicht ueber eine Flaeche.
+            focusColor: Colors.transparent,
+            // Volle Zellenbreite: Tippflaeche, Hover und Ring haengen nicht
+            // von der Laenge der Beschriftung ab.
+            child: SizedBox.expand(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  AnimatedContainer(
+                    key: selected
+                        ? const ValueKey<String>('nav-indicator')
+                        : null,
+                    duration: MediaQuery.disableAnimationsOf(context)
+                        ? Duration.zero
+                        : LinefmMetrics.fast,
+                    width: LinefmMetrics.navIndicatorWidth,
+                    height: LinefmMetrics.navIndicatorHeight,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: selected ? c.surfaceRaised : Colors.transparent,
+                      borderRadius: BorderRadius.circular(
+                        LinefmMetrics.radiusPill,
+                      ),
+                    ),
+                    child: _NavIcon(icon: icon, badge: badge, color: color),
+                  ),
+                  const SizedBox(height: LinefmSpace.xs),
+                  // Verkleinern statt Ausblenden, falls eine Sprache laenger ist
+                  // als der feste Platz.
+                  // Flexible bounds the height too: at large text scale the
+                  // label shrinks instead of overflowing the fixed bar.
+                  // The side inset keeps a visible gap between neighbouring
+                  // labels even when large system text shrinks them to the
+                  // full cell width.
+                  Flexible(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: LinefmSpace.xs,
+                      ),
+                      child: FittedBox(
+                        key: const ValueKey<String>('nav-label'),
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          text.toUpperCase(),
+                          maxLines: 1,
+                          softWrap: false,
+                          style: LinefmText.nav.copyWith(color: color),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -1008,6 +1132,17 @@ class AutoplayStartButton extends ConsumerWidget {
       icon: const FaIcon(FontAwesomeIcons.play, size: 16),
       label: Text(l10n.autoplayBlockedStart),
     );
+    final hint = Semantics(
+      container: true,
+      liveRegion: true,
+      child: Text(
+        l10n.autoplayBlockedHint(station.displayName),
+        style: LinefmText.notice.copyWith(color: c.text),
+      ),
+    );
+    // Below 360 dp the button moves under the text, so the hint keeps the
+    // full width instead of wrapping into four lines beside the button.
+    final narrow = MediaQuery.sizeOf(context).width < 360;
     return Padding(
       padding: padding,
       child: Center(
@@ -1019,25 +1154,35 @@ class AutoplayStartButton extends ConsumerWidget {
               border: Border.all(color: c.line),
               borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
             ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Semantics(
-                      container: true,
-                      liveRegion: true,
-                      child: Text(
-                        l10n.autoplayBlockedHint(station.displayName),
-                        style: LinefmText.notice.copyWith(color: c.text),
-                      ),
+            child: narrow
+                ? Padding(
+                    padding: const EdgeInsets.all(LinefmSpace.sm),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            LinefmSpace.xs,
+                            0,
+                            LinefmSpace.xs,
+                            LinefmSpace.sm,
+                          ),
+                          child: hint,
+                        ),
+                        button,
+                      ],
+                    ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(child: hint),
+                        const SizedBox(width: 10),
+                        button,
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  button,
-                ],
-              ),
-            ),
           ),
         ),
       ),
@@ -1092,6 +1237,27 @@ class _OfflineBanner extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Navigations-Icon mit optionalem Zaehler (Favoriten), ab 100 "99+".
+class _NavIcon extends StatelessWidget {
+  const _NavIcon({required this.icon, this.badge = 0, this.color});
+
+  final FaIconData icon;
+  final int badge;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.linefm;
+    return Badge(
+      isLabelVisible: badge > 0,
+      backgroundColor: c.accent,
+      textColor: c.onAccent,
+      label: Text(badge > 99 ? '99+' : '$badge'),
+      child: FaIcon(icon, size: LinefmMetrics.navIcon, color: color),
     );
   }
 }

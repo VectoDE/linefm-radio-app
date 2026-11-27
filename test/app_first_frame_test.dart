@@ -53,7 +53,7 @@ void main() {
       }
       semantics.dispose();
 
-      await tester.pump(LoaderGate.nativeMinDuration);
+      await tester.pump();
       await tester.pump(LoaderGate.fadeDuration);
       await tester.pumpWidget(const SizedBox.shrink());
     });

@@ -111,7 +111,7 @@ Die Spalte "Vorhanden" nennt Maßnahmen, die im Repository belegt sind. "Rest" i
 
 | STRIDE | Bedrohung | Vorhanden | Rest | Stufe |
 |---|---|---|---|---|
-| T | Manipulierte Dateien auf dem Server, Skript-Einschleusung (XSS) | strenge CSP ohne `unsafe-eval` und ohne `unsafe-inline` bei Skripten, HSTS, `nosniff`, Hash im Dateinamen, `asset-manifest.txt` mit Prüfsummen | `style-src 'unsafe-inline'` (dokumentierte Ausnahme der Flutter-Engine). Server-Zugang ist der schwache Punkt. | S1 |
+| T | Manipulierte Dateien auf dem Server, Skript-Einschleusung (XSS) | strenge CSP ohne `unsafe-eval` und ohne `unsafe-inline` (Skripte und Stile; Stile per Hash und Build-Nonce), HSTS, `nosniff`, Hash im Dateinamen, `asset-manifest.txt` mit Prüfsummen | Build-Nonce für Stile ist öffentlich lesbar (nur Stile, keine Skripte). Server-Zugang ist der schwache Punkt. | S1 |
 | S | Domain-Übernahme oder DNS-Manipulation | HSTS | Registrar-Konto und DNS gehören zum Betreiber. 2-Faktor-Anmeldung dort ist Pflicht (nicht prüfbar aus dem Repository). | S1 |
 | D | Ausfall des Hosts | Statische Dateien, vier mögliche Ziele, Rollback ([RUNBOOK.md](RUNBOOK.md)), Uptime-Monitor | Kein automatischer Failover | S2 |
 | I | Abfluss über Referrer oder Header | `Referrer-Policy`, `Permissions-Policy`, COOP, CORP | | S4 |

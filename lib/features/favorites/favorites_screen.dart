@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:linefm_radio/app/navigation.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/domain/favorite.dart';
 import 'package:linefm_radio/domain/station.dart';
@@ -93,15 +94,11 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
         ],
       ),
       itemCount: favorites.length,
-      emptyState: Padding(
-        padding: const EdgeInsets.only(top: LinefmSpace.xs),
-        child: Text(
-          l10n.favoritesEmpty,
-          style: LinefmText.listTitle.copyWith(
-            color: context.linefm.muted,
-            fontSize: LinefmType.body,
-          ),
-        ),
+      emptyState: _FavoritesEmpty(
+        message: l10n.favoritesEmpty,
+        actionLabel: l10n.favoritesDiscover,
+        onDiscover: () =>
+            ref.read(navigationProvider.notifier).go(AppScreen.stations),
       ),
       itemBuilder: (context, index) {
         final favorite = favorites[index];
@@ -116,6 +113,54 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Leerzustand: Symbol, Hinweis und der Weg zurueck zu den Sendern.
+class _FavoritesEmpty extends StatelessWidget {
+  const _FavoritesEmpty({
+    required this.message,
+    required this.actionLabel,
+    required this.onDiscover,
+  });
+
+  final String message;
+  final String actionLabel;
+  final VoidCallback onDiscover;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.linefm;
+    return Padding(
+      padding: const EdgeInsets.only(top: LinefmSpace.xl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          ExcludeSemantics(
+            child: FaIcon(
+              FontAwesomeIcons.heart,
+              size: LinefmSpace.xxl,
+              color: colors.muted,
+            ),
+          ),
+          const SizedBox(height: LinefmSpace.lg),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: LinefmText.listTitle.copyWith(
+              color: colors.muted,
+              fontSize: LinefmType.body,
+            ),
+          ),
+          const SizedBox(height: LinefmSpace.lg),
+          OutlinedButton.icon(
+            onPressed: onDiscover,
+            icon: const FaIcon(FontAwesomeIcons.radio, size: LinefmType.body),
+            label: Text(actionLabel),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -83,7 +83,9 @@ class _StationCardState extends State<StationCard> {
     final colors = context.linefm;
     final station = widget.station;
     final accent = StationStyle.border(station.color, colors);
-    final highlighted = widget.active || _hover;
+    // Rahmen nur fuer den aktiven Sender; Hover hebt die Karte mit Schatten
+    // an, damit nie zwei Karten ausgewaehlt wirken.
+    final hovered = _hover && !widget.active;
     final radius = BorderRadius.circular(LinefmMetrics.radiusCard);
     final grid = widget.grid;
     final artSize = grid ? 76.0 : 72.0;
@@ -170,9 +172,18 @@ class _StationCardState extends State<StationCard> {
           decoration: BoxDecoration(
             borderRadius: radius,
             border: Border.all(
-              color: highlighted ? accent : colors.background,
+              color: widget.active ? accent : colors.background,
               width: 2,
             ),
+            boxShadow: hovered
+                ? <BoxShadow>[
+                    BoxShadow(
+                      color: colors.coverShadow,
+                      blurRadius: LinefmSpace.lg,
+                      offset: const Offset(0, LinefmSpace.xs),
+                    ),
+                  ]
+                : null,
             gradient: StationStyle.cardGradient(station.color, colors),
           ),
           child: Material(

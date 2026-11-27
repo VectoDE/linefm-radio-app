@@ -67,7 +67,7 @@ jobs:
           # Run outside the package (dart: imports only), as in ci.yml.
           cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
           dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
-          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
+          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web --no-precompress
 
       - name: Set up Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -103,6 +103,13 @@ jobs:
         working-directory: tool/a11y
         timeout-minutes: 5
         run: node cast_net.mjs --web ../../build/web --hosting ../../build/hosting
+
+      # Serves the build with the CSP of the rendered nginx snippet and fails on
+      # any CSP violation (style hashes and build nonce must cover the engine).
+      - name: CSP check (no violations with the nginx policy)
+        working-directory: tool/a11y
+        timeout-minutes: 5
+        run: node csp_check.mjs --web ../../build/web --hosting ../../build/hosting
 
       - name: CSP without IDs has no Google sources
         run: |
@@ -168,7 +175,7 @@ jobs:
           jq '.GTM_ID = "GTM-TEST000" | .GA4_MEASUREMENT_ID = "G-TEST000000"' config/app.json > "$RUNNER_TEMP/app_ga.json"
           flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file="$RUNNER_TEMP/app_ga.json" --base-href / --output build/web_ga "${web_defines[@]}"
           dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web_ga --strict
-          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web_ga --config "$RUNNER_TEMP/app_ga.json"             --hosting-out build/hosting_ga
+          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web_ga --config "$RUNNER_TEMP/app_ga.json"             --hosting-out build/hosting_ga --no-precompress
           grep -q "https://www.googletagmanager.com" build/hosting_ga/nginx/snippets/linefm-headers.conf
 
       - name: Set up Node

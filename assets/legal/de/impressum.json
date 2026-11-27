@@ -2,10 +2,11 @@
   "version": 1,
   "lang": "de",
   "title": "Impressum",
-  "updated": "2026-11-19",
+  "updated": "2026-11-27",
   "reviewNote": "ENTWURF. Muss vor Veröffentlichung von einem Anwalt geprüft und mit den Betreiberdaten befüllt werden. Quellen: § 5 DDG, § 18 Abs. 2 MStV, § 27a UStG.",
   "blocks": [
     {"type": "h1", "text": "Impressum"},
+    {"type": "p", "text": "ENTWURF: Dieses Impressum ist noch nicht anwaltlich geprüft und kann sich noch ändern."},
     {"type": "p", "text": "Angaben nach § 5 Digitale-Dienste-Gesetz (DDG)."},
     {"type": "h2", "text": "Anbieter"},
     {"type": "p", "text": "{{BETREIBER_NAME}}\n{{BETREIBER_RECHTSFORM}}\n{{BETREIBER_STRASSE}}\n{{BETREIBER_PLZ_ORT}}"},

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
+import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/features/legal/external_link.dart';
 import 'package:linefm_radio/features/legal/legal_document.dart';
@@ -30,6 +31,7 @@ class FeatureHost {
     PlatformInfo? platform,
     DateTime? now,
     LegalAssetLoader? legalLoader,
+    NowPlayingRepository? repository,
     List<Override> extra = const <Override>[],
   }) : prefs = prefs ?? InMemoryPrefsStore(),
        clock = FakeClock(now ?? DateTime(2026, 11, 18, 6)),
@@ -40,7 +42,7 @@ class FeatureHost {
       appConfigProvider.overrideWithValue(config),
       telemetryProvider.overrideWithValue(TelemetryHub(config: config)),
       clockProvider.overrideWithValue(clock),
-      ...offlineDataOverrides(),
+      ...offlineDataOverrides(repository: repository),
       platformInfoProvider.overrideWithValue(
         platform ??
             const PlatformInfo(isWeb: false, platform: TargetPlatform.android),
@@ -70,6 +72,7 @@ class FeatureHost {
       key: UniqueKey(),
       overrides: overrides,
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         locale: locale,
         theme: buildLinefmTheme(brightness),
         localizationsDelegates: const <LocalizationsDelegate<dynamic>>[

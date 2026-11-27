@@ -95,7 +95,7 @@ jobs:
           # Run outside the package (dart: imports only), as in build.yml.
           cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
           dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
-          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
+          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web --no-precompress
 
       - name: Prepare Pages content
         run: |

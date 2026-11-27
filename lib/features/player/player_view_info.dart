@@ -97,6 +97,9 @@ class _TrackInfo extends StatelessWidget {
                 // Syncopate ohne Kapitaelchen: Grossbuchstaben.
                 title.toUpperCase(),
                 enabled: data.marquee,
+                // Running band with an inset: it fades inside the panel, not
+                // at its edge.
+                bandInset: LinefmSpace.xl,
                 textAlign: TextAlign.center,
                 style: LinefmText.playerSongTitle(viewportWidth)
                     .copyWith(color: color),
@@ -108,6 +111,7 @@ class _TrackInfo extends StatelessWidget {
               child: MarqueeText(
                 artist,
                 enabled: data.marquee,
+                bandInset: LinefmSpace.xl,
                 textAlign: TextAlign.center,
                 style: LinefmText.playerArtist.copyWith(
                   color: color.withValues(alpha: 0.8),

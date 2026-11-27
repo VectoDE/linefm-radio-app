@@ -19,6 +19,7 @@ class MarqueeText extends StatelessWidget {
     this.textAlign = TextAlign.start,
     this.loopDuration = LinefmMetrics.marqueeLoop,
     this.gap = LinefmMetrics.marqueeGap,
+    this.bandInset = 0,
   });
 
   final String text;
@@ -32,6 +33,11 @@ class MarqueeText extends StatelessWidget {
 
   final Duration loopDuration;
   final double gap;
+
+  /// Seitlicher Innenabstand nur fuer das laufende Band: Es blendet dann
+  /// innerhalb dieses Abstands aus statt an der Kante des Elternelements.
+  /// Text, der passt, nutzt weiter die volle Breite.
+  final double bandInset;
 
   @override
   Widget build(BuildContext context) {
@@ -64,14 +70,17 @@ class MarqueeText extends StatelessWidget {
         return Semantics(
           label: text,
           excludeSemantics: true,
-          child: SizedBox(
-            height: height,
-            child: _Band(
-              text: text,
-              style: style,
-              cycle: textWidth + gap,
-              gap: gap,
-              duration: loopDuration,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: bandInset),
+            child: SizedBox(
+              height: height,
+              child: _Band(
+                text: text,
+                style: style,
+                cycle: textWidth + gap,
+                gap: gap,
+                duration: loopDuration,
+              ),
             ),
           ),
         );
@@ -103,20 +112,43 @@ class _BandState extends State<_Band> with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: widget.duration,
-  )..repeat();
+  );
+
+  // The band only moves while the app is in the foreground. Hidden routes
+  // and covered subtrees are muted through TickerMode by the ticker itself.
+  late final AppLifecycleListener _lifecycle = AppLifecycleListener(
+    onStateChange: (_) => _syncRunning(),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle;
+    _syncRunning();
+  }
+
+  void _syncRunning() {
+    final state = WidgetsBinding.instance.lifecycleState;
+    final foreground = state == null || state == AppLifecycleState.resumed;
+    if (foreground && !_controller.isAnimating) {
+      _controller.repeat();
+    } else if (!foreground && _controller.isAnimating) {
+      _controller.stop(canceled: false);
+    }
+  }
 
   @override
   void didUpdateWidget(_Band old) {
     super.didUpdateWidget(old);
     if (old.duration != widget.duration) {
-      _controller
-        ..duration = widget.duration
-        ..repeat();
+      _controller.duration = widget.duration;
+      if (_controller.isAnimating) _controller.repeat();
     }
   }
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     _controller.dispose();
     super.dispose();
   }

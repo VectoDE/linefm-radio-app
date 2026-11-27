@@ -10,6 +10,7 @@ import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/sleep_timer/sleep_timer_logic.dart';
 import 'package:linefm_radio/domain/track.dart';
+import 'package:linefm_radio/features/alarm/alarm_bootstrap.dart';
 import 'package:linefm_radio/features/alarm/alarm_hooks.dart';
 import 'package:linefm_radio/features/alarm/alarm_screen.dart';
 import 'package:linefm_radio/features/settings/platform_info.dart';
@@ -612,5 +613,34 @@ void main() {
       await tester.pump();
       expect(find.text('Nächster Wecker: 07:30'), findsOneWidget);
     });
+  });
+
+  testWidgets('exact-alarm hint disappears on return to the app', (
+    tester,
+  ) async {
+    useSize(tester, 420, 2600);
+    var exact = false;
+    final host = FeatureHost(
+      extra: <Override>[
+        alarmCoordinatorProvider.overrideWithValue(_RecordingAlarms()),
+        alarmStatusCheckProvider.overrideWithValue(
+          () async => AlarmPermissionStatus(exactOk: exact),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      host.app(const AlarmBootstrap(child: AlarmScreen()), scaffold: false),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(l10n.alarmExactMissingNote), findsOneWidget);
+
+    // Permission granted in the system settings while the app was away.
+    exact = true;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(l10n.alarmExactMissingNote), findsNothing);
   });
 }

@@ -235,7 +235,7 @@ switch ($Ziel) {
       Write-Schritt 'Fetching fallback fonts (needs internet)'
       Invoke-Programm 'dart' @('run', (Join-Path $tmp 'fetch_font_fallback.dart'), 'build/web') 'Fetching fallback fonts'
       Write-Schritt 'Post-processing the web files'
-      Invoke-Programm 'dart' @('run', (Join-Path $tmp 'web_postbuild.dart'), 'build/web', '--targets', 'none', '--base-url', ('http://localhost:' + $webPort)) 'Post-processing (web_postbuild)'
+      Invoke-Programm 'dart' @('run', (Join-Path $tmp 'web_postbuild.dart'), 'build/web', '--targets', 'none', '--no-precompress', '--base-url', ('http://localhost:' + $webPort)) 'Post-processing (web_postbuild)'
     } finally {
       Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
     }

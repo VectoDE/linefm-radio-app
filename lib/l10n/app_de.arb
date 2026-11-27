@@ -135,7 +135,7 @@
   "playerLive": "LIVE",
   "trackUnknownTitle": "Unbekannter Titel",
   "trackLoading": "Titel wird geladen …",
-  "playerOpenSongIn": "Song öffnen in …",
+  "playerOpenSongIn": "Song öffnen",
   "playerShareSong": "Song teilen",
   "musicAppleMusic": "Apple Music",
   "musicSpotify": "Spotify",
@@ -167,6 +167,7 @@
   "historyLoadFailed": "Verlauf konnte nicht geladen werden.",
   "favoritesTitle": "Favoriten",
   "favoritesEmpty": "Noch keine Favoriten gespeichert.",
+  "favoritesDiscover": "Sender entdecken",
   "favoritesRemove": "{title} aus Favoriten entfernen",
   "@favoritesRemove": {
     "placeholders": {

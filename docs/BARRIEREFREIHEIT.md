@@ -28,8 +28,9 @@ Diese Punkte sind uns bekannt und noch nicht behoben.
 | Bereich | Einschränkung | Was wir tun |
 |---|---|---|
 | Web | Die Oberfläche wird von Flutter auf eine Zeichenfläche gerendert. Die Kontrastprüfung durch Werkzeuge ist dort nur eingeschränkt möglich, wir haben die Werte deshalb aus den Farbwerten berechnet | Handprüfung mit Screenreader steht aus |
-| Alle Plattformen | Nicht geprüft mit TalkBack (Android), VoiceOver (iOS, macOS) und NVDA (Windows) | Teil der Freigabe-Checkliste, Abschnitt B10 |
-| Radiowecker | Nicht auf Barrierefreiheit der Systemdialoge (Alarm, Vollbild) geprüft | Gerätetest B3 |
+| Alle Plattformen | TalkBack (Android) nur teilweise geprüft: Im Emulator fokussiert TalkBack die App, ein vollständiger Durchgang mit Wischgesten steht aus. Nicht geprüft mit VoiceOver (iOS, macOS) und NVDA (Windows) | Bericht in [Gerätetests](GERAETETESTS.md), Freigabe-Checkliste B10 |
+| Android | Bei 200 % Systemschrift laufen die Beschriftungen der unteren Navigation ineinander | Gerätetests, wird behoben |
+| Radiowecker | Wecker klingelt pünktlich, auch im Doze-Modus. Die Systemdialoge (Alarm, Vollbild) sind nicht mit Screenreader geprüft | [Gerätetests](GERAETETESTS.md) |
 | Web | Beim Tabben über das Seitenende hinaus landet der Fokus kurz auf unbeschrifteten Flutter-Elementen ohne Funktion, bevor er wieder oben beginnt. Wie viele es sind, hängt von Ansicht und Browser ab | Verhalten von Flutter Web, wird beobachtet |
 | Livestream | Radio hat keine Untertitel. Für Titel und Sender gibt es Text, für gesprochene Inhalte keine Transkripte | Liegt beim Programm von laut.fm bzw. den Sendern |
 

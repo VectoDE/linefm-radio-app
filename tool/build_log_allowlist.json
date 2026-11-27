@@ -1,8 +1,8 @@
 [
   {
-    "pattern": "^\\d+ packages? ha(s|ve) newer versions incompatible with dependency constraints\\.$",
+    "pattern": "^(:: )?\\d+ packages? ha(s|ve) newer versions incompatible with dependency constraints\\.$",
     "expires": "2027-02-28",
-    "reason": "Summary line of pub get. Every held-back package is still gated on its own line below, so a new one fails the check."
+    "reason": "Summary line of pub get. Every held-back package is still gated on its own line below, so a new one fails the check. The snap build prefixes its part output with ':: '."
   },
   {
     "pattern": "^\\s*(material_color_utilities|test_api) \\S+ \\(\\S+ available\\)$",
@@ -92,5 +92,35 @@
     "job": "OWASP.dependency-check",
     "expires": "2027-02-28",
     "reason": "oxc-parser (dev tooling of tool/perf, pulled in by lighthouse through @sentry/node) ships one optional native binding per platform; npm installs only the linux-x64 one, even with --force. dependency-check 13.0.0 warns for every uninstalled optional package without a switch to turn it off (NodePackageAnalyzer.shouldSkipDependency). The bindings are builds of the same oxc-parser version, which is installed and analyzed, so no coverage is lost. An upstream request for a quieter log level is still to be filed."
+  },
+  {
+    "pattern": "^(:: )?WARNING: Library target 'placebo' has 'name_prefix' set\\.",
+    "job": "Build.(and.upload.snap|Flatpak)",
+    "expires": "2027-02-28",
+    "reason": "Meson notice from the libplacebo build files (upstream v7.387.0); built as a dependency of libmpv, nothing to change on our side."
+  },
+  {
+    "pattern": "apt/package\\.py:\\d+: Warning: W:Download is performed unsandboxed as root as file '/root/\\.cache/snapcraft/download/\\S+\\.deb' couldn't be accessed by user '_apt'",
+    "job": "Build.and.upload.snap",
+    "expires": "2027-02-28",
+    "reason": "snapcraft downloads stage packages as root into its own cache; the apt sandbox user cannot read it. Comes from snapcraft, not from snapcraft.yaml."
+  },
+  {
+    "pattern": "Node\\.js 20 is deprecated\\. The following actions target Node\\.js 20 but are being forced to run on Node\\.js 24: snapcore/action-build@",
+    "job": "Build.and.upload.snap",
+    "expires": "2027-02-28",
+    "reason": "snapcore/action-build v1.3.0 is the latest release and still declares node20; it runs on Node.js 24 without problems."
+  },
+  {
+    "pattern": "^\\(node:\\d+\\) \\[DEP0040\\] DeprecationWarning: The `punycode` module is deprecated",
+    "job": "Build.Flatpak",
+    "expires": "2027-02-28",
+    "reason": "Printed by the Node runtime inside the flatpak-github-actions container (download-artifact and flatpak-builder actions); not our code."
+  },
+  {
+    "pattern": "^(:: )?Warning: Non-SPDX licenses are deprecated\\. Use SPDX license strings or 'proprietary' instead\\.",
+    "job": "Build.and.upload.snap",
+    "expires": "2027-02-28",
+    "reason": "snapcraft warns about license: Proprietary but rejects the lowercase 'proprietary' it suggests when packing (unknown license). The app has no SPDX licence; Proprietary is the only value snapcraft accepts."
   }
 ]

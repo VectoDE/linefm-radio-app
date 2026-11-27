@@ -116,6 +116,15 @@ void main() {
     expect(h.state.status, PlayerStatus.playing);
   });
 
+  test('default handler reports playing without an artificial delay', () async {
+    final player = FakeRadioPlayer();
+    final h = LinefmAudioHandler(player: player);
+    expect(h.minConnectDuration, Duration.zero);
+    await h.playStation(main);
+    await _settle(10);
+    expect(h.state.status, PlayerStatus.playing);
+  });
+
   test('erster Verbindungsfehler fuehrt direkt zu error', () async {
     final player = FakeRadioPlayer()..failOpen = true;
     final h = _handler(player);

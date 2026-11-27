@@ -40,9 +40,13 @@ Der GitHub-Workflow `deploy-web.yml` macht genau diese Schritte per SSH (Ziel `s
 
 `linefm-app.conf` setzt `ssl_stapling off`. Let's Encrypt hat die OCSP-Dienste 2025 abgeschaltet und setzt auf Zertifikatssperrlisten (CRL). Bei Zertifikaten ohne OCSP-Adresse ist `ssl_stapling on` wirkungslos und erzeugt nur Warnungen im Log. Stapling nur einschalten, wenn die Zertifizierungsstelle des eigenen Zertifikats noch OCSP anbietet (die Zeilen dazu stehen als Kommentar in der Datei). Bitte vor dem Ausrollen gegen die aktuelle Ankündigung von Let's Encrypt prüfen.
 
+## Vorkomprimierte Dateien
+
+`tool/web_postbuild.dart` legt neben jede komprimierbare Datei ab 1 KB eine `.gz`-Fassung (gzip 9) und, wenn `node` beim Bauen verfügbar ist, eine `.br`-Fassung (Brotli 11). `linefm-locations.conf` schaltet `gzip_static on` ein; nginx liefert dann die fertige `.gz`-Datei statt bei jeder Anfrage mit Stufe 5 zu komprimieren. Das Modul `http_gzip_static` steckt in den offiziellen nginx-Images und den Debian/Ubuntu-Paketen; prüfen mit `nginx -V 2>&1 | grep -o http_gzip_static_module`. Die `.br`-Dateien nutzt nginx nur mit ngx_brotli (`brotli_static on`, siehe unten). Wer nur Cloudflare Pages beliefert, baut mit `--no-precompress`.
+
 ## Brotli (optional)
 
-Mit dem Modul `libnginx-mod-http-brotli-filter` (Debian/Ubuntu-Paket) in `linefm-locations.conf` unter `gzip_types` ergänzen. Die Typliste muss dieselben Typen enthalten wie `gzip_types`, vor allem `application/octet-stream` (NOTICES, AssetManifest.bin) und Schriften:
+Mit dem Modul `libnginx-mod-http-brotli-filter` (Debian/Ubuntu-Paket, für `.br`-Dateien zusätzlich `libnginx-mod-http-brotli-static` und `brotli_static on;`) in `linefm-locations.conf` unter `gzip_types` ergänzen. Die Typliste muss dieselben Typen enthalten wie `gzip_types`, vor allem `application/octet-stream` (NOTICES, AssetManifest.bin) und Schriften:
 
 ```nginx
 brotli on;

@@ -15,9 +15,11 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:linefm_radio/app/app.dart';
 import 'package:linefm_radio/app/providers.dart';
@@ -192,12 +194,10 @@ void main() {
       final world = _World(settings: _settings(AppLanguage.de));
       await _pumpWorld(tester, world);
 
-      // Einstellungen ueber die Rail oeffnen.
+      // Einstellungen ueber das Zahnrad im Header oeffnen (nicht in der Rail).
       final rail = find.byKey(const ValueKey<String>('shell-rail'));
       expect(rail, findsOneWidget);
-      await tester.tap(
-        find.descendant(of: rail, matching: find.text('EINSTELLUNGEN')),
-      );
+      await tester.tap(find.byIcon(FontAwesomeIcons.gear.data));
       await _pumpFor(tester, const Duration(milliseconds: 600));
       await _reveal(tester, find.text('Sprache'));
       expect(find.text('Sprache'), findsOneWidget);
@@ -359,6 +359,63 @@ void main() {
     expect(tester.takeException(), isNull);
     await _disposeWorld(tester, world);
   }, timeout: const Timeout(Duration(minutes: 5)));
+
+  testWidgets('Tastatur - Tab-Fokus und Kuerzel, Mini-Fenster und zurueck', (
+    tester,
+  ) async {
+    final desktop = DesktopController.instance;
+    await _setWindowSize(tester, const Size(1000, 680));
+    final world = _World(settings: _settings(AppLanguage.de));
+    await _pumpWorld(tester, world);
+
+    // Tab bewegt den Fokus durch die Bedienelemente.
+    for (var i = 0; i < 3; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    expect(
+      FocusManager.instance.primaryFocus,
+      isNotNull,
+      reason: 'Nach Tab hat kein Element den Fokus',
+    );
+    await _shot(tester, '60-01-tab-fokus');
+
+    // Ziffer 2 startet den zweiten Sender (Ein-Zeichen-Kuerzel).
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit2);
+    await _pumpUntil(
+      tester,
+      () =>
+          world.container.read(activeStationProvider).slug ==
+          stationsCatalog[1].slug,
+      'Sender 2 per Taste 2',
+    );
+    await _shot(tester, '60-02-taste-2-sender-2');
+
+    // Mini-Fenster: 360 x 120, rahmenlos, standardmaessig im Vordergrund.
+    await desktop.enterMini();
+    await _waitWindow(() async {
+      final size = await _wm.getSize();
+      return (size.width - 360).abs() <= 2 && (size.height - 120).abs() <= 2;
+    }, 'Mini-Fenster 360 x 120');
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(desktop.miniMode.value, isTrue);
+    expect(await _wm.isAlwaysOnTop(), isTrue);
+    await _shot(tester, '60-03-mini-fenster');
+
+    await desktop.exitMini();
+    await _waitWindow(() async {
+      final size = await _wm.getSize();
+      return size.width > 500 && size.height > 300;
+    }, 'Normales Fenster nach Mini-Fenster');
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(desktop.miniMode.value, isFalse);
+    expect(await _wm.isAlwaysOnTop(), isFalse);
+    expect(find.byType(DesktopTitleBar), findsOneWidget);
+    await _shot(tester, '60-04-zurueck-aus-mini-fenster');
+
+    expect(tester.takeException(), isNull);
+    await _disposeWorld(tester, world);
+  }, timeout: const Timeout(Duration(minutes: 3)));
 }
 
 // ------------------------------------------------------------------ Welt

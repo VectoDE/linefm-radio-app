@@ -4,6 +4,8 @@ Diese Anleitung zeigt dir, wie du LINEFM Radio selbst bauen, öffnen und benutze
 
 Stand der Angaben: 21.11.2026. Wo etwas nicht auf diesem Weg nachgespielt wurde, steht "nicht geprüft".
 
+Unbekannte Wörter (Workflow, Branch, Secret und andere) erklärt die Begriffstabelle am Anfang von [EINRICHTUNG.md](EINRICHTUNG.md). Die Abläufe "SonarCloud" und "Snyk" in der Actions-Liste prüfen nur den Code und sind für das Bauen ohne Bedeutung. Sie überspringen sich selbst, solange der Repo-Eigentümer keine Konten dafür angelegt hat (Schritt 12.6 in EINRICHTUNG.md).
+
 ## Wohin mit meinem Ziel?
 
 | Ich will ... | Gehe zu |
@@ -31,7 +33,7 @@ Du brauchst nur einen Browser und ein GitHub-Konto, das im Repository mitarbeite
 6. Beim Schalter **macOS- und iOS-Build einschliessen** setzt du den Haken, wenn du auch die Mac-App und die iOS-Prüfung willst. Ohne Haken baut GitHub Android, Web, Windows und Linux.
 7. Klicke auf den grünen Knopf **Run workflow**.
 
-Du erkennst, dass es geklappt hat, wenn nach ein paar Sekunden oben in der Liste ein neuer Eintrag mit einem gelben Punkt erscheint (nach einem Neuladen der Seite). Der Punkt wird grün, wenn alles fertig ist, und rot, wenn etwas schiefging.
+Ein **Lauf** ist ein einzelner Durchgang eines automatischen Ablaufs. Du erkennst, dass er gestartet ist, wenn nach ein paar Sekunden oben in der Liste ein neuer Eintrag mit einem gelben Punkt erscheint (nach einem Neuladen der Seite). Der Punkt wird grün, wenn alles fertig ist, und rot, wenn etwas schiefging.
 
 Wie lange es dauert: Der Lauf vom 21.11.2026 brauchte etwa 13 Minuten, der längste Teil war Android mit gut 13 Minuten. Die einzelnen Plattformen laufen gleichzeitig.
 
@@ -49,7 +51,7 @@ Gut zu wissen:
 - Die Dateien sind nur für angemeldete GitHub-Nutzer abrufbar. Es gibt keinen öffentlichen Link zum Weitergeben.
 - GitHub bewahrt sie **14 Tage** auf (`retention-days: 14` in `build.yml`). Danach sind sie gelöscht und du startest einen neuen Bau.
 - Ein Artefakt ist immer eine ZIP-Datei mit den eigentlichen Dateien darin, auch wenn die Datei darin selbst schon ein ZIP oder eine EXE ist.
-- Die Version in den Dateinamen sieht bei einem manuellen Bau so aus: `0.0.0-dev+1a2b3c4`. Hinter dem Plus steht die Kurz-ID des Commits. Echte Versionsnummern gibt es nur über Releases (A4).
+- Die Version in den Dateinamen sieht bei einem manuellen Bau so aus: `0.0.0-dev+1a2b3c4`. Hinter dem Plus steht die Kurz-ID des Commits (so heißt ein gespeicherter Änderungsstand im Repository). Echte Versionsnummern gibt es nur über Releases (A4).
 
 Was in welchem Artefakt liegt, abgeglichen mit dem Lauf vom 21.11.2026 ([Lauf 44909292173](https://github.com/VectoDE/linefm-radio-app/actions/runs/44909292173), Branch `main`):
 
@@ -58,7 +60,7 @@ Was in welchem Artefakt liegt, abgeglichen mit dem Lauf vom 21.11.2026 ([Lauf 44
 | `dist-android` | `linefm-radio-0.0.0-dev+1a2b3c4-android.apk` (zum Installieren), `...-android.aab` (nur für den Play Store) | 110 MB |
 | `dist-web` | `...-web.zip` (die Web-Version), `...-web-hosting.zip` (Server-Einstellungsdateien, 14 KB) | 49 MB |
 | `dist-windows` | `...-windows-x64.zip` (portable App), `...-windows-x64-setup.exe` (Installer) | 42 MB |
-| `dist-linux` | `...-linux-x64.tar.gz` | 14 MB |
+| `dist-linux` | `...-linux-x64.tar.gz`, `...-linux-x64.deb`, `...-linux-x64.rpm`, `...-linux-x64.AppImage` (die App), `...-linux-x64-setup.AppImage` (Installer) | 14 MB (Stand vor deb, rpm und AppImage, danach größer) |
 | `dist-macos` | `...-macos.dmg` (nur mit dem Haken bei macOS und iOS) | 29 MB |
 
 Stand dieses Laufs: Android, Web, Windows, Linux und macOS waren grün. Die iOS-Prüfung war rot. Sie ist eine reine Kompilierprüfung und liefert keine Datei (siehe A6). Der Fehler wird in einem eigenen Änderungsvorschlag behoben, die Version dafür ist iOS 16 als Mindestversion. Ob sie danach grün ist, siehst du in der Lauf-Liste unter Actions.
@@ -67,7 +69,7 @@ Windows-MSIX: `build.yml` legt eine MSIX-Datei ins Artefakt (belegt im [Lauf 449
 
 ### A3 Dasselbe auf der Kommandozeile
 
-Das geht auch ohne Browser. Du brauchst die [GitHub-CLI](https://cli.github.com/) (`gh`) und musst dich einmal mit `gh auth login` anmelden.
+Das ist für Leute gedacht, die mit einem Terminal (einem Fenster, in das man Befehle tippt) umgehen können. Alles aus A1 und A2 geht auch ohne Browser. Du brauchst die [GitHub-CLI](https://cli.github.com/) (`gh`) und musst dich einmal mit `gh auth login` anmelden.
 
 ```bash
 gh workflow run build.yml --repo VectoDE/linefm-radio-app --ref main -f apple=true
@@ -80,7 +82,7 @@ Ersetze `apple=true` durch `apple=false`, wenn du keinen Mac-Bau brauchst. `gh r
 
 ### A4 Der Weg über ein Release
 
-Jeder Merge auf `main` erzeugt automatisch ein Release (`release.yml`). Du setzt dafür keinen Tag. Der Ablauf baut alle Plattformen und legt die Dateien mit Prüfsummen (`SHA256SUMS.txt`), cosign-Signaturen (`*.sigstore.json`), Herkunftsnachweis und SBOM (SPDX und CycloneDX) in ein GitHub-Release. Die Release Notes entstehen aus den Titeln der gemergten Änderungsvorschläge. Wie du Release-Dateien auf Echtheit prüfst, steht in [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).
+Jeder Merge auf `main` (eine geprüfte Änderung wird in die Hauptlinie übernommen) erzeugt automatisch ein Release (`release.yml`). Du setzt dafür keinen Tag. Der Ablauf baut alle Plattformen und legt die Dateien mit Prüfsummen (`SHA256SUMS.txt`), cosign-Signaturen (`*.sigstore.json`), Herkunftsnachweis und SBOM (SPDX und CycloneDX) in ein GitHub-Release. Die Release Notes entstehen aus den Titeln der gemergten Änderungsvorschläge. Wie du Release-Dateien auf Echtheit prüfst, steht in [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).
 
 Die Versionsnummer steht in keiner Datei, `pubspec.yaml` trägt nur den Platzhalter `0.0.0-dev`. Der Ablauf berechnet sie aus dem letzten Release und den offenen Tickets:
 
@@ -191,7 +193,7 @@ Die Datei `...-android.aab` ist ein App Bundle. Sie ist nur für den Play Store 
 
 1. Entpacke `dist-web` und darin `...-web.zip` in einen Ordner, zum Beispiel `C:\LINEFM-web`.
 2. Du musst die Seite über einen kleinen Server laden. Ein Doppelklick auf `index.html` funktioniert **nicht**, weil der Browser die Programmdateien dann blockiert.
-3. Öffne im Ordner ein Terminal (PowerShell) und starte den Server, Python 3 vorausgesetzt:
+3. Öffne im Ordner ein Terminal (ein Fenster, in das du Befehle tippst): im Explorer in den Ordner gehen, in die Adresszeile `powershell` tippen, Eingabetaste. Starte dort den Server, Python 3 vorausgesetzt:
 
 ```powershell
 python -m http.server 8090 --bind 127.0.0.1
@@ -213,6 +215,37 @@ cd ~/linefm-radio && ./linefm_radio
 2. Das Archiv enthält direkt den Inhalt des Bundles, es gibt keinen Unterordner. Deshalb der eigene Zielordner.
 3. Startet die App nicht und meldet eine fehlende Bibliothek, fehlt ein System-Paket. Auf Debian und Ubuntu hilft meistens `sudo apt install libmpv2 libgtk-3-0 libayatana-appindicator3-1`. Diese Paketnamen sind nicht geprüft, in der CI laufen nur die Entwicklungspakete (siehe B8).
 
+Statt des Archivs gibt es drei Pakete der App. Alle legen die App gleich ab: Programm in `/usr/lib/linefm-radio`, Befehl `linefm-radio`, Eintrag im App-Menü, Icons und den Handler für `linefm://`-Links. Nimm entweder ein Paket oder den Installer (Abschnitt oben), nicht beides: Der Installer schreibt bei **Alle Benutzer** denselben Menüeintrag.
+
+**.deb** (Debian, Ubuntu, Linux Mint):
+
+```bash
+sudo apt install ./linefm-radio-X.Y.Z-linux-x64.deb
+linefm-radio
+```
+
+`apt` holt die nötigen Bibliotheken (GTK 3, libmpv, AppIndicator, Keybinder, libcurl) selbst. Das Paket ist auf Ubuntu 24.04 gebaut und verlangt deren glibc-Stand, läuft also ab Ubuntu 24.04, Debian 13 und Linux Mint 22. Auf älteren Systemen weist `apt` das Paket mit einer Meldung zu `libc6` ab. Update: neueres Paket genauso installieren. Deinstallieren: `sudo apt remove linefm-radio`.
+
+**.rpm** (Fedora, openSUSE, RHEL und Ableger):
+
+```bash
+sudo dnf install ./linefm-radio-X.Y.Z-linux-x64.rpm      # Fedora, RHEL
+sudo zypper install ./linefm-radio-X.Y.Z-linux-x64.rpm   # openSUSE
+```
+
+Das Paket nennt seine Bibliotheken über deren Dateinamen (zum Beispiel `libmpv.so.2`), deshalb findet jede Distribution das passende Paket selbst. Auf RHEL und Ablegern liegen libmpv und einige weitere Bibliotheken nicht in den Grundquellen. Dort braucht es vorher EPEL und RPM Fusion (auf RHEL nicht nachgespielt). Deinstallieren: `sudo dnf remove linefm-radio` bzw. `sudo zypper remove linefm-radio`.
+
+**AppImage** (jede Distribution, ohne Installation):
+
+```bash
+chmod +x linefm-radio-X.Y.Z-linux-x64.AppImage
+./linefm-radio-X.Y.Z-linux-x64.AppImage
+```
+
+Fehlt FUSE, geht es mit `APPIMAGE_EXTRACT_AND_RUN=1` davor. Das AppImage enthält die App, aber nicht libmpv, GTK und die übrigen System-Bibliotheken. Die müssen installiert sein (Debian, Ubuntu: `sudo apt install libmpv2 libayatana-appindicator3-1 libkeybinder-3.0-0`). Einen Menüeintrag legt das AppImage selbst nicht an. Wer das möchte, nimmt ein Werkzeug wie Gear Lever oder AppImageLauncher, oder gleich den Installer. Entfernen: Datei löschen.
+
+Was die CI bei jedem Bau prüft: Das .deb wird in einem frischen Ubuntu-24.04-Container installiert, das .rpm in einem frischen Fedora-42-Container. Geprüft werden jeweils Installation samt Abhängigkeiten, alle Dateien, der Menüeintrag (`desktop-file-validate`), der registrierte `linefm://`-Handler, dass jede Bibliothek gefunden wird, dass die App startet und 10 Sekunden läuft, das Update auf ein Paket mit höherer Version aus demselben Bundle, dass ein älteres Paket nicht stillschweigend zurückstuft, und dass nach dem Deinstallieren nichts zurückbleibt. Beim AppImage prüft die CI Inhalt, Menüeintrag, Icons und den Start. openSUSE, RHEL, Debian und Mint werden nicht eigens getestet. Englische Fassung: [packaging/linux/README.md](../packaging/linux/README.md). Bau und Prüfung: [packaging/linux/build-packages.sh](../packaging/linux/build-packages.sh) und [packaging/linux/test-packages.sh](../packaging/linux/test-packages.sh).
+
 #### macOS
 
 Das DMG ist weder signiert noch von Apple geprüft ("notarisiert"). macOS warnt deshalb beim ersten Start. Das ist erwartet. Die Anleitung dazu steht auch im DMG selbst als `LIES-MICH-ZUERST.txt`.
@@ -223,7 +256,19 @@ Das DMG ist weder signiert noch von Apple geprüft ("notarisiert"). macOS warnt 
 4. Scrolle zu **Sicherheit**. Dort steht, dass "LINEFM Radio" blockiert wurde. Klicke auf **Dennoch öffnen** und bestätige mit Passwort oder Touch ID.
 5. Ab jetzt startet die App normal.
 
-Bis macOS 14 reichte Rechtsklick auf die App und **Öffnen**. Ab macOS 15 geht es nur über die Systemeinstellungen. Quelle: [packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt). Auf einem Mac wurde das in diesem Projekt noch nicht nachgespielt.
+Bis macOS 14 reichte Rechtsklick auf die App und **Öffnen**. Ab macOS 15 geht es nur über die Systemeinstellungen. Quelle: [packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt). Auf einem echten Mac wurde das in diesem Projekt noch nicht nachgespielt.
+
+**Bildnachweise aus der CI.** Der Workflow **Widget evidence** (`.github/workflows/widget-evidence.yml`, Job *macOS Gatekeeper, title bar and icon*) baut die App unsigniert, packt sie in ein DMG mit Quarantäne-Markierung wie nach einem Browser-Download, kopiert sie nach Programme und versucht sie zu öffnen. Das Artefakt `desktop-evidence-macos` enthält Bildschirmfotos von DMG-Fenster, Startversuch, **Datenschutz & Sicherheit**, Titelleiste hell und dunkel sowie Symbol in Dock und Finder. Dazu kommt `gatekeeper.txt` mit `spctl --status` und `spctl --assess`. Ob Gatekeeper auf den GitHub-Runnern eingeschaltet ist, dokumentiert GitHub nicht. Zeigt das Bild keinen Warndialog, steht der Grund in `gatekeeper.txt`. Für Linux liefert der Job *Linux title bar light and dark* das Artefakt `desktop-evidence-linux` (Xvfb mit Openbox).
+
+Die Bilder liegen nicht im Repository, weil sie aus einem echten CI-Lauf stammen müssen. Übernehmen geht so:
+
+```bash
+gh workflow run widget-evidence.yml --ref main
+gh run download <Lauf-ID> -n desktop-evidence-macos -D docs/bilder/macos
+gh run download <Lauf-ID> -n desktop-evidence-linux -D docs/bilder/linux
+```
+
+Danach die Bilder ansehen und nur einchecken, was den Ablauf wirklich zeigt.
 
 #### iOS
 

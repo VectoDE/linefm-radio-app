@@ -79,5 +79,7 @@ TRUST_TRUSTPILOT_URL: ""
 # Feste Adresse, von der die App beim Start die Senderliste nachlädt.
 # Optional. Format: https-URL ohne Port, Zugangsdaten und #.
 # Standard: leer (nur die mitgelieferte config/stations.yaml).
-# Beispiel: https://app.linefm.de/stations.yaml
+# Jedes Release hängt stations.json an; dafür gilt die einzige erlaubte
+# Weiterleitung (github.com auf den GitHub-Download-Host).
+# Beispiel: https://github.com/VectoDE/linefm-radio-app/releases/latest/download/stations.json
 STATIONS_URL: ""

@@ -66,7 +66,7 @@ jobs:
         run: |
           cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
           dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
-          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
+          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web --no-precompress
           # Same cleanup as the Cloudflare deploy (deploy-web.yml).
           find build/web -name '.htaccess' -type f -delete
           find build/web -mindepth 1 -name '.*' -not -path '*/.well-known' -not -path '*/.well-known/*' -prune -exec rm -rf {} +

@@ -181,10 +181,7 @@ void main() {
 
   group('LinefmAudioHandler: Favoriten-Sender im Auto-Menue', () {
     test('gemeldete Favoriten erscheinen und loesen Neuladen aus', () async {
-      final h = LinefmAudioHandler(
-        player: _SilentPlayer(),
-        minConnectDuration: Duration.zero,
-      );
+      final h = LinefmAudioHandler(player: _SilentPlayer());
       addTearDown(h.dispose);
 
       final changes = <Map<String, dynamic>>[];
@@ -211,10 +208,7 @@ void main() {
     });
 
     test('Zuletzt gehoert folgt der Wiedergabe', () async {
-      final h = LinefmAudioHandler(
-        player: _SilentPlayer(),
-        minConnectDuration: Duration.zero,
-      );
+      final h = LinefmAudioHandler(player: _SilentPlayer());
       addTearDown(h.dispose);
       final changes = <Map<String, dynamic>>[];
       final sub = h

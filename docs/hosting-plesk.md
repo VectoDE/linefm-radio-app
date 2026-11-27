@@ -34,7 +34,7 @@ Immer nur **eine** der beiden Header-Quellen verwenden. Sonst entstehen doppelte
 
 ## Komprimierung und Brotli
 
-Beide Varianten komprimieren auch `application/octet-stream` und Schriften, damit `assets/NOTICES` und `AssetManifest.bin` nicht unkomprimiert rausgehen. Brotli geht bei Plesk nur, wenn der Server `mod_brotli` (Apache) bzw. `ngx_brotli` (nginx) mitbringt. Plesk liefert beides nicht fest mit. Fehlt das Modul, bleibt gzip aktiv. Prüfen mit `curl -sI -H 'Accept-Encoding: br' https://app.linefm.de/ | grep -i content-encoding`.
+Beide Varianten komprimieren auch `application/octet-stream` und Schriften, damit `assets/NOTICES` und `AssetManifest.bin` nicht unkomprimiert rausgehen. Brotli geht bei Plesk nur, wenn der Server `mod_brotli` (Apache) bzw. `ngx_brotli` (nginx) mitbringt. Plesk liefert beides nicht fest mit. Fehlt das Modul, bleibt gzip aktiv. Prüfen mit `curl -sI -H 'Accept-Encoding: br' https://app.linefm.de/ | grep -i content-encoding`. Der Build legt vorkomprimierte `.gz`- und `.br`-Dateien mit ab. Plesk-nginx nutzt sie erst, wenn `gzip_static on;` (bzw. mit ngx_brotli `brotli_static on;`) in `nginx-additional.conf` aktiv ist; die Zeile steht dort als Kommentar, weil nicht jede Plesk-Installation das Modul `http_gzip_static` mitbringt (Prüfung steht daneben). Apache allein nutzt die Dateien nicht und komprimiert weiter selbst.
 
 ## Was die Dateien tun
 

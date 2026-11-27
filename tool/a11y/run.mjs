@@ -216,8 +216,9 @@ const LEGAL = {
 function appViews(wide) {
   // Consent only: appears at the start of a build with telemetry.
   if (args.consent) return [['dialog-einwilligung', []]];
-  // Narrow: bottom bar (stations, player, history) plus header (favorites,
-  // settings). Wide: navigation bar on the left with tabs.
+  // Narrow: bottom bar (stations, player, history, favorites). Wide:
+  // navigation bar on the left (stations, history, favorites). Settings sit
+  // in the header on every width.
   const nav = ['button', 'tab'];
   const settings = [nav, /^Einstellungen$/i];
   const views = [
@@ -238,7 +239,7 @@ function appViews(wide) {
   ]);
   views.push([
     'sheet-favoriten-export',
-    // With favorites the button in the header is called "Favoriten, 1 Song".
+    // With favorites the navigation entry is called "Favoriten, 1 Song".
     [[nav, /^Favoriten(,|$)/i], ['button', /^Favoriten exportieren$/]],
     { seed: true },
   ]);

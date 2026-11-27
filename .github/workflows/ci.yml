@@ -102,6 +102,9 @@ jobs:
       # system's rasterization and therefore run in the "goldens" job (Windows runner);
       # the reference images are created and valid only there.
       - name: Tests with coverage (without goldens)
+        env:
+          # Fuzz tests (test/data/fuzz): more random cases than the local default.
+          FUZZ_RUNS: '10000'
         run: |
           mapfile -t files < <(find test -name '*_test.dart' ! -name '*_golden_test.dart' | sort)
           flutter test --coverage --branch-coverage --reporter=expanded "${files[@]}"
@@ -397,7 +400,7 @@ jobs:
           if [ -f tool/web_postbuild.dart ]; then
             # Start outside the package (dart: imports only), otherwise "dart run" builds the native asset hooks (GTK).
             cp tool/web_postbuild.dart "$RUNNER_TEMP/web_postbuild.dart"
-            dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
+            dart run "$RUNNER_TEMP/web_postbuild.dart" build/web --no-precompress
           else
             echo "tool/web_postbuild.dart does not exist yet, step skipped." >> "$GITHUB_STEP_SUMMARY"
           fi

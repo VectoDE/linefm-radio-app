@@ -7,8 +7,8 @@ Abrufdatum aller Quellen: **21.11.2026**. Grundlage sind die Store-Einträge im 
 ## Was geprüft wurde und was nicht
 
 - Geprüft: die App-Store-Einträge in Deutschland (Beschreibung, Preis, Bewertung, Version) und die Seite app.linecast.de.
-- **Nicht geprüft:** die Google-Play-Einträge. Die Seiten laden ihre Inhalte per Skript und waren für den Abruf nicht lesbar. Aussagen zu Android stehen hier nicht.
-- **Nicht geprüft:** tatsächliches Verhalten der Apps. Wir haben keine der Apps installiert oder bedient. Die Funktionsangaben stammen aus den Beschreibungen der Anbieter und sind Eigenaussagen.
+- Nicht geprüft: die Google-Play-Einträge. Die Seiten laden ihre Inhalte per Skript und waren für den Abruf nicht lesbar. Aussagen zu Android stehen hier nicht.
+- Nicht geprüft: tatsächliches Verhalten der Apps. Wir haben keine der Apps installiert oder bedient. Die Funktionsangaben stammen aus den Beschreibungen der Anbieter und sind Eigenaussagen.
 - Die Auswertung der Antworten der Schnittstelle lief über ein Hilfsmittel, das Texte zusammenfasst. Zahlen und Namen sind übernommen, bei einer Entscheidung auf Grundlage dieser Tabelle bitte am Original gegenlesen (Links in der Quellenliste).
 
 ## Vergleich

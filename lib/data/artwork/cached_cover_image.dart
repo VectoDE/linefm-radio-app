@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -69,11 +70,48 @@ class CachedCoverImage extends ImageProvider<CachedCoverImage> {
   String toString() => 'CachedCoverImage("$url")';
 }
 
-/// GET with a 15 s timeout; only HTTP 200 with a body counts.
-Future<Uint8List> defaultCoverFetcher(Uri uri) async {
-  final response = await http.get(uri).timeout(const Duration(seconds: 15));
-  if (response.statusCode != 200 || response.bodyBytes.isEmpty) {
+/// Largest cover response accepted (bytes). Covers are about 100 KB; the
+/// cap stops a misbehaving server from filling memory.
+const int coverMaxBytes = 5 * 1024 * 1024;
+
+/// GET with a 15 s timeout; only HTTP 200 with a body counts. The body is
+/// streamed and the download aborted as soon as it exceeds [maxBytes].
+Future<Uint8List> defaultCoverFetcher(
+  Uri uri, {
+  http.Client? client,
+  int maxBytes = coverMaxBytes,
+  Duration timeout = const Duration(seconds: 15),
+}) async {
+  final c = client ?? http.Client();
+  try {
+    return await _fetchCapped(c, uri, maxBytes).timeout(timeout);
+  } finally {
+    if (client == null) c.close();
+  }
+}
+
+Future<Uint8List> _fetchCapped(
+  http.Client client,
+  Uri uri,
+  int maxBytes,
+) async {
+  final response = await client.send(http.Request('GET', uri));
+  if (response.statusCode != 200) {
     throw http.ClientException('Cover HTTP ${response.statusCode}', uri);
   }
-  return response.bodyBytes;
+  final declared = response.contentLength;
+  if (declared != null && declared > maxBytes) {
+    throw http.ClientException('Cover too large ($declared bytes)', uri);
+  }
+  final builder = BytesBuilder(copy: false);
+  await for (final chunk in response.stream) {
+    builder.add(chunk);
+    if (builder.length > maxBytes) {
+      throw http.ClientException('Cover too large (> $maxBytes bytes)', uri);
+    }
+  }
+  if (builder.isEmpty) {
+    throw http.ClientException('Cover HTTP 200 without body', uri);
+  }
+  return builder.takeBytes();
 }

@@ -75,6 +75,9 @@ try {
       --ui-file "LICENSE.txt=$((Resolve-Path 'LICENSE').Path)" `
       --ui-file "licenses/OFL-Poppins.txt=$((Resolve-Path 'assets/fonts/OFL.txt').Path)" `
       --ui-file "licenses/Apache-2.0-Syncopate.txt=$((Resolve-Path 'assets/fonts/LICENSE-Syncopate-Apache2.txt').Path)" `
+      --ui-file "licenses/LGPL-3.0.txt=$((Resolve-Path 'assets/licenses/LGPL-3.0.txt').Path)" `
+      --ui-file "licenses/GPL-3.0.txt=$((Resolve-Path 'assets/licenses/GPL-3.0.txt').Path)" `
+      --ui-file "licenses/NATIVE-LIBRARIES.txt=$((Resolve-Path 'assets/licenses/NATIVE-LIBRARIES.txt').Path)" `
       --product (Resolve-Path 'packaging/windows/installer.ini').Path `
       --version $Version `
       --out $Out

@@ -1,0 +1,123 @@
+name: ZAP baseline
+
+# OWASP ZAP baseline scan (passive rules plus spider) of the own web build.
+# Like dast.yml, everything runs against localhost on the runner: the web
+# build is served with Cloudflare Pages semantics (wrangler pages dev, real
+# _headers). No third-party host is scanned. Once the production host is
+# live, the same scan can target it by adding its URL to this workflow.
+# Gate: every WARN or FAIL rule fails the job. Rules accepted after review
+# go into .zap/rules.tsv with IGNORE and a reason.
+
+on:
+  # Changes to this workflow are tested in their own proposed change.
+  pull_request:
+    paths:
+      - .github/workflows/zap.yml
+      - .zap/rules.tsv
+  schedule:
+    - cron: "41 3 * * 3"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: zap-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # Same wrangler version as deploy-web.yml.
+  WRANGLER_VERSION: "4.165.0"
+  # ghcr.io/zaproxy/zaproxy:2.17.0 (checked 2026-11-26).
+  ZAP_IMAGE: ghcr.io/zaproxy/zaproxy@sha256:9624669db72f54d86c4b46a7064518bd9bf79d8c61a4c31befa9923489f328af
+
+jobs:
+  baseline:
+    name: ZAP baseline (web build on localhost)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Write config
+        uses: ./.github/actions/write-config
+        with:
+          app-env: dev
+
+      - name: Build web
+        run: |
+          set -euo pipefail
+          mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
+          flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file=config/app.json --base-href / "${web_defines[@]}"
+
+      - name: Fallback fonts and postbuild
+        run: |
+          cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
+          dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
+          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web --no-precompress
+          # Same cleanup as the Cloudflare deploy (deploy-web.yml).
+          find build/web -name '.htaccess' -type f -delete
+          find build/web -mindepth 1 -name '.*' -not -path '*/.well-known' -not -path '*/.well-known/*' -prune -exec rm -rf {} +
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Serve with Pages semantics
+        run: |
+          set -euo pipefail
+          npx --yes "wrangler@${WRANGLER_VERSION}" pages dev build/web --ip 127.0.0.1 --port 8788 > "$RUNNER_TEMP/wrangler.log" 2>&1 &
+          for _ in $(seq 60); do
+            if curl -fsS -o /dev/null http://127.0.0.1:8788/; then exit 0; fi
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/wrangler.log"
+          exit 1
+
+      - name: ZAP baseline
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          chmod 777 out
+          cp .zap/rules.tsv out/rules.tsv
+          # Exit codes: 0 clean, 1 FAIL rules, 2 WARN rules only, 3 scan error.
+          status=0
+          docker run --rm --network host -v "$GITHUB_WORKSPACE/out:/zap/wrk:rw" "$ZAP_IMAGE"             zap-baseline.py -t http://127.0.0.1:8788/ -c rules.tsv -m 3 -j             -r zap.html -J zap.json -w zap.md || status=$?
+          test -s out/zap.json || { echo "::error::ZAP wrote no report"; exit 1; }
+          case "$status" in
+            0) ;;
+            2) echo "::error::ZAP baseline reported WARN rules (see report)"; exit 1 ;;
+            *) echo "::error::ZAP baseline exited with $status"; exit 1 ;;
+          esac
+
+      - name: Summary
+        if: ${{ always() }}
+        run: |
+          if [ -f out/zap.json ]; then
+            echo "**ZAP baseline** (2.17.0, localhost)" >> "$GITHUB_STEP_SUMMARY"
+            jq -r '.site[]?.alerts[]? | "- \(.riskdesc): \(.name) (\(.pluginid))"' out/zap.json >> "$GITHUB_STEP_SUMMARY" || true
+          else
+            echo "**ZAP baseline:** no report" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: zap-report-${{ github.sha }}
+          path: out/
+          retention-days: 30
+          if-no-files-found: error

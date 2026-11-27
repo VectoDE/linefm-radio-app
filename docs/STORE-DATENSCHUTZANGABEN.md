@@ -17,7 +17,6 @@ Quellen (abgerufen am 21.11.2026):
 | Titel- und Sendedaten | Anfrage nach Sender, aktuellem Titel, Verlauf, Hörerzahl, Sendeplan | im Hintergrund, solange ein Sender angezeigt wird | laut.fm (`api.laut.fm`) |
 | Cover-Suche | Künstler und Titel als Suchbegriff, dazu IP-Adresse | je neuem Titel, abschaltbar ("Cover laden") | Apple (`itunes.apple.com`) |
 | Senderlogos | Abruf einer Bilddatei | Web-Version | Betreiber (`cdn.linefm.de`) |
-| Logo der RadioGruppe | Abruf einer Bilddatei | beim Anzeigen des Logos | Betreiber von radiogruppe.de |
 | Statistik | Bildschirmaufrufe, Ereignisse (Sender gestartet, gestoppt, Favorit), Sprache, Bildschirmgröße, Betriebssystem, App-Version | nur mit Einwilligung und nur, wenn der Build Umami konfiguriert hat | Umami-Instanz des Betreibers |
 | Absturzberichte | Fehler, Stack, App-Version, Systemversion. Ohne Gerätename, Nutzer und IP im Bericht (`sendDefaultPii: false`, kein Tracing, keine Screenshots) | nur mit Einwilligung und nur, wenn der Build einen DSN konfiguriert hat | GlitchTip oder Sentry |
 | Firebase (optional) | Analytics und Crashlytics | nur, wenn der Build mit `tool/enable_firebase.dart` umgestellt wurde. Der Standard-Build enthält Firebase nicht. | Google |

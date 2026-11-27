@@ -23,7 +23,7 @@ Diese Punkte lassen sich nicht als "offen" begründen. Solange einer nicht erfü
 - [ ] Die Marke LINEFM und das Logo dürfen in der App und in den Stores verwendet werden.
 - [ ] Die sechs Sender stehen in der App: LineFM +MAIN, +RAP, +GAMING, +LOFI sowie **Radio3FM** und **FobFM**. Für Radio3FM und FobFM bestätigen: Die Namen und Logos dürfen gezeigt werden, und die Streams dürfen in der App laufen. Laut unserer Recherche sind diese beiden keine LINEFM-Sender bei laut.fm, deshalb ist das eine ausdrückliche Freigabe.
 - [ ] Die Sender-Logos kommen von `https://cdn.linefm.de/images/icons/`. Nutzung in den Stores erlaubt.
-- [ ] Das RadioGruppe-Logo wird von `radiogruppe.de` geladen (wie in der Web-App). Nutzung erlaubt, Datenschutzabschnitt dazu bestätigt.
+- [ ] Das RadioGruppe-Logo ist unverändert in der App gebündelt (kein Abruf bei radiogruppe.de). Nutzung erlaubt, Datenschutzabschnitt dazu bestätigt.
 
 ### A2. Name und Kennung
 
@@ -191,7 +191,7 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 - [ ] Flathub: Metainfo (Beschreibungsdatei für Linux-Stores) gültig, Altersangabe (OARS, Alterseinstufung dort) bestätigt, Domain-Bestätigung vorhanden.
 - [ ] Erklärung zur Barrierefreiheit ([BARRIEREFREIHEIT.md](BARRIEREFREIHEIT.md)) gelesen, Platzhalter ausgefüllt, mit Anwalt geklärt, ob sie Pflicht ist.
 - [ ] Datenschutz-Angaben: Die Seiten `/datenschutz/` und `/impressum/` (Deutsch und Englisch) sind erreichbar, enthalten keine offenen Platzhalter mehr und sind für Suchmaschinen freigegeben (kein `noindex`).
-- [ ] Datenschutz in den Stores nennt dieselben Anbieter wie die Datenschutzerklärung (laut.fm, Apple iTunes für Cover, `cdn.linefm.de`, `radiogruppe.de`, Google Cast SDK, aktive Telemetrie).
+- [ ] Datenschutz in den Stores nennt dieselben Anbieter wie die Datenschutzerklärung (laut.fm, Apple iTunes für Cover, `cdn.linefm.de`, Google Cast SDK, aktive Telemetrie).
 - [ ] Verträge zur Auftragsverarbeitung (AVV, Art. 28 DSGVO) mit Hosting-, CDN- und Telemetrie-Betreibern liegen vor. Bei US-Anbietern DPF-Zertifizierung geprüft (<https://www.dataprivacyframework.gov/list>).
 - [ ] Lizenzhinweise für Linux und Windows: libmpv und FFmpeg (LGPL bzw. GPL) sind in [LIZENZEN-DRITTE.md](LIZENZEN-DRITTE.md) beschrieben und im Paket enthalten.
 
@@ -202,7 +202,7 @@ Die Schritte dazu stehen in [EINRICHTUNG.md](EINRICHTUNG.md), Abschnitte 17 bis 
 ### E1. Recht und Datenschutz
 
 - [ ] Impressum nach § 5 DDG vollständig, Anschrift in allen Konsolen gleich (Schritt 17.1).
-- [ ] Datenschutzerklärung nennt Sentry, Firebase und Umami als optionale Dienste nach Einwilligung, dazu laut.fm, iTunes-Cover, `cdn.linefm.de`, `radiogruppe.de`, Google Cast, Hoster (Schritt 17.2).
+- [ ] Datenschutzerklärung nennt Sentry, Firebase und Umami als optionale Dienste nach Einwilligung, dazu laut.fm, iTunes-Cover, `cdn.linefm.de`, Google Cast, Hoster (Schritt 17.2).
 - [ ] Ohne Einwilligung geht keine Anfrage an Sentry, Firebase, Umami oder Google raus, Widerruf wirkt sofort (Netzwerkmitschnitt).
 - [ ] AVV je aktivem Auftragsverarbeiter abgelegt, DPF-Status mit Datum (Schritt 17.3).
 - [ ] BFSG: Entscheidung festgehalten, Erklärung zur Barrierefreiheit fertig oder Begründung (Schritt 17.4).

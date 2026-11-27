@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
 import 'package:linefm_radio/features/about/about_screen.dart';
-import 'package:linefm_radio/features/about/radiogruppe_logo.dart';
 import 'package:linefm_radio/features/loader/app_loader.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -197,38 +196,42 @@ void main() {
       expect(host.opened.single.toString(), 'https://github.com/VectoDE');
     });
 
-    testWidgets('RadioGruppe-Logo kommt zur Laufzeit von radiogruppe.de', (
-      tester,
-    ) async {
-      useSize(tester, 420, 1600);
-      final host = FeatureHost();
-      await tester.pumpWidget(host.app(const AboutScreen(), scaffold: false));
-      await tester.pump();
-      final logo = tester
-          .widgetList<Image>(find.byType(Image))
-          .map((i) => i.image)
-          .whereType<NetworkImage>()
-          .single;
-      expect(logo.url, 'https://radiogruppe.de/assets/img/rgd-logo-dark.png');
-      expect(radioGruppeLogoUrl, logo.url);
-      // Gebuendeltes Asset wird nicht verwendet.
-      expect(
-        tester
-            .widgetList<Image>(find.byType(Image))
+    for (final (brightness, asset) in <(Brightness, String)>[
+      (Brightness.light, 'assets/brand/radiogruppe/rgd-logo.png'),
+      (Brightness.dark, 'assets/brand/radiogruppe/rgd-logo-dark.png'),
+    ]) {
+      testWidgets('RadioGruppe logo is the bundled original in $brightness', (
+        tester,
+      ) async {
+        useSize(tester, 420, 1600);
+        final host = FeatureHost();
+        await tester.pumpWidget(
+          host.app(
+            const AboutScreen(),
+            scaffold: false,
+            brightness: brightness,
+          ),
+        );
+        await tester.pumpAndSettle();
+        final images = tester.widgetList<Image>(find.byType(Image));
+        final logo = images
             .map((i) => i.image)
-            .whereType<AssetImage>(),
-        isEmpty,
-      );
-    });
-
-    testWidgets('Fallback-Text, wenn das Logo nicht laedt', (tester) async {
-      useSize(tester, 420, 1600);
-      final host = FeatureHost();
-      await tester.pumpWidget(host.app(const AboutScreen(), scaffold: false));
-      await tester.pumpAndSettle();
-      // Im Test liefert das Netz einen Fehler, also erscheint der Name.
-      expect(find.text('RadioGruppe Deutschland'), findsOneWidget);
-    });
+            .whereType<AssetImage>()
+            .where((i) => i.assetName.contains('radiogruppe'))
+            .single;
+        expect(logo.assetName, asset);
+        expect(images.map((i) => i.image).whereType<NetworkImage>(), isEmpty);
+        // No tile behind the logo in either theme.
+        expect(
+          find.ancestor(
+            of: find.byWidgetPredicate((w) => w is Image && w.image == logo),
+            matching: find.byType(DecoratedBox),
+          ),
+          findsNothing,
+        );
+        expect(find.text('RadioGruppe Deutschland'), findsNothing);
+      });
+    }
 
     testWidgets('Vertrauens-Badges nur mit konfigurierter URL', (tester) async {
       useSize(tester, 420, 1600);

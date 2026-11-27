@@ -61,15 +61,9 @@ Spalten: Zweck, betroffene Personen und Daten, Rechtsgrundlage, Empfänger, Drit
 - Speicherdauer: wie Server-Logs, Vorschlag 7 Tage.
 - Aktiv: ja
 
-### 5. Logo der RadioGruppe (`radiogruppe.de`)
+### 5. Logo der RadioGruppe (entfällt)
 
-- Zweck: Anzeige des Anbieters im Bereich "Über".
-- Personen und Daten: Hörer, die "Über" öffnen. IP-Adresse, Zeitpunkt, abgerufene Datei.
-- Rechtsgrundlage: Art. 6 Abs. 1 Buchst. f DSGVO.
-- Empfänger: Betreiber von radiogruppe.de, eigenständig verantwortlich.
-- Drittland: nein (prüfen).
-- Speicherdauer: laut Betreiber.
-- Aktiv: ja
+Das Logo ist unverändert in der App gebündelt. Es gibt keinen Abruf bei radiogruppe.de und damit keine Verarbeitung personenbezogener Daten. Der Link auf radiogruppe.de öffnet sich erst nach Tippen des Nutzers.
 
 ### 6. Absturzberichte (Sentry bzw. GlitchTip)
 

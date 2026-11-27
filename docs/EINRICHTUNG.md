@@ -405,14 +405,14 @@ Alle Punkte hier sind Vorprüfung, keine Rechtsberatung. Lass Wortlaut und Folge
 ### 2.3 radiogruppe.de
 
 - Wer: Betreiber.
-- Was: Nutzung des RadioGruppe-Logos bestätigen. Die App zeigt das Logo direkt von der Webseite `radiogruppe.de`, so wie es auch die Web-App tut. Der Hinweis "LINEFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe" bleibt, die Formulierung "offizielle App der RadioGruppe" nicht, solange du sie nicht bestätigst.
+- Was: Nutzung des RadioGruppe-Logos bestätigen. Es ist unverändert in der App gebündelt (kein Abruf bei radiogruppe.de). Der Hinweis "LINEFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe" bleibt, die Formulierung "offizielle App der RadioGruppe" nicht, solange du sie nicht bestätigst.
 - Wozu: Markenrecht und wahrheitsgemäße Aussage in den Stores.
 - Wo eintragen: Teil A1 und C der Freigabe-Checkliste.
 - Mustermail (an die RadioGruppe; Betreff: "Nutzung des RadioGruppe-Logos in der LINEFM-App"):
 
-  > Guten Tag, in der App "LINEFM Radio" von LineFM Studios wird das Logo der RadioGruppe Deutschland von `radiogruppe.de` geladen und mit dem Hinweis "LINEFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe" angezeigt. Bitte bestätigen Sie uns schriftlich, dass wir das Logo in dieser Form nutzen dürfen, und ob Sie damit einverstanden sind, dass der Abruf direkt von Ihrer Webseite erfolgt. Freundliche Grüße, [Name, Funktion]
+  > Guten Tag, in der App "LINEFM Radio" von LineFM Studios wird das Logo der RadioGruppe Deutschland unverändert als gebündelte Datei verwendet und mit dem Hinweis "LINEFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe" angezeigt. Bitte bestätigen Sie uns schriftlich, dass wir das Logo in dieser Form nutzen dürfen. Freundliche Grüße, [Name, Funktion]
 - Woher: Die Bestätigung schickt dir die RadioGruppe. Die Mail geht an den Ansprechpartner aus dem Impressum von <https://radiogruppe.de>. Findest du dort keinen, frag den Entwickler.
-- Prüfschritt: Die Bestätigung liegt vor. Der Abschnitt zu `radiogruppe.de` in der Datenschutzerklärung (Schritt 3.4) ist vom Anwalt oder von dir gelesen und freigegeben.
+- Prüfschritt: Die Bestätigung liegt vor. Der Datenschutzabschnitt zu den Logos (Schritt 3.4) ist vom Anwalt oder von dir gelesen und freigegeben.
 - Wenn es nicht klappt: Keine Bestätigung: Der Hinweis auf die RadioGruppe bleibt neutral formuliert, das Logo nimmt der Entwickler heraus.
 - [ ] erledigt
 
@@ -1870,12 +1870,12 @@ Vorprüfung, keine Rechtsberatung. Jeden Punkt lässt du von einem Anwalt bestä
 ### 17.2 Datenschutzerklärung und Einwilligung (DSGVO, TDDDG)
 
 - Wer: Betreiber mit Anwalt, Entwickler pflegt die Texte.
-- Was: Die Datenschutzerklärung nennt jeden Empfänger: laut.fm, Apple iTunes-Suche (Cover), `cdn.linefm.de`, `radiogruppe.de`, Google Cast, Hoster, sowie Sentry, Firebase und Umami. Der Hoster ist der Plesk-Server von `linefm.de`. Wenn Telemetrie genutzt wird (Schritt 1.6), laufen die Dienste in den Store-Builds nur nach Einwilligung und sind in allen Store-Formularen als optional angegeben. Im Web kommt GA4/GTM hinzu (Schritt 10.2).
+- Was: Die Datenschutzerklärung nennt jeden Empfänger: laut.fm, Apple iTunes-Suche (Cover), `cdn.linefm.de`, Google Cast, Hoster, sowie Sentry, Firebase und Umami. Der Hoster ist der Plesk-Server von `linefm.de`. Wenn Telemetrie genutzt wird (Schritt 1.6), laufen die Dienste in den Store-Builds nur nach Einwilligung und sind in allen Store-Formularen als optional angegeben. Im Web kommt GA4/GTM hinzu (Schritt 10.2).
 - Wozu: Ohne Einwilligung der Nutzer darf die App auf dem Gerät nichts auslesen oder speichern, was nicht zwingend nötig ist (§ 25 TDDDG, das Gesetz zum Datenschutz auf Endgeräten). Die Store-Formulare müssen zur Erklärung passen, sonst droht Ablehnung oder Sperre.
 - Wo eintragen: Du sagst dem Entwickler, welche Dienste aktiv sind. Er trägt sie in die Werte-Datei `legal_values.json` bzw. die Variable `LEGAL_VALUES_JSON` ein und lässt den Generator (sein Programm für die Rechtstexte) mit den genutzten Diensten laufen, zum Beispiel `--providers=umami,sentry`, plus Firebase, falls aktiv. Die Store-Formulare füllst du nach Abschnitt 13 aus.
 - Woher: Deine Entscheidung, welche Dienste laufen (Schritt 9.1), und die Auftragsverarbeitungsverträge (AVV) aus Schritt 17.3.
 - Prüfschritt: Das macht der Entwickler mit dir gemeinsam. Ohne Einwilligung zeigt der Netzwerkmitschnitt (Browser-Entwicklertools, Taste F12, Reiter "Netzwerk") keine Anfrage an Sentry, Firebase, Umami oder Google. Widerruf in den Einstellungen stoppt die Übertragung sofort.
-- Externe Links: Die App lädt Inhalte von und verlinkt auf Dritte: `music.youtube.com` und `open.spotify.com` (Song suchen), `radiogruppe.de`, `cdn.linefm.de`, `api.laut.fm`, die Streams und die iTunes-Suche. Prüfe mit dem Anwalt, dass die Datenschutzerklärung jeden davon nennt und bei Links sagt, dass beim Öffnen die Regeln des Zielanbieters gelten. Die vollständige Liste liefert der Entwickler aus dem Code.
+- Externe Links: Die App lädt Inhalte von und verlinkt auf Dritte: `music.youtube.com` und `open.spotify.com` (Song suchen), `radiogruppe.de` (nur Link), `cdn.linefm.de`, `api.laut.fm`, die Streams und die iTunes-Suche. Prüfe mit dem Anwalt, dass die Datenschutzerklärung jeden davon nennt und bei Links sagt, dass beim Öffnen die Regeln des Zielanbieters gelten. Die vollständige Liste liefert der Entwickler aus dem Code.
 - Wenn es nicht klappt: Der Netzwerkmitschnitt zeigt Anfragen vor der Einwilligung: Sofort dem Entwickler melden, das wäre ein Datenschutzfehler. Eine Zeile der Datenschutzerklärung passt nicht zu dem, was die App tut: Der Entwickler lässt den Generator neu laufen, danach stimmst du das Ergebnis mit dem Anwalt ab.
 - Nur für Nachfragen: Store-Regeln [D-04](STORE-RICHTLINIEN.md#d-04), [G-04](STORE-RICHTLINIEN.md#g-04), [G-12](STORE-RICHTLINIEN.md#g-12), [G-13](STORE-RICHTLINIEN.md#g-13), [A-09](STORE-RICHTLINIEN.md#a-09), [A-15](STORE-RICHTLINIEN.md#a-15), [M-05](STORE-RICHTLINIEN.md#m-05), [W-03](STORE-RICHTLINIEN.md#w-03)
 - [ ] erledigt

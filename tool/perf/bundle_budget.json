@@ -28,7 +28,7 @@
     },
     "images": {
       "pattern": "\\.(png|jpe?g|webp|avif|gif|svg)$",
-      "max": 400000
+      "max": 456000
     }
   }
 }

@@ -864,9 +864,10 @@ void main() {
         );
         expect(
           text,
-          contains('https://radiogruppe.de $cspImgPlaceholder;'),
+          contains('https://assets.laut.fm $cspImgPlaceholder;'),
           reason: path,
         );
+        expect(text, isNot(contains('radiogruppe.de')), reason: path);
         expect(text, contains(cspPlaceholder), reason: path);
       }
     });

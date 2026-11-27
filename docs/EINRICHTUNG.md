@@ -40,7 +40,7 @@ Haken setzen, sobald ein Schritt erledigt und geprüft ist. Die Haken setzt du i
 
 **Wer macht was:** Steht bei einem Schritt **[Entwickler]**, brauchst du dafür keine Befehle einzugeben. Der Entwickler (Tim Hauke) erledigt das mit dir zusammen. Alles andere klickst du selbst im Browser. Steht in einem Schritt ein Befehl für die Kommandozeile (zum Beispiel `keytool`, `dig`, `curl`, `snapcraft`, `docker`, `gpg`, `openssl`, `gh`, `base64`), gib ihn nicht selbst ein, sondern gib den Schritt an den Entwickler weiter. Ausnahme sind einfache Prüfbefehle, bei denen die Windows-Schreibweise direkt dabeisteht (`nslookup`, `Get-FileHash`, `curl.exe`). Für DNS- und Zertifikatsprüfungen gibt es Browser-Alternativen, sie stehen bei den Schritten.
 
-**Windows:** Wo ein Schritt einen Befehl mit `grep` oder `dig` zeigt, gilt unter Windows PowerShell: `curl.exe -sI <Adresse> | Select-String <Wort>` statt `curl ... | grep -i <Wort>` (`curl.exe` mit Endung, sonst startet PowerShell einen anderen Befehl), `Resolve-DnsName <Name>` statt `dig`. Im Browser gehen für Zertifikate <https://www.ssllabs.com/ssltest/> und für Antwort-Kopfzeilen die Entwicklerwerkzeuge (F12, Reiter "Netzwerk"). Die Windows-Schreibweisen haben wir nicht auf deinem Rechner geprüft.
+**Windows:** Wo ein Schritt einen Befehl mit `grep` oder `dig` zeigt, gilt unter Windows PowerShell: `curl.exe -sI <Adresse> | Select-String <Wort>` statt `curl ... | grep -i <Wort>` (`curl.exe` mit Endung, sonst startet PowerShell einen anderen Befehl), `Resolve-DnsName <Name>` statt `dig`. Im Browser gehen für Zertifikate <https://www.ssllabs.com/ssltest/> und für Antwort-Kopfzeilen die Entwicklerwerkzeuge des Browsers (Reiter "Netzwerk"). Die Windows-Schreibweisen haben wir nicht auf deinem Rechner geprüft.
 
 **Rollen:** *Du* (Betreiber) bist LineFM Studios, die Person, die diese Anleitung abarbeitet. *Entwickler* und *Repository-Eigentümer* ist Tim Hauke. Mit *Inhaber* ist in den Schritten dieselbe Person gemeint wie du (der Betreiber). *Kunde* meint dein Unternehmen als Auftraggeber der App, also dich. Die Vereinbarung mit laut.fm hast du bereits und behältst sie selbst (Schritte 2.1, 17.7). Die Konten (Google, Microsoft und weitere) sind Organisationskonten deines Unternehmens. Name und Rechtsform des Konto-Inhabers trägst du in Schritt 1.6 ein, wir raten sie nicht. *LINEFM Gruppe* und *RadioGruppe* sind die Sender-Partner im Umfeld von LineFM Studios, ihre Zustimmung holst du selbst ein (Schritte 2.2, 2.3). *Verantwortlicher* im Sinne des Medienstaatsvertrags und der Datenschutz-Grundverordnung ist die Person oder Firma, die du in Schritt 3.1 benennst (in der Regel du als Geschäftsführung von LineFM Studios). Die *zweite Person* (Zweitadmin, Vertretung) ist jemand aus deinem Unternehmen, den du benennst (Schritt 18.2). Fällt im Text eine andere Rolle, steht sie mit Namen dabei.
 
@@ -208,10 +208,11 @@ Die Schrittnummern bleiben stabil. In dieser Reihenfolge arbeitest du sie ab, we
 | Domain `linefm.de` | laut Registrar-Rechnung | Web, App-Links, Flathub-Bestätigung |
 | Sentry, Firebase, Umami | je nach Tarif, kostenlose Stufen vorhanden (nicht live geprüft) | Statistik und Absturzberichte nach Einwilligung |
 | Cloudflare Pages | kostenlos | Web, falls gewählt |
-| Windows-Signierzertifikat | kostenpflichtig, Preis nicht ermittelt (Schritt 7.4) | Signatur des Windows-Installers |
+| Windows-Signierzertifikat | entfällt vorerst, Installer wird unsigniert ausgeliefert (Schritt 7.4) | Signatur des Windows-Installers |
 | Azure-Konto für den Microsoft-Tenant | nicht ermittelt (Schritt 7.8) | Pipeline-Zugang zum Partner Center |
 | Google-Cloud-Projekt | kostenlos laut Anbieter für diese Nutzung, nicht geprüft (Schritt 6.4) | Pipeline-Zugang zu Google Play |
-| Trustpilot-Tarife | nach Tarif, nicht ermittelt (Schritt 11.2) | Bewertungsanzeige |
+| Trustpilot | kostenloses Konto, nur das kostenlose Widget, kein bezahlter Tarif (Schritt 11.2) | Bewertungsanzeige |
+| SonarCloud, Snyk | je ein kostenloser Tarif (nicht live geprüft, Schritt 12.6) | Code-Qualität und Abhängigkeiten, Konten legt der Repo-Eigentümer an |
 | Markenanmeldung | Gebühren nicht abgerufen (Schritt 17.6) | falls gewünscht |
 | Anwalt, Steuerberater | nach Aufwand | Rechts- und Steuerfragen |
 | eigener Server oder Plesk | vorhanden | Web, falls gewählt |
@@ -250,7 +251,7 @@ Die Schrittnummern bleiben stabil. In dieser Reihenfolge arbeitest du sie ab, we
 - **Was:** Den Befehl für Base64 gibt am besten der Entwickler ein (oder er sendet dir die Textzeile über einen sicheren Weg). Die Technik, mit der alle späteren Werte ins Repo kommen.
 - **Wozu:** Die automatischen Abläufe (Bauen, Signieren, Hochladen) lesen ihre Zugangsdaten nur von dort.
 - **Wo eintragen:** Repository > Settings > Secrets and variables > Actions. Tab "Secrets" > "New repository secret" für geheime Werte. Tab "Variables" > "New repository variable" für nicht geheime. Name exakt übernehmen, Wert einfügen, "Add secret" bzw. "Add variable" klicken. Siehst du "Settings" nicht, steht es im Menü "More" neben den Reitern. **Wer darf was:** Repository-Secrets und -Variablen darf ein Collaborator anlegen. **Environments** (zum Beispiel `production`) und deren Secrets darf in einem Repo eines persönlichen Kontos nur der Eigentümer anlegen, das ist Tim Hauke (Quellen: <https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets>, <https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments>, abgerufen 26.11.2026). Ein Secret darf höchstens 48 KB groß sein.
-- **Woher:** **Umgebungen (Environments):** Die Abläufe unter `.github/workflows/` nutzen genau zwei: `production` (`deploy-web.yml`, Genehmigung vor dem Ausrollen, legt der Repo-Eigentümer an: Settings > Environments > "New environment", "Required reviewers" setzen) und `github-pages` (legt GitHub für die Entwicklerseite selbst an). Weitere Umgebungen, etwa für Stores, gibt es nicht, Store-Secrets sind normale Repo-Secrets. Stand 26.11.2026, geprüft per Suche nach `environment:` in den Abläufen. Die Bezugsquelle jedes Werts steht im jeweiligen Schritt und gesammelt in Anhang A. Dateien (Schlüssel, Zertifikate) trägst du als Base64 ein: `base64 -w0 datei` (Linux, macOS) oder `[Convert]::ToBase64String([IO.File]::ReadAllBytes("datei"))` (PowerShell).
+- **Woher:** **Umgebungen (Environments):** Die Abläufe unter `.github/workflows/` nutzen genau zwei: `production` (`deploy-web.yml`, Genehmigung vor dem Ausrollen, legt der Repo-Eigentümer an: Settings > Environments > "New environment", "Required reviewers" setzen, "Prevent self-review" **nicht** anhaken, damit du als Betreiber ein Ausrollen selbst starten und selbst freigeben kannst) und `github-pages` (legt GitHub für die Entwicklerseite selbst an). Weitere Umgebungen, etwa für Stores, gibt es nicht, Store-Secrets sind normale Repo-Secrets. Stand 26.11.2026, geprüft per Suche nach `environment:` in den Abläufen. Die Bezugsquelle jedes Werts steht im jeweiligen Schritt und gesammelt in Anhang A. Dateien (Schlüssel, Zertifikate) trägst du als Base64 ein: `base64 -w0 datei` (Linux, macOS) oder `[Convert]::ToBase64String([IO.File]::ReadAllBytes("datei"))` (PowerShell).
 - **Prüfschritt:** Der Name erscheint in der Liste. Der Wert eines Secrets wird danach nicht mehr angezeigt (so ist es bei GitHub üblich, in der Doku nicht wörtlich belegt), du kannst ihn nur überschreiben.
 - Details und die Spalte "Wer" (LineFM Studios oder Entwickler) stehen in [secrets.md](secrets.md). Den Zusammenhang der Abläufe erklärt [stores-pipelines.md](stores-pipelines.md).
 - **Wenn es nicht klappt:** Du siehst unter Settings "Secrets and variables" nicht: Dir fehlt die Rolle am Repository (Schritt 1.1 nicht angenommen oder nicht ausreichend). Bitte Tim Hauke, dir den Zugriff zu geben oder den Wert für dich einzutragen. Meldung, der Name sei ungültig: Er enthält ein Leerzeichen oder einen Bindestrich oder beginnt mit einer Ziffer (GitHub-Namensregel, in der Doku nicht wörtlich geprüft). Falsch geschriebener Name: Ein Ablauf liest ihn nicht. Lösch ihn (Mülleimer-Symbol) und leg ihn neu an. Wert über 48 KB: dem Entwickler melden. In Läufen aus Forks oder von Dependabot stehen Secrets nicht zur Verfügung, das ist normal.
@@ -292,7 +293,7 @@ Die Schrittnummern bleiben stabil. In dieser Reihenfolge arbeitest du sie ab, we
   3. **Welche Stores zuerst:** Google Play, Microsoft, Flathub und Snap sind der erste Umfang, Apple später (Abschnitt 15). Jeder Store zusätzlich heißt: ein Konto, ein Formularsatz, eine Prüfung.
   4. **Registrar und DNS-Anbieter von `linefm.de`:** Wo wurde die Domain gekauft (Registrar, steht auf der Rechnung) und wo liegen die DNS-Einträge (Cloudflare oder beim Registrar)? Das brauchst du für 4.1, 8.1 und 19.1. Weißt du es nicht, frag den Entwickler oder schau auf der Rechnung nach.
 - **Wozu:** Ohne diese Entscheidungen drehen sich Schritte im Kreis: Der Vertrag in 2.4 braucht den Telemetrie-Anbieter aus 9.1, die DNS-Einträge in 4.1 brauchen das Hosting aus 5.1.
-- **Wo eintragen:** Schicke die Antworten per Mail an den Entwickler und lege sie in deinen Unterlagen ab. **Konto-Inhaber (Betreiber trägt ein):** Name der Firma laut Handelsregister bzw. Gewerbeanmeldung: ____________________; Rechtsform: ____________________. Diese Angaben stehen später unverändert in Google Play, Microsoft, D-U-N-S und im Impressum.
+- **Wo eintragen:** Schicke die Antworten per Mail an den Entwickler und lege sie in deinen Unterlagen ab. **Konto-Inhaber (Betreiber trägt ein):** Name der Firma laut Handelsregister bzw. Gewerbeanmeldung: ____________________; Rechtsform: ____________________. Diese Angaben stehen später unverändert in Google Play, Microsoft, D-U-N-S und im Impressum. **Betreiber von DNS und CDN (Betreiber trägt ein):** Name der Firma oder Person, die die DNS-Einträge von `linefm.de` und das CDN (zum Beispiel Cloudflare) verwaltet: ____________________; Konto-E-Mail dort: ____________________. **Zweite Person mit Admin-Recht (Betreiber trägt ein, siehe Schritt 18.2):** Name: ____________________; E-Mail: ____________________.
 - **Woher:** eigene Entscheidung, Kosten siehe Übersicht oben.
 - **Prüfschritt:** Alle drei sind schriftlich festgehalten.
 - **Wenn es nicht klappt:** Du kannst dich nicht entscheiden: Nimm Cloudflare Pages, keine Telemetrie, vier Stores (Google, Microsoft, Flathub, Snap). Das ist die kleinste Variante und lässt sich später erweitern.
@@ -546,7 +547,7 @@ Die Web-App besteht nur aus Dateien. Such dir **einen** Weg aus. Jede Anleitung 
 - **Wer:** Betreiber trägt ein, Entwickler nennt die Namen.
 - **Was:** Zugangsdaten für das gewählte Ziel eintragen.
 - **Wozu:** `deploy-web.yml` rollt damit bei jedem Release (nur Endversionen) oder manuellem Start aus.
-- **Wo eintragen:** Secrets und Variablen (Schritt 1.3). Die Umgebung `production` mit Genehmigern legt **Tim Hauke als Repository-Eigentümer** an, ein Collaborator darf das nicht: Settings > Environments > "New environment" > Name `production` > "Configure environment" > "Required reviewers" anhaken > dich als Prüfer eintragen > "Save protection rules" (bis zu 6 Prüfer). Dann wartet jedes Ausrollen auf deine Freigabe. Je nach gewählten Zielen sind das bis zu drei Freigaben pro Lauf (Cloudflare, SSH, Plesk). Wird das Repo privat, sind die Schutzregeln im kostenlosen GitHub-Tarif unwirksam (<https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments>, abgerufen 26.11.2026).
+- **Wo eintragen:** Secrets und Variablen (Schritt 1.3). Die Umgebung `production` mit Genehmigern legt **Tim Hauke als Repository-Eigentümer** an, ein Collaborator darf das nicht: Settings > Environments > "New environment" > Name `production` > "Configure environment" > "Required reviewers" anhaken > dich als Prüfer eintragen > "Prevent self-review" **nicht** anhaken (Entscheidung vom 27.11.2026: Du startest das Ausrollen und gibst es selbst frei, eine zweite Person ist dafür nicht nötig) > "Save protection rules" (bis zu 6 Prüfer). Dann wartet jedes Ausrollen auf deine Freigabe. Je nach gewählten Zielen sind das bis zu drei Freigaben pro Lauf (Cloudflare, SSH, Plesk). Wird das Repo privat, sind die Schutzregeln im kostenlosen GitHub-Tarif unwirksam (<https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments>, abgerufen 26.11.2026).
 - **Woher:** Je Ziel:
   - Cloudflare Pages: `CLOUDFLARE_API_TOKEN`: Cloudflare-Dashboard > My Profile > API Tokens (<https://dash.cloudflare.com/profile/api-tokens>) oder, für Automatik besser, Manage Account > Account API Tokens > "Create Token" > "Custom Token" > "Get started" > Name vergeben > Berechtigung "Account" > "Cloudflare Pages" > "Edit" > "Continue to summary" > "Create Token". Cloudflare zeigt den Token nur einmal, sofort kopieren. `CLOUDFLARE_ACCOUNT_ID`: Dashboard > Workers & Pages > Bereich "Account Details" > Kopierknopf neben "Account ID". Variable `CLOUDFLARE_PAGES_PROJECT` (`linefm-app`): Das Pages-Projekt muss vorher existieren. Wie es angelegt wird, beschreibt die Cloudflare-Seite nicht (nicht geprüft), das macht der Entwickler mit dir. Quellen: <https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/>, <https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/> (abgerufen 26.11.2026).
   - Eigener Server (SSH): `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, Variablen `DEPLOY_PATH`, `DEPLOY_PORT`, `DEPLOY_RELOAD_COMMAND`. Befehle für Schlüssel und Host-Fingerabdruck stehen in [secrets.md](secrets.md).
@@ -786,11 +787,11 @@ Quelle: [packaging/windows/README.md](../packaging/windows/README.md).
 ### 7.4 Zertifikat für den Installer (optional)
 
 - **Wer:** Betreiber kauft das Zertifikat, Entwickler richtet die Signatur ein.
-- **Was:** Codesigning-Zertifikat für den Installer auf GitHub.
+- **Was:** Entscheidung vom 27.11.2026: Der Windows-Installer wird vorerst **ohne Signatur** ausgeliefert, du kaufst jetzt kein Zertifikat. Dieser Schritt bleibt für später, falls du ein Codesigning-Zertifikat für den Installer auf GitHub willst. Ohne Zertifikat zeigt Windows SmartScreen beim ersten Start des Installers die Meldung "Der Computer wurde durch Windows geschützt". Nutzer klicken "Weitere Informationen" und dann "Trotzdem ausführen". Diesen Hinweis legst du mit dem Entwickler auf die Download-Seite und in die Release-Beschreibung (Wortlaut der Meldung erfahrungsgemäß, nicht gegen die Microsoft-Doku geprüft). Der Store-Weg (Schritt 7.1 bis 7.3) ist nicht betroffen, Microsoft signiert dort selbst.
 - **Wozu:** Der Store braucht keins, Microsoft signiert selbst (<https://learn.microsoft.com/en-us/windows/apps/publish/store-readiness-checklist>, abgerufen 26.11.2026). Ohne Zertifikat zeigt Windows SmartScreen beim Installer erfahrungsgemäß eine Warnung (in den Microsoft-Seiten nicht belegt, nicht geprüft). Optionen für Signierung: <https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/code-signing-options>, nicht gelesen.
 - **Wo eintragen:** Secrets `WINDOWS_CERT_PFX_BASE64` und `WINDOWS_CERT_PASSWORD`.
 - **Woher:** Ein Zertifikatsanbieter (kostenpflichtig, kostenlose Wege prüfen).
-- **Prüfschritt:** Der Installer zeigt in den Dateieigenschaften eine digitale Signatur.
+- **Prüfschritt:** Ohne Zertifikat entfällt die Prüfung. Mit Zertifikat zeigt der Installer in den Dateieigenschaften eine digitale Signatur.
 - **Was damit signiert wird:** die App-EXE, der Setup-Stub (er ist zugleich `uninstall.exe`), das Setup-Fenster `linefm_setup.exe` und die fertige `setup.exe`. Die CI prüft die Signatur der `setup.exe` mit `signtool verify`. Das Zertifikat sollte auf den Hersteller "LineFM Studios" lauten, so steht er auch in den Dateieigenschaften und unter "Installierte Apps".
 - **Bedienung des Installers:** [BAUEN-UND-STARTEN.md](BAUEN-UND-STARTEN.md), Abschnitt "Windows: Installer benutzen".
 - Store-Regeln: [D-09](STORE-RICHTLINIEN.md#d-09)
@@ -867,7 +868,7 @@ Quelle: [packaging/flathub/README.md](../packaging/flathub/README.md).
 - **Ehrlicher Hinweis:** Unser Paket enthält die fertig gebaute Binärdatei, nicht den Quelltext. Laut Flathub-Anforderungen müssen Einreichungen mit offenem Quelltext vollständig aus dem Quelltext gebaut werden, vorkompilierte Binärdateien dürfen nicht im Änderungsvorschlag liegen, und nicht weitergebbare Inhalte gehören in eine `extra-data`-Quelle (<https://docs.flathub.org/docs/for-app-authors/requirements>). Ob eine selbst gehostete, weitergebbare Binärdatei ohne `extra-data` akzeptiert wird, steht in der offiziellen Doku nicht (nicht geprüft). Eine eigene Seite zu proprietärer Software gibt es auf docs.flathub.org nicht. Es kann sein, dass Flathub ablehnt oder eine Ausnahme verlangt. Das klärst du nur durch Nachfragen bei den Flathub-Betreuern (Ticket im Repo `flathub/flathub`). Scheitert es, bleiben Snap Store und der Tarball auf GitHub.
 - **Wer pflegt das Flathub-Repo:** Nach der Aufnahme legt Flathub ein eigenes Repo für das Manifest an. Ein Mensch (LineFM Studios oder in deinem Auftrag Tim Hauke) legt es an und pflegt es. Flathub verbietet KI-erzeugte Inhalte in Manifesten sowie Einreichungen und Antworten durch KI. Der Anteil von KI an der App wird Flathub gegenüber offengelegt, nur dort.
 - **Pflege sichtbar halten:** Flathub achtet auf nachvollziehbare Historie, echte Nutzung und sichtbare Pflege. Releases mit Datum in der Metainfo, Fragen der Betreuer zügig beantworten.
-- **Alternative zur Datei:** Statt der Datei unter `.well-known` geht auch ein DNS-TXT-Eintrag (Wortlaut in der Flathub-Anleitung).
+- **Gewählter Weg (27.11.2026):** Die Verifizierung läuft über die Datei unter `/.well-known/` auf `linefm.de`, nicht über einen DNS-TXT-Eintrag. Die Datei muss ohne Weiterleitung auf der Hauptdomain liegen, also dort, wo der Web-Server von `linefm.de` sie ausliefert. Der Entwickler prüft, dass die Hosting-Konfiguration `/.well-known/` durchreicht.
 - Store-Regeln: [F-04](STORE-RICHTLINIEN.md#f-04), [F-12](STORE-RICHTLINIEN.md#f-12), [F-15](STORE-RICHTLINIEN.md#f-15), [F-16](STORE-RICHTLINIEN.md#f-16), [F-20](STORE-RICHTLINIEN.md#f-20)
 - **Wenn es nicht klappt:** Flathub meldet "verification failed": Die Datei ist nicht unter genau dieser Adresse erreichbar oder enthält Leerzeichen. Mit dem Browser prüfen. Taucht die App im Portal nicht auf, dort "Refresh" drücken. Der Linter meldet Fehler: Typisch sind `content-rating-missing` (OARS fehlt), `appstream-missing-screenshots`, `releases-info-missing` (Version mit Datum fehlt, das Datum darf nicht in der Zukunft liegen). Die Meldung an den Entwickler schicken, er korrigiert die Metainfo. Betreuer verlangen einen Bau aus dem Quelltext: Siehe Hinweis oben, dann mit dem Entwickler entscheiden. Die Einreichung kann bei übermäßig KI-erzeugten Inhalten geschlossen werden.
 - [ ] erledigt
@@ -985,7 +986,7 @@ Das gilt nur für die Web-Version. Alles ist aus, solange du keine Werte einträ
 ### 11.1 Gridinsoft
 
 - **Wer:** Betreiber.
-- **Was:** Gridinsoft (gridinsoft.com) zur Website-Reputation prüfen. Ob es dort einen Eintrag oder ein offizielles Badge zum Einbinden gibt, ist in der Anbieter-Doku **nicht belegt** (siehe Anhang D, offene Entscheidung).
+- **Was:** Optional, nur prüfen (Entscheidung vom 27.11.2026): Du schaust bei Gridinsoft (gridinsoft.com) nach, wie die Domain eingestuft ist. Ein Badge binden wir nur ein, wenn Gridinsoft eines anbietet. Ob es einen Eintrag oder ein offizielles Badge zum Einbinden gibt, ist in der Anbieter-Doku **nicht belegt**. Gibt es keins, ist der Schritt mit der Prüfung erledigt.
 - **Wozu:** Vertrauenssignal im Footer oder Vertrauensbereich der Web-App.
 - **Wo eintragen:** Variable `TRUST_GRIDINSOFT_URL`, nur wenn es wirklich ein offizielles Badge gibt. Sonst leer lassen, dann erscheint nichts.
 - **Woher:** Prüfwerkzeug ohne Anmeldung: <https://gridinsoft.com/website-reputation-checker>, dort `app.linefm.de` und `linefm.de` eingeben. Sieht das Ergebnis falsch aus, geht eine kostenlose Prüfanfrage über <https://portal.gridinsoft.com/register> (Konto nötig). Ein Konto-Profil zum Anlegen oder ein Badge für Website-Inhaber haben wir auf der Seite nicht gefunden. Nachfragen: auf der Seite "For Business" > "Integration & Licensing" (<https://gridinsoft.com/our-partners#contact-us>). Quelle: <https://gridinsoft.com> (abgerufen 26.11.2026). Das Anmeldeportal haben wir nicht eingesehen (nicht geprüft). Zeige nur ein Ergebnis, das echt und gut ist.
@@ -996,12 +997,12 @@ Das gilt nur für die Web-Version. Alles ist aus, solange du keine Werte einträ
 ### 11.2 Trustpilot
 
 - **Wer:** Betreiber legt das Konto an, Entwickler bindet das Badge ein.
-- **Was:** Unternehmenskonto bei Trustpilot anlegen, das Profil für die Domain beanspruchen und, soweit der Tarif es erlaubt, ein Widget oder einen Link einbinden.
+- **Was:** Kostenloses Unternehmenskonto bei Trustpilot anlegen, das Profil für die Domain beanspruchen und **nur das kostenlose Widget** (oder einen Link zum Profil) einbinden (Entscheidung vom 27.11.2026). Kein bezahlter Tarif.
 - **Wozu:** Öffentliche Bewertungen als Vertrauenssignal.
 - **Wo eintragen:** Variable `TRUST_TRUSTPILOT_URL` (Adresse der Profilseite, meist `https://de.trustpilot.com/review/<Domain>`, das Format ist nicht in der Doku belegt: die Adresse aus dem Browser kopieren).
-- **Woher:** Das Unternehmenskonto legst du an: <https://business.trustpilot.com/signup>. Es ist ein anderes Konto als ein normales Bewerterprofil. Widgets (TrustBox): <https://business.trustpilot.com/features/trustbox-widgets>, dort Typ wählen, einstellen, Code erzeugen. Regeln für Logo und Badge: <https://corporate.trustpilot.com/legal/for-businesses/legal-brand-guidelines> (abgerufen 26.11.2026). Ohne passenden Tarif darf der TrustScore (Sterne) nicht auf der eigenen Seite gezeigt werden, und manche Widgets gibt es nur in bezahlten Tarifen. Zeige deshalb bei Bedarf nur einen Link zum Profil. Nicht geprüft: die Schritte zum Beanspruchen und die Domainbestätigung (die Trustpilot-Hilfe war nicht abrufbar), und welche Widgets im Gratis-Tarif frei sind. Nur Dinge zeigen, die echt sind.
+- **Woher:** Das Unternehmenskonto legst du an: <https://business.trustpilot.com/signup>. Es ist ein anderes Konto als ein normales Bewerterprofil. Widgets (TrustBox): <https://business.trustpilot.com/features/trustbox-widgets>, dort Typ wählen, einstellen, Code erzeugen. Regeln für Logo und Badge: <https://corporate.trustpilot.com/legal/for-businesses/legal-brand-guidelines> (abgerufen 26.11.2026). Ohne passenden Tarif darf der TrustScore (Sterne) nicht auf der eigenen Seite gezeigt werden, und manche Widgets gibt es nur in bezahlten Tarifen. Wähle deshalb nur ein Widget, das im Gratis-Konto frei verfügbar ist, sonst zeige nur einen Link zum Profil. Nicht geprüft: die Schritte zum Beanspruchen und die Domainbestätigung (die Trustpilot-Hilfe war nicht abrufbar), und welche Widgets im Gratis-Tarif frei sind. Nur Dinge zeigen, die echt sind.
 - **Prüfschritt:** Das Profil ist im Business-Bereich sichtbar. Der Link oder das Widget in der Web-App öffnet das Profil.
-- **Wenn es nicht klappt:** Trustpilot bietet für dein Konto kein Widget an oder verweigert die Sterne: Das ist eine Tarifsache. Setze nur einen Textlink zum Profil und frage Trustpilot, welche TrustBox dein Tarif erlaubt. Existiert noch kein Profil mit Bewertungen, zeigst du nichts (Variable leer).
+- **Wenn es nicht klappt:** Trustpilot bietet für das kostenlose Konto kein passendes Widget an oder verweigert die Sterne: Das ist eine Tarifsache, und wir buchen keinen bezahlten Tarif. Setze nur einen Textlink zum Profil. Existiert noch kein Profil mit Bewertungen, zeigst du nichts (Variable leer).
 - [ ] erledigt
 
 ---
@@ -1068,12 +1069,12 @@ Das gilt nur für die Web-Version. Alles ist aus, solange du keine Werte einträ
 - **Wenn es nicht klappt:** Der Link in der E-Mail gilt sieben Tage und nur einmal. Ist er abgelaufen oder hast du den Schlüssel nicht gespeichert, beantrage einen neuen (ein verlorener Schlüssel lässt sich nicht abrufen). Beantragst du mit derselben E-Mail neu, wird der alte Schlüssel ungültig, sobald du den neuen Link öffnest. Lauf rot mit HTTP 403: Schlüssel falsch eingefügt.
 - [ ] erledigt
 
-### 12.6 Sonar, Snyk und Best-Practices-Badge: nichts zu tun
+### 12.6 SonarCloud, Snyk und Best-Practices-Badge
 
-- **Wer:** Repo-Eigentümer (Entscheidung ist gefallen).
-- **Sonar und Snyk:** Entscheidung des Repo-Eigentümers vom 21.11.2026: Beide entfallen. Du legst dort **kein** Konto an, und es gibt kein Secret dafür. Die Prüfungen übernehmen Semgrep, CodeQL, Trivy, OSV, gitleaks und zizmor, alle ohne Konto und ohne Zutun.
+- **Wer:** Repo-Eigentümer legt die Konten für SonarCloud und Snyk an, der Entwickler baut die Abläufe. Für dich als Betreiber ist hier nichts zu tun.
+- **SonarCloud und Snyk:** Entscheidung vom 27.11.2026 (sie ersetzt die vom 21.11.2026): Beide sind wieder dabei, jeweils im kostenlosen Tarif. Der Repo-Eigentümer legt die Konten an, verbindet das Repository und legt die Token als Secrets `SONAR_TOKEN` und `SNYK_TOKEN` ab. Die Abläufe dafür gibt es noch nicht im Repository, sie baut der Entwickler danach. Ob die Gratis-Tarife für dieses Repository ausreichen (zum Beispiel bei privaten Repositories), ist nicht live geprüft. Semgrep, CodeQL, Trivy, OSV, gitleaks und zizmor laufen ohne Konto weiter.
 - **OpenSSF Best Practices (bestpractices.dev):** Nach unserer Kenntnis verlangt schon die unterste Stufe eine freie Lizenz (Anforderungen dort nicht live geprüft). LINEFM Radio ist proprietär, das Badge ist deshalb nicht erreichbar. Kein Konto nötig.
-- **Prüfschritt:** Unter Actions sind "Semgrep", "CodeQL" und "Supply Chain" grün.
+- **Prüfschritt:** Unter Actions sind "Semgrep", "CodeQL" und "Supply Chain" grün. Sobald die Konten und Abläufe stehen, sind auch die Läufe für SonarCloud und Snyk grün.
 - **Wenn es nicht klappt:** Einer der drei ist rot: Das erledigt der Entwickler.
 
 ---
@@ -1287,7 +1288,7 @@ iOS, macOS, CarPlay und AirPlay sind im Code vorbereitet. Apple (iOS und Mac App
 - **Wo eintragen:** Variable `APPLE_PUBLISHING_ENABLED`. Die AASA-Vorlage liegt in `web/.well-known/apple-app-site-association`, die Fähigkeit "Associated Domains" (`applinks:app.linefm.de`) steht in `Runner.entitlements`.
 - **Woher:** Apple-Entwicklerportal.
 - **Prüfschritt:** `https://app.linefm.de/.well-known/apple-app-site-association` ist ohne Dateiendung, mit `application/json` und ohne Weiterleitung erreichbar.
-- macOS ohne Apple-Konto: Es gibt ein unsigniertes DMG auf GitHub Releases mit Öffnen-Anleitung ([packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt)).
+- macOS ohne Apple-Konto (Entscheidung vom 27.11.2026: So wird jetzt ausgeliefert): Das DMG auf GitHub Releases ist weder signiert noch von Apple notarisiert. Beim ersten Start blockiert Gatekeeper (der macOS-Schutz vor unbekannter Software) die App. Nutzer öffnen sie so: App in "Programme" ziehen, einmal starten und die Warnung schließen, dann "Systemeinstellungen" > "Datenschutz & Sicherheit" > bei "Sicherheit" auf "Trotzdem öffnen" klicken und mit Passwort oder Touch ID bestätigen (ab macOS 15 geht Rechtsklick > "Öffnen" nicht mehr). Die ausführliche Anleitung liegt dem DMG bei ([packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt)). Lege sie zusätzlich auf die Download-Seite. Signierung und Notarisierung kommen mit der Apple-Runde.
 - Store-Regeln: [A-07](STORE-RICHTLINIEN.md#a-07), [A-21](STORE-RICHTLINIEN.md#a-21), [A-29](STORE-RICHTLINIEN.md#a-29), [A-33](STORE-RICHTLINIEN.md#a-33)
 - Review-Risiko: Apple lehnt reine Webseiten-Hüllen ab (Richtlinien 4.2 und 4.3). Die App bringt Favoriten, Verlauf, Sleeptimer, Wecker, Sperrbildschirm-Steuerung und CarPlay als Mehrwert mit.
 - **Wenn es nicht klappt:** Datei wird mit Weiterleitung oder falschem Typ ausgeliefert: Die Hosting-Konfiguration prüfen (hosting-uebersicht.md).
@@ -1588,7 +1589,7 @@ Alle Konten laufen auf LineFM Studios als Organisation. Gebühren abgerufen am 2
 
 - **Was:** Postfächer legst du bei deinem Mail-Anbieter (dort, wo `linefm.de` Mails empfängt) früh an: `support@linefm.de` für den Support, eine Funktionsadresse für die Konten (zum Beispiel `apps@linefm.de`), ein gemeinsames Postfach für Alarme, bei Microsoft eine Adresse auf der Firmendomain. Wie, hängt vom Mail-Anbieter ab (nicht geprüft). Jedes Konto anlegen, das du brauchst, mit einer Funktionsadresse (zum Beispiel `apps@linefm.de` für Konten, `support@linefm.de` nur für den Support, nie die private Adresse), Zwei-Faktor-Anmeldung und Notfall-Codes im Passwortmanager. Mindestens zwei Personen mit Admin-Recht je Konto.
 - **Wozu:** Verlässt eine Person das Team, bleibt das Konto erreichbar. Fällt ein Konto weg, lässt sich die App bei Google und Apple nicht in ein anderes Konto übernehmen, ohne einen Transfer zu beantragen.
-- **Wo eintragen:** Passwortmanager, Spalte "Konto, Inhaber, Zweitadmin, Notfall-Codes, Verlängerung".
+- **Wo eintragen:** Passwortmanager, Spalte "Konto, Inhaber, Zweitadmin, Notfall-Codes, Verlängerung". Die drei Rollen trägst du einmal hier ein und verweist in den Konten darauf: Konto-Inhaber (Firma): ____________________; Betreiber von DNS und CDN: ____________________; zweite Person mit Admin-Recht: ____________________ (die Felder stehen auch in Schritt 1.6).
 - **Woher:** siehe Tabelle.
 - **Prüfschritt:** Für jede Zeile sind Inhaber, Zweitadmin und Ablaufdatum der Mitgliedschaft (Apple, Domain) notiert.
 - Store-Regeln zu Konten: [D-02](STORE-RICHTLINIEN.md#d-02), [G-25](STORE-RICHTLINIEN.md#g-25), [A-24](STORE-RICHTLINIEN.md#a-24), [M-20](STORE-RICHTLINIEN.md#m-20), [S-07](STORE-RICHTLINIEN.md#s-07), [F-12](STORE-RICHTLINIEN.md#f-12).
@@ -1888,6 +1889,8 @@ Art: S = Secret, V = Variable. Ohne den Wert fehlt die Funktion, die in der Spal
 | `WINDOWS_CERT_PFX_BASE64` | S | Windows-Installer (optional) | Zertifikatsanbieter | 7.4 |
 | `WINDOWS_CERT_PASSWORD` | S | Windows-Installer (optional) | Zertifikatsanbieter | 7.4 |
 | `SNAPCRAFT_STORE_CREDENTIALS` | S | Snap Store | `snapcraft export-login` | 8.2 |
+| `SONAR_TOKEN` | S | SonarCloud (Repo-Eigentümer, Ablauf folgt) | SonarCloud-Konto | 12.6 |
+| `SNYK_TOKEN` | S | Snyk (Repo-Eigentümer, Ablauf folgt) | Snyk-Konto | 12.6 |
 | `APPLE_PUBLISHING_ENABLED` | V | Apple | `true`, erst wenn alles vorliegt | 15.6 |
 | `APPLE_TEAM_ID` | S | Apple, AASA-Datei | Apple Developer, Mitgliedschaft | 15.1 |
 | `APP_STORE_CONNECT_API_KEY_ID` | S | Apple | App Store Connect | 15.3 |
@@ -2013,7 +2016,7 @@ Die folgenden Punkte warten ausschließlich auf dich (LineFM Studios). Sie stehe
 | [ ] | HSTS-Preload, nur wenn alle Subdomains HTTPS haben | 4.3 |
 | [ ] | Search Console | 10.1 |
 | [ ] | Vorschaubild für soziale Netzwerke freigeben | 14.3 |
-| [ ] | Gridinsoft: Entscheidung, ob es dort überhaupt ein Badge gibt, Trustpilot: Unternehmenskonto anlegen | 11.1, 11.2 |
+| [ ] | Gridinsoft: nur prüfen, Badge nur falls angeboten. Trustpilot: kostenloses Konto, nur Gratis-Widget | 11.1, 11.2 |
 | [ ] | Gerätetests auf echten Geräten | 16.6 |
 | [ ] | Konten anlegen: Google Play (6.1), Microsoft (7.1), Snap und Flathub (8) | 6.1, 7.1, 8.1, 8.2, 18.2 |
 | [ ] | D-U-N-S-Nummer beantragen (dauert bis zu 30 Tage) | 18.1 |
@@ -2030,13 +2033,13 @@ Diese Punkte kann ein Collaborator nicht erledigen, weil GitHub sie dem Eigentü
 
 | Haken | Punkt | Schritt |
 |---|---|---|
-| [ ] | Umgebung `production` mit Genehmigern anlegen, Umgebungs-Secrets setzen | 1.3, 5.2 |
+| [ ] | Umgebung `production` mit Genehmigern anlegen ("Prevent self-review" aus), Umgebungs-Secrets setzen | 1.3, 5.2 |
 | [ ] | Project-Felder (Priorität, Schweregrad, Größe, Iteration, Ziel-Release), Status "In Review" und "Blocked", Ansichten | im Repository, nicht Teil dieser Anleitung |
 | [ ] | Discussions-Kategorien anlegen | im Repository, nicht Teil dieser Anleitung |
 
 ### Bewusst entschieden
 
 - **Sprachwahl in der App:** Die Sprache wird in den Einstellungen gewählt und gespeichert (Prüfung in Schritt 16.5). Die Klärung, ob das ohne Einwilligung zulässig ist, steht beim Anwaltstermin (siehe Tabelle oben).
-- **Sonar und Snyk entfallen** (Entscheidung vom 21.11.2026): kein Konto, kein Secret, siehe Schritt 12.6.
+- **SonarCloud und Snyk sind wieder dabei** (Entscheidung vom 27.11.2026, ersetzt die vom 21.11.2026): kostenlose Tarife, Konten legt der Repo-Eigentümer an, siehe Schritt 12.6.
 - **Test der Vorabversion:** Schritt 16.4 beschreibt, wie du eine automatisch erzeugte Vorabversion auf Echtheit und Vollständigkeit prüfst.
 - **OpenSSF-Best-Practices-Badge:** strukturell nicht erreichbar (proprietäre Lizenz), siehe Schritt 12.6.

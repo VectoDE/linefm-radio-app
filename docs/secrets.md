@@ -146,6 +146,11 @@ Beide Workflows laufen ohne Secret grün durch und melden in der Zusammenfassung
 
 Semgrep (`semgrep.yml`), Trivy, zizmor und actionlint (`supply-chain.yml`) brauchen kein Secret.
 
+| Name | Art | Wert / Herkunft | Wer |
+|---|---|---|---|
+| `SONAR_TOKEN` | Secret | Token aus dem SonarCloud-Konto, gelesen von `sonar.yml`; fehlt es, überspringt der Ablauf sich mit einem Hinweis | Repo-Eigentümer |
+| `SNYK_TOKEN` | Secret | Auth-Token aus dem Snyk-Konto, gelesen von `snyk.yml`; fehlt es, überspringt der Ablauf sich mit einem Hinweis | Repo-Eigentümer |
+
 ## Signierte Releases
 
 Attestierung und cosign-Signatur (`release.yml`, Job `sign`) brauchen kein Secret: Sie laufen über das OIDC-Token des Workflows (Sigstore, keyless). Nur die zusätzliche GPG-Signatur ist optional.

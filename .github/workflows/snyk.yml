@@ -1,0 +1,147 @@
+name: Snyk
+
+# Snyk (free plan): dependency test (snyk test) and code test (snyk code test),
+# SARIF to Code Scanning. Runs when the secret SNYK_TOKEN exists. Without it
+# (not yet created, or change proposals from forks, which get no secrets) the
+# job skips the scans and says so with a notice, not a warning. Snyk Code must
+# be enabled once in the Snyk organization settings. Any finding fails the job.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "47 5 * * 5"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: snyk-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  scan:
+    name: Snyk test and code test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write # SARIF to Code Scanning
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      CAN_UPLOAD: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Check token
+        id: token
+        run: |
+          set -euo pipefail
+          if [ -n "$SNYK_TOKEN" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Snyk skipped::SNYK_TOKEN is not available (secret not created yet, or a run from a fork). No scan."
+            echo "### Snyk" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Skipped: no SNYK_TOKEN in this run." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Checkout
+        if: steps.token.outputs.present == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Snyk CLI
+        if: steps.token.outputs.present == 'true'
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
+
+      - name: Snyk test (dependencies)
+        id: deps
+        if: steps.token.outputs.present == 'true'
+        continue-on-error: true
+        run: snyk test --all-projects --sarif-file-output=snyk-deps.sarif
+
+      - name: Snyk code test
+        id: code
+        if: steps.token.outputs.present == 'true'
+        continue-on-error: true
+        run: snyk code test --sarif-file-output=snyk-code.sarif
+
+      - name: Upload SARIF (dependencies)
+        if: always() && steps.token.outputs.present == 'true' && env.CAN_UPLOAD == 'true' && hashFiles('snyk-deps.sarif') != ''
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: snyk-deps.sarif
+          category: snyk-deps
+
+      - name: Upload SARIF (code)
+        if: always() && steps.token.outputs.present == 'true' && env.CAN_UPLOAD == 'true' && hashFiles('snyk-code.sarif') != ''
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: snyk-code.sarif
+          category: snyk-code
+
+      # snyk exits 0 (clean), 1 (findings) or 2 and above (tool or setup error).
+      # Both fail the job; the step outcome in the summary tells which step.
+      - name: Gate and summary
+        if: always() && steps.token.outputs.present == 'true'
+        env:
+          DEPS: ${{ steps.deps.outcome }}
+          CODE: ${{ steps.code.outcome }}
+        run: |
+          set -euo pipefail
+          {
+            echo "### Snyk"
+            echo "- Dependencies (snyk test): ${DEPS}"
+            echo "- Code (snyk code test): ${CODE}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$DEPS" != "success" ] || [ "$CODE" != "success" ]; then
+            echo "::error::Snyk reported findings or failed, see the step logs and Code Scanning"
+            exit 1
+          fi
+
+      - name: Upload report
+        if: always() && steps.token.outputs.present == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: snyk-report
+          path: |
+            snyk-deps.sarif
+            snyk-code.sarif
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # Zero-warning rule: any warning or error in a job log or a check-run
+  # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented upstream exceptions, each with an expiry date.
+  log-gate:
+    name: Log gate
+    needs: [scan]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan job logs and annotations
+        uses: ./.github/actions/log-gate
+        with:
+          job-name: Log gate
+          token: ${{ github.token }}

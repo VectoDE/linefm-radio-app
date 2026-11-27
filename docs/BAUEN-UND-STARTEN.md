@@ -4,6 +4,8 @@ Diese Anleitung zeigt dir, wie du LINEFM Radio selbst bauen, öffnen und benutze
 
 Stand der Angaben: 21.11.2026. Wo etwas nicht auf diesem Weg nachgespielt wurde, steht "nicht geprüft".
 
+Unbekannte Wörter (Workflow, Branch, Secret und andere) erklärt die Begriffstabelle am Anfang von [EINRICHTUNG.md](EINRICHTUNG.md). Die Abläufe "SonarCloud" und "Snyk" in der Actions-Liste prüfen nur den Code und sind für das Bauen ohne Bedeutung. Sie überspringen sich selbst, solange der Repo-Eigentümer keine Konten dafür angelegt hat (Schritt 12.6 in EINRICHTUNG.md).
+
 ## Wohin mit meinem Ziel?
 
 | Ich will ... | Gehe zu |
@@ -31,7 +33,7 @@ Du brauchst nur einen Browser und ein GitHub-Konto, das im Repository mitarbeite
 6. Beim Schalter **macOS- und iOS-Build einschliessen** setzt du den Haken, wenn du auch die Mac-App und die iOS-Prüfung willst. Ohne Haken baut GitHub Android, Web, Windows und Linux.
 7. Klicke auf den grünen Knopf **Run workflow**.
 
-Du erkennst, dass es geklappt hat, wenn nach ein paar Sekunden oben in der Liste ein neuer Eintrag mit einem gelben Punkt erscheint (nach einem Neuladen der Seite). Der Punkt wird grün, wenn alles fertig ist, und rot, wenn etwas schiefging.
+Ein **Lauf** ist ein einzelner Durchgang eines automatischen Ablaufs. Du erkennst, dass er gestartet ist, wenn nach ein paar Sekunden oben in der Liste ein neuer Eintrag mit einem gelben Punkt erscheint (nach einem Neuladen der Seite). Der Punkt wird grün, wenn alles fertig ist, und rot, wenn etwas schiefging.
 
 Wie lange es dauert: Der Lauf vom 21.11.2026 brauchte etwa 13 Minuten, der längste Teil war Android mit gut 13 Minuten. Die einzelnen Plattformen laufen gleichzeitig.
 
@@ -49,7 +51,7 @@ Gut zu wissen:
 - Die Dateien sind nur für angemeldete GitHub-Nutzer abrufbar. Es gibt keinen öffentlichen Link zum Weitergeben.
 - GitHub bewahrt sie **14 Tage** auf (`retention-days: 14` in `build.yml`). Danach sind sie gelöscht und du startest einen neuen Bau.
 - Ein Artefakt ist immer eine ZIP-Datei mit den eigentlichen Dateien darin, auch wenn die Datei darin selbst schon ein ZIP oder eine EXE ist.
-- Die Version in den Dateinamen sieht bei einem manuellen Bau so aus: `0.0.0-dev+1a2b3c4`. Hinter dem Plus steht die Kurz-ID des Commits. Echte Versionsnummern gibt es nur über Releases (A4).
+- Die Version in den Dateinamen sieht bei einem manuellen Bau so aus: `0.0.0-dev+1a2b3c4`. Hinter dem Plus steht die Kurz-ID des Commits (so heißt ein gespeicherter Änderungsstand im Repository). Echte Versionsnummern gibt es nur über Releases (A4).
 
 Was in welchem Artefakt liegt, abgeglichen mit dem Lauf vom 21.11.2026 ([Lauf 44909292173](https://github.com/VectoDE/linefm-radio-app/actions/runs/44909292173), Branch `main`):
 
@@ -67,7 +69,7 @@ Windows-MSIX: `build.yml` legt eine MSIX-Datei ins Artefakt (belegt im [Lauf 449
 
 ### A3 Dasselbe auf der Kommandozeile
 
-Das geht auch ohne Browser. Du brauchst die [GitHub-CLI](https://cli.github.com/) (`gh`) und musst dich einmal mit `gh auth login` anmelden.
+Das ist für Leute gedacht, die mit einem Terminal (einem Fenster, in das man Befehle tippt) umgehen können. Alles aus A1 und A2 geht auch ohne Browser. Du brauchst die [GitHub-CLI](https://cli.github.com/) (`gh`) und musst dich einmal mit `gh auth login` anmelden.
 
 ```bash
 gh workflow run build.yml --repo VectoDE/linefm-radio-app --ref main -f apple=true
@@ -80,7 +82,7 @@ Ersetze `apple=true` durch `apple=false`, wenn du keinen Mac-Bau brauchst. `gh r
 
 ### A4 Der Weg über ein Release
 
-Jeder Merge auf `main` erzeugt automatisch ein Release (`release.yml`). Du setzt dafür keinen Tag. Der Ablauf baut alle Plattformen und legt die Dateien mit Prüfsummen (`SHA256SUMS.txt`), cosign-Signaturen (`*.sigstore.json`), Herkunftsnachweis und SBOM (SPDX und CycloneDX) in ein GitHub-Release. Die Release Notes entstehen aus den Titeln der gemergten Änderungsvorschläge. Wie du Release-Dateien auf Echtheit prüfst, steht in [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).
+Jeder Merge auf `main` (eine geprüfte Änderung wird in die Hauptlinie übernommen) erzeugt automatisch ein Release (`release.yml`). Du setzt dafür keinen Tag. Der Ablauf baut alle Plattformen und legt die Dateien mit Prüfsummen (`SHA256SUMS.txt`), cosign-Signaturen (`*.sigstore.json`), Herkunftsnachweis und SBOM (SPDX und CycloneDX) in ein GitHub-Release. Die Release Notes entstehen aus den Titeln der gemergten Änderungsvorschläge. Wie du Release-Dateien auf Echtheit prüfst, steht in [RELEASE-VERIFIZIEREN.md](RELEASE-VERIFIZIEREN.md).
 
 Die Versionsnummer steht in keiner Datei, `pubspec.yaml` trägt nur den Platzhalter `0.0.0-dev`. Der Ablauf berechnet sie aus dem letzten Release und den offenen Tickets:
 
@@ -191,7 +193,7 @@ Die Datei `...-android.aab` ist ein App Bundle. Sie ist nur für den Play Store 
 
 1. Entpacke `dist-web` und darin `...-web.zip` in einen Ordner, zum Beispiel `C:\LINEFM-web`.
 2. Du musst die Seite über einen kleinen Server laden. Ein Doppelklick auf `index.html` funktioniert **nicht**, weil der Browser die Programmdateien dann blockiert.
-3. Öffne im Ordner ein Terminal (PowerShell) und starte den Server, Python 3 vorausgesetzt:
+3. Öffne im Ordner ein Terminal (ein Fenster, in das du Befehle tippst): im Explorer in den Ordner gehen, in die Adresszeile `powershell` tippen, Eingabetaste. Starte dort den Server, Python 3 vorausgesetzt:
 
 ```powershell
 python -m http.server 8090 --bind 127.0.0.1

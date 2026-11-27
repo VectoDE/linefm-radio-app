@@ -223,7 +223,19 @@ Das DMG ist weder signiert noch von Apple geprüft ("notarisiert"). macOS warnt 
 4. Scrolle zu **Sicherheit**. Dort steht, dass "LINEFM Radio" blockiert wurde. Klicke auf **Dennoch öffnen** und bestätige mit Passwort oder Touch ID.
 5. Ab jetzt startet die App normal.
 
-Bis macOS 14 reichte Rechtsklick auf die App und **Öffnen**. Ab macOS 15 geht es nur über die Systemeinstellungen. Quelle: [packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt). Auf einem Mac wurde das in diesem Projekt noch nicht nachgespielt.
+Bis macOS 14 reichte Rechtsklick auf die App und **Öffnen**. Ab macOS 15 geht es nur über die Systemeinstellungen. Quelle: [packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt). Auf einem echten Mac wurde das in diesem Projekt noch nicht nachgespielt.
+
+**Bildnachweise aus der CI.** Der Workflow **Widget evidence** (`.github/workflows/widget-evidence.yml`, Job *macOS Gatekeeper, title bar and icon*) baut die App unsigniert, packt sie in ein DMG mit Quarantäne-Markierung wie nach einem Browser-Download, kopiert sie nach Programme und versucht sie zu öffnen. Das Artefakt `desktop-evidence-macos` enthält Bildschirmfotos von DMG-Fenster, Startversuch, **Datenschutz & Sicherheit**, Titelleiste hell und dunkel sowie Symbol in Dock und Finder. Dazu kommt `gatekeeper.txt` mit `spctl --status` und `spctl --assess`. Ob Gatekeeper auf den GitHub-Runnern eingeschaltet ist, dokumentiert GitHub nicht. Zeigt das Bild keinen Warndialog, steht der Grund in `gatekeeper.txt`. Für Linux liefert der Job *Linux title bar light and dark* das Artefakt `desktop-evidence-linux` (Xvfb mit Openbox).
+
+Die Bilder liegen nicht im Repository, weil sie aus einem echten CI-Lauf stammen müssen. Übernehmen geht so:
+
+```bash
+gh workflow run widget-evidence.yml --ref main
+gh run download <Lauf-ID> -n desktop-evidence-macos -D docs/bilder/macos
+gh run download <Lauf-ID> -n desktop-evidence-linux -D docs/bilder/linux
+```
+
+Danach die Bilder ansehen und nur einchecken, was den Ablauf wirklich zeigt.
 
 #### iOS
 

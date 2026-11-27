@@ -6,6 +6,17 @@ name: Widget evidence
 # home screen, and scripting the widget gallery breaks with each iOS release.
 # A short simulator video shows the app while the system appearance switches.
 # Everything ends up in the artifact "widget-evidence".
+#
+# The desktop jobs capture the macOS and Linux apps: Gatekeeper behaviour for
+# the unsigned DMG, the window title bar in light and dark mode and the app
+# icon in Dock and Finder (artifact "desktop-evidence-macos"), and the Linux
+# window under Xvfb (artifact "desktop-evidence-linux").
+# Hosted macOS runners run a logged-in Aqua session, and the runner image
+# grants /bin/bash ScreenCapture and osascript AppleEvents for System Events in
+# the TCC database, so screencapture and osascript work without a prompt.
+# Whether Gatekeeper is enabled on the image is not documented: the job writes
+# "spctl --status" and "spctl --assess" next to the screenshots, so a missing
+# dialog is explained by the log instead of silently absent.
 
 on:
   pull_request:
@@ -14,6 +25,9 @@ on:
       - ios/RunnerTests/**
       - ios/Shared/**
       - ios/Runner.xcodeproj/**
+      - macos/**
+      - linux/**
+      - lib/platform/desktop/**
       - .github/workflows/widget-evidence.yml
   workflow_dispatch:
 
@@ -148,10 +162,213 @@ jobs:
         run: |
           echo "- iOS widget: light and dark snapshots, simulator screenshots and video in artifact widget-evidence" >> "$GITHUB_STEP_SUMMARY"
 
+  macos-desktop:
+    name: macOS Gatekeeper, title bar and icon
+    runs-on: macos-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Write configuration
+        uses: ./.github/actions/write-config
+        with:
+          app-env: dev
+
+      - name: Build macOS app (unsigned)
+        run: flutter build macos --release --dart-define-from-file=config/app.json
+
+      - name: Unsigned DMG with quarantine flag
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/desktop-evidence" "$RUNNER_TEMP/dmgsrc"
+          ditto "build/macos/Build/Products/Release/LINEFM Radio.app" "$RUNNER_TEMP/dmgsrc/LINEFM Radio.app"
+          ln -s /Applications "$RUNNER_TEMP/dmgsrc/Applications"
+          hdiutil create -quiet -volname "LINEFM Radio" -srcfolder "$RUNNER_TEMP/dmgsrc" -format UDZO "$RUNNER_TEMP/linefm.dmg"
+          # Same flag a browser sets on a download; Gatekeeper only checks
+          # quarantined files.
+          xattr -w com.apple.quarantine "0083;$(printf '%x' "$(date +%s)");Safari;" "$RUNNER_TEMP/linefm.dmg"
+
+      # Every GUI call is bounded: open, osascript (Automation prompt) or a
+      # Gatekeeper dialog can block forever on a runner without a user.
+      - name: Gatekeeper flow
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          # The default shell runs with -e; spctl rejecting the unsigned app
+          # (exit 3) is the expected result here, not a failure.
+          set +e -uo pipefail
+          out="$RUNNER_TEMP/desktop-evidence"
+          log="$out/gatekeeper.txt"
+          app="/Applications/LINEFM Radio.app"
+          # macOS has no coreutils timeout; perl alarm ends the command.
+          bounded() { local secs=$1; shift; perl -e 'alarm shift; exec @ARGV' "$secs" "$@"; }
+          { echo "## sw_vers"; sw_vers; echo "## spctl --status"; bounded 20 spctl --status; } > "$log" 2>&1
+          bounded 60 hdiutil attach -nobrowse -noautoopen "$RUNNER_TEMP/linefm.dmg" >> "$log" 2>&1 || { echo "::error::DMG could not be mounted"; exit 1; }
+          bounded 20 open -g "/Volumes/LINEFM Radio" || echo "## open DMG window: timed out or failed" >> "$log"
+          sleep 6
+          bounded 20 screencapture -x "$out/macos-dmg-window.png"
+          bounded 120 ditto "/Volumes/LINEFM Radio/LINEFM Radio.app" "$app" || { echo "::error::Copy from the DMG failed"; exit 1; }
+          {
+            echo "## xattr after copy"; bounded 20 xattr -l "$app"
+            echo "## spctl --assess --type execute"; bounded 60 spctl --assess --type execute -vv "$app"; echo "exit=$?"
+          } >> "$log" 2>&1
+          # The Gatekeeper dialog may or may not appear on a runner; record
+          # what happened instead of failing.
+          bounded 20 open "$app" >> "$log" 2>&1 || echo "## open app: timed out or refused" >> "$log"
+          sleep 8
+          bounded 20 screencapture -x "$out/macos-gatekeeper-open.png"
+          {
+            echo "## foreground processes"
+            bounded 30 osascript -e 'with timeout of 20 seconds' -e 'tell application "System Events" to get name of every process whose background only is false' -e 'end timeout' || echo "(osascript timed out or was not allowed)"
+          } >> "$log" 2>&1
+          pkill -x "LINEFM Radio" || true
+          bounded 20 open -g "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension" || echo "## open Privacy & Security: timed out or failed" >> "$log"
+          sleep 6
+          bounded 20 screencapture -x "$out/macos-privacy-security.png"
+          pkill -x "System Settings" || true
+          pkill -x "CoreServicesUIAgent" || true
+          bounded 60 hdiutil detach -quiet "/Volumes/LINEFM Radio" || bounded 60 hdiutil detach -force -quiet "/Volumes/LINEFM Radio" || true
+          test -s "$log"
+
+      - name: Title bar light and dark, icon in Dock and Finder
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          # Bounded GUI calls may time out; the screenshots below decide.
+          set +e -uo pipefail
+          out="$RUNNER_TEMP/desktop-evidence"
+          app="/Applications/LINEFM Radio.app"
+          bounded() { local secs=$1; shift; perl -e 'alarm shift; exec @ARGV' "$secs" "$@"; }
+          appearance() {
+            bounded 30 osascript -e 'with timeout of 20 seconds' -e "tell application \"System Events\" to tell appearance preferences to set dark mode to $1" -e 'end timeout'
+          }
+          # The window evidence must not depend on the Gatekeeper outcome.
+          xattr -dr com.apple.quarantine "$app"
+          for name in light dark; do
+            dark=false
+            if [ "$name" = dark ]; then dark=true; fi
+            appearance "$dark"
+            bounded 20 open "$app"
+            sleep 10
+            bounded 20 screencapture -x "$out/macos-titlebar-$name.png"
+            pkill -x "LINEFM Radio" || true
+            sleep 2
+          done
+          appearance false
+          bounded 20 open "$app"
+          sleep 8
+          bounded 20 open -R "$app"
+          sleep 4
+          bounded 20 screencapture -x "$out/macos-icon-dock-finder.png"
+          pkill -x "LINEFM Radio" || true
+          missing=0
+          for f in dmg-window gatekeeper-open privacy-security titlebar-light titlebar-dark icon-dock-finder; do
+            test -s "$out/macos-$f.png" || { echo "::error::Missing screenshot macos-$f.png"; missing=1; }
+          done
+          exit "$missing"
+
+      - name: Upload macOS evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: desktop-evidence-macos
+          path: ${{ runner.temp }}/desktop-evidence
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Result
+        run: |
+          echo "- macOS: DMG, Gatekeeper, Privacy & Security, title bar light/dark, Dock/Finder icon in artifact desktop-evidence-macos (details in gatekeeper.txt)" >> "$GITHUB_STEP_SUMMARY"
+
+  linux-desktop:
+    name: Linux title bar light and dark
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: System packages
+        uses: ./.github/actions/linux-deps
+
+      - name: Screen capture packages
+        run: sudo apt-get install -y -q --no-install-recommends xvfb openbox imagemagick gnome-themes-extra
+
+      - name: Set up Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Write configuration
+        uses: ./.github/actions/write-config
+        with:
+          app-env: dev
+
+      - name: Build Linux
+        run: flutter build linux --release --dart-define-from-file=config/app.json
+
+      - name: Screenshots under Xvfb
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/desktop-evidence"
+          mkdir -p "$out"
+          bin="$PWD/build/linux/x64/release/bundle/linefm_radio"
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1280x900x24 &
+          sleep 2
+          # A window manager draws server-side decorations, as on a desktop.
+          openbox &
+          sleep 2
+          for name in light dark; do
+            theme=Adwaita
+            if [ "$name" = dark ]; then theme=Adwaita:dark; fi
+            GTK_THEME="$theme" "$bin" &
+            pid=$!
+            sleep 12
+            import -window root "$out/linux-titlebar-$name.png"
+            kill "$pid" || true
+            wait "$pid" || true
+          done
+          test -s "$out/linux-titlebar-light.png"
+          test -s "$out/linux-titlebar-dark.png"
+
+      - name: Upload Linux evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: desktop-evidence-linux
+          path: ${{ runner.temp }}/desktop-evidence
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Result
+        run: |
+          echo "- Linux: title bar light/dark under Xvfb in artifact desktop-evidence-linux" >> "$GITHUB_STEP_SUMMARY"
+
   # Zero-warning rule, same as the other workflows.
   log-gate:
     name: Widget evidence log gate
-    needs: [ios-widget]
+    needs: [ios-widget, macos-desktop, linux-desktop]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10

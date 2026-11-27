@@ -54,6 +54,10 @@ Lauf [44950025363](https://github.com/VectoDE/linefm-radio-app/actions/runs/4495
 
 Größen des Web-Builds: `main.dart.wasm` 3,82 MB roh, `skwasm.wasm` 8,97 MB roh, App-Schriften 0,39 MB. Startdateien gzip 5 (ausgeliefert) 3,03 MB, mit Brotli 11 wären es 2,33 MB.
 
+### Hosting vorher/nachher
+
+Im Lighthouse-Lauf von `performance.yml` misst ein zusätzlicher Schritt denselben Build hinter einem unkonfigurierten nginx (keine Kompression, keine Cache-Header, Standardwerte des Images) und danach hinter dem Projekt-Container (`deploy/traefik`: gzip 5, Cache-Regeln, ETag). Beide Läufe nutzen dieselben Einstellungen (Anzahl Läufe, Drosselung) auf demselben Runner. Medianwerte für Performance-Score, FCP, LCP, TBT, Speed Index und Übertragungsgröße stehen als Tabelle in der Zusammenfassung des Jobs „Web measure (lighthouse)“ und als `hosting-compare.md` im Artefakt `webslice-lighthouse-<sha>`. Konkrete Werte folgen nach dem ersten Lauf auf main. Beim Erstaufruf ändert sich nur die Übertragungsgröße; die Cache-Regeln wirken erst beim Wiederaufruf, den Lighthouse nicht misst (siehe „Erstes Bild beim Wiederaufruf“ oben).
+
 ### Bedienung
 
 | Kennzahl | Mobil | Desktop | Ziel |

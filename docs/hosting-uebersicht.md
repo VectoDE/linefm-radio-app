@@ -89,6 +89,21 @@ Bewusste Entscheidungen:
 - **HSTS mit `preload`.** Der Header allein trägt die Domain nicht in die Preload-Liste ein. Eine Anmeldung auf hstspreload.org ist ein eigener Schritt und betrifft `linefm.de` samt allen Subdomains. Das entscheidet der Betreiber der Hauptdomain.
 - **`interest-cohort` fehlt in der Permissions-Policy**, weil Chrome das Feature nicht mehr kennt und dafür eine Konsolenwarnung ausgibt.
 
+## Automatische Prüfung in der CI
+
+Die CI (`.github/workflows/ci.yml`) prüft die Hosting-Dateien in drei Stufen. Docker-Images werden nur dort gebaut, nie auf dem Entwicklungsrechner.
+
+| Job | Was er prüft |
+|---|---|
+| „Hosting config“ | `tool/hosting_check.py consistency`: Security-Header (Namen und Werte, vor allem die CSP) sind in nginx-Snippet, Plesk-nginx, `.htaccess` und Cloudflare `_headers` identisch; alle vier nutzen dieselben Cache-Control-Werte; für rund 30 Beispielpfade liefern `.htaccess`, Plesk-nginx und `_headers` dasselbe Cache-Control. Dazu `docker compose config`, `nginx -t` und `httpd -t` mit gepinnten Images (`tool/check_hosting_config.sh`). Bei einer Abweichung schlägt der Job fehl. |
+| „Hosting smoke (nginx)“ | Baut das Image aus `deploy/nginx/docker-compose.yml` mit dem echten Web-Build und prüft es mit `tool/hosting_check.py smoke`: Header exakt und einmalig, Cache je Pfad, ETag und 304, gzip, MIME-Typen, SPA-Fallback, 404 für fehlende Dateien, gesperrte Hosting- und Punktdateien, `/healthz`. |
+| „Hosting smoke (traefik)“ | Dasselbe hinter einem echten Traefik (Docker-Provider, Compose-Labels aus `deploy/traefik`, Standardzertifikat statt Let's Encrypt), zusätzlich HTTP-zu-HTTPS-Weiterleitung. |
+| „Hosting smoke (apache)“ | Apache 2.4 mit der gerenderten `.htaccess` aus `deploy/plesk` (`AllowOverride All`). |
+
+Nicht abgedeckt: Cloudflare Pages selbst (nur die Header-Konsistenz, Ausrollen über `deploy-web.yml`) und eine echte Plesk-Installation. Beides prüft der Betreiber nach dem Einrichten mit den `curl`-Befehlen unten.
+
+Die Ladezeit vorher/nachher misst `performance.yml`: Lighthouse gegen einen unkonfigurierten nginx (keine Kompression, keine Cache-Header) und gegen den Projekt-Container, gleicher Build, gleicher Runner. Die Tabelle steht in der Zusammenfassung des Laufs (Job „Web measure (lighthouse)“), siehe [PERFORMANCE.md](PERFORMANCE.md).
+
 ## Prüfen am echten Host
 
 ```bash

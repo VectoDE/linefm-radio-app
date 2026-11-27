@@ -52,6 +52,9 @@ FileETag MTime Size
     <If "%{REQUEST_URI} =~ m#^/assets/fonts/fallback/#">
         Header always set Cache-Control "public, max-age=31536000, immutable"
     </If>
+    <If "%{REQUEST_URI} =~ m#^/\.well-known/#">
+        Header always set Cache-Control "public, max-age=3600"
+    </If>
     <FilesMatch "^(robots\.txt|sitemap\.xml|llms\.txt)$">
         Header always set Cache-Control "public, max-age=3600"
     </FilesMatch>
@@ -59,13 +62,12 @@ FileETag MTime Size
 
 # Brotli: mod_brotli (Apache 2.4.26+), falls auf dem Server vorhanden, vor mod_deflate aktivieren
 # (siehe docs/hosting-plesk.md). NOTICES und AssetManifest.bin sind octet-stream.
+<FilesMatch "^(NOTICES|AssetManifest\.bin)$">
+    ForceType application/octet-stream
+</FilesMatch>
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml application/xml application/json application/javascript text/javascript application/manifest+json application/wasm image/svg+xml application/octet-stream font/otf font/ttf application/vnd.ms-fontobject
 </IfModule>
-
-<FilesMatch "^(_headers|_redirects)$">
-    Require all denied
-</FilesMatch>
 
 # SPA-Routing (Pfad-Strategie): Dateien und Ordner direkt, fehlende Dateien mit Endung als 404,
 # alles andere liefert index.html.
@@ -73,6 +75,8 @@ FileETag MTime Size
     RewriteEngine On
     # Punktdateien und -ordner (.git, .env, .htaccess ...) mit 404 sperren, .well-known bleibt.
     RewriteRule (^|/)\.(?!well-known(/|$)) - [R=404,L]
+    # Cloudflare-only files are not served here either (404 like nginx, no authorization error in the log).
+    RewriteRule ^(_headers|_redirects)$ - [R=404,L]
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]

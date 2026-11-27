@@ -386,12 +386,135 @@ jobs:
           grep -qF '"useLocalCanvasKit":true' build/web/flutter_bootstrap.js || { echo "::error::flutter_bootstrap.js does not use the bundled CanvasKit"; exit 1; }
           echo "**Web build:** $(du -sh build/web | cut -f1), $(find build/web -type f | wc -l) files" >> "$GITHUB_STEP_SUMMARY"
 
+      # Hand the finished build (including hidden files such as .well-known) to the hosting smoke tests.
+      - name: Upload web build for the hosting tests
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: hosting-web-${{ github.sha }}
+          path: |
+            build/web
+            build/hosting
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
+
+  # Static checks of the hosting configs: header sets and cache rules must agree across nginx,
+  # Plesk (nginx directives and .htaccess) and Cloudflare _headers; syntax with pinned images.
+  hosting-config:
+    name: Hosting config
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Header and cache consistency across nginx, .htaccess and _headers
+        run: |
+          set -euo pipefail
+          python3 tool/test_hosting_check.py
+          python3 tool/hosting_check.py consistency
+
+      - name: compose config, nginx -t, httpd -t
+        run: bash tool/check_hosting_config.sh
+
+  # Real servers with the real web build: the nginx container (standalone and behind Traefik) and
+  # Apache with the Plesk .htaccess. Images are built here, never on the developer machine.
+  hosting-smoke:
+    name: Hosting smoke (${{ matrix.variant }})
+    needs: web-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [nginx, traefik, apache]
+    env:
+      TRAEFIK_IMAGE: traefik:v3.6@sha256:31267173a15b4944e797a76ffd9c419707c8d8b32fe5b610f80cd0cfa05f372d
+      HTTPD_IMAGE: httpd:2.4.66-alpine@sha256:968c8b4098fcecb473762b45f6c541a3b2b2cfab2caccb1edbd2cece071ef160
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Fetch web build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: hosting-web-${{ github.sha }}
+          path: build
+
+      - name: nginx container (deploy/nginx)
+        if: ${{ matrix.variant == 'nginx' }}
+        run: |
+          set -euo pipefail
+          docker compose -f deploy/nginx/docker-compose.yml up -d --build --wait --wait-timeout 120
+          python3 tool/hosting_check.py smoke --web build/web --port 8080
+
+      - name: nginx container behind Traefik (deploy/traefik)
+        if: ${{ matrix.variant == 'traefik' }}
+        run: |
+          set -euo pipefail
+          # Test certificate for the default store: SAN covers the host name and the loopback IP,
+          # so the smoke client verifies the TLS connection instead of skipping verification.
+          certdir="$RUNNER_TEMP/traefik-tls"
+          mkdir -p "$certdir"
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj "/CN=app.linefm.de"             -keyout "$certdir/test.key" -out "$certdir/test.crt"             -addext "subjectAltName=DNS:app.linefm.de,IP:127.0.0.1"             -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=digitalSignature,keyCertSign"
+          chmod 644 "$certdir/test.key"
+          printf '%s\n' 'tls:' '  stores:' '    default:' '      defaultCertificate:' '        certFile: /certs/test.crt' '        keyFile: /certs/test.key' > "$certdir/dynamic.yml"
+          docker network create traefik
+          docker run -d --name traefik --network traefik             -p 127.0.0.1:8000:80 -p 127.0.0.1:8443:443             -v /var/run/docker.sock:/var/run/docker.sock:ro -v "$certdir:/certs:ro" "$TRAEFIK_IMAGE"             --providers.docker=true --providers.docker.exposedbydefault=false --providers.file.filename=/certs/dynamic.yml             --entrypoints.web.address=:80 --entrypoints.websecure.address=:443
+          docker compose -f deploy/traefik/docker-compose.yml -f tool/hosting/traefik-smoke.yml             up -d --build --wait --wait-timeout 120
+          for _ in $(seq 1 30); do
+            curl -sf --cacert "$certdir/test.crt" -o /dev/null -H 'Host: app.linefm.de' https://127.0.0.1:8443/healthz && break
+            sleep 1
+          done
+          python3 tool/hosting_check.py smoke --web build/web --port 8443 --tls --cafile "$certdir/test.crt" --redirect-port 8000
+
+      - name: Apache with the Plesk .htaccess (deploy/plesk)
+        if: ${{ matrix.variant == 'apache' }}
+        run: |
+          set -euo pipefail
+          test -s build/web/.htaccess
+          docker run -d --name httpd -p 127.0.0.1:8082:80             -v "$PWD/tool/hosting/httpd-smoke.conf:/usr/local/apache2/conf/httpd.conf:ro"             -v "$PWD/build/web:/usr/local/apache2/htdocs:ro" "$HTTPD_IMAGE"
+          for _ in $(seq 1 30); do
+            curl -sf -o /dev/null http://127.0.0.1:8082/ && break
+            sleep 1
+          done
+          python3 tool/hosting_check.py smoke --web build/web --port 8082 --no-healthz --allow-server-version
+
+      # Only on failure: server logs contain expected 404 lines that must not reach the log gate.
+      - name: Container logs
+        if: ${{ failure() }}
+        run: |
+          for c in $(docker ps -aq); do
+            echo "::group::$(docker inspect -f '{{.Name}}' "$c")"
+            docker logs "$c" 2>&1 | tail -n 60 || true
+            echo "::endgroup::"
+          done
+
+
   # Zero-warning rule: any warning or error in a job log or a check-run
   # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
   # holds the few documented upstream exceptions, each with an expiry date.
   log-gate:
     name: Build log gate
-    needs: [analyze, test, goldens, l10n-check, web-smoke]
+    needs: [analyze, test, goldens, l10n-check, web-smoke, hosting-config, hosting-smoke]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -1,0 +1,5 @@
+# The web image needs only the finished web build and the rendered hosting files.
+# Everything else (sources, .git, platform folders) stays out of the build context.
+*
+!build/web
+!build/hosting

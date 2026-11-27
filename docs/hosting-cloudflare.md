@@ -34,6 +34,10 @@ npx wrangler pages dev build/web
 curl -sI http://localhost:8788/ | grep -iE 'content-security|cache-control'
 ```
 
+## Abgleich mit den anderen Zielen
+
+`_headers` trägt dieselben Security-Header wie nginx und `.htaccess` (gleiche CSP, gleiche Cache-Control-Werte, auch für `/.well-known/*`). Die CI vergleicht das bei jeder Änderung (`tool/hosting_check.py consistency`, Job „Hosting config“); weicht ein Wert ab, schlägt sie fehl. Pages selbst startet die CI nicht. Das Ausrollen übernimmt `deploy-web.yml` (Ziel `cloudflare`), sobald der Betreiber die Secrets gesetzt hat.
+
 ## Grenzen
 
 - Fehlende Pfade unter `/impressum/` und `/datenschutz/` liefern im SPA-Modus die App statt eines 404. Pages kann einzelne Pfade nicht auf 404 setzen, solange der SPA-Modus aktiv ist. Das betrifft nur falsch eingetippte Adressen.

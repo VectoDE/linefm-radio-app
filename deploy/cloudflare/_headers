@@ -101,7 +101,10 @@
 /llms.txt
   Cache-Control: public, max-age=3600
 
-# App-Links: Datei ohne Endung, Apple verlangt application/json.
+# App-Links: one hour of cache like nginx and Apache; file without extension, Apple requires application/json.
+/.well-known/*
+  Cache-Control: public, max-age=3600
+
 /.well-known/apple-app-site-association
   Content-Type: application/json
 

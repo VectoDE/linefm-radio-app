@@ -159,7 +159,14 @@
     /* Dark band at the back left, like `.app-loader::before`. */
     #static-shell::before { content: ""; position: absolute; left: -10%; top: -20%; width: 60%; height: 140%; background: rgba(0, 0, 0, .05); transform: rotate(-7deg); pointer-events: none; }
     #static-shell .stage { position: relative; display: flex; flex-direction: column; align-items: center; transform: skewY(-7deg); }
-    #static-shell .tile { background: #ffffff; color: #0f1221; padding: 0 12px; font-size: 32px; line-height: 1.2; font-weight: 800; letter-spacing: .08em; }
+    /* Same face as the word mark in AppLoader (Syncopate Bold, the app's own
+       font asset, so the browser reuses it for the engine), so the hand-over
+       to the app frame shows no change of type. Until it arrives a bold system
+       face stands in. The font is deliberately not preloaded: Chrome holds the
+       first paint while a preloaded font is in flight, which moved the LCP
+       on a throttled phone by about 100 ms. */
+    @font-face { font-family: "Syncopate"; src: url("assets/assets/fonts/Syncopate-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+    #static-shell .tile { background: #ffffff; color: #0f1221; padding: 0 12px; font-family: "Syncopate", system-ui, sans-serif; font-size: 32px; line-height: 1.2; font-weight: 700; }
     @media (max-width: 480px) { #static-shell .tile { font-size: 40px; } }
     #static-shell .start-slot { height: 48px; margin-top: 54px; display: flex; align-items: center; justify-content: center; transform: skewY(7deg); }
     #static-shell .dots { display: flex; gap: 8px; }

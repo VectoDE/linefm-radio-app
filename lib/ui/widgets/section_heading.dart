@@ -2,77 +2,82 @@ import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Abschnittsueberschrift wie `h1` der Web-App: Syncopate 700, 25 px,
-/// Grossbuchstaben, Zeilenhoehe 1,4, 20 dp Abstand nach unten.
+/// Section heading like `h1` of the web app: Syncopate 700, 25 px,
+/// uppercase, line height 1.4, 20 dp spacing below.
 ///
-/// Auf schmalen Geraeten oder bei grosser Systemschrift bricht der Text um,
-/// statt abgeschnitten zu werden. [trailing] steht rechts (z. B. Aktion
-/// "Exportieren"). Fuer Screenreader ist das Element als Ueberschrift der
-/// Ebene 1 markiert (Seitentitel, im Web `h1`). Passt das laengste Wort nicht
-/// in die Zeile (z. B. "EINSTELLUNGEN" bei 320 dp), wird die Schrift so weit
-/// verkleinert, dass kein Wort mitten im Wort umbricht.
+/// On narrow devices or with a large system font the text wraps instead of
+/// being cut off. [trailing] sits on the right (e.g. action
+/// "Export"). For screen readers the element is marked as a level 1
+/// heading (page title, `h1` on the web). If the longest word does not fit
+/// in the line (e.g. "EINSTELLUNGEN" at 320 dp), the font is shrunk until
+/// no word breaks in the middle.
 class SectionHeading extends StatelessWidget {
   const SectionHeading(
     this.text, {
     super.key,
     this.trailing,
-    this.padding = const EdgeInsets.only(bottom: LinefmSpace.gutter),
+    this.padding = const EdgeInsets.only(bottom: LinefmSpace.md),
     this.style,
     this.headingLevel = 1,
   });
 
-  /// Ebene fuer Screenreader (1 = Seitentitel).
+  /// Level for screen readers (1 = page title).
   final int headingLevel;
 
   final String text;
   final Widget? trailing;
   final EdgeInsetsGeometry padding;
 
-  /// Optional abweichender Stil (Farbe, Groesse).
+  /// Optional differing style (color, size).
   final TextStyle? style;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<LinefmColors>()!;
     final base = LinefmText.sectionHeading.copyWith(color: colors.text);
+    // Fixed minimum height: a heading with trailing buttons (favorites,
+    // history) sits at the same height as one without (stations, settings).
     return Padding(
       padding: padding,
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            child: Semantics(
-              header: true,
-              headingLevel: headingLevel,
-              container: true,
-              child: LayoutBuilder(
-                builder: (context, box) {
-                  final upper = text.toUpperCase();
-                  final merged = base.merge(style);
-                  return Text(
-                    upper,
-                    style: fitLongestWord(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: LinefmMetrics.minTarget),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Semantics(
+                header: true,
+                headingLevel: headingLevel,
+                container: true,
+                child: LayoutBuilder(
+                  builder: (context, box) {
+                    final upper = text.toUpperCase();
+                    final merged = base.merge(style);
+                    return Text(
                       upper,
-                      merged,
-                      box.maxWidth,
-                      MediaQuery.textScalerOf(context),
-                    ),
-                  );
-                },
+                      style: fitLongestWord(
+                        upper,
+                        merged,
+                        box.maxWidth,
+                        MediaQuery.textScalerOf(context),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-          if (trailing != null) ...<Widget>[
-            const SizedBox(width: LinefmSpace.md),
-            trailing!,
+            if (trailing != null) ...<Widget>[
+              const SizedBox(width: LinefmSpace.md),
+              trailing!,
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
 }
 
-/// Verkleinert [style] so, dass das laengste Wort von [text] in [maxWidth]
-/// passt. Ist genug Platz, bleibt der Stil unveraendert.
+/// Shrinks [style] so that the longest word of [text] fits in [maxWidth].
+/// If there is enough room, the style stays unchanged.
 TextStyle fitLongestWord(
   String text,
   TextStyle style,

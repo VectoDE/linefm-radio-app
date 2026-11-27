@@ -11,9 +11,9 @@ import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Senderfarben aus der echten Senderliste (config/stations.yaml, einzige
-/// Quelle der Farben): Jeder dort eingetragene Sender muss die
-/// Kontrastregeln erfuellen.
+/// Station colours from the real station list (config/stations.yaml, the
+/// single source of colours): every station listed there must meet the
+/// contrast rules.
 List<Station> _configStations() {
   final result = parseStationsConfig(
     File('config/stations.yaml').readAsStringSync(),
@@ -24,7 +24,7 @@ List<Station> _configStations() {
 
 void main() {
   group('Contrast', () {
-    test('Grenzwerte Schwarz/Weiss', () {
+    test('Limits black/white', () {
       expect(
         Contrast.ratio(const Color(0xFF000000), const Color(0xFFFFFFFF)),
         closeTo(21, 0.001),
@@ -32,7 +32,7 @@ void main() {
       expect(Contrast.ratio(Contrast.paper, Contrast.paper), 1);
     });
 
-    test('Spec-Werte (4.4) stimmen', () {
+    test('Spec values (4.4) match', () {
       double r(int a, int b) => Contrast.ratio(Color(a), Color(b));
       expect(r(0xFF898DA1, 0xFF0F1221), closeTo(5.66, 0.01));
       expect(r(0xFF898DA1, 0xFF181B2B), closeTo(5.19, 0.01));
@@ -43,13 +43,13 @@ void main() {
     });
   });
 
-  group('Token-Kontraste', () {
+  group('Token contrasts', () {
     for (final entry in <String, LinefmColors>{
       'dunkel': LinefmColors.dark,
       'hell': LinefmColors.light,
     }.entries) {
       final c = entry.value;
-      test('Text auf allen Grundflaechen >= 4,5:1 (${entry.key})', () {
+      test('Text on all base surfaces >= 4.5:1 (${entry.key})', () {
         for (final bg in <Color>[c.background, c.surface, c.surfaceRaised]) {
           expect(Contrast.ratio(c.text, bg), greaterThanOrEqualTo(4.5));
           expect(Contrast.ratio(c.muted, bg), greaterThanOrEqualTo(4.5));
@@ -58,30 +58,32 @@ void main() {
           expect(Contrast.ratio(c.tickerText, bg), greaterThanOrEqualTo(4.5));
         }
       });
-      test('Herz als Icon >= 3:1 auf allen Flaechen (${entry.key})', () {
+      test('Heart as icon >= 3:1 on all surfaces (${entry.key})', () {
         for (final bg in <Color>[c.background, c.surface, c.surfaceRaised]) {
           expect(Contrast.ratio(c.heart, bg), greaterThanOrEqualTo(3));
         }
       });
-      test('Schalter-Rahmen (muted) >= 3:1 (${entry.key})', () {
+      test('Switch border (muted) >= 3:1 (${entry.key})', () {
         expect(Contrast.ratio(c.muted, c.background), greaterThanOrEqualTo(3));
         expect(Contrast.ratio(c.muted, c.surface), greaterThanOrEqualTo(3));
       });
-      test('Schalter an: Knopf Weiss auf Spur >= 3:1 (${entry.key})', () {
-        final track = Color.alphaBlend(c.switchTrackOn, c.background);
-        expect(
-          Contrast.ratio(const Color(0xFFFFFFFF), track),
-          greaterThanOrEqualTo(3),
-        );
-        expect(Contrast.ratio(track, c.background), greaterThanOrEqualTo(3));
+      test('switch on: accent track and thumb >= 3:1 (${entry.key})', () {
+        final track = c.switchTrackOn;
+        expect(track, c.accent);
+        for (final bg in <Color>[c.background, c.surface]) {
+          final r = Contrast.ratio(track, bg);
+          expect(r, greaterThanOrEqualTo(3));
+        }
+        final thumb = Contrast.ratio(c.onAccent, track);
+        expect(thumb, greaterThanOrEqualTo(3));
       });
     }
   });
 
-  // Ziel je Paar (R4-A): `text` und `tickerText` erreichen AAA (7:1), `muted`
-  // ist bewusst nur AA (4,5:1, Sekundaertext wie in der Web-App; Tabelle in
-  // lib/ui/theme/tokens.dart und docs/BARRIEREFREIHEIT.md).
-  group('Token-Kontraste nach Ziel (AAA wo vorgesehen)', () {
+  // Target per pair: `text` and `tickerText` reach AAA (7:1), `muted` is
+  // deliberately only AA (4.5:1, secondary text as in the web app; table in
+  // lib/ui/theme/tokens.dart and docs/BARRIEREFREIHEIT.md).
+  group('Token contrasts by target (AAA where intended)', () {
     for (final entry in <String, LinefmColors>{
       'dunkel': LinefmColors.dark,
       'hell': LinefmColors.light,
@@ -95,7 +97,7 @@ void main() {
         'navBg': Color.alphaBlend(c.navBg, c.background),
         'popoverBg': Color.alphaBlend(c.popoverBg, c.background),
       };
-      test('text auf allen Flaechen >= 7:1 (${entry.key})', () {
+      test('text on all surfaces >= 7:1 (${entry.key})', () {
         for (final s in surfaces.entries) {
           expect(
             Contrast.ratio(c.text, s.value),
@@ -104,7 +106,7 @@ void main() {
           );
         }
       });
-      test('tickerText auf Grund und Karte >= 7:1 (${entry.key})', () {
+      test('tickerText on background and card >= 7:1 (${entry.key})', () {
         for (final bg in <Color>[c.background, c.surface]) {
           expect(
             Contrast.ratio(c.tickerText, bg),
@@ -112,7 +114,7 @@ void main() {
           );
         }
       });
-      test('muted auf allen Flaechen >= 4,5:1, Ziel AA (${entry.key})', () {
+      test('muted on all surfaces >= 4.5:1, target AA (${entry.key})', () {
         for (final s in surfaces.entries) {
           expect(
             Contrast.ratio(c.muted, s.value),
@@ -121,7 +123,7 @@ void main() {
           );
         }
       });
-      test('onAccent auf accent >= 7:1 (${entry.key})', () {
+      test('onAccent on accent >= 7:1 (${entry.key})', () {
         expect(
           Contrast.ratio(c.onAccent, c.accent),
           greaterThanOrEqualTo(Contrast.aaaText),
@@ -133,7 +135,7 @@ void main() {
   // Static start page (web/index.html): it is the branded loading screen and,
   // like AppLoader and the native splash, always dark. Same colours as the
   // tokens, body text and `.muted` at 7:1.
-  group('Statische Web-Shell', () {
+  group('Static web shell', () {
     final html = File('web/index.html').readAsStringSync();
     final style = html.substring(
       html.indexOf('<style>'),
@@ -155,12 +157,12 @@ void main() {
       expect(style, isNot(contains('prefers-color-scheme: light')));
       expect(css(bg), loaderBackground);
     });
-    test('Farben = Tokens (dunkel)', () {
+    test('Colours = tokens (dark)', () {
       expect(css(bg), tokens.background);
       expect(css(fg), tokens.text);
       expect(css(muted), tokens.tickerText);
     });
-    test('.muted und Text >= 7:1', () {
+    test('.muted and text >= 7:1', () {
       final b = css(bg);
       expect(
         Contrast.ratio(css(muted), b),
@@ -183,10 +185,10 @@ void main() {
     });
   });
 
-  group('Text auf Senderfarben', () {
+  group('Text on station colours', () {
     Color color(String slug) => stationBySlug(slug)!.color;
 
-    test('FobFM und +GAMING bekommen dunklen Text', () {
+    test('FobFM and +GAMING get dark text', () {
       expect(Contrast.onColor(color('fobfm')), Contrast.ink);
       expect(Contrast.onColor(color('linefmgaming')), Contrast.ink);
       expect(Contrast.onColor(color('fobfm'), large: true), Contrast.ink);
@@ -196,18 +198,18 @@ void main() {
       );
     });
 
-    test('MAIN, LOFI, Radio3FM behalten weissen Text', () {
+    test('MAIN, LOFI, Radio3FM keep white text', () {
       for (final slug in <String>['linefm', 'linefmlofi', 'radio3fm']) {
         expect(Contrast.onColor(color(slug)), Contrast.paper, reason: slug);
       }
     });
 
-    test('RAP: gross weiss (3,76:1), klein dunkel (4,95:1)', () {
+    test('RAP: large white (3.76:1), small dark (4.95:1)', () {
       expect(Contrast.onColor(color('linefmrap'), large: true), Contrast.paper);
       expect(Contrast.onColor(color('linefmrap')), Contrast.ink);
     });
 
-    test('gewaehlter Vordergrund erreicht AA je Groesse', () {
+    test('chosen foreground reaches AA per size', () {
       for (final s in _configStations()) {
         final small = Contrast.onColor(s.color);
         final large = Contrast.onColor(s.color, large: true);
@@ -225,12 +227,12 @@ void main() {
     });
   });
 
-  group('Player-Verlauf', () {
+  group('Player gradient', () {
     for (final brightness in Brightness.values) {
       final c = brightness == Brightness.dark
           ? LinefmColors.dark
           : LinefmColors.light;
-      test('Vordergrund in Header und Mitte lesbar ($brightness)', () {
+      test('Foreground readable in header and middle ($brightness)', () {
         for (final s in _configStations()) {
           final g = StationStyle.playerGradient(s.color, c, brightness);
           final top = StationStyle.onPlayerTop(s.color, c, brightness);
@@ -245,7 +247,7 @@ void main() {
             greaterThanOrEqualTo(Contrast.aaText),
             reason: '${s.slug} Mitte',
           );
-          // Unterer Verlauf endet im Grund; Text dort ist `text`.
+          // The lower gradient ends in the background; text there is `text`.
           expect(
             Contrast.ratio(c.text, g.colors[2]),
             greaterThanOrEqualTo(Contrast.aaText),
@@ -254,7 +256,7 @@ void main() {
       });
     }
 
-    test('Kartenrahmen erreicht 3:1 zum Grund (hell und dunkel)', () {
+    test('Card border reaches 3:1 against the background (light and dark)', () {
       for (final c in <LinefmColors>[LinefmColors.dark, LinefmColors.light]) {
         for (final s in _configStations()) {
           expect(

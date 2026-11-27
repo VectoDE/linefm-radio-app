@@ -107,8 +107,8 @@ class _Info extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     final Widget text = Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Text(
           station.displayName,
@@ -138,7 +138,22 @@ class _Info extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Expanded(child: desktop.dragArea(SizedBox.expand(child: text))),
+        // Three lines need more height than the 120 px window leaves above the
+        // buttons with larger text or fonts, so they shrink instead of
+        // overflowing. The fixed width keeps the ellipsis working.
+        Expanded(
+          child: desktop.dragArea(
+            LayoutBuilder(
+              builder: (context, constraints) => SizedBox.expand(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: SizedBox(width: constraints.maxWidth, child: text),
+                ),
+              ),
+            ),
+          ),
+        ),
         Row(
           children: <Widget>[
             _MiniButton(

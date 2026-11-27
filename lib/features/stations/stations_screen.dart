@@ -17,23 +17,23 @@ import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:linefm_radio/ui/widgets/section_heading.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Ticker-Text "Artist - Titel" (leer, wenn kein Titel bekannt ist).
+/// Ticker text "Artist - Title" (empty if no title is known).
 String tickerFor(StationLive live) {
   final track = live.track;
   return track == null ? '' : '${track.artist} - ${track.title}';
 }
 
-/// Screen "Alle Stationen" (Spec 4.1).
+/// Screen "All stations" (spec 4.1).
 ///
-/// - Kompakt (< 600 dp): Liste. Mittel und breit: Raster mit 2 Spalten, ab
-///   1200 dp Fensterbreite 3 Spalten (Web: >= 760 px 2, >= 1000 px 3).
-/// - Die Liste steht im Code; die Ticker kommen aus `stationsProvider` und
-///   bleiben leer, solange keine Titelinfos vorliegen. Faellt der Abruf aus,
-///   steht ein Hinweis unter der Ueberschrift.
-/// - Ziehen zum Aktualisieren, Long-Press auf eine Karte oeffnet das Menue
-///   "Sender teilen".
-/// - Der Stern auf jeder Karte merkt den Sender als Favoriten-Sender
-///   (getrennt von den Song-Favoriten).
+/// - Compact (< 600 dp): list. Medium and wide: grid with 2 columns, from
+///   1200 dp window width 3 columns (web: >= 760 px 2, >= 1000 px 3).
+/// - The list lives in code; the tickers come from `stationsProvider` and
+///   stay empty as long as no title info is available. If the fetch fails,
+///   a notice appears below the heading.
+/// - Pull to refresh, long-press on a card opens the menu
+///   "Share station".
+/// - The star on each card remembers the station as a favorite station
+///   (separate from the song favorites).
 class StationsScreen extends ConsumerWidget {
   const StationsScreen({
     super.key,
@@ -45,8 +45,8 @@ class StationsScreen extends ConsumerWidget {
     ),
   });
 
-  /// Aussenabstand. Die Shell ergaenzt oben den Header und unten Mini-Player
-  /// und Navigation.
+  /// Outer padding. The shell adds the header at the top and mini player
+  /// and navigation at the bottom.
   final EdgeInsets padding;
 
   @override
@@ -125,8 +125,8 @@ class StationsScreen extends ConsumerWidget {
       );
     }
 
-    // Favoriten-Sender (Stern) oben als eigene Gruppe, nur wenn welche
-    // gemerkt sind. Die Gesamtliste darunter bleibt vollstaendig.
+    // Favorite stations (star) at the top as their own group, only if any
+    // are remembered. The full list below stays complete.
     final hasFavorites = favoriteStations.isNotEmpty;
 
     return RefreshIndicator(
@@ -154,7 +154,7 @@ class StationsScreen extends ConsumerWidget {
                     l10n.stationsTitle,
                     headingLevel: hasFavorites ? 2 : 1,
                     padding: EdgeInsets.only(
-                      bottom: offline ? LinefmSpace.md : LinefmSpace.gutter,
+                      bottom: offline ? LinefmSpace.xs : LinefmSpace.md,
                     ),
                   ),
                 ),

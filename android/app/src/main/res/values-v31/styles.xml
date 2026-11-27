@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Android 12+: SplashScreen-API. Hintergrund #0F1221, Symbol ist das
-         adaptive App-Icon (vom System maskiert). Gilt in beiden Modi. -->
+    <!-- Android 12+: SplashScreen API. The system only allows a round icon,
+         which would be swapped for the word mark a moment later. So the splash
+         is the plain brand background #0F1221 without an icon; the first
+         Flutter frame then draws the word mark on the same background. Same in
+         light and dark mode. -->
     <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:windowSplashScreenBackground">@color/linefm_background</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
         <item name="android:windowBackground">@color/linefm_background</item>
     </style>
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">

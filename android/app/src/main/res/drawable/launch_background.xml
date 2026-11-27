@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Start-Hintergrund (Spec 4.1: nativer Splash in #0F1221). Gilt fuer alle
-     unterstuetzten Versionen bis Android 11 ueber drawable-v21; diese Datei
-     ist der Rueckfall ohne Versionsqualifizierer. -->
+<!-- Launch window up to Android 11: brand background #0F1221 with the loader's
+     word mark (drawable-*/launch_mark.png, rendered from LoaderMark by
+     tool/splash/render_splash_test.dart). It sits exactly where the first
+     Flutter frame draws it, so the hand-over shows no jump. Android 12 and
+     later use the SplashScreen API (values-v31/styles.xml). -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/linefm_background" />
     <item
-        android:width="112dp"
-        android:height="112dp"
-        android:drawable="@mipmap/ic_launcher_round"
+        android:width="230dp"
+        android:height="194dp"
+        android:drawable="@drawable/launch_mark"
         android:gravity="center" />
 </layer-list>

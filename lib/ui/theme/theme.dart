@@ -2,7 +2,7 @@ import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Baut das Theme fuer den gewaehlten Modus (Material 3, Spec 4.4).
+/// Builds the theme for the chosen mode (Material 3, spec 4.4).
 ThemeData buildLinefmTheme(Brightness brightness) {
   final tokens = brightness == Brightness.dark
       ? LinefmColors.dark
@@ -72,7 +72,11 @@ ThemeData buildLinefmTheme(Brightness brightness) {
       ),
     ),
     switchTheme: SwitchThemeData(
-      thumbColor: const WidgetStatePropertyAll<Color>(LinefmPalette.paper),
+      thumbColor: WidgetStateProperty.resolveWith<Color>(
+        (states) => states.contains(WidgetState.selected)
+            ? tokens.onAccent
+            : LinefmPalette.paper,
+      ),
       trackColor: WidgetStateProperty.resolveWith<Color>(
         (states) => states.contains(WidgetState.selected)
             ? tokens.switchTrackOn
@@ -146,8 +150,8 @@ ThemeData buildLinefmTheme(Brightness brightness) {
       ),
     ),
     dialogTheme: DialogThemeData(
-      // Breite Fenster: Dialoge nicht ueber die Lesebreite ziehen
-      // (Material 3: 280 bis 560 dp).
+      // Wide windows: do not stretch dialogs beyond the reading width
+      // (Material 3: 280 to 560 dp).
       constraints: const BoxConstraints(minWidth: 280, maxWidth: 560),
       backgroundColor: tokens.surface,
       surfaceTintColor: Colors.transparent,

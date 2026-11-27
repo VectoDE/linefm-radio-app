@@ -1,46 +1,46 @@
 import 'package:material_ui/material_ui.dart';
 
-/// Design-Tokens aus der Web-App (Spec 4.4).
+/// Design tokens from the web app (spec 4.4).
 ///
-/// Dunkel ist 1:1 aus `styles.css` uebernommen, Hell ist daraus abgeleitet.
+/// Dark is taken 1:1 from `styles.css`, light is derived from it.
 ///
-/// Gemessene WCAG-Kontraste (Verhaeltnis, Formel nach WCAG 2.x; abgesichert
-/// durch `test/ui/theme/contrast_test.dart`):
+/// Measured WCAG contrasts (ratio, formula per WCAG 2.x; backed by
+/// `test/ui/theme/contrast_test.dart`):
 ///
-/// | Paar (Vordergrund auf Grund)          | Dunkel | Hell  |
+/// | Pair (foreground on background)       | Dark   | Light |
 /// |---------------------------------------|--------|-------|
-/// | `text` auf `background`               | 18,60  | 17,09 |
-/// | `text` auf `surface`                  | 17,07  | 18,60 |
-/// | `text` auf `surfaceRaised`            | 15,48  | 15,63 |
-/// | `muted` auf `background`              |  5,66  |  6,26 |
-/// | `muted` auf `surface`                 |  5,19  |  6,81 |
-/// | `muted` auf `surfaceRaised`           |  4,71  |  5,72 |
-/// | `tickerText` auf `surface`            |  7,14  |  8,21 |
-/// | `heart` auf `background`              |  5,74  |  4,55 |
-/// | `heart` auf `surface`                 |  5,27  |  4,96 |
-/// | `heart` auf `surfaceRaised` (Icon)    |  4,78  |  4,17 |
-/// | altes Footer-Grau `#73778a` (entfaellt)|  4,19  |   -   |
+/// | `text` on `background`                | 18.60  | 17.09 |
+/// | `text` on `surface`                   | 17.07  | 18.60 |
+/// | `text` on `surfaceRaised`             | 15.48  | 15.63 |
+/// | `muted` on `background`               |  5.66  |  6.26 |
+/// | `muted` on `surface`                  |  5.19  |  6.81 |
+/// | `muted` on `surfaceRaised`            |  4.71  |  5.72 |
+/// | `tickerText` on `surface`             |  7.14  |  8.21 |
+/// | `heart` on `background`               |  5.74  |  4.55 |
+/// | `heart` on `surface`                  |  5.27  |  4.96 |
+/// | `heart` on `surfaceRaised` (icon)     |  4.78  |  4.17 |
+/// | old footer grey `#73778a` (removed)   |  4.19  |   -   |
 ///
-/// Alle Textpaare erreichen mindestens 4,5:1 (AA); `text` und `tickerText`
-/// erreichen 7:1 (AAA), `muted` ist bewusst AA. Die statische Web-Shell
-/// (`web/index.html`) nutzt dieselben Werte (`.muted` = `tickerText`). `heart` ist ein Icon und
-/// braucht nur 3:1. Der ausgeschaltete Schalter (`switchTrackOff`) erreicht
-/// nur 1,9:1 bzw. 1,5:1, deshalb bekommt er in `SettingsSwitch` einen
-/// `muted`-Rahmen (5,66:1 bzw. 6,26:1, WCAG 1.4.11).
+/// All text pairs reach at least 4.5:1 (AA); `text` and `tickerText` reach
+/// 7:1 (AAA), `muted` is deliberately AA. The static web shell
+/// (`web/index.html`) uses the same values (`.muted` = `tickerText`). `heart`
+/// is an icon and only needs 3:1. The switched-off switch (`switchTrackOff`)
+/// only reaches 1.9:1 and 1.5:1 respectively, so in `SettingsSwitch` it gets
+/// a `muted` border (5.66:1 and 6.26:1, WCAG 1.4.11).
 ///
-/// Text auf Senderfarben (Weiss / Tinte `#0f1221`, `Contrast.onColor`):
+/// Text on station colours (white / ink `#0f1221`, `Contrast.onColor`):
 ///
-/// | Sender        | Farbe     | Weiss  | Tinte  | gewaehlt (Text) |
+/// | Station       | Colour    | White  | Ink    | chosen (text)   |
 /// |---------------|-----------|--------|--------|-----------------|
-/// | LineFM +MAIN  | `#4B4B7D` |  8,07  |  2,30  | Weiss           |
-/// | LineFM +RAP   | `#FF0084` |  3,76  |  4,95  | Tinte (gross: Weiss) |
-/// | LineFM +GAMING| `#4BBD71` |  2,38  |  7,81  | Tinte           |
-/// | LineFM +LOFI  | `#546E7A` |  5,40  |  3,44  | Weiss           |
-/// | Radio3FM      | `#177D29` |  5,25  |  3,55  | Weiss           |
-/// | FobFM         | `#04FFF7` |  1,26  | 14,75  | Tinte           |
+/// | LineFM +MAIN  | `#4B4B7D` |  8.07  |  2.30  | White           |
+/// | LineFM +RAP   | `#FF0084` |  3.76  |  4.95  | Ink (large: White) |
+/// | LineFM +GAMING| `#4BBD71` |  2.38  |  7.81  | Ink             |
+/// | LineFM +LOFI  | `#546E7A` |  5.40  |  3.44  | White           |
+/// | Radio3FM      | `#177D29` |  5.25  |  3.55  | White           |
+/// | FobFM         | `#04FFF7` |  1.26  | 14.75  | Ink             |
 ///
-/// Das Web-Footer-Grau `#73778a` (Navigation inaktiv) ist durch `muted`
-/// ersetzt (Spec 4.2 Nr. 17).
+/// The web footer grey `#73778a` (inactive navigation) is replaced by `muted`
+/// (spec 4.2 no. 17).
 @immutable
 class LinefmColors extends ThemeExtension<LinefmColors> {
   const LinefmColors({
@@ -77,7 +77,7 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     miniPlayerBg: Color.fromRGBO(15, 18, 33, 0.86),
     navBg: Color.fromRGBO(15, 18, 33, 0.96),
     tickerText: Color(0xFFA4A7B6),
-    switchTrackOn: Color.fromRGBO(255, 255, 255, 0.36),
+    switchTrackOn: Color(0xFFFFFFFF),
     popoverBg: Color.fromRGBO(15, 18, 33, 0.95),
     coverShadow: Color.fromRGBO(0, 0, 0, 0.35),
     onAccent: Color(0xFF0F1221),
@@ -98,7 +98,7 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
     miniPlayerBg: Color.fromRGBO(255, 255, 255, 0.88),
     navBg: Color.fromRGBO(255, 255, 255, 0.96),
     tickerText: Color(0xFF4A4E62),
-    switchTrackOn: Color.fromRGBO(15, 18, 33, 0.60),
+    switchTrackOn: Color(0xFF0F1221),
     popoverBg: Color.fromRGBO(255, 255, 255, 0.97),
     coverShadow: Color.fromRGBO(15, 18, 33, 0.18),
     onAccent: Color(0xFFFFFFFF),
@@ -119,23 +119,25 @@ class LinefmColors extends ThemeExtension<LinefmColors> {
   final Color navBg;
   final Color tickerText;
 
-  /// Schalter an (Web: 36 % Weiss). Hell: dunkler, damit der Knopf sich abhebt.
+  /// Switch on: solid accent (white in dark, ink in light) so "on" reads
+  /// clearly; the thumb uses `onAccent`. Contrast >= 3:1 against the
+  /// surface and the thumb (WCAG 1.4.11), checked in contrast_test.dart.
   final Color switchTrackOn;
 
-  /// Hintergrund des Lautstaerke-Popovers.
+  /// Background of the volume popover.
   final Color popoverBg;
 
-  /// Schattenfarbe unter dem Cover (Spec 4.4: dunkel 35 % Schwarz).
+  /// Shadow colour under the cover (spec 4.4: dark 35 % black).
   final Color coverShadow;
 
-  /// Vordergrund auf `accent`-Flaechen (Badge, Auswahl).
+  /// Foreground on `accent` surfaces (badge, selection).
   final Color onAccent;
 
-  /// Schatten unter dem Header (dunkel wie das Web 50 % Schwarz, hell nur
-  /// ein Hauch, sonst liegt ein grauer Balken unter dem Header).
+  /// Shadow under the header (dark like the web 50 % black, light only a
+  /// hint, otherwise a grey bar sits under the header).
   final Color headerShadow;
 
-  /// Schatten unter schwebenden Hinweisen (Speicher-Hinweis).
+  /// Shadow under floating notices (storage notice).
   final Color noticeShadow;
 
   @override
@@ -210,9 +212,9 @@ extension LinefmColorsContext on BuildContext {
   LinefmColors get linefm => Theme.of(this).extension<LinefmColors>()!;
 }
 
-/// Abstandsskala im 4-dp-Raster, Standardschritte 4/8/12/16/24/32 (Spec 4.4).
-/// `gutter` (20) ist der Seitenrand der Inhaltsseiten. Kein Wert ausserhalb
-/// der Skala: Abstaende nur ueber diese Namen setzen.
+/// Spacing scale on a 4 dp grid, standard steps 4/8/12/16/24/32 (spec 4.4).
+/// `gutter` (20) is the side margin of content pages. No value outside the
+/// scale: set spacing only via these names.
 abstract final class LinefmSpace {
   static const double xs = 4;
   static const double sm = 8;
@@ -223,9 +225,9 @@ abstract final class LinefmSpace {
   static const double xxl = 32;
 }
 
-/// Schriftgroessenskala (modular, Faktor etwa 1,25): 12/14/16/20/25/32.
-/// Untergrenze 12 sp. `hero` gilt nur fuer die Wortmarke im
-/// Ladebildschirm auf breiten Geraeten.
+/// Font size scale (modular, factor about 1.25): 12/14/16/20/25/32.
+/// Lower bound 12 sp. `hero` applies only to the wordmark on the loading
+/// screen on wide devices.
 abstract final class LinefmType {
   static const double caption = 12;
   static const double body = 14;
@@ -236,46 +238,48 @@ abstract final class LinefmType {
   static const double hero = 40;
 }
 
-/// Feste Farben ausserhalb der Themes (Marken- und Hilfsfarben). Alles, was
-/// nicht von Dunkel/Hell abhaengt, steht hier statt als Literal im Code.
+/// Fixed colours outside the themes (brand and helper colours). Everything
+/// that does not depend on dark/light lives here instead of as a literal in
+/// code.
 abstract final class LinefmPalette {
-  /// Tinte, identisch zu `LinefmColors.dark.background`; Splash, Logo-Kachel,
-  /// Benachrichtigungsfarbe.
+  /// Ink, identical to `LinefmColors.dark.background`; splash, logo tile,
+  /// notification colour.
   static const Color ink = Color(0xFF0F1221);
 
-  /// Reines Weiss fuer Schalterknopf, Logo-Kachel und Schrift auf Senderfarbe.
+  /// Pure white for the switch thumb, logo tile and text on station colour.
   static const Color paper = Color(0xFFFFFFFF);
 
-  /// Herzfarbe im Dunkelmodus; auch der Ladebildschirm (immer dunkel) nutzt sie.
+  /// Heart colour in dark mode; the loading screen (always dark) uses it too.
   static const Color heart = Color(0xFFFF4B6E);
 
-  /// Reines Schwarz nur als Zielwert beim Abdunkeln von Senderfarben.
+  /// Pure black only as the target value when darkening station colours.
   static const Color black = Color(0xFF000000);
 
-  /// Endfarbe des Verlaufs hinter dem Senderlogo.
+  /// End colour of the gradient behind the station logo.
   static const Color artGradientEnd = Color(0xFF171929);
 
-  /// Markenfarbe der Senderfarbe +MAIN, zugleich Seed des Material-Schemas.
+  /// Brand colour of the +MAIN station colour, also the seed of the Material
+  /// scheme.
   static const Color seed = Color(0xFF4B4B7D);
 
-  /// Voll transparentes Weiss/Schwarz fuer Verlaeufe und Masken (Farbton
-  /// bleibt erhalten, damit der Verlauf nicht grau ueberblendet).
+  /// Fully transparent white/black for gradients and masks (hue is kept so
+  /// the gradient does not fade through grey).
   static const Color clearWhite = Color(0x00FFFFFF);
   static const Color clearBlack = Color(0x00000000);
 
-  /// Schlagschatten des Schalterknopfs (20 % Schwarz).
+  /// Drop shadow of the switch thumb (20 % black).
   static const Color knobShadow = Color(0x33000000);
 
-  /// Ladebildschirm: Nebenzeile (55 % Weiss) und Lichtkante (5 % Schwarz).
+  /// Loading screen: subline (55 % white) and highlight edge (5 % black).
   static const Color loaderCaption = Color(0x8CFFFFFF);
   static const Color loaderStripe = Color(0x0D000000);
 
-  /// Abdunkelung hinter Dialogen und Sheets (54 % Schwarz).
+  /// Dimming behind dialogs and sheets (54 % black).
   static const Color scrim = Color(0x8A000000);
 }
 
-/// Masse, Radien und Zeiten der Web-App (Spec 4.4) und der nativen
-/// Verfeinerung.
+/// Dimensions, radii and durations of the web app (spec 4.4) and of the
+/// native refinement.
 abstract final class LinefmMetrics {
   static const double radiusCard = 6;
   static const double radiusLogo = 4;
@@ -285,42 +289,42 @@ abstract final class LinefmMetrics {
   static const double radiusPopover = 12;
   static const double radiusPill = 999;
 
-  /// Kleinste Tippflaeche (Material 48 dp, WCAG 2.5.8 verlangt mindestens 24).
+  /// Smallest tap target (Material 48 dp, WCAG 2.5.8 requires at least 24).
   static const double minTarget = 48;
 
-  /// Hoehe der Bottom-Navigation (8-dp-Raster), in allen Sprachen gleich.
+  /// Height of the bottom navigation (8 dp grid), the same in all languages.
   static const double navHeight = 72;
 
-  /// Icongroesse in Bottom-Navigation und Seitenleiste.
+  /// Icon size in bottom navigation and side rail.
   static const double navIcon = 20;
 
-  /// Aktiv-Indikator (Pill hinter dem Icon) der Bottom-Navigation, gleiche
-  /// Form wie in der Seitenleiste.
+  /// Active indicator (pill behind the icon) of the bottom navigation, same
+  /// shape as in the side rail.
   static const double navIndicatorWidth = 56;
   static const double navIndicatorHeight = 32;
 
-  /// Hoehe des Headers.
+  /// Height of the header.
   static const double headerHeight = 80;
 
-  /// Abstand der Seitenleiste nach oben: Die Mitte des ersten Icons liegt
-  /// auf der Mittellinie des Headers ([headerHeight] / 2).
+  /// Top offset of the side rail: the centre of the first icon sits on the
+  /// centre line of the header ([headerHeight] / 2).
   static const double railTopInset = 16;
 
-  /// Feste Breite der seitlichen Navigation (NavigationRail) in allen
-  /// Sprachen. Vorher richtete sich die Leiste nach der laengsten
-  /// Beschriftung und sprang beim Sprachwechsel.
+  /// Fixed width of the side navigation (NavigationRail) in all languages.
+  /// Previously the rail sized itself to the longest label and jumped when
+  /// the language changed.
   static const double railWidth = 104;
 
-  /// Standarddauern (Web: .18 bis .35 s).
+  /// Default durations (web: .18 to .35 s).
   static const Duration fast = Duration(milliseconds: 180);
   static const Duration medium = Duration(milliseconds: 250);
   static const Duration slow = Duration(milliseconds: 350);
 
-  /// Lauftext: Web 18 s je Durchlauf, Abstand zwischen den Kopien 36.
+  /// Ticker: web 18 s per pass, gap between the copies 36.
   static const Duration marqueeLoop = Duration(seconds: 18);
   static const double marqueeGap = 36;
 
-  /// Cover-Schatten (dunkel `0 24 55`, hell `0 16 40`).
+  /// Cover shadow (dark `0 24 55`, light `0 16 40`).
   static List<BoxShadow> coverShadows(LinefmColors c, {bool dark = true}) =>
       <BoxShadow>[
         BoxShadow(

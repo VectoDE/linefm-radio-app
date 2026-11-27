@@ -8,6 +8,7 @@
 // Environment:
 //   BASE_URL  target, default http://127.0.0.1:8788
 //   PEAK_VUS  peak virtual users, default 200
+//   STARTUP_PATHS  comma-separated start-up files of a first visit
 import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 
@@ -15,11 +16,10 @@ const BASE = __ENV.BASE_URL || 'http://127.0.0.1:8788';
 const PEAK = parseInt(__ENV.PEAK_VUS || '200', 10);
 
 // Files every first visit fetches before the app paints.
-const STARTUP = [
-  '/flutter_bootstrap.js',
-  '/manifest.json',
-  '/main.dart.js',
-];
+// The wasm build has hashed names, so the workflow passes them in STARTUP_PATHS.
+const STARTUP = (__ENV.STARTUP_PATHS || '/flutter_bootstrap.js,/manifest.webmanifest')
+  .split(',')
+  .filter((p) => p);
 
 export const options = {
   scenarios: {

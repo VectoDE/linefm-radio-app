@@ -102,6 +102,11 @@ jobs:
           K6_NO_USAGE_REPORT: "true"
         run: |
           mkdir -p out
+          # The wasm build has hashed file names, so list the start-up files from the build.
+          wasm=$(cd build/web && ls main.*.dart.wasm main.dart.wasm 2>/dev/null | head -n1)
+          mjs=$(cd build/web && ls main.*.dart.mjs main.dart.mjs 2>/dev/null | head -n1)
+          test -n "$wasm" && test -n "$mjs"
+          export STARTUP_PATHS="/flutter_bootstrap.js,/manifest.webmanifest,/$mjs,/$wasm"
           "$RUNNER_TEMP/k6" run --quiet --summary-export out/k6-summary.json tool/load/web_load.js
 
       - name: Summary

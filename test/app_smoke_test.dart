@@ -26,7 +26,7 @@ void main() {
     expect(find.byType(AppLoader), findsOneWidget);
 
     // Kaltstart: Loader steht mindestens 1,2 s und blendet dann aus.
-    await tester.pump(LoaderGate.nativeMinDuration);
+    await tester.pump();
     await tester.pump(LoaderGate.fadeDuration);
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byType(AppLoader), findsNothing);

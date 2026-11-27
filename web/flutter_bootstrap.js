@@ -31,9 +31,9 @@ function linefmEvaluateFlutterLoader() {
   function showApp() {
     var shell = document.getElementById('static-shell');
     if (!shell) return;
-    // Fade like the in-app loader (LoaderGate, 350 ms), then take it out.
+    // Fade like the in-app loader (LoaderGate, 150 ms), then take it out.
     shell.classList.add('leaving');
-    setTimeout(function () { shell.hidden = true; }, 350);
+    setTimeout(function () { shell.hidden = true; }, 150);
     shell.setAttribute('aria-hidden', 'true');
     shell.setAttribute('inert', '');
   }

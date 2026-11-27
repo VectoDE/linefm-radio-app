@@ -165,6 +165,9 @@ jobs:
           # (including in subfolders) and every dotfile except .well-known is removed
           # before the upload so nothing hidden becomes public.
           find build/web -name '.htaccess' -type f -delete
+          # Pages compresses on its own; the precompressed .gz/.br files of the
+          # release bundle (for nginx gzip_static) are not uploaded.
+          find build/web -type f \( -name '*.gz' -o -name '*.br' \) -delete
           find build/web -mindepth 1 -name '.*' -not -path '*/.well-known' -not -path '*/.well-known/*' -prune -exec rm -rf {} +
           if [ -n "$(find build/web -mindepth 1 -name '.*' -not -path '*/.well-known' -not -path '*/.well-known/*')" ]; then
             echo "Dotfiles in the upload folder" >&2

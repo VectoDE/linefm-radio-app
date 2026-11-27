@@ -84,6 +84,30 @@ void main() {
     expect(h.sink.events.last, 'stop {station: linefm, seconds_bucket: <10}');
   });
 
+  testWidgets('blurred backdrop is isolated in its own layer', (tester) async {
+    setSize(tester, 390);
+    final h = Harness();
+    addTearDown(h.container.dispose);
+    await tester.pumpWidget(slotHost(h, const MiniPlayer()));
+    await settle(tester);
+
+    final backdrop = find.byWidgetPredicate(
+      (w) => w.runtimeType.toString() == '_MiniBackdrop',
+    );
+    expect(backdrop, findsOneWidget);
+    final boundary = tester
+        .element(backdrop)
+        .findAncestorWidgetOfExactType<RepaintBoundary>();
+    expect(boundary, isNotNull);
+    expect(
+      find.descendant(
+        of: find.byWidget(boundary!),
+        matching: find.text("I Was Lovin' You"),
+      ),
+      findsNothing,
+    );
+  });
+
   testWidgets('Antippen oeffnet den Player', (tester) async {
     setSize(tester, 390);
     final h = Harness();

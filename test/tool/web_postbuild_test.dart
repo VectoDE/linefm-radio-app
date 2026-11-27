@@ -343,8 +343,9 @@ void main() {
         for (final f in Directory(
           '${tmp.path}/web',
         ).listSync(recursive: true).whereType<File>())
-          f.path.replaceAll('\\', '/').split('/web/').last: f
-              .readAsStringSync(),
+          f.path.replaceAll('\\', '/').split('/web/').last: base64Encode(
+            f.readAsBytesSync(),
+          ),
       };
       final before = snapshot();
       runPostbuild(
@@ -444,6 +445,101 @@ void main() {
       runPostbuild(opts);
       write('web/main.dart.js', 'js2');
       expect(() => runPostbuild(opts), throwsA(isA<PostbuildException>()));
+    });
+  });
+
+  group('renderModulePreload', () {
+    const html =
+        '<body>\n  <script src="analytics.js" defer></script>\n'
+        '  <script src="flutter_bootstrap.js" async></script>\n</body>';
+
+    test('puts the hashed module before the bootstrap, idempotent', () {
+      final once = renderModulePreload(html, 'main.0123abcd.dart.mjs');
+      expect(
+        once,
+        contains(
+          '<link rel="modulepreload" href="main.0123abcd.dart.mjs">'
+          '<!-- /linefm:modulepreload -->\n'
+          '  <script src="flutter_bootstrap.js"',
+        ),
+      );
+      expect(renderModulePreload(once, 'main.0123abcd.dart.mjs'), once);
+      final next = renderModulePreload(once, 'main.ffffffff.dart.mjs');
+      expect(next, isNot(contains('0123abcd')));
+      expect('rel="modulepreload"'.allMatches(next), hasLength(1));
+    });
+
+    test('without a module the entry disappears', () {
+      final once = renderModulePreload(html, 'main.0123abcd.dart.mjs');
+      expect(renderModulePreload(once, null), html);
+    });
+  });
+
+  group('precompressWeb', () {
+    late Directory web;
+    setUp(() => web = Directory.systemTemp.createTempSync('precompress'));
+    tearDown(() => web.deleteSync(recursive: true));
+
+    File put(String rel, String content) => File('${web.path}/$rel')
+      ..createSync(recursive: true)
+      ..writeAsStringSync(content);
+
+    test('writes smaller .gz/.br sidecars for large compressible files', () {
+      final big = 'flutter ' * 2000;
+      put('main.0123abcd.dart.mjs', big);
+      put('assets/NOTICES', big);
+      put('icons/logo.png', big);
+      put('small.js', 'x');
+      put('stale.js.gz', 'old');
+
+      precompressWeb(web);
+
+      final gz = File('${web.path}/main.0123abcd.dart.mjs.gz');
+      expect(gz.existsSync(), isTrue);
+      expect(utf8.decode(gzip.decode(gz.readAsBytesSync())), big);
+      expect(File('${web.path}/assets/NOTICES.gz').existsSync(), isTrue);
+      expect(File('${web.path}/icons/logo.png.gz').existsSync(), isFalse);
+      expect(File('${web.path}/small.js.gz').existsSync(), isFalse);
+      expect(File('${web.path}/stale.js.gz').existsSync(), isFalse);
+      final br = File('${web.path}/main.0123abcd.dart.mjs.br');
+      if (br.existsSync()) {
+        expect(br.lengthSync(), lessThan(gz.lengthSync()));
+      }
+    });
+
+    test('sidecars stay out of the asset manifest', () {
+      put('flutter_bootstrap.js', _bootstrap());
+      put('main.dart.mjs', 'flutter ' * 2000);
+      final opts = PostbuildOptions(
+        webDir: web,
+        deployDir: '${web.path}/none',
+        targets: const <String>{},
+      );
+      runPostbuild(opts);
+      runPostbuild(opts);
+      final manifest = File('${web.path}/asset-manifest.txt')
+          .readAsStringSync();
+      expect(manifest, isNot(contains('.gz')));
+      expect(manifest, isNot(contains('.br')));
+      expect(
+        web.listSync().whereType<File>().where((f) => f.path.endsWith('.gz')),
+        isNotEmpty,
+      );
+      runPostbuild(
+        PostbuildOptions(
+          webDir: web,
+          deployDir: '${web.path}/none',
+          targets: const <String>{},
+          precompress: false,
+        ),
+      );
+      expect(
+        web
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((f) => isPrecompressedSidecar(f.path)),
+        isEmpty,
+      );
     });
   });
 

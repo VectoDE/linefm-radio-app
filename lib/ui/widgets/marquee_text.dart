@@ -112,20 +112,43 @@ class _BandState extends State<_Band> with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: widget.duration,
-  )..repeat();
+  );
+
+  // The band only moves while the app is in the foreground. Hidden routes
+  // and covered subtrees are muted through TickerMode by the ticker itself.
+  late final AppLifecycleListener _lifecycle = AppLifecycleListener(
+    onStateChange: (_) => _syncRunning(),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle;
+    _syncRunning();
+  }
+
+  void _syncRunning() {
+    final state = WidgetsBinding.instance.lifecycleState;
+    final foreground = state == null || state == AppLifecycleState.resumed;
+    if (foreground && !_controller.isAnimating) {
+      _controller.repeat();
+    } else if (!foreground && _controller.isAnimating) {
+      _controller.stop(canceled: false);
+    }
+  }
 
   @override
   void didUpdateWidget(_Band old) {
     super.didUpdateWidget(old);
     if (old.duration != widget.duration) {
-      _controller
-        ..duration = widget.duration
-        ..repeat();
+      _controller.duration = widget.duration;
+      if (_controller.isAnimating) _controller.repeat();
     }
   }
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     _controller.dispose();
     super.dispose();
   }

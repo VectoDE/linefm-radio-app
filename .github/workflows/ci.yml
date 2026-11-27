@@ -400,7 +400,7 @@ jobs:
           if [ -f tool/web_postbuild.dart ]; then
             # Start outside the package (dart: imports only), otherwise "dart run" builds the native asset hooks (GTK).
             cp tool/web_postbuild.dart "$RUNNER_TEMP/web_postbuild.dart"
-            dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
+            dart run "$RUNNER_TEMP/web_postbuild.dart" build/web --no-precompress
           else
             echo "tool/web_postbuild.dart does not exist yet, step skipped." >> "$GITHUB_STEP_SUMMARY"
           fi

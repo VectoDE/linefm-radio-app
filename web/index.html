@@ -154,7 +154,7 @@
     body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
     #static-shell { position: fixed; inset: 0; z-index: 2147483647; background: #0f1221; overflow: hidden; display: flex; align-items: center; justify-content: center; }
     #static-shell[hidden] { display: none; }
-    #static-shell.leaving { opacity: 0; transition: opacity .35s ease-out; pointer-events: none; }
+    #static-shell.leaving { opacity: 0; transition: opacity .15s ease-out; pointer-events: none; }
     @media (prefers-reduced-motion: reduce) { #static-shell.leaving { transition: none; } }
     /* Dark band at the back left, like `.app-loader::before`. */
     #static-shell::before { content: ""; position: absolute; left: -10%; top: -20%; width: 60%; height: 140%; background: rgba(0, 0, 0, .05); transform: rotate(-7deg); pointer-events: none; }
@@ -222,7 +222,7 @@
       <p class="muted legal">&copy; __COPYRIGHT_YEARS__ LineFM Studios · <a href="https://linefm.de" rel="noopener">linefm.de</a> · <a href="impressum/">Impressum</a> · <a href="datenschutz/">Datenschutz</a></p>
     </footer>
   </main>
-  <script src="analytics.js"></script>
+  <script src="analytics.js" defer></script>
   <script src="cast.js"></script>
   <script src="flutter_bootstrap.js" async></script>
 </body>

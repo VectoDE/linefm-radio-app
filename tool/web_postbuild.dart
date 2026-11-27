@@ -12,6 +12,8 @@
 //     Google tag sources only with GTM_ID or GA4_MEASUREMENT_ID in the configuration)
 //  5. Remove ballast (source maps, *.symbols, unused engine variants, default Flutter SW)
 //  6. Write asset-manifest.txt with the SHA-256 of all files
+//  7. Precompress: <file>.gz (gzip 9) and <file>.br (Brotli 11 via node,
+//     otherwise a warning) next to every compressible file for gzip_static/brotli_static
 //
 // Beforehand: security.txt without placeholders, fallback fonts including OFL.txt,
 // app links under .well-known/ (assetlinks.json, apple-app-site-association) with
@@ -30,6 +32,7 @@
 //  --gsc <token>               Search Console verification (otherwise GSC_VERIFICATION)
 //  --strict                    abort while placeholders ({{...}}) remain in .well-known/
 //  --keep-debug                do not remove source maps, *.symbols and engine variants
+//  --no-precompress            write no .gz/.br files (e.g. Cloudflare Pages only)
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -565,9 +568,13 @@ class PostbuildOptions {
     this.gsc,
     this.keepDebug = false,
     this.strict = false,
+    this.precompress = true,
   });
 
   final bool strict;
+
+  /// Step 7: put .gz/.br next to compressible files.
+  final bool precompress;
 
   final bool keepDebug;
   final Directory webDir;
@@ -787,6 +794,7 @@ List<String> runPostbuild(PostbuildOptions o) {
     }
     var text = rewriteBaseUrl(f.readAsStringSync(), baseUrl);
     if (name == 'index.html') {
+      text = renderModulePreload(text, _mainModuleName(web));
       text = renderGscVerification(text, gsc);
       text = text.replaceAll(
         copyrightYearsPlaceholder,
@@ -896,7 +904,9 @@ List<String> runPostbuild(PostbuildOptions o) {
   final entries = <String, (String, int)>{};
   for (final f in _filesIn(web)) {
     final rel = _rel(web, f);
-    if (rel == 'asset-manifest.txt' || rel == 'sw.js') {
+    if (rel == 'asset-manifest.txt' ||
+        rel == 'sw.js' ||
+        isPrecompressedSidecar(rel)) {
       continue;
     }
     final bytes = f.readAsBytesSync();
@@ -926,7 +936,171 @@ List<String> runPostbuild(PostbuildOptions o) {
     manifest.writeln('${entries[k]!.$1}  ${entries[k]!.$2}  $k');
   }
   File('${web.path}/asset-manifest.txt').writeAsStringSync(manifest.toString());
+
+  // 7. Precompress
+  if (o.precompress) {
+    precompressWeb(web);
+  } else {
+    removeSidecars(web);
+  }
   return written;
+}
+
+// ---------------------------------------------------------------------------
+// Preload and precompress the startup files
+// ---------------------------------------------------------------------------
+
+const String _preloadStart = '<!-- linefm:modulepreload -->';
+const String _preloadEnd = '<!-- /linefm:modulepreload -->';
+
+String? _mainModuleName(Directory web) {
+  final names =
+      web
+          .listSync()
+          .whereType<File>()
+          .map((f) => _rel(web, f))
+          .where((n) => RegExp(r'^main\.[0-9a-f]{8}\.dart\.mjs$').hasMatch(n))
+          .toList()
+        ..sort();
+  return names.isEmpty ? null : names.first;
+}
+
+/// Puts a `<link rel="modulepreload">` for the hashed JS runtime before
+/// `flutter_bootstrap.js`, so the browser fetches it alongside the bootstrap.
+/// Idempotent: an earlier entry is replaced, and removed without a module.
+/// The large Wasm file is not preloaded on purpose: first-time visitors only
+/// start the engine after a gesture (flutter_bootstrap.js).
+String renderModulePreload(String html, String? module) {
+  final existing = RegExp(
+    '[ \\t]*${RegExp.escape(_preloadStart)}.*?'
+    '${RegExp.escape(_preloadEnd)}\\r?\\n',
+    dotAll: true,
+  );
+  final out = html.replaceAll(existing, '');
+  if (module == null) return out;
+  final m = RegExp(r'([ \t]*)<script src="flutter_bootstrap\.js"')
+      .firstMatch(out);
+  if (m == null) return out;
+  final indent = m.group(1)!;
+  final tag =
+      '$indent$_preloadStart<link rel="modulepreload" href="$module">'
+      '$_preloadEnd\n';
+  return out.replaceRange(m.start, m.start, tag);
+}
+
+/// Extensions worth compressing (text, Wasm, fonts, Flutter binary data).
+const Set<String> _compressibleExt = <String>{
+  'html',
+  'js',
+  'mjs',
+  'wasm',
+  'json',
+  'css',
+  'svg',
+  'txt',
+  'xml',
+  'webmanifest',
+  'ttf',
+  'otf',
+  'bin',
+};
+
+/// Minimum size; smaller files save less than a header costs.
+const int precompressMinBytes = 1024;
+
+bool isPrecompressedSidecar(String rel) =>
+    rel.endsWith('.gz') || rel.endsWith('.br');
+
+/// Whether [rel] gets precompressed (NOTICES has no extension).
+bool isCompressible(String rel) {
+  if (isPrecompressedSidecar(rel)) return false;
+  final name = rel.split('/').last;
+  if (name == 'NOTICES') return true;
+  if (rel == 'asset-manifest.txt') return false;
+  if (name.startsWith('.') || name == '_headers' || name == '_redirects') {
+    return false;
+  }
+  final dot = name.lastIndexOf('.');
+  return dot >= 0 && _compressibleExt.contains(name.substring(dot + 1));
+}
+
+/// Removes all .gz/.br files (before rewriting them or without step 7).
+void removeSidecars(Directory web) {
+  for (final f in _filesIn(web)) {
+    if (isPrecompressedSidecar(_rel(web, f))) f.deleteSync();
+  }
+}
+
+const String _brotliScript = r"""
+const fs = require('fs');
+const zlib = require('zlib');
+const files = fs.readFileSync(process.argv[2], 'utf8').split('\n').filter(Boolean);
+for (const f of files) {
+  const src = fs.readFileSync(f);
+  const out = zlib.brotliCompressSync(src, { params: {
+    [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
+    [zlib.constants.BROTLI_PARAM_SIZE_HINT]: src.length,
+  } });
+  if (out.length < src.length) fs.writeFileSync(f + '.br', out);
+}
+""";
+
+/// Brotli 11 via node (zlib), because dart:io has no Brotli and no new
+/// dependency is needed this way. Returns false if node is missing or fails.
+bool _brotliWithNode(List<File> files) {
+  if (files.isEmpty) return true;
+  final tmp = Directory.systemTemp.createTempSync('linefm_br');
+  try {
+    final list = File('${tmp.path}/files.txt')
+      ..writeAsStringSync(files.map((f) => f.absolute.path).join('\n'));
+    final script = File('${tmp.path}/brotli.cjs')
+      ..writeAsStringSync(_brotliScript);
+    final p = Process.runSync('node', <String>[
+      script.path,
+      list.path,
+    ], runInShell: Platform.isWindows);
+    if (p.exitCode != 0) {
+      stderr.writeln('web_postbuild: node/brotli: ${p.stderr}');
+    }
+    return p.exitCode == 0;
+  } on ProcessException {
+    return false;
+  } finally {
+    tmp.deleteSync(recursive: true);
+  }
+}
+
+/// Writes `<file>.gz` and `<file>.br` next to every compressible file of at
+/// least [precompressMinBytes], only if the result is smaller. Old sidecars
+/// are removed first so a stale version is never served.
+/// Returns the number of files written.
+int precompressWeb(Directory web, {bool brotli = true}) {
+  removeSidecars(web);
+  final targets = <File>[
+    for (final f in _filesIn(web))
+      if (isCompressible(_rel(web, f)) && f.lengthSync() >= precompressMinBytes)
+        f,
+  ];
+  var count = 0;
+  final gzip = GZipCodec(level: 9);
+  for (final f in targets) {
+    final src = f.readAsBytesSync();
+    final out = gzip.encode(src);
+    if (out.length < src.length) {
+      File('${f.path}.gz').writeAsBytesSync(out);
+      count++;
+    }
+  }
+  if (brotli) {
+    if (_brotliWithNode(targets)) {
+      count += targets.where((f) => File('${f.path}.br').existsSync()).length;
+    } else {
+      stderr.writeln(
+        'web_postbuild: WARNING: node not available, no .br files (only .gz)',
+      );
+    }
+  }
+  return count;
 }
 
 Map<String, dynamic> _readConfig(String? path) {
@@ -957,6 +1131,7 @@ int runCli(List<String> args) {
       targets;
   var keepDebug = false;
   var strict = false;
+  var precompress = true;
   for (var i = 0; i < args.length; i++) {
     String next() {
       if (i + 1 >= args.length) {
@@ -984,6 +1159,8 @@ int runCli(List<String> args) {
         keepDebug = true;
       case '--strict':
         strict = true;
+      case '--no-precompress':
+        precompress = false;
       case final a when a.startsWith('--'):
         stderr.writeln('Unknown option $a');
         return 64;
@@ -1016,6 +1193,7 @@ int runCli(List<String> args) {
         gsc: gsc,
         keepDebug: keepDebug,
         strict: strict,
+        precompress: precompress,
       ),
     );
     stdout.writeln(

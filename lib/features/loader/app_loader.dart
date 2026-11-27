@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:linefm_radio/features/loader/made_by_credit.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/platform/desktop/window_reveal.dart';
@@ -200,28 +199,26 @@ class _DotsState extends State<_Dots> with SingleTickerProviderStateMixin {
 @visibleForTesting
 bool loaderShownThisProcess = false;
 
-/// Zeigt den Ladebildschirm beim Kaltstart ueber [child] und blendet ihn nach
-/// [minDuration] in 350 ms aus. Das Kind baut sich im Hintergrund schon auf,
-/// ist aber fuer Bedienung und Screenreader gesperrt, solange der Loader
-/// steht. Ein Neuaufbau im selben Prozess (Warmstart) zeigt keinen Loader.
-///
-/// Dauer: Web hoechstens 400 ms (die alte Web-App hielt 2 s und
-/// verzoegerte so den ersten Inhalt), nativ 300 ms, weil davor schon der
-/// native Splash steht.
+/// Zeigt den Ladebildschirm beim Kaltstart ueber [child], nur so lange wie
+/// noetig: Nach dem ersten gezeichneten Bild (bzw. nach dem Aufdecken des
+/// Desktop-Fensters) blendet er in [fadeDuration] aus. Es gibt keine feste
+/// Mindestzeit mehr; [minDuration] bleibt nur fuer Tests und Sonderfaelle.
+/// Das Kind baut sich im Hintergrund schon auf, ist aber fuer Bedienung und
+/// Screenreader gesperrt, solange der Loader deckend steht. Ein Neuaufbau im
+/// selben Prozess (Warmstart) zeigt keinen Loader.
 class LoaderGate extends StatefulWidget {
-  const LoaderGate({super.key, required this.child, this.minDuration});
+  const LoaderGate({
+    super.key,
+    required this.child,
+    this.minDuration = Duration.zero,
+  });
 
   final Widget child;
 
-  /// Standard: [defaultMinDuration].
-  final Duration? minDuration;
+  /// Zusaetzliche Haltezeit nach dem ersten Bild, standardmaessig keine.
+  final Duration minDuration;
 
-  static const Duration webMinDuration = Duration(milliseconds: 400);
-  static const Duration nativeMinDuration = Duration(milliseconds: 300);
-  static const Duration fadeDuration = Duration(milliseconds: 350);
-
-  static Duration get defaultMinDuration =>
-      kIsWeb ? webMinDuration : nativeMinDuration;
+  static const Duration fadeDuration = Duration(milliseconds: 150);
 
   @override
   State<LoaderGate> createState() => _LoaderGateState();
@@ -248,12 +245,20 @@ class _LoaderGateState extends State<LoaderGate> {
 
   void _startTimer() {
     if (!mounted) return;
-    _timer = Timer(widget.minDuration ?? LoaderGate.defaultMinDuration, () {
-      if (!mounted) return;
-      setState(() => _fading = true);
-      _timer = Timer(LoaderGate.fadeDuration, () {
-        if (mounted) setState(() => _visible = false);
-      });
+    if (widget.minDuration > Duration.zero) {
+      _timer = Timer(widget.minDuration, _fadeOut);
+      return;
+    }
+    // Wait for the loader frame to be on screen, then fade out right away.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fadeOut());
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
+
+  void _fadeOut() {
+    if (!mounted || _fading) return;
+    setState(() => _fading = true);
+    _timer = Timer(LoaderGate.fadeDuration, () {
+      if (mounted) setState(() => _visible = false);
     });
   }
 

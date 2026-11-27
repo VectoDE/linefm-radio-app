@@ -30,14 +30,15 @@ Future<Uri> _fallbackStreamUrl(Station station) async =>
 
 /// Audio-Handler auf Basis audio_service + just_audio (Spec 2.2, 3.3).
 ///
-/// Live-Radio: Stop statt Pause, Play verbindet neu. Verbinden zeigt
-/// mindestens [minConnectDuration] den Status `connecting` (wie Web-App).
+/// Live-Radio: Stop statt Pause, Play verbindet neu. Sobald der Stream
+/// spielt, wechselt der Status sofort auf `playing`; [minConnectDuration]
+/// ist standardmaessig null und verzoegert den Ton nicht kuenstlich.
 /// Nach Netzverlust bis zu 5 Neuverbindungen ([ReconnectPolicy]).
 class LinefmAudioHandler extends BaseAudioHandler implements PlaybackService {
   LinefmAudioHandler({
     RadioPlayer? player,
     this.reconnectPolicy = const ReconnectPolicy(),
-    this.minConnectDuration = const Duration(seconds: 1),
+    this.minConnectDuration = Duration.zero,
     this.connectTimeout = const Duration(seconds: 20),
     StreamUrlResolver? streamUrlResolver,
   }) : _player = player ?? JustAudioRadioPlayer(),

@@ -218,7 +218,7 @@ case "$ziel" in
     schritt "Fetching fallback fonts (needs internet)"
     dart run "$tmp/fetch_font_fallback.dart" build/web || fehler "Fetching fallback fonts failed. Is the internet reachable?" 1
     schritt "Post-processing the web files"
-    dart run "$tmp/web_postbuild.dart" build/web --targets none --base-url "http://localhost:$web_port" || fehler "Post-processing (web_postbuild) failed. The message is above." 1
+    dart run "$tmp/web_postbuild.dart" build/web --targets none --no-precompress --base-url "http://localhost:$web_port" || fehler "Post-processing (web_postbuild) failed. The message is above." 1
     rm -rf "$tmp"
     ergebnis="$repo/build/web/index.html"
     ;;

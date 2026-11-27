@@ -131,11 +131,15 @@ class MiniPlayer extends ConsumerWidget {
           child: Stack(
             children: <Widget>[
               Positioned.fill(
-                child: _MiniBackdrop(
-                  color: station.color,
-                  coverUrl: cover,
-                  base: c.miniPlayerBg,
-                  veil: c.background,
+                // Own layer: the blurred cover is not repainted when the
+                // marquee, buttons or sleep timer above it change.
+                child: RepaintBoundary(
+                  child: _MiniBackdrop(
+                    color: station.color,
+                    coverUrl: cover,
+                    base: c.miniPlayerBg,
+                    veil: c.background,
+                  ),
                 ),
               ),
               ConstrainedBox(

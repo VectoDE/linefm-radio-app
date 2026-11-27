@@ -51,6 +51,7 @@ http {
 CONF
 cp "$root/deploy/plesk/nginx-additional.conf" "$work/plesk-additional.conf"
 cp "$root/deploy/traefik/nginx.conf" "$work/container.conf"
+cp -r "$root/deploy/nginx/snippets" "$work/snippets"
 
 run_nginx() { # $1 = main config
   docker run --rm --user 0 \

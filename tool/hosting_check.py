@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import http.client
 import re
+import socket
 import ssl
 import sys
 from pathlib import Path
@@ -259,11 +260,8 @@ class Client:
     def get(self, path: str, headers: dict[str, str] | None = None, method: str = "GET"):
         hdrs = {"Host": self.vhost, "Accept-Encoding": "identity", **(headers or {})}
         if self.tls:
-            # Verified connection: the test certificate (SAN includes the IP) is the only trusted CA.
-            ctx = ssl.create_default_context(cafile=self.cafile)
-            conn = http.client.HTTPSConnection(self.host, self.port, timeout=20, context=ctx)
-        else:
-            conn = http.client.HTTPConnection(self.host, self.port, timeout=20)
+            return self._get_tls(path, hdrs, method)
+        conn = http.client.HTTPConnection(self.host, self.port, timeout=20)
         try:
             conn.request(method, path, headers=hdrs)
             resp = conn.getresponse()
@@ -271,6 +269,19 @@ class Client:
             return resp.status, resp.getheaders(), body
         finally:
             conn.close()
+
+    def _get_tls(self, path: str, hdrs: dict[str, str], method: str):
+        # Verified connection: the test certificate (SAN includes the IP) is the only trusted CA.
+        ctx = ssl.create_default_context(cafile=self.cafile)
+        request = f"{method} {path} HTTP/1.1\r\nConnection: close\r\n"
+        request += "".join(f"{k}: {v}\r\n" for k, v in hdrs.items()) + "\r\n"
+        with socket.create_connection((self.host, self.port), timeout=20) as raw:
+            with ctx.wrap_socket(raw, server_hostname=self.host) as tls:
+                tls.sendall(request.encode("ascii"))
+                resp = http.client.HTTPResponse(tls, method=method)
+                resp.begin()
+                body = resp.read()
+                return resp.status, resp.getheaders(), body
 
 
 def hget(headers, name: str) -> str | None:

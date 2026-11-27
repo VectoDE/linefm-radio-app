@@ -168,9 +168,38 @@ Chrome war für diesen Test ausgeschlossen. Firefox ist geladen, aber nicht inst
 
 Nebenbefund: Im lokalen Web-Build steht im Fuß `© __COPYRIGHT_YEARS__`. Der Platzhalter wird offenbar erst in der Release-Pipeline ersetzt. Ob das dort klappt, ist hier nicht geprüft.
 
+## Automatisierte Prüfungen (ohne Gerät)
+
+Was sich ohne echtes Gerät prüfen lässt, läuft automatisch. Stand 27.11.2026.
+
+| Nr. | Prüfung | Wo sie läuft | Ergebnis |
+|---|---|---|---|
+| S1 | Zugriffsbaum der Navigation: benannte Schaltflächen, genau ein Ziel ausgewählt, Ansage des Bereichs beim Wechsel, Schiene im breiten Layout mit „Tab n von 3“, keine unbenannte Schaltfläche in den fünf Bereichen (`test/a11y/semantics_tree_test.dart`) | Tests in der CI (`ci.yml`) | 4 Tests grün |
+| S2 | Tippflächen, Beschriftungen, Kontrast, Textgröße 200 %, Tab-Reihenfolge (`test/a11y/semantics_guidelines_test.dart`) | Tests in der CI | bestehend |
+| S3 | Tastenkürzel unter der Plattform Linux: Ziffern 1 bis 6, Leertaste, Strg+Komma, Esc, F, S, Abschalten der Ein-Zeichen-Kürzel (WCAG 2.1.4), Alt bleibt beim Fenstermanager (`test/a11y/keyboard_shortcuts_linux_test.dart`) | Tests in der CI (Ubuntu-Runner) | 7 Tests grün |
+| S4 | axe-core gegen die Web-Version (WCAG 2.2) | `a11y.yml` | bestehend |
+| S5 | Zugriffsbaum auf Android: `uiautomator dump` ist derselbe Baum, den TalkBack liest. `tool/a11y/android_tree_check.py` prüft, dass jedes bedienbare Element einen Namen hat und mindestens 48 × 48 dp misst, `tool/a11y/android_walk.py` geht die fünf Bereiche durch | lokal, Emulator `linefm_api35_aosp`, Debug-Build von `main` | 5 von 5 Bereichen ohne Befund (41, 33, 59, 32 und 43 Knoten, 20, 12, 18, 10 und 15 bedienbare) |
+
+Grenzen von S3: Die Tests laufen mit der Plattformangabe Linux, aber ohne echten Linux-Desktop. Fenstermanager, Eingabemethode und globale Tastenkürzel des Desktops prüft nur ein Lauf auf einem Linux-Rechner. Grenzen von S5: Der Baum belegt Namen, Größen und Klickbarkeit. Er belegt nicht, was TalkBack spricht und in welcher Reihenfolge Wischgesten den Fokus bewegen (siehe A1).
+
+## Nur mit Gerät, Programm oder Konto (Inhaber oder Julian)
+
+Diese Prüfungen lassen sich nicht automatisieren. Sie laufen von Hand, die Ergebnisse tragen wir hier nach.
+
+| Prüfung | Was gebraucht wird | Warum nicht automatisch |
+|---|---|---|
+| TalkBack-Durchgang mit Wischgesten und Sprachausgabe | Android-Telefon oder Emulator mit Fenster und von Hand bedient | Eingespielte Touch-Ereignisse wertet TalkBack nicht als Geste (A1), die Sprachausgabe steht nicht im Log |
+| NVDA mit Windows-App und Web-App (Chrome, Edge, Firefox) | NVDA 2026.3.1 und Firefox sind geladen, die Installation lehnt die Rechteverwaltung der Testumgebung ab (W1) | Installation braucht Administratorrechte |
+| VoiceOver auf iPhone und Mac, Tastatur, Screenreader und Autoplay in Safari | Mac und iPhone | Safari und VoiceOver gibt es nur auf Apple-Geräten |
+| Chromecast: Start, Titelwechsel, Senderwechsel, Lautstärke | Chromecast im selben Netz | Braucht ein echtes Cast-Gerät |
+| Android Auto mit Head Unit (A8) | Telefon mit Android Auto oder Emulator mit Google-Konto, Desktop Head Unit | Volle Android-Auto-App braucht ein angemeldetes Google-Konto |
+| Doze, tiefe Stufe, Wecker auf einem Telefon (A4) | Echtes Telefon | Im Emulator nicht erzwingbar |
+| Desktop-Tray, Mini-Fenster und Tastenkürzel auf einem echten Linux-Desktop | Linux-Rechner (GNOME, KDE) | Das Tray hängt am Desktop (S3 deckt nur die Logik ab) |
+| Autoplay in Firefox und Safari (siehe W3) | Firefox installiert, Safari auf einem Mac | Browser nicht vorhanden |
+
 ## Was offen bleibt
 
-- TalkBack-Durchgang von Hand mit Wischgesten.
+- TalkBack-Durchgang von Hand mit Wischgesten (Zugriffsbaum ist automatisch belegt, siehe S5).
 - Tiefe Doze-Stufe messen, am besten auf einem echten Telefon.
 - Android Auto mit Head Unit: Google-Konto auf dem Emulator und volle Android-Auto-App nötig.
 - NVDA und Firefox installieren, dann Windows-App und Web-App mit NVDA durchhören und Autoplay in Firefox prüfen.

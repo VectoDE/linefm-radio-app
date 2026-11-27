@@ -104,6 +104,13 @@ jobs:
         timeout-minutes: 5
         run: node cast_net.mjs --web ../../build/web --hosting ../../build/hosting
 
+      # Serves the build with the CSP of the rendered nginx snippet and fails on
+      # any CSP violation (style hashes and build nonce must cover the engine).
+      - name: CSP check (no violations with the nginx policy)
+        working-directory: tool/a11y
+        timeout-minutes: 5
+        run: node csp_check.mjs --web ../../build/web --hosting ../../build/hosting
+
       - name: CSP without IDs has no Google sources
         run: |
           if grep -q "googletagmanager" build/hosting/nginx/snippets/linefm-headers.conf; then

@@ -21,6 +21,82 @@ _flutter.buildConfig = {"engineRevision":"$_rev","wasmHashes":{"skwasm.wasm":"aa
 ''';
 
 void main() {
+  group('style-src hashes', () {
+    test('empty string hash matches the CSP reference value', () {
+      expect(
+        cspSha256(''),
+        "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",
+      );
+    });
+
+    test('collects every inline style block', () {
+      const html =
+          '<style>a{}</style><noscript><style id="x">b{}</style></noscript>';
+      expect(
+        inlineStyleHashes(html),
+        <String>[cspSha256('a{}'), cspSha256('b{}')]..sort(),
+      );
+    });
+
+    test("replaces 'unsafe-inline' only in style-src", () {
+      const csp =
+          "Content-Security-Policy: default-src 'self'; script-src 'self'; "
+          "style-src 'self' 'unsafe-inline'; img-src 'self'";
+      final out = renderStyleHashes(csp, <String>["'nonce-N'", "'sha256-A'"]);
+      expect(out, contains("style-src 'self' 'nonce-N' 'sha256-A';"));
+      expect(out, isNot(contains('unsafe-inline')));
+      expect(out, contains("script-src 'self';"));
+    });
+
+    test('leaves style-src-elem and style-src-attr untouched', () {
+      const csp =
+          "style-src-elem 'self' 'unsafe-inline'; "
+          "style-src-attr 'unsafe-inline'";
+      expect(renderStyleHashes(csp, <String>["'sha256-A'"]), csp);
+    });
+
+    test("refuses to drop 'unsafe-inline' without a nonce", () {
+      expect(
+        () => renderStyleHashes("style-src 'self' 'unsafe-inline'", <String>[
+          "'sha256-A'",
+        ]),
+        throwsA(isA<PostbuildException>()),
+      );
+    });
+
+    test('finds the nonce of an already built bootstrap', () {
+      final nonce = newStyleNonce();
+      expect(existingStyleNonce("var c = {nonce: '$nonce'};"), nonce);
+      expect(
+        existingStyleNonce("var c = {nonce: '$cspStyleNoncePlaceholder'};"),
+        isNull,
+      );
+    });
+  });
+
+  group('style nonce', () {
+    test('128 bit, base64, differs per call', () {
+      final a = newStyleNonce();
+      expect(base64.decode(a), hasLength(16));
+      expect(newStyleNonce(), isNot(a));
+    });
+
+    test('fills the bootstrap placeholder, null without it', () {
+      expect(
+        renderStyleNonce("var c = {nonce: '$cspStyleNoncePlaceholder'};", 'N'),
+        "var c = {nonce: 'N'};",
+      );
+      expect(renderStyleNonce('var c = {};', 'N'), isNull);
+    });
+
+    test('the bootstrap template carries the placeholder', () {
+      expect(
+        File('web/flutter_bootstrap.js').readAsStringSync(),
+        contains("nonce: '$cspStyleNoncePlaceholder'"),
+      );
+    });
+  });
+
   group('sha256Hex', () {
     test('bekannte Testvektoren', () {
       expect(
@@ -139,6 +215,57 @@ void main() {
     void write(String path, String content) => File('${tmp.path}/$path')
       ..createSync(recursive: true)
       ..writeAsStringSync(content);
+
+    test('real hosting templates get hashes and one stable nonce', () {
+      write(
+        'web/flutter_bootstrap.js',
+        _bootstrap().replaceFirst(
+          'var config = {};',
+          "var config = {nonce: '$cspStyleNoncePlaceholder'};",
+        ),
+      );
+      write('web/main.dart.js', 'js');
+      write('web/canvaskit/canvaskit.wasm', 'ck');
+      write('web/sw.js', "const BUILD_ID = '__BUILD_ID__';");
+      write('web/index.html', '<style>a{}</style>');
+      const templates = <String>[
+        'cloudflare/_headers',
+        'plesk/.htaccess',
+        'plesk/nginx-additional.conf',
+        'nginx/snippets/linefm-headers.conf',
+      ];
+      for (final t in templates) {
+        write('deploy/$t', File('deploy/$t').readAsStringSync());
+      }
+      PostbuildOptions opts() => PostbuildOptions(
+        webDir: Directory('${tmp.path}/web'),
+        deployDir: '${tmp.path}/deploy',
+        hostingOut: '${tmp.path}/hosting',
+      );
+
+      String? nonceAfterRun() {
+        runPostbuild(opts());
+        final nonce = existingStyleNonce(
+          File('${tmp.path}/web/flutter_bootstrap.js').readAsStringSync(),
+        );
+        expect(nonce, isNotNull);
+        for (final t in templates) {
+          final text = File('${tmp.path}/hosting/$t').readAsStringSync();
+          final styleSrc = RegExp(r'\bstyle-src\s[^;\x22\n]*')
+              .firstMatch(text)!
+              .group(0)!;
+          expect(styleSrc, contains("'nonce-$nonce'"), reason: t);
+          expect(styleSrc, contains(cspSha256('a{}')), reason: t);
+          expect(styleSrc, isNot(contains('unsafe-inline')), reason: t);
+        }
+        final headers = File('${tmp.path}/web/_headers').readAsStringSync();
+        expect(headers, contains("'nonce-$nonce'"));
+        return nonce;
+      }
+
+      final first = nonceAfterRun();
+      expect(nonceAfterRun(), first);
+    });
 
     test('Ende-zu-Ende auf einer Mini-Ausgabe', () {
       write('web/flutter_bootstrap.js', _bootstrap());

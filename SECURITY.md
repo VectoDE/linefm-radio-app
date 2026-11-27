@@ -49,7 +49,7 @@ Nicht dazu gehören Lücken in Diensten Dritter (laut.fm, Apple iTunes Search, G
 
 ## Bekannte, bewusst akzeptierte Punkte
 
-- Die Content-Security-Policy erlaubt `style-src 'unsafe-inline'`, weil die Flutter-Engine Inline-Stile setzt. Begründung und Gegenmaßnahmen: [docs/hosting-uebersicht.md](docs/hosting-uebersicht.md), Abschnitt Security-Header.
+- Die Content-Security-Policy erlaubt Inline-Stile nur per SHA-256-Hash und Build-Nonce, ohne `unsafe-inline`. Hashes und Nonce erzeugt der Bau. Einzelheiten: [docs/hosting-uebersicht.md](docs/hosting-uebersicht.md), Abschnitt Security-Header.
 - Telemetrie-Schlüssel (Umami-Website-ID, Sentry-DSN) stehen im Binary. Das sind öffentliche Kennungen, keine Geheimnisse (siehe [docs/telemetry.md](docs/telemetry.md)).
 
 ## So wird die Sicherheit geprüft

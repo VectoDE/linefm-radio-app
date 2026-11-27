@@ -32,6 +32,7 @@
 //  --keep-debug                do not remove source maps, *.symbols and engine variants
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 const String defaultBaseUrl = 'https://app.linefm.de';
@@ -238,6 +239,78 @@ String renderCspPlaceholder(
       .replaceAll(' $placeholder', replacement)
       .replaceAll(placeholder, extra.trim());
 }
+
+/// SHA-256 of [text] (UTF-8) as a CSP hash source (`'sha256-<base64>'`).
+String cspSha256(String text) {
+  final hex = sha256Hex(utf8.encode(text));
+  final bytes = <int>[
+    for (var i = 0; i < hex.length; i += 2)
+      int.parse(hex.substring(i, i + 2), radix: 16),
+  ];
+  return "'sha256-${base64.encode(bytes)}'";
+}
+
+/// Hash sources for every inline `<style>` block in [html] (static shell,
+/// noscript). The style elements of the Flutter engine get the build nonce
+/// instead, see [renderStyleNonce]. Sorted, no duplicates.
+List<String> inlineStyleHashes(String html) {
+  final hashes = <String>{};
+  for (final m in RegExp(
+    r'<style(?:\s[^>]*)?>([\s\S]*?)</style>',
+    caseSensitive: false,
+  ).allMatches(html)) {
+    hashes.add(cspSha256(m.group(1)!));
+  }
+  return hashes.toList()..sort();
+}
+
+/// Placeholder for the style nonce in web/flutter_bootstrap.js.
+const String cspStyleNoncePlaceholder = '__CSP_STYLE_NONCE__';
+
+/// Random nonce (128 bit, base64) for the engine's style elements. It is
+/// fixed per build, not per response (static hosting), so it only keeps
+/// inline styles from foreign markup out as long as the nonce is unknown;
+/// scripts never depend on it.
+String newStyleNonce([Random? random]) {
+  final r = random ?? Random.secure();
+  return base64.encode(List<int>.generate(16, (_) => r.nextInt(256)));
+}
+
+/// Writes [nonce] into [bootstrap]; returns null if the placeholder is
+/// missing.
+String? renderStyleNonce(String bootstrap, String nonce) =>
+    bootstrap.contains(cspStyleNoncePlaceholder)
+    ? bootstrap.replaceAll(cspStyleNoncePlaceholder, nonce)
+    : null;
+
+/// The `style-src` directive (not `style-src-elem` / `style-src-attr`) with
+/// its `'unsafe-inline'` source.
+final RegExp _styleSrcUnsafeInline = RegExp(
+  r"(\bstyle-src\s[^;\x22\n]*?) 'unsafe-inline'",
+);
+
+/// Replaces `'unsafe-inline'` in the style-src directive of [text] with
+/// [hashes]. Other directives stay untouched. Throws if the directive would
+/// lose `'unsafe-inline'` without a nonce: the Flutter engine's style
+/// elements would then be blocked.
+String renderStyleHashes(String text, List<String> hashes) {
+  if (!_styleSrcUnsafeInline.hasMatch(text)) return text;
+  if (!hashes.any((h) => h.startsWith("'nonce-"))) {
+    throw PostbuildException(
+      "style-src would lose 'unsafe-inline' without a nonce "
+      '(web/flutter_bootstrap.js needs $cspStyleNoncePlaceholder)',
+    );
+  }
+  return text.replaceAllMapped(
+    _styleSrcUnsafeInline,
+    (m) => '${m.group(1)} ${hashes.join(' ')}',
+  );
+}
+
+/// Nonce already written into a built flutter_bootstrap.js (second run on
+/// the same output), or null.
+String? existingStyleNonce(String bootstrap) =>
+    RegExp(r"\bnonce: '([A-Za-z0-9+/]{22}==)'").firstMatch(bootstrap)?.group(1);
 
 /// Inserts the Search Console token or removes the meta tag if empty.
 String renderGscVerification(String html, String token) {
@@ -731,14 +804,34 @@ List<String> runPostbuild(PostbuildOptions o) {
   final scriptExtra = deriveCspScriptExtra(o.config);
   final imgExtra = deriveCspImgExtra(o.config);
   final written = <String>[];
-  String renderHosting(String text) => renderCspPlaceholder(
+  final indexFile = File('${web.path}/index.html');
+  final styleHashes = inlineStyleHashes(
+    indexFile.existsSync() ? indexFile.readAsStringSync() : '',
+  );
+  final nonceFile = File('${web.path}/flutter_bootstrap.js');
+  if (nonceFile.existsSync()) {
+    final text = nonceFile.readAsStringSync();
+    final fresh = newStyleNonce();
+    final rendered = renderStyleNonce(text, fresh);
+    if (rendered != null) {
+      nonceFile.writeAsStringSync(rendered);
+      styleHashes.add("'nonce-$fresh'");
+    } else {
+      final reused = existingStyleNonce(text);
+      if (reused != null) styleHashes.add("'nonce-$reused'");
+    }
+  }
+  String renderHosting(String text) => renderStyleHashes(
     renderCspPlaceholder(
-      renderCspPlaceholder(text, extra),
-      scriptExtra,
-      placeholder: cspScriptPlaceholder,
+      renderCspPlaceholder(
+        renderCspPlaceholder(text, extra),
+        scriptExtra,
+        placeholder: cspScriptPlaceholder,
+      ),
+      imgExtra,
+      placeholder: cspImgPlaceholder,
     ),
-    imgExtra,
-    placeholder: cspImgPlaceholder,
+    styleHashes,
   );
   final deploy = Directory(o.deployDir);
   if (deploy.existsSync()) {

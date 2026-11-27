@@ -1,0 +1,177 @@
+name: Load test
+
+# Load test of the own web build with k6. Everything runs on the runner:
+# the web build is baked into the nginx container from deploy/traefik (same
+# image and header/cache rules as the container hosting target), started on
+# localhost, and k6 simulates many visitors at once (ramp to PEAK_VUS virtual
+# users). No live or third-party host is ever hit.
+# Report: k6 HTML dashboard and JSON summary as artifact "load-report-*",
+# key numbers in the run summary. Thresholds in tool/load/web_load.js fail
+# the job.
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/load.yml
+      - tool/load/**
+      - deploy/traefik/**
+      - deploy/nginx/**
+  schedule:
+    - cron: "41 3 * * 3"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: load-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # grafana/k6 release binary, checksum from the release's checksums file
+  # (checked 2026-11-26).
+  K6_VERSION: "2.4.0"
+  K6_SHA256: 5a5ecf23529ccf93135bc7e5b0c1cd5126ecf5f2672e22eed1556a0ab74abb87
+  PEAK_VUS: "200"
+
+jobs:
+  k6:
+    name: k6 (web build on localhost)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Write config
+        uses: ./.github/actions/write-config
+        with:
+          app-env: dev
+
+      - name: Build web
+        run: |
+          set -euo pipefail
+          mapfile -t web_defines < <(bash tool/web_define_passthrough.sh)
+          flutter build web --release --wasm --no-web-resources-cdn             --dart-define-from-file=config/app.json --base-href / "${web_defines[@]}"
+
+      - name: Fallback fonts and postbuild
+        run: |
+          cp tool/fetch_font_fallback.dart tool/web_postbuild.dart "$RUNNER_TEMP/"
+          dart run "$RUNNER_TEMP/fetch_font_fallback.dart" build/web --strict
+          dart run "$RUNNER_TEMP/web_postbuild.dart" build/web
+
+      - name: Build and start the nginx container (deploy/traefik)
+        run: |
+          set -euo pipefail
+          docker build -f deploy/traefik/Dockerfile -t linefm-load-web .
+          docker run -d --name linefm-load-web --read-only --tmpfs /tmp -p 127.0.0.1:8788:8080 linefm-load-web
+          for _ in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8788/healthz >/dev/null && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8788/healthz
+          # The target must be the local container, nothing else.
+          test "$(docker port linefm-load-web 8080/tcp)" = "127.0.0.1:8788"
+
+      - name: Fetch k6 (pinned, checksum)
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          curl -fsSLo k6.tar.gz "https://github.com/grafana/k6/releases/download/v${K6_VERSION}/k6-v${K6_VERSION}-linux-amd64.tar.gz"
+          echo "${K6_SHA256}  k6.tar.gz" | sha256sum -c -
+          tar -xzf k6.tar.gz
+          mv "k6-v${K6_VERSION}-linux-amd64/k6" "$RUNNER_TEMP/k6"
+          "$RUNNER_TEMP/k6" version
+
+      - name: k6
+        env:
+          BASE_URL: http://127.0.0.1:8788
+          K6_WEB_DASHBOARD: "true"
+          K6_WEB_DASHBOARD_EXPORT: out/k6-report.html
+          K6_NO_USAGE_REPORT: "true"
+        run: |
+          mkdir -p out
+          # The wasm build has hashed file names, so list the start-up files from the build.
+          wasm=$(cd build/web && ls main.*.dart.wasm main.dart.wasm 2>/dev/null | head -n1)
+          mjs=$(cd build/web && ls main.*.dart.mjs main.dart.mjs 2>/dev/null | head -n1)
+          test -n "$wasm" && test -n "$mjs"
+          export STARTUP_PATHS="/flutter_bootstrap.js,/manifest.webmanifest,/$mjs,/$wasm"
+          "$RUNNER_TEMP/k6" run --quiet --summary-export out/k6-summary.json tool/load/web_load.js
+
+      - name: Summary
+        if: ${{ always() }}
+        run: |
+          if [ -f out/k6-summary.json ]; then
+            {
+              echo "**k6 load test** (k6 ${K6_VERSION}, up to ${PEAK_VUS} virtual users, localhost)"
+              echo
+              echo "| Metric | Value |"
+              echo "| --- | --- |"
+              jq -r '.metrics as $m |
+                "| Requests | \($m.http_reqs.count) (\($m.http_reqs.rate | floor)/s) |",
+                "| Failed requests | \(($m.http_req_failed.value * 100 | . * 100 | round / 100))% |",
+                "| Duration p95 | \($m.http_req_duration["p(95)"] | round) ms |",
+                "| Duration p99 | \($m.http_req_duration["p(99)"] | round) ms |",
+                "| Checks passed | \(($m.checks.value * 100 | . * 100 | round / 100))% |",
+                "| Peak VUs | \($m.vus_max.max // $m.vus_max.value) |"' out/k6-summary.json
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**k6:** no report" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: nginx log
+        if: ${{ always() }}
+        run: |
+          mkdir -p out
+          docker logs linefm-load-web > out/nginx.log 2>&1 || true
+          docker rm -f linefm-load-web >/dev/null 2>&1 || true
+
+      - name: Upload report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: load-report-${{ github.sha }}
+          path: out/
+          retention-days: 30
+          if-no-files-found: error
+
+  # Zero-warning rule: any warning or error in a job log or a check-run
+  # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented upstream exceptions, each with an expiry date.
+  log-gate:
+    name: Log gate
+    needs: [k6]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan job logs and annotations
+        uses: ./.github/actions/log-gate
+        with:
+          job-name: Log gate
+          token: ${{ github.token }}

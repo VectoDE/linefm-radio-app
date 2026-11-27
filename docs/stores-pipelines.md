@@ -20,17 +20,17 @@ Actions > Workflow wählen > "Run workflow", Tag eintragen (ein Release mit dies
 ## Reihenfolge für die Erstveröffentlichung
 
 1. Release-Tag setzen (nur mit Freigabe des Inhabers). `release.yml` baut, signiert, veröffentlicht.
-2. **Google Play:** Neue Apps müssen mit Status `draft` starten (Standard der Pipeline). In der Play Console den Entwurf prüfen und zur Überprüfung senden. Privates Konto: erst 14 Tage geschlossener Test mit mindestens 12 Testern (Spur `alpha`).
-3. **Microsoft Store:** Die Einreichung bleibt Entwurf im Partner Center (`commit=false`). Prüfen, dann dort abschicken oder den Workflow mit `commit=true` neu starten.
-4. **Snap:** Auf `edge` testen, dann in der Snap-Store-Weboberfläche oder per Workflow mit Kanal `candidate`/`stable` anheben.
-5. **Flathub:** Artefakt `flathub-manifest-<version>` herunterladen und die Hinweise in [packaging/flathub/README.md](../packaging/flathub/README.md) befolgen. Voraussetzung: Repository öffentlich.
-6. **Web:** Umgebung `production` mit Genehmigern anlegen, Secrets eintragen, `WEB_DEPLOY_TARGETS` setzen.
+2. Google Play: Neue Apps müssen mit Status `draft` starten (Standard der Pipeline). In der Play Console den Entwurf prüfen und zur Überprüfung senden. Privates Konto: erst 14 Tage geschlossener Test mit mindestens 12 Testern (Spur `alpha`).
+3. Microsoft Store: Die Einreichung bleibt Entwurf im Partner Center (`commit=false`). Prüfen, dann dort abschicken oder den Workflow mit `commit=true` neu starten.
+4. Snap: Auf `edge` testen, dann in der Snap-Store-Weboberfläche oder per Workflow mit Kanal `candidate`/`stable` anheben.
+5. Flathub: Artefakt `flathub-manifest-<version>` herunterladen und die Hinweise in [packaging/flathub/README.md](../packaging/flathub/README.md) befolgen. Voraussetzung: Repository öffentlich.
+6. Web: Umgebung `production` mit Genehmigern anlegen, Secrets eintragen, `WEB_DEPLOY_TARGETS` setzen.
 
 ## Bekannte Grenzen (offen)
 
-- **Alles ungetestet gegen echte Konten.** Es gibt noch kein Play-, Partner-Center-, Snap-, Cloudflare- oder Apple-Konto und keinen Zielserver. `actionlint`, `zizmor` und `yamllint` sind sauber, der erste echte Lauf je Ziel ist ein Test und sollte beobachtet werden.
-- **Snap:** Der Snap-Part holt die in `.fvmrc` festgelegte Flutter-Version und baut mit `config/app.json`, die `store-snap.yml` vorher wie bei den anderen Release-Builds schreibt. Ein echter Snap-Build ist noch nicht gelaufen (nur unter Linux mit LXD/Multipass). Ungeklärt ist außerdem, ob Tray und MPRIS unter strikter Absicherung laufen.
-- **Apple:** Der Ablauf nutzt `flutter build`, `xcodebuild`, `productbuild` und `altool` ohne fastlane (dadurch kein Ruby und kein `Gemfile.lock` nötig). Signiert wird manuell mit hinterlegten Zertifikaten und Profilen. Die Profile für App und Widget müssen zu den Bundle-IDs `de.linefm.app` und `de.linefm.app.widget` passen. Für das Mac-App-Store-Paket ergänzt die Pipeline die Team-Kennung in den Entitlements.
-- **Microsoft Store:** Die Reihenfolge von `msstore publish` mit `--inputFile` ohne Projektordner ist anhand der Dokumentation (Stand Oktober 2026) umgesetzt und nicht erprobt.
-- **Private Repositories:** Artefakt-Attestierungen sind in `release.yml` nur mit GitHub Enterprise Cloud möglich. Das betrifft diese Pipelines nicht, sie laden nur die Release-Dateien.
-- **Actions-Kontingent:** macOS-Minuten zählen im privaten Repo zehnfach. Deshalb prüft ein billiger Ubuntu-Job zuerst die Secrets, und die macOS-Jobs starten gar nicht erst ohne `APPLE_PUBLISHING_ENABLED`.
+- Alles ungetestet gegen echte Konten. Es gibt noch kein Play-, Partner-Center-, Snap-, Cloudflare- oder Apple-Konto und keinen Zielserver. `actionlint`, `zizmor` und `yamllint` sind sauber, der erste echte Lauf je Ziel ist ein Test und sollte beobachtet werden.
+- Snap: Der Snap-Part holt die in `.fvmrc` festgelegte Flutter-Version und baut mit `config/app.json`, die `store-snap.yml` vorher wie bei den anderen Release-Builds schreibt. Ein echter Snap-Build ist noch nicht gelaufen (nur unter Linux mit LXD/Multipass). Ungeklärt ist außerdem, ob Tray und MPRIS unter strikter Absicherung laufen.
+- Apple: Der Ablauf nutzt `flutter build`, `xcodebuild`, `productbuild` und `altool` ohne fastlane (dadurch kein Ruby und kein `Gemfile.lock` nötig). Signiert wird manuell mit hinterlegten Zertifikaten und Profilen. Die Profile für App und Widget müssen zu den Bundle-IDs `de.linefm.app` und `de.linefm.app.widget` passen. Für das Mac-App-Store-Paket ergänzt die Pipeline die Team-Kennung in den Entitlements.
+- Microsoft Store: Die Reihenfolge von `msstore publish` mit `--inputFile` ohne Projektordner ist anhand der Dokumentation (Stand Oktober 2026) umgesetzt und nicht erprobt.
+- Private Repositories: Artefakt-Attestierungen sind in `release.yml` nur mit GitHub Enterprise Cloud möglich. Das betrifft diese Pipelines nicht, sie laden nur die Release-Dateien.
+- Actions-Kontingent: macOS-Minuten zählen im privaten Repo zehnfach. Deshalb prüft ein billiger Ubuntu-Job zuerst die Secrets, und die macOS-Jobs starten gar nicht erst ohne `APPLE_PUBLISHING_ENABLED`.

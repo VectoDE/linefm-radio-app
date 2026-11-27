@@ -30,14 +30,14 @@ Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI so
 
 Alle Sender in einer App, kostenlos und ohne Konto.
 
-- **Live hören** mit Sendername, aktuellem Titel und Cover. Die Wiedergabe läuft im Hintergrund weiter, auch bei gesperrtem Bildschirm, und lässt sich mit Medientasten und Kopfhörern steuern.
-- **Song merken:** Favoriten sammeln, teilen und exportieren. Sender lassen sich ebenfalls als Favorit markieren.
-- **Verlauf** der zuletzt gespielten Titel.
-- **Schlafen und Wecken:** Sleeptimer (15, 30, 45 oder 60 Minuten) und Radiowecker mit Sender.
-- **Unterwegs:** Homescreen-Widget (Android), Android Auto, Chromecast. AirPlay und CarPlay sind vorbereitet, aber noch nicht veröffentlicht.
-- **Am Computer:** Tray-Symbol (Symbol im Infobereich der Taskleiste), Mini-Fenster, das im Vordergrund bleibt, Tastenkürzel.
-- **Deutsch und Englisch** (Systemsprache oder in den Einstellungen festgelegt), hell und dunkel, für Handy, Tablet und Desktop. Warum nur zwei Sprachen: [Sprachen](#sprachen).
-- **Links:** `https://app.linefm.de/?station=<sender>` und `linefm://play?station=<sender>` öffnen direkt den Sender.
+- Live hören mit Sendername, aktuellem Titel und Cover. Die Wiedergabe läuft im Hintergrund weiter, auch bei gesperrtem Bildschirm, und lässt sich mit Medientasten und Kopfhörern steuern.
+- Song merken: Favoriten sammeln, teilen und exportieren. Sender lassen sich ebenfalls als Favorit markieren.
+- Verlauf der zuletzt gespielten Titel.
+- Schlafen und Wecken: Sleeptimer (15, 30, 45 oder 60 Minuten) und Radiowecker mit Sender.
+- Unterwegs: Homescreen-Widget (Android), Android Auto, Chromecast. AirPlay und CarPlay sind vorbereitet, aber noch nicht veröffentlicht.
+- Am Computer: Tray-Symbol (Symbol im Infobereich der Taskleiste), Mini-Fenster, das im Vordergrund bleibt, Tastenkürzel.
+- Deutsch und Englisch (Systemsprache oder in den Einstellungen festgelegt), hell und dunkel, für Handy, Tablet und Desktop. Warum nur zwei Sprachen: [Sprachen](#sprachen).
+- Links: `https://app.linefm.de/?station=<sender>` und `linefm://play?station=<sender>` öffnen direkt den Sender.
 
 Datenschutz: Favoriten, Verlauf und Einstellungen bleiben auf deinem Gerät. Statistik und Absturzberichte sind nur aktiv, wenn der Betreiber sie einschaltet, und dann nur nach deiner Einwilligung. In der Web-Version kann der Betreiber zusätzlich eine Reichweitenmessung mit Google Analytics einrichten; auch die läuft nur, wenn du gesondert zustimmst. Impressum und Datenschutzerklärung stehen in der App und unter `/impressum/` und `/datenschutz/` auf der Web-Seite.
 
@@ -49,18 +49,18 @@ Die App lässt sich mit Tastatur bedienen, alle Bereiche sind für Screenreader 
 
 ## Für Entscheider
 
-- **Stand:** Vorabversionen erscheinen bei jedem Merge automatisch unter Releases, noch in keinem Store. Was vor dem Start fehlt, sind Konten, Zugangsdaten und schriftliche Freigaben des Betreibers, keine Programmierarbeit: [Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md).
-- **Laufende Kosten:** kein eigenes Backend, keine Nutzerkonten. Es fallen nur Store-Gebühren (Google Play einmalig, Apple jährlich, falls später gewünscht) und das Web-Hosting an. Die Sender kommen über die öffentliche laut.fm-API.
-- **Daten:** Ohne aktivierte Statistik schickt die App von sich aus nur Anfragen an laut.fm (API und Streams), an Apple (iTunes-Cover-Suche, abschaltbar), an cdn.linefm.de (Sender-Icons) und an radiogruppe.de (Logo). Statistik und Absturzberichte nur nach Einwilligung, siehe [Telemetrie](docs/telemetry.md). Im Web optional Google Analytics, nur nach eigener Einwilligung (siehe [Einrichtung](docs/EINRICHTUNG.md)).
-- **Prüfbarkeit:** Jedes Release hat Prüfsummen, eine SBOM, eine Herkunfts-Attestierung von GitHub und eine cosign-Signatur je Datei, auf Wunsch zusätzlich eine GPG-Signatur: [Release-Dateien prüfen](docs/RELEASE-VERIFIZIEREN.md).
-- **Risiken:** Abhängigkeit von laut.fm als einziger Datenquelle; Marken- und Rechtsfragen (Name, Logo, Rechtstexte) klärt der Betreiber mit einem Anwalt, bevor etwas veröffentlicht wird.
+- Stand: Vorabversionen erscheinen bei jedem Merge automatisch unter Releases, noch in keinem Store. Was vor dem Start fehlt, sind Konten, Zugangsdaten und schriftliche Freigaben des Betreibers, keine Programmierarbeit: [Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md).
+- Laufende Kosten: kein eigenes Backend, keine Nutzerkonten. Es fallen nur Store-Gebühren (Google Play einmalig, Apple jährlich, falls später gewünscht) und das Web-Hosting an. Die Sender kommen über die öffentliche laut.fm-API.
+- Daten: Ohne aktivierte Statistik schickt die App von sich aus nur Anfragen an laut.fm (API und Streams), an Apple (iTunes-Cover-Suche, abschaltbar), an cdn.linefm.de (Sender-Icons) und an radiogruppe.de (Logo). Statistik und Absturzberichte nur nach Einwilligung, siehe [Telemetrie](docs/telemetry.md). Im Web optional Google Analytics, nur nach eigener Einwilligung (siehe [Einrichtung](docs/EINRICHTUNG.md)).
+- Prüfbarkeit: Jedes Release hat Prüfsummen, eine SBOM, eine Herkunfts-Attestierung von GitHub und eine cosign-Signatur je Datei, auf Wunsch zusätzlich eine GPG-Signatur: [Release-Dateien prüfen](docs/RELEASE-VERIFIZIEREN.md).
+- Risiken: Abhängigkeit von laut.fm als einziger Datenquelle; Marken- und Rechtsfragen (Name, Logo, Rechtstexte) klärt der Betreiber mit einem Anwalt, bevor etwas veröffentlicht wird.
 
 ## Für Betreiber
 
 Du musst keinen Code anfassen. Was du tun musst, steht in zwei Listen:
 
-1. **[Einrichtung](docs/EINRICHTUNG.md):** Konten und Zugangsdaten für Google Play, Microsoft Store, Flathub, Snap Store, Web-Hosting, Statistik, später Apple. Alles als Checkboxen, Schritt für Schritt.
-2. **[Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md):** Was du vor dem Start schriftlich bestätigst (Marke, Name, Icon, Rechtstexte, laut.fm, Übergabe) und welche Gerätetests laufen.
+1. [Einrichtung](docs/EINRICHTUNG.md): Konten und Zugangsdaten für Google Play, Microsoft Store, Flathub, Snap Store, Web-Hosting, Statistik, später Apple. Alles als Checkboxen, Schritt für Schritt.
+2. [Freigabe-Checkliste](docs/FREIGABE-CHECKLISTE.md): Was du vor dem Start schriftlich bestätigst (Marke, Name, Icon, Rechtstexte, laut.fm, Übergabe) und welche Gerätetests laufen.
 
 Welches Secret wohin gehört, steht gesammelt in [docs/secrets.md](docs/secrets.md). Wie die Store-Abläufe zusammenhängen und in welcher Reihenfolge du sie zum ersten Mal startest: [docs/stores-pipelines.md](docs/stores-pipelines.md).
 
@@ -112,11 +112,11 @@ Die App gibt es auf Deutsch und Englisch. Das weicht bewusst vom Hausstandard mi
 
 Einige Scorecard-Prüfungen können hier nicht voll punkten, und das schreiben wir offen hin:
 
-- **Code-Review:** Das Projekt hat einen einzigen Entwickler. Änderungsvorschläge laufen durch die Pflicht-Checks, eine zweite Person, die freigibt, gibt es nicht.
-- **Maintained:** Scorecard wertet Repositories unter 90 Tagen Alter ab. Das Repository ist im November 2026 entstanden.
-- **CII-Best-Practices:** hängt am Badge von bestpractices.dev, siehe oben.
-- **Fuzzing:** Scorecard erkennt OSS-Fuzz, ClusterFuzzLite und Fuzz- bzw. Property-Tests in Go, Haskell, JavaScript/TypeScript, Erlang und C#/F#. Für Dart gibt es weder eine passende Fuzzing-Engine noch eine Erkennung. ClusterFuzzLite unterstützt Dart nicht, ein Ersatz-Fuzzer nur für die Hilfsskripte in Python würde die Wertung heben, ohne die App sicherer zu machen. Die Begründung steht im Repository.
-- **Branch-Protection** und **CI-Tests** steigen mit der Zeit: Seit dem 19.11.2026 schützt das Ruleset `main-schutz` den Branch `main`, jede Änderung läuft als Änderungsvorschlag durch die Pflicht-Checks. Scorecard bewertet aber auch die älteren Commits.
+- Code-Review: Das Projekt hat einen einzigen Entwickler. Änderungsvorschläge laufen durch die Pflicht-Checks, eine zweite Person, die freigibt, gibt es nicht.
+- Maintained: Scorecard wertet Repositories unter 90 Tagen Alter ab. Das Repository ist im November 2026 entstanden.
+- CII-Best-Practices: hängt am Badge von bestpractices.dev, siehe oben.
+- Fuzzing: Scorecard erkennt OSS-Fuzz, ClusterFuzzLite und Fuzz- bzw. Property-Tests in Go, Haskell, JavaScript/TypeScript, Erlang und C#/F#. Für Dart gibt es weder eine passende Fuzzing-Engine noch eine Erkennung. ClusterFuzzLite unterstützt Dart nicht, ein Ersatz-Fuzzer nur für die Hilfsskripte in Python würde die Wertung heben, ohne die App sicherer zu machen. Die Begründung steht im Repository.
+- Branch-Protection und CI-Tests steigen mit der Zeit: Seit dem 19.11.2026 schützt das Ruleset `main-schutz` den Branch `main`, jede Änderung läuft als Änderungsvorschlag durch die Pflicht-Checks. Scorecard bewertet aber auch die älteren Commits.
 
 ## Standards und Konformität
 

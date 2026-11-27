@@ -29,19 +29,19 @@ Die Kontaktdaten des Betreibers stehen im Impressum der App. Sie stehen absichtl
 
 ## Ablauf
 
-1. **Erkennen und bestätigen.** Meldung prüfen: Ist das Problem reproduzierbar, welche Version, welche Plattform? Ein Ticket anlegen (bei Sicherheitslücken stattdessen privat im Advisory arbeiten).
-2. **Stufe festlegen** nach der Tabelle oben.
-3. **Eindämmen.** Zuerst stoppen, dann ursächlich beheben:
+1. Erkennen und bestätigen. Meldung prüfen: Ist das Problem reproduzierbar, welche Version, welche Plattform? Ein Ticket anlegen (bei Sicherheitslücken stattdessen privat im Advisory arbeiten).
+2. Stufe festlegen nach der Tabelle oben.
+3. Eindämmen. Zuerst stoppen, dann ursächlich beheben:
    - Web: Rollback nach [RUNBOOK.md](RUNBOOK.md).
    - Android, Windows, Linux: gestaffelten Rollout in der Konsole anhalten, falls vorhanden. Eine neue, höhere Version mit dem alten Stand nachschieben.
    - Telemetrie verdächtig: Konfiguration im nächsten Build leeren. Auf dem Server den Eingangspfad sperren.
    - Zugangsdaten betroffen: Secret bei GitHub und beim Anbieter sofort widerrufen und ersetzen, dann Verlauf prüfen. Ein Secret im Git-Verlauf gilt als offengelegt, auch wenn es später gelöscht wurde.
-4. **Beheben.** Fix per Änderungsvorschlag mit Test, Release nach dem üblichen Ablauf (signiert, mit Prüfung nach [../RELEASE-VERIFIZIEREN.md](../RELEASE-VERIFIZIEREN.md)).
-5. **Informieren.**
+4. Beheben. Fix per Änderungsvorschlag mit Test, Release nach dem üblichen Ablauf (signiert, mit Prüfung nach [../RELEASE-VERIFIZIEREN.md](../RELEASE-VERIFIZIEREN.md)).
+5. Informieren.
    - Sicherheitslücke: Melder nach den Fristen in SECURITY.md informieren (Eingang 7 Tage, Einschätzung 14 Tage), Veröffentlichung mit dem Melder abstimmen.
    - Datenpanne mit personenbezogenen Daten: **Meldepflichten nach Art. 33 DSGVO (72 Stunden an die Aufsichtsbehörde) und Art. 34 (Betroffene) prüft ein Anwalt oder die Datenschutzberatung des Betreibers.** Dieses Dokument ersetzt diese Prüfung nicht. Die App speichert selbst keine Nutzerdaten auf Servern des Betreibers. Betroffen sein können Telemetrie-Daten (nur mit Einwilligung).
    - Nutzer: Hinweis in den Release-Notes, bei S1 zusätzlich in den Store-Beschreibungen und auf der Web-Version.
-6. **Nachbetrachtung** innerhalb von fünf Werktagen nach S1 und S2 (Vorlage unten). Maßnahmen als Tickets mit Aufgaben anlegen.
+6. Nachbetrachtung innerhalb von fünf Werktagen nach S1 und S2 (Vorlage unten). Maßnahmen als Tickets mit Aufgaben anlegen.
 
 ## Vorlage Nachbetrachtung
 

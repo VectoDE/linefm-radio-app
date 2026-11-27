@@ -89,7 +89,7 @@ Diese Signaturen gibt es nur, wenn beim Build die passenden Secrets gesetzt ware
 
 ## Was wir nicht versprechen
 
-- **Bit-gleiche Builds:** Die Build-Workflows setzen `SOURCE_DATE_EPOCH` auf die Zeit des Commits. Das macht Zeitstempel dort gleich, wo die Werkzeuge den Wert auswerten. Ob zwei Builds desselben Commits bit-gleich sind, haben wir nicht geprüft. Flutter, Gradle, Xcode und die Packer schreiben teils eigene Zeitstempel und Pfade. Verlass dich deshalb auf die Schritte 1 bis 3, nicht auf einen eigenen Nachbau.
-- **Langzeit-Schlüssel:** cosign arbeitet ohne festen Schlüssel. Die Signatur hängt an der Identität des Workflows im Repository. Wer Schreibrechte auf `release.yml` und Tags hat, kann gültig signieren. Deshalb schützen die Rulesets `main-schutz` (Branch) und `release-tags` (Tags) diese Stellen.
+- Bit-gleiche Builds: Die Build-Workflows setzen `SOURCE_DATE_EPOCH` auf die Zeit des Commits. Das macht Zeitstempel dort gleich, wo die Werkzeuge den Wert auswerten. Ob zwei Builds desselben Commits bit-gleich sind, haben wir nicht geprüft. Flutter, Gradle, Xcode und die Packer schreiben teils eigene Zeitstempel und Pfade. Verlass dich deshalb auf die Schritte 1 bis 3, nicht auf einen eigenen Nachbau.
+- Langzeit-Schlüssel: cosign arbeitet ohne festen Schlüssel. Die Signatur hängt an der Identität des Workflows im Repository. Wer Schreibrechte auf `release.yml` und Tags hat, kann gültig signieren. Deshalb schützen die Rulesets `main-schutz` (Branch) und `release-tags` (Tags) diese Stellen.
 
 Fehler oder Zweifel an einer Datei bitte vertraulich melden, wie in [SECURITY.md](../SECURITY.md) beschrieben.

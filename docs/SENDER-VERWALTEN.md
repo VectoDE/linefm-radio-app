@@ -49,8 +49,8 @@ Willst du einen Sender nur kurz ausblenden, setze stattdessen `aktiv: false`.
 
 ## Wann die Änderung ankommt
 
-- **Ohne neue App-Version:** Ist beim Bauen eine feste Adresse für die Senderliste gesetzt (`STATIONS_URL`, siehe [Konfiguration](KONFIGURATION.md)), lade die geprüfte Datei dort hoch. Jede App holt sie beim nächsten Start im Hintergrund. Ist die Adresse nicht erreichbar oder die Datei fehlerhaft, bleibt die bisherige Liste.
-- **Mit neuer App-Version:** Die Datei im Repository wird bei jedem Build mitgeliefert.
+- Ohne neue App-Version: Ist beim Bauen eine feste Adresse für die Senderliste gesetzt (`STATIONS_URL`, siehe [Konfiguration](KONFIGURATION.md)), lade die geprüfte Datei dort hoch. Jede App holt sie beim nächsten Start im Hintergrund. Ist die Adresse nicht erreichbar oder die Datei fehlerhaft, bleibt die bisherige Liste.
+- Mit neuer App-Version: Die Datei im Repository wird bei jedem Build mitgeliefert.
 
 ## Häufige Fehler
 

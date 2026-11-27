@@ -127,11 +127,11 @@ Je Maßnahme ein eigener Änderungsvorschlag mit Vorher/Nachher aus diesem Workf
 
 ## Ist Faktor 3 erreichbar?
 
-- **Laden im Browser, Desktop:** wahrscheinlich ja für „erstes Bild“ und „bedienbar“, weil künstliche Wartezeiten, Kaskade und Hauptthread-Arbeit zusammen einen großen Teil ausmachen.
-- **Laden im Browser, mobil:** für „erstes Bild“ (15 s auf 5 s) nicht allein mit unseren Mitteln. Der Großteil ist Übertragung von rund 2 MB über Slow-4G plus Wasm-Kompilierung. Brotli und Preload bringen geschätzt 25 bis 35 %. Für „bedienbar“ (40 s) ist Faktor 3 erreichbar, wenn der Hauptthread entlastet wird.
-- **App-Start Windows:** offen. 139 ms bis `runApp` sind schon gut; ob das erste Bild auf 357 ms kommt, zeigt erst ein Trace.
-- **Ton nach Klick:** eher nicht. Rund 3 s entfallen auf das Puffern der laut.fm-Streams. Realistisch sind 1 bis 1,5 s weniger (Engpässe 3 und 4), also etwa Faktor 1,3 bis 1,5.
-- **Bedienung:** offen bis die Seitenwechsel gemessen sind. Die Scrollwerte auf dem GPU-losen Runner sind als Vergleichsgröße brauchbar, nicht als absoluter Nutzerwert.
+- Laden im Browser, Desktop: wahrscheinlich ja für „erstes Bild“ und „bedienbar“, weil künstliche Wartezeiten, Kaskade und Hauptthread-Arbeit zusammen einen großen Teil ausmachen.
+- Laden im Browser, mobil: für „erstes Bild“ (15 s auf 5 s) nicht allein mit unseren Mitteln. Der Großteil ist Übertragung von rund 2 MB über Slow-4G plus Wasm-Kompilierung. Brotli und Preload bringen geschätzt 25 bis 35 %. Für „bedienbar“ (40 s) ist Faktor 3 erreichbar, wenn der Hauptthread entlastet wird.
+- App-Start Windows: offen. 139 ms bis `runApp` sind schon gut; ob das erste Bild auf 357 ms kommt, zeigt erst ein Trace.
+- Ton nach Klick: eher nicht. Rund 3 s entfallen auf das Puffern der laut.fm-Streams. Realistisch sind 1 bis 1,5 s weniger (Engpässe 3 und 4), also etwa Faktor 1,3 bis 1,5.
+- Bedienung: offen bis die Seitenwechsel gemessen sind. Die Scrollwerte auf dem GPU-losen Runner sind als Vergleichsgröße brauchbar, nicht als absoluter Nutzerwert.
 
 ## Public web quality checks
 
@@ -167,7 +167,7 @@ web output; the scores and findings go into the tracker.
 
 `tool/perf/bundle_budget.json` hält die Obergrenzen. Das Skript `tool/perf/bundle_budget.py` prüft sie und lässt die CI scheitern, sobald ein Wert überschritten ist oder eine budgetierte Datei im Build fehlt.
 
-- **Web** (`ci.yml`, Schritt "Bundle budget"): gzip-Größe (Stufe 5, wie nginx) von `main.dart.wasm`, `main.dart.mjs`, `main.dart.js`, `skwasm.wasm`, `skwasm.js`, `flutter_bootstrap.js` und `index.html`, dazu die Summe der Startdateien sowie rohe Größe der App-Schriften und Bilder. Ausgangswert ist der Messlauf vom 25.11.2026, die Grenzen liegen etwa 10 % darüber.
-- **Android** (`build.yml`, Schritt "APK size budget"): rohe Größe des Universal-APK gegen `apk_bytes` (83.300.000 Byte, Messwert 75.659.931 Byte vom 27.11.2026 plus etwa 10 %).
-- **Anheben:** nur mit Begründung in der Commit-Nachricht, nie stillschweigend.
-- **Lokal:** `python3 -I tool/perf/bundle_budget.py build/web` oder `--apk <Datei>`; Tests: `python -m unittest discover -s test/tool -p "test_bundle_budget.py"`.
+- Web (`ci.yml`, Schritt "Bundle budget"): gzip-Größe (Stufe 5, wie nginx) von `main.dart.wasm`, `main.dart.mjs`, `main.dart.js`, `skwasm.wasm`, `skwasm.js`, `flutter_bootstrap.js` und `index.html`, dazu die Summe der Startdateien sowie rohe Größe der App-Schriften und Bilder. Ausgangswert ist der Messlauf vom 25.11.2026, die Grenzen liegen etwa 10 % darüber.
+- Android (`build.yml`, Schritt "APK size budget"): rohe Größe des Universal-APK gegen `apk_bytes` (83.300.000 Byte, Messwert 75.659.931 Byte vom 27.11.2026 plus etwa 10 %).
+- Anheben: nur mit Begründung in der Commit-Nachricht, nie stillschweigend.
+- Lokal: `python3 -I tool/perf/bundle_budget.py build/web` oder `--apk <Datei>`; Tests: `python -m unittest discover -s test/tool -p "test_bundle_budget.py"`.

@@ -85,9 +85,9 @@ Die CSP erlaubt nur die eigene Herkunft, dazu gezielt:
 
 Bewusste Entscheidungen:
 
-- **Kein COEP (`Cross-Origin-Embedder-Policy`).** Mit `require-corp` bräuchten Cover und Logos von Fremdservern CORP-Header. Folge: Skwasm läuft einthreadig. Das ist für diese App unproblematisch.
-- **HSTS mit `preload`.** Der Header allein trägt die Domain nicht in die Preload-Liste ein. Eine Anmeldung auf hstspreload.org ist ein eigener Schritt und betrifft `linefm.de` samt allen Subdomains. Das entscheidet der Betreiber der Hauptdomain.
-- **`interest-cohort` fehlt in der Permissions-Policy**, weil Chrome das Feature nicht mehr kennt und dafür eine Konsolenwarnung ausgibt.
+- Kein COEP (`Cross-Origin-Embedder-Policy`). Mit `require-corp` bräuchten Cover und Logos von Fremdservern CORP-Header. Folge: Skwasm läuft einthreadig. Das ist für diese App unproblematisch.
+- HSTS mit `preload`. Der Header allein trägt die Domain nicht in die Preload-Liste ein. Eine Anmeldung auf hstspreload.org ist ein eigener Schritt und betrifft `linefm.de` samt allen Subdomains. Das entscheidet der Betreiber der Hauptdomain.
+- `interest-cohort` fehlt in der Permissions-Policy, weil Chrome das Feature nicht mehr kennt und dafür eine Konsolenwarnung ausgibt.
 
 ## Automatische Prüfung in der CI
 

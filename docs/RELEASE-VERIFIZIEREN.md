@@ -86,6 +86,7 @@ Diese Signaturen gibt es nur, wenn beim Build die passenden Secrets gesetzt ware
 | macOS `*.dmg` | `spctl -a -t open --context context:primary-signature -v linefm-radio-X.Y.Z-macos.dmg` und `xcrun stapler validate linefm-radio-X.Y.Z-macos.dmg` (signiert und notarisiert). |
 | macOS-Installer `*-macos-setup.dmg` | Wie das DMG oben. Zusätzlich nach dem Einbinden `codesign --verify --deep --strict -v "/Volumes/LINEFM Radio Setup/LINEFM Radio Setup.app"`. Ohne Apple-Entwicklerkonto ist der Installer nur ad hoc signiert und nicht notarisiert. Dann gelten nur die Schritte 1 bis 3 (Prüfsumme, cosign, Herkunft). |
 | Linux-Installer `*-linux-x64-setup.AppImage` | Keine Plattform-Signatur. Prüfung über die Schritte 1 bis 3 (Prüfsumme, cosign, Herkunft). Die Engine prüft beim Installieren zusätzlich den SHA-256 der enthaltenen App. |
+| Linux-Pakete `*-linux-x64.deb`, `*-linux-x64.rpm`, `*-linux-x64.AppImage` | Keine Paketsignatur (kein GPG-Schlüssel, kein eigenes Paketarchiv). Prüfung über die Schritte 1 bis 3 (Prüfsumme, cosign, Herkunft). |
 
 ## Was wir nicht versprechen
 

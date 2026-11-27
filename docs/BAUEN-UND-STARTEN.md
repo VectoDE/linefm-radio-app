@@ -60,7 +60,7 @@ Was in welchem Artefakt liegt, abgeglichen mit dem Lauf vom 21.11.2026 ([Lauf 44
 | `dist-android` | `linefm-radio-0.0.0-dev+1a2b3c4-android.apk` (zum Installieren), `...-android.aab` (nur für den Play Store) | 110 MB |
 | `dist-web` | `...-web.zip` (die Web-Version), `...-web-hosting.zip` (Server-Einstellungsdateien, 14 KB) | 49 MB |
 | `dist-windows` | `...-windows-x64.zip` (portable App), `...-windows-x64-setup.exe` (Installer) | 42 MB |
-| `dist-linux` | `...-linux-x64.tar.gz` | 14 MB |
+| `dist-linux` | `...-linux-x64.tar.gz`, `...-linux-x64.deb`, `...-linux-x64.rpm`, `...-linux-x64.AppImage` (die App), `...-linux-x64-setup.AppImage` (Installer) | 14 MB (Stand vor deb, rpm und AppImage, danach größer) |
 | `dist-macos` | `...-macos.dmg` (nur mit dem Haken bei macOS und iOS) | 29 MB |
 
 Stand dieses Laufs: Android, Web, Windows, Linux und macOS waren grün. Die iOS-Prüfung war rot. Sie ist eine reine Kompilierprüfung und liefert keine Datei (siehe A6). Der Fehler wird in einem eigenen Änderungsvorschlag behoben, die Version dafür ist iOS 16 als Mindestversion. Ob sie danach grün ist, siehst du in der Lauf-Liste unter Actions.
@@ -214,6 +214,37 @@ cd ~/linefm-radio && ./linefm_radio
 
 2. Das Archiv enthält direkt den Inhalt des Bundles, es gibt keinen Unterordner. Deshalb der eigene Zielordner.
 3. Startet die App nicht und meldet eine fehlende Bibliothek, fehlt ein System-Paket. Auf Debian und Ubuntu hilft meistens `sudo apt install libmpv2 libgtk-3-0 libayatana-appindicator3-1`. Diese Paketnamen sind nicht geprüft, in der CI laufen nur die Entwicklungspakete (siehe B8).
+
+Statt des Archivs gibt es drei Pakete der App. Alle legen die App gleich ab: Programm in `/usr/lib/linefm-radio`, Befehl `linefm-radio`, Eintrag im App-Menü, Icons und den Handler für `linefm://`-Links. Nimm entweder ein Paket oder den Installer (Abschnitt oben), nicht beides: Der Installer schreibt bei **Alle Benutzer** denselben Menüeintrag.
+
+**.deb** (Debian, Ubuntu, Linux Mint):
+
+```bash
+sudo apt install ./linefm-radio-X.Y.Z-linux-x64.deb
+linefm-radio
+```
+
+`apt` holt die nötigen Bibliotheken (GTK 3, libmpv, AppIndicator, Keybinder, libcurl) selbst. Das Paket ist auf Ubuntu 24.04 gebaut und verlangt deren glibc-Stand, läuft also ab Ubuntu 24.04, Debian 13 und Linux Mint 22. Auf älteren Systemen weist `apt` das Paket mit einer Meldung zu `libc6` ab. Update: neueres Paket genauso installieren. Deinstallieren: `sudo apt remove linefm-radio`.
+
+**.rpm** (Fedora, openSUSE, RHEL und Ableger):
+
+```bash
+sudo dnf install ./linefm-radio-X.Y.Z-linux-x64.rpm      # Fedora, RHEL
+sudo zypper install ./linefm-radio-X.Y.Z-linux-x64.rpm   # openSUSE
+```
+
+Das Paket nennt seine Bibliotheken über deren Dateinamen (zum Beispiel `libmpv.so.2`), deshalb findet jede Distribution das passende Paket selbst. Auf RHEL und Ablegern liegen libmpv und einige weitere Bibliotheken nicht in den Grundquellen. Dort braucht es vorher EPEL und RPM Fusion (auf RHEL nicht nachgespielt). Deinstallieren: `sudo dnf remove linefm-radio` bzw. `sudo zypper remove linefm-radio`.
+
+**AppImage** (jede Distribution, ohne Installation):
+
+```bash
+chmod +x linefm-radio-X.Y.Z-linux-x64.AppImage
+./linefm-radio-X.Y.Z-linux-x64.AppImage
+```
+
+Fehlt FUSE, geht es mit `APPIMAGE_EXTRACT_AND_RUN=1` davor. Das AppImage enthält die App, aber nicht libmpv, GTK und die übrigen System-Bibliotheken. Die müssen installiert sein (Debian, Ubuntu: `sudo apt install libmpv2 libayatana-appindicator3-1 libkeybinder-3.0-0`). Einen Menüeintrag legt das AppImage selbst nicht an. Wer das möchte, nimmt ein Werkzeug wie Gear Lever oder AppImageLauncher, oder gleich den Installer. Entfernen: Datei löschen.
+
+Was die CI bei jedem Bau prüft: Das .deb wird in einem frischen Ubuntu-24.04-Container installiert, das .rpm in einem frischen Fedora-42-Container. Geprüft werden jeweils Installation samt Abhängigkeiten, alle Dateien, der Menüeintrag (`desktop-file-validate`), der registrierte `linefm://`-Handler, dass jede Bibliothek gefunden wird, dass die App startet und 10 Sekunden läuft, das Update auf ein Paket mit höherer Version aus demselben Bundle, dass ein älteres Paket nicht stillschweigend zurückstuft, und dass nach dem Deinstallieren nichts zurückbleibt. Beim AppImage prüft die CI Inhalt, Menüeintrag, Icons und den Start. openSUSE, RHEL, Debian und Mint werden nicht eigens getestet. Englische Fassung: [packaging/linux/README.md](../packaging/linux/README.md). Bau und Prüfung: [packaging/linux/build-packages.sh](../packaging/linux/build-packages.sh) und [packaging/linux/test-packages.sh](../packaging/linux/test-packages.sh).
 
 #### macOS
 

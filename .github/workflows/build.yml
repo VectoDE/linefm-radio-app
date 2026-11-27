@@ -471,7 +471,7 @@ jobs:
           retention-days: 14
 
   linux:
-    name: Linux (x64 tar.gz, installer)
+    name: Linux (x64 tar.gz, deb, rpm, AppImage, installer)
     needs: meta
     if: needs.meta.outputs.run == 'true'
     runs-on: ubuntu-latest
@@ -545,11 +545,11 @@ jobs:
       - name: Installer tools (xvfb, pinned appimagetool)
         run: |
           set -euo pipefail
-          sudo apt-get install -y -q --no-install-recommends xvfb xauth desktop-file-utils shellcheck
+          sudo apt-get install -y -q --no-install-recommends xvfb xauth desktop-file-utils shellcheck rpm
           bash installer/linux/fetch-appimagetool.sh build/installer/tools
 
       - name: Check the installer engine (shellcheck)
-        run: shellcheck -s sh installer/posix/engine.sh installer/posix/root-helper.sh && shellcheck installer/posix/test-installer.sh installer/linux/*.sh installer/macos/*.sh
+        run: shellcheck -s sh installer/posix/engine.sh installer/posix/root-helper.sh && shellcheck installer/posix/test-installer.sh installer/linux/*.sh installer/macos/*.sh packaging/linux/build-packages.sh packaging/linux/test-packages.sh && shellcheck -s sh packaging/linux/test-in-container.sh
 
       - name: Build the Linux installer (AppImage)
         run: |
@@ -567,6 +567,24 @@ jobs:
           xvfb-run -a -s '-screen 0 1280x900x24' bash installer/posix/test-installer.sh --os linux \
             --setup "$setup" --setup-dir build/installer/extract/squashfs-root/usr/lib/linefm-setup/setup \
             --artifacts build/installer-test
+
+      # App packages: .deb, .rpm and AppImage of the app itself (separate
+      # from the setup AppImage above).
+      - name: Build the Linux packages (deb, rpm, AppImage)
+        run: |
+          bash packaging/linux/build-packages.sh --version "$LABEL"             --app build/linux/x64/release/bundle --out dist
+
+      - name: Test the Linux packages (install, start, update, downgrade, uninstall)
+        run: bash packaging/linux/test-packages.sh --version "$LABEL" --app build/linux/x64/release/bundle --dist dist --artifacts build/packages-test
+
+      - name: Upload package test logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: packages-test-linux
+          path: build/packages-test/
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Upload installer screenshots and logs
         if: always()

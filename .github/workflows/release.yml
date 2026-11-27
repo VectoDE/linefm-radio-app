@@ -230,14 +230,14 @@ jobs:
       # The installer with its own setup UI exists for every desktop OS
       # and is part of every release (checksum, cosign bundle, provenance
       # follow in the next steps like for every other file).
-      - name: Check the desktop installers
+      - name: Check the desktop installers and Linux packages
         run: |
           set -euo pipefail
           missing=0
           for f in "linefm-radio-${LABEL}-windows-x64-setup.exe" \
                    "linefm-radio-${LABEL}-macos-setup.dmg" \
-                   "linefm-radio-${LABEL}-linux-x64-setup.AppImage"; do
-            if [ -s "dist/$f" ]; then echo "found: $f"; else echo "::error::installer missing: $f"; missing=1; fi
+                   "linefm-radio-${LABEL}-linux-x64-setup.AppImage"                    "linefm-radio-${LABEL}-linux-x64.deb"                    "linefm-radio-${LABEL}-linux-x64.rpm"                    "linefm-radio-${LABEL}-linux-x64.AppImage"; do
+            if [ -s "dist/$f" ]; then echo "found: $f"; else echo "::error::installer or package missing: $f"; missing=1; fi
           done
           exit "$missing"
 
@@ -430,6 +430,7 @@ jobs:
             echo "### Install and update"
             echo ""
             echo "- Android, Linux, macOS and web: files below. The Windows installer follows later."
+            echo "- Linux: .deb (Debian, Ubuntu, Mint), .rpm (Fedora, openSUSE, RHEL), AppImage, tar.gz and the setup AppImage."
             echo "- Prereleases are meant for testers and do not appear in the stores."
             echo ""
             echo "### Verifying the downloads"

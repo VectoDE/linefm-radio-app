@@ -182,7 +182,7 @@ LINEFM, die Logos, das App-Icon und die Sendernamen sind Marken und Eigentum des
 
 ## English
 
-LINEFM Radio is a Flutter app for listening to the LINEFM radio stations live (Android, iOS, Windows, macOS, Linux, web). It is under development and not yet published in any store. Operators start with [docs/EINRICHTUNG.md](docs/EINRICHTUNG.md) and [docs/FREIGABE-CHECKLISTE.md](docs/FREIGABE-CHECKLISTE.md), developers with [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md) (all in German). Developed by [Tim Hauke](https://github.com/VectoDE) for LineFM Studios. LINEFM and this app belong to LineFM Studios. All rights reserved, no open-source license.
+LINEFM Radio is a Flutter app for listening to the LINEFM radio stations live (Android, iOS, Windows, macOS, Linux, web). It is under development and not yet published in any store. Operators start with [docs/EINRICHTUNG.md](docs/EINRICHTUNG.md) and [docs/FREIGABE-CHECKLISTE.md](docs/FREIGABE-CHECKLISTE.md), developers with [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md) (all in German). Linux packages (.deb, .rpm, AppImage) are described in English in [packaging/linux/README.md](packaging/linux/README.md). Developed by [Tim Hauke](https://github.com/VectoDE) for LineFM Studios. LINEFM and this app belong to LineFM Studios. All rights reserved, no open-source license.
 
 ### Standards and compliance
 

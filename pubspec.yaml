@@ -84,6 +84,8 @@ flutter:
     # Die Schriftdateien selbst kommen ueber "fonts:".
     - assets/fonts/OFL.txt
     - assets/fonts/LICENSE-Syncopate-Apache2.txt
+    # LGPL/GPL texts and source notice for libmpv/FFmpeg (registerNativeLicenses).
+    - assets/licenses/
     # assets/branding/ wird zur Laufzeit nicht gebraucht (Icons entstehen beim
     # Build, das RadioGruppe-Logo laedt von radiogruppe.de, Entscheidung 47).
   fonts:

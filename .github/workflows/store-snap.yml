@@ -2,7 +2,9 @@ name: Store Snap
 
 # Builds the snap from packaging/snap/snapcraft.yaml (copied to snap/, as snapcraft
 # expects) and uploads it to the Snap Store (default: channel edge).
-# Trigger: release.yml or manually with a tag. Without the secret SNAPCRAFT_STORE_CREDENTIALS it is
+# Trigger: release.yml or manually with a tag. For proposed changes that touch the
+# snap packaging, the LGPL check or this workflow it only builds and checks the
+# snap from the proposed change (no upload, no secrets). Without the secret SNAPCRAFT_STORE_CREDENTIALS it is
 # skipped cleanly and the expensive build does not run at all. Untested (no Linux build
 # and no Snap Store account during development).
 #
@@ -10,6 +12,11 @@ name: Store Snap
 # the job writes beforehand like the other release builds (packaging/snap/snapcraft.yaml).
 
 on:
+  pull_request:
+    paths:
+      - packaging/snap/**
+      - tool/check_native_lgpl.py
+      - .github/workflows/store-snap.yml
   workflow_call:
     inputs:
       tag:
@@ -47,8 +54,8 @@ on:
 permissions: {}
 
 concurrency:
-  group: store-snap-${{ inputs.tag }}
-  cancel-in-progress: false
+  group: store-snap-${{ inputs.tag || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   gate:
@@ -61,6 +68,7 @@ jobs:
       ready: ${{ steps.gate.outputs.ready }}
     steps:
       - name: Validate inputs
+        if: github.event_name != 'pull_request'
         env:
           TAG: ${{ inputs.tag }}
           CHANNEL: ${{ inputs.channel }}
@@ -78,13 +86,14 @@ jobs:
       # Even on a manual start (workflow_dispatch) the tag must match pubspec.yaml,
       # as in the "version" job of release.yml.
       - name: Compare tag and pubspec version
+        if: github.event_name != 'pull_request'
         uses: ./.github/actions/tag-version
         with:
           tag: ${{ inputs.tag }}
 
       - name: Gate Snap Store
         id: gate
-        if: ${{ !inputs.build_only }}
+        if: ${{ !inputs.build_only && github.event_name != 'pull_request' }}
         uses: ./.github/actions/secret-gate
         with:
           label: Snap Store upload (${{ inputs.tag }}, channel ${{ inputs.channel }})
@@ -94,7 +103,7 @@ jobs:
   publish:
     name: Build and upload snap
     needs: gate
-    if: needs.gate.outputs.ready == 'true' || inputs.build_only
+    if: needs.gate.outputs.ready == 'true' || inputs.build_only || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -115,7 +124,14 @@ jobs:
         id: version
         env:
           TAG: ${{ inputs.tag }}
-        run: echo "label=${TAG#v}" >> "$GITHUB_OUTPUT"
+        run: |
+          set -euo pipefail
+          if [ -n "$TAG" ]; then
+            echo "label=${TAG#v}" >> "$GITHUB_OUTPUT"
+          else
+            # Proposed change: version from pubspec.yaml (without +build number).
+            echo "label=$(sed -n 's/^version:[[:space:]]*\([0-9.]*\).*/\1/p' pubspec.yaml | head -n1)" >> "$GITHUB_OUTPUT"
+          fi
 
       # Same build values as the other release builds; the snap part reads
       # config/app.json from the source tree.
@@ -144,6 +160,8 @@ jobs:
       # The check script comes from the tag checkout; older tags without it
       # fail here on purpose.
       - name: Fill and check legal texts
+        # Release gate only; a build of a proposed change is never published.
+        if: github.event_name != 'pull_request'
         env:
           LEGAL_VALUES_JSON: ${{ vars.LEGAL_VALUES_JSON }}
           PROVIDERS: ${{ steps.cfg.outputs.providers }}
@@ -159,17 +177,32 @@ jobs:
         id: build
         uses: snapcore/action-build@3bdaa03e1ba6bf59a65f84a751d943d549a54e79 # v1.3.0
 
+      # The proprietary app may only ship LGPL builds of libmpv and FFmpeg.
+      # Unpack the snap and read the build configuration embedded in the
+      # libraries; fails on any GPL part (tool/check_native_lgpl.py).
+      - name: Check libmpv and FFmpeg are LGPL
+        env:
+          SNAP_FILE: ${{ steps.build.outputs.snap }}
+        run: |
+          set -euo pipefail
+          if ! command -v unsquashfs >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq squashfs-tools
+          fi
+          unsquashfs -q -d "$RUNNER_TEMP/snap-root" "$SNAP_FILE"
+          python3 -I tool/check_native_lgpl.py "$RUNNER_TEMP/snap-root"
+
       - name: Store snap as artifact
-        if: ${{ inputs.build_only }}
+        if: ${{ inputs.build_only || github.event_name == 'pull_request' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: snap-${{ inputs.tag }}
+          name: snap-${{ inputs.tag || github.sha }}
           path: ${{ steps.build.outputs.snap }}
           if-no-files-found: error
           retention-days: 14
 
       - name: Upload snap
-        if: ${{ !inputs.build_only }}
+        if: ${{ !inputs.build_only && github.event_name != 'pull_request' }}
         uses: snapcore/action-publish@214b86e5ca036ead1668c79afb81e550e6c54d40 # v1.2.0
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
@@ -178,7 +211,7 @@ jobs:
           release: ${{ inputs.channel }}
 
       - name: Summary
-        if: ${{ !inputs.build_only }}
+        if: ${{ !inputs.build_only && github.event_name != 'pull_request' }}
         env:
           TAG: ${{ inputs.tag }}
           CHANNEL: ${{ inputs.channel }}

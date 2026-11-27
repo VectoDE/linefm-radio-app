@@ -110,3 +110,12 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
+# License texts and source notice for the bundled libmpv/FFmpeg (LGPL),
+# installed next to the executable so they ship with every Windows build.
+install(FILES
+  "${CMAKE_CURRENT_SOURCE_DIR}/../assets/licenses/LGPL-3.0.txt"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../assets/licenses/GPL-3.0.txt"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../assets/licenses/NATIVE-LIBRARIES.txt"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/licenses"
+  COMPONENT Runtime)

@@ -15,20 +15,51 @@ Ob eine dynamisch geladene GPL-Bibliothek die App zu einem "Werk unter der GPL" 
 
 | Plattform | Quelle von libmpv und FFmpeg | Lizenz laut Stand der Prüfung | Offen |
 |---|---|---|---|
-| Linux (Flatpak) | im Manifest `packaging/flathub/de.linefm.app.yml` gebaut: mpv 0.42.0, FFmpeg 8.0, libass, libplacebo | FFmpeg ohne `--enable-gpl`: LGPL 2.1 oder neuer. libass: ISC. libplacebo: LGPL 2.1 oder neuer. **mpv: standardmäßig GPL 2 oder neuer** | mpv mit `-Dgpl=false` bauen (siehe unten), im Manifest vorgesehen, **nicht getestet** |
-| Linux (Snap) | Ubuntu-Pakete `libmpv2` und `libmpv-dev` | Debian und Ubuntu bauen mpv und libmpv in der Regel mit GPL-Teilen. Genaue Lizenz laut Paket-Metadaten nachlesen | prüfen, `apt-cache show libmpv2` und `/usr/share/doc/libmpv2/copyright` im Snap |
+| Linux (Flatpak) | im Manifest `packaging/flathub/de.linefm.app.yml` gebaut: mpv 0.42.0, FFmpeg 8.0, libass, libplacebo | **LGPL**: mpv mit `-Dgpl=false` (LGPL 2.1 oder neuer), FFmpeg ohne `--enable-gpl` und ohne `--enable-version3` (LGPL 2.1 oder neuer), libass ISC, libplacebo LGPL 2.1 oder neuer. Geprüft im Manifest am 27.11.2026 | Bau und Wiedergabe mit diesen Optionen auf Linux noch nicht getestet |
+| Linux (Snap) | im Snap selbst gebaut (`packaging/snap/snapcraft.yaml`, Parts `ffmpeg`, `libplacebo`, `mpv`): mpv 0.42.0, FFmpeg 8.0, libplacebo v7.387.0, gleiche Quellen und Prüfsummen wie im Flatpak; libass aus Ubuntu (`libass9`). Die GPL-Pakete `libmpv2` und `libmpv-dev` aus Ubuntu werden nicht mehr verwendet | **LGPL**: mpv mit `-Dgpl=false` (LGPL 2.1 oder neuer), FFmpeg mit `--disable-gpl --disable-nonfree --enable-version3` (LGPL 3 oder neuer), libass ISC. Nachweis nur in CI: `store-snap.yml` entpackt den fertigen Snap und prüft mit `tool/check_native_lgpl.py` die eingebettete Bau-Konfiguration; der Job schlägt bei jedem GPL-Anteil fehl | Snap-Bau ist noch nie gelaufen (kein Linux-Build, kein Store-Konto). Erst der erste grüne Lauf bestätigt Bau, Wiedergabe und LGPL-Prüfung |
 | Linux (Tarball) | System-libmpv des Nutzers | liegt beim Nutzer, wir liefern sie nicht mit | in der Anleitung als Voraussetzung nennen |
-| Windows | vorgebaute `libmpv-2.dll` des Projekts media-kit (Audio-Build vom 24.09.2023), geladen vom Paket `media_kit_libs_windows_audio` | **aus dem Paket nicht ersichtlich.** mpv ist standardmäßig GPL, ein LGPL-Build ist möglich | Lizenz des Builds beim Upstream nachlesen (media-kit/libmpv-win32-audio-build), Ergebnis hier eintragen |
+| Windows | vorgebaute `libmpv-2.dll` des Projekts media-kit (Audio-Build vom 24.09.2023, Archiv `mpv-dev-x86_64-20230924-git-652a1dd.7z`), geladen vom Paket `media_kit_libs_windows_audio` 1.0.9 | **LGPL**: mpv mit `-Dgpl=false` gebaut (LGPL 2.1 oder neuer), FFmpeg mit `--disable-gpl --disable-nonfree --enable-version3` (LGPL 3 oder neuer). Zusammen gilt damit praktisch die LGPL 3. Belege siehe Abschnitt "Windows: Prüfung der libmpv" | Lizenztexte und Quellenhinweis im Installer beilegen; anwaltlich bestätigen lassen |
 | Android, iOS, macOS, Web | nutzen die Plattform-Player (ExoPlayer, AVPlayer, HTML-Audio) | nicht betroffen | keine |
+
+## Windows: Prüfung der libmpv
+
+Stand 27.11.2026. Keine Rechtsberatung, das Ergebnis lässt der Anwalt bestätigen.
+
+**Woher die Datei kommt.** Das Paket `media_kit_libs_windows_audio` (Version 1.0.9 laut `pubspec.lock`, selbst MIT-lizenziert) lädt beim Windows-Build ein fertiges Archiv herunter und prüft dessen MD5-Summe. Aus `windows/CMakeLists.txt` des Pakets:
+
+- Archiv: `mpv-dev-x86_64-20230924-git-652a1dd.7z`
+- Adresse: <https://github.com/media-kit/libmpv-win32-audio-build/releases/download/2023-09-24/mpv-dev-x86_64-20230924-git-652a1dd.7z>
+- MD5 des Archivs: `cd738e16e2a19626d7cfa48801524f8c`
+- Release-Seite: <https://github.com/media-kit/libmpv-win32-audio-build/releases/tag/2023-09-24>, gebaut aus mpv-Commit [652a1dd](https://github.com/mpv-player/mpv/commit/652a1dd90711839acdccc08004056d25514ef2d8) (mpv v0.36.0-403)
+
+Das Build-Repository `media-kit/libmpv-win32-audio-build` (abgeleitet von `zhongfly/mpv-winbuild`) hat selbst keine Lizenzangabe. Seine Paketdateien im Hauptzweig sind nicht verlässlich, weil sie sich nach dem Build geändert haben. Deshalb zählt die Datei selbst.
+
+**Was in der DLL steht.** Die Bau-Konfiguration ist in jeder mpv- und FFmpeg-Bibliothek als Text eingebettet. Ausgelesen aus der beim lokalen Windows-Build entstandenen `build/windows/x64/libmpv/libmpv-2.dll` (14,8 MB, MD5 `4eda7466f01800ef8a35ea6587a2fa96`):
+
+- mpv: `Configuration: -Dgpl=false -Db_lto=true -Db_ndebug=true -Dlibmpv=true ... -Dlua=disabled -Djavascript=enabled -Dlibarchive=enabled -Dlcms2=enabled -Dopenal=enabled -Dgl=disabled ...`, Version `mpv v0.36.0-403-g652a1dd907`
+- FFmpeg: `--disable-gpl --disable-nonfree --enable-version3 --enable-static --disable-shared ...`
+- FFmpeg meldet für alle Teilbibliotheken: `libavcodec license: LGPL version 3 or later` (ebenso libavfilter, libavformat, libavutil, libswresample, libswscale)
+
+So lässt sich das nachprüfen (Python, ohne Zusatzwerkzeuge):
+
+```sh
+python -I -c "import re,sys; b=open(sys.argv[1],'rb').read(); [print(m.group().decode()[:200]) for m in re.finditer(rb'(Configuration: -D[ -~]{20,}|lib[a-z]+ license: [ -~]+|--disable-gpl[ -~]{0,60})', b)]" build/windows/x64/libmpv/libmpv-2.dll
+```
+
+**Bedeutung.** Mit `-Dgpl=false` steht mpv unter der LGPL 2.1 oder neuer (siehe [mpv: Copyright](https://github.com/mpv-player/mpv/blob/master/Copyright)). FFmpeg mit `--enable-version3` und ohne `--enable-gpl` steht unter der LGPL 3 oder neuer (siehe [FFmpeg: License and Legal Considerations](https://ffmpeg.org/legal.html)). Weil FFmpeg statisch in dieselbe DLL gelinkt ist, gilt für die DLL als Ganzes die LGPL 3. Ebenfalls statisch enthalten sind unter anderem zlib, libpng, libjpeg-turbo, libarchive, lcms2, OpenAL Soft (LGPL 2 oder neuer) und mujs (ISC). Keine davon ist GPL.
+
+**Pflichten bei LGPL 3** (Kurzfassung, Anwalt bestätigt): Lizenztext von LGPL 3 und GPL 3 beilegen, Hinweis auf die verwendete Bibliothek und Quelle (Adresse oben plus mpv- und FFmpeg-Quellcode), die DLL als eigene, austauschbare Datei ausliefern (ist so), kein Verbot von Reverse Engineering zur Fehlersuche an der Bibliothek in den Nutzungsbedingungen. Den letzten Punkt prüft der Anwalt gegen die `LICENSE` des Repos.
+
+**Bei jedem Update** von `media_kit_libs_windows_audio` Adresse und MD5 in dessen `CMakeLists.txt` vergleichen und die eingebettete Konfiguration neu auslesen.
 
 ## Was zu tun ist
 
-- [ ] **Flatpak:** `-Dgpl=false` bei mpv setzen und prüfen, dass Wiedergabe von laut.fm-Streams (MP3/AAC/Ogg) weiter läuft. Das Manifest enthält die Option bereits mit Kommentar. Der Bau auf Linux fehlt noch.
-- [ ] **Windows:** Lizenz der mitgelieferten `libmpv-2.dll` klären. Ist sie GPL, gibt es drei Wege: LGPL-Build von libmpv verwenden, die App unter einer GPL-kompatiblen Lizenz anbieten (widerspricht "Alle Rechte vorbehalten") oder Windows auf einen anderen Player umstellen. Bis zur Klärung Windows nicht im Store veröffentlichen.
-- [ ] **Snap:** Lizenz der Ubuntu-Pakete prüfen. Ist libmpv2 GPL, gilt dasselbe wie bei Windows.
-- [ ] **Lizenztexte beilegen:** Für jede ausgelieferte LGPL- oder GPL-Bibliothek den Lizenztext und einen Hinweis auf die Quelle ins Paket legen (Flatpak: `/app/share/licenses/`, Windows-Installer: Ordner `licenses`, Tarball: Ordner `licenses`). Der Hinweis nennt Name, Version, Lizenz und die Adresse des Quellcodes (zum Beispiel `https://github.com/mpv-player/mpv`, `https://ffmpeg.org`).
+- [ ] **Flatpak:** `-Dgpl=false` ist im Manifest gesetzt, FFmpeg ohne GPL (geprüft 27.11.2026). Prüfbau in CI: `flatpak-check.yml` baut das Flatpak bei jedem Änderungsvorschlag am Manifest mit dem lokalen Linux-Bundle, prüft libmpv/FFmpeg mit `tool/check_native_lgpl.py` und die Dateien unter `/app/share/licenses/de.linefm.app/`. Offen: erster grüner Lauf und Test der Wiedergabe von laut.fm-Streams (MP3/AAC/Ogg).
+- [x] **Windows:** Lizenz der mitgelieferten `libmpv-2.dll` geprüft (27.11.2026): LGPL-Build, kein GPL-Anteil eingeschaltet. Belege im Abschnitt "Windows: Prüfung der libmpv". Offen bleibt das Beilegen der Lizenztexte (Punkt unten) und die anwaltliche Bestätigung.
+- [ ] **Snap:** Auf selbst gebaute LGPL-Bibliotheken umgestellt (27.11.2026), CI-Prüfung `tool/check_native_lgpl.py` im Job `store-snap.yml`. Offen: erster Snap-Bau in CI und Test der Wiedergabe. Die frühere Freigabesperre wegen der GPL-Pakete aus Ubuntu entfällt, sobald dieser Lauf grün ist.
+- [x] **Lizenztexte beilegen:** LGPL 3, GPL 3 und der Quellenhinweis `NATIVE-LIBRARIES.txt` liegen in `assets/licenses/`. Sie stecken damit in jedem Build (Flutter-Assets), werden unter Windows zusätzlich nach `licenses/` neben die EXE installiert (`windows/CMakeLists.txt`) und vom Installer mitgepackt (`installer/windows/build.ps1`); im Flatpak zusätzlich unter `/app/share/licenses/de.linefm.app/`. Der Test `test/tool/native_licenses_files_test.dart` prüft das in CI. Den Wortlaut des Quellcode-Angebots in `NATIVE-LIBRARIES.txt` prüft der Anwalt.
 - [ ] **Austauschbarkeit:** Die Bibliotheken bleiben als eigene Dateien (`.so`, `.dll`) liegen und werden nicht in die ausführbare Datei gelinkt. So kann ein Nutzer sie ersetzen. In der Dokumentation kurz erwähnen.
-- [ ] **In der App:** Der Bildschirm mit den Lizenzen (Einstellungen > Über) listet die Dart-Pakete automatisch. Für native Bibliotheken fehlt dort der Eintrag. Wunsch an die Entwicklung: libmpv, FFmpeg, libass, libplacebo mit Lizenz und Quelle als zusätzliche Einträge aufnehmen.
+- [x] **In der App:** Auf Windows und Linux listet die Lizenzseite libmpv, FFmpeg, libass und libplacebo mit Lizenz und Quelle sowie die vollen Texte von LGPL 3, GPL 3 und den Quellenhinweis (`lib/ui/theme/native_licenses.dart`). Die Angaben gelten für Windows, Flatpak und Snap.
 
 ## Weitere Bausteine
 

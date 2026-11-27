@@ -46,7 +46,6 @@ Future<PlaybackService> initAudio() async {
             : _channelName(),
         androidNotificationIcon: audioNotificationIcon,
         androidNotificationOngoing: true,
-        androidStopForegroundOnPause: true,
         notificationColor: LinefmPalette.ink,
         // Live-Radio: kein Vor-/Zuruecksetzen per Zeitsprung.
         fastForwardInterval: const Duration(seconds: 1),

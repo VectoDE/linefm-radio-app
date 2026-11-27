@@ -23,7 +23,7 @@ void main() {
       // 02:00 on 29 March 2026 does not exist; it maps to 03:00 CEST.
       expect(BerlinTime.toUtc(2026, 3, 29, 2), DateTime.utc(2026, 3, 29, 1));
       // 02:00 on 25 October 2026 happens twice; the first one (CEST) wins.
-      expect(BerlinTime.toUtc(2026, 10, 25, 2), DateTime.utc(2026, 10, 25, 0));
+      expect(BerlinTime.toUtc(2026, 10, 25, 2), DateTime.utc(2026, 10, 25));
       expect(BerlinTime.toUtc(2026, 10, 25, 3), DateTime.utc(2026, 10, 25, 2));
     });
   });

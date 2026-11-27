@@ -330,6 +330,9 @@ jobs:
       - name: Build APK (universal)
         run: flutter build apk $FLUTTER_BUILD_FLAGS --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 
+      - name: APK size budget
+        run: python3 -I tool/perf/bundle_budget.py --apk "$(ls build/app/outputs/flutter-apk/app-release*.apk | head -n1)"
+
       - name: Build AAB
         run: flutter build appbundle $FLUTTER_BUILD_FLAGS --build-name "$BUILD_NAME" --build-number "$BUILD_NUMBER"
 

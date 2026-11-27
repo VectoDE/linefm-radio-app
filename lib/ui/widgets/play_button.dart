@@ -132,8 +132,6 @@ class _PressableState extends State<_Pressable> {
         onHover: (v) => setState(() => _hover = v),
         onHighlightChanged: (v) => setState(() => _down = v),
         radius: widget.size / 2,
-        containedInkWell: false,
-        highlightShape: BoxShape.circle,
         highlightColor: Colors.transparent,
         child: AnimatedScale(
           scale: scale,

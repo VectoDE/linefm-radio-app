@@ -1,3 +1,7 @@
+// The fromEnvironment arguments restate constructor defaults on purpose: they
+// document the full --dart-define surface.
+// ignore_for_file: avoid_redundant_argument_values
+
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb;
 

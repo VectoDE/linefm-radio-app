@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/data/api/laut_api.dart';
 import 'package:linefm_radio/data/api/song_change_socket.dart';
 import 'package:linefm_radio/data/artwork/itunes_artwork.dart';
@@ -12,6 +11,8 @@ import 'package:linefm_radio/domain/now_playing.dart';
 import 'package:linefm_radio/domain/schedule_slot.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
+
+import '../../support/test_doubles.dart';
 
 final _t0 = DateTime.utc(2026, 11, 18, 20);
 

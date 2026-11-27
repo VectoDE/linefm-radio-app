@@ -100,7 +100,7 @@ class JustAudioRadioPlayer implements RadioPlayer {
   @override
   Future<void> load(Uri url) async {
     _last = null;
-    await _player.setAudioSource(AudioSource.uri(url), preload: true);
+    await _player.setAudioSource(AudioSource.uri(url));
   }
 
   @override

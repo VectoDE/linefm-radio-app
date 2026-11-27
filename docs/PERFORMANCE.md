@@ -2,7 +2,7 @@
 
 Stand 21.11.2026. Vorgabe des Inhabers: App-Start, Laden im Browser, Bedienung und Ton nach Klick sollen dreimal so schnell werden (gemessene Zeiten auf ein Drittel).
 
-Dieses Dokument hält den Ausgangsstand fest. Budgets in der CI gibt es noch nicht; sie folgen, wenn die Maßnahmen umgesetzt und nachgemessen sind.
+Dieses Dokument hält den Ausgangsstand fest. Größenbudgets prüft die CI seit der Einführung von `tool/perf/bundle_budget.json` (siehe Abschnitt Größenbudget); weitere Budgets folgen, wenn die Maßnahmen umgesetzt und nachgemessen sind.
 
 ## Wie gemessen wird
 
@@ -162,3 +162,12 @@ the engine start and the app itself.
 Seobility (https://www.seobility.net/de/seocheck/) and WebsiteScorer (https://websitescorer.com/)
 offer no free API. They are run by hand against the Pages URL after a deploy that changes the
 web output; the scores and findings go into the tracker.
+
+## Größenbudget
+
+`tool/perf/bundle_budget.json` hält die Obergrenzen. Das Skript `tool/perf/bundle_budget.py` prüft sie und lässt die CI scheitern, sobald ein Wert überschritten ist oder eine budgetierte Datei im Build fehlt.
+
+- **Web** (`ci.yml`, Schritt "Bundle budget"): gzip-Größe (Stufe 5, wie nginx) von `main.dart.wasm`, `main.dart.mjs`, `main.dart.js`, `skwasm.wasm`, `skwasm.js`, `flutter_bootstrap.js` und `index.html`, dazu die Summe der Startdateien sowie rohe Größe der App-Schriften und Bilder. Ausgangswert ist der Messlauf vom 25.11.2026, die Grenzen liegen etwa 10 % darüber.
+- **Android** (`build.yml`, Schritt "APK size budget"): rohe Größe des Universal-APK gegen `apk_bytes`. Solange der Wert `null` ist, wird die Größe nur ausgegeben. Er wird nach dem ersten CI-Lauf auf Messwert plus etwa 10 % gesetzt.
+- **Anheben:** nur mit Begründung in der Commit-Nachricht, nie stillschweigend.
+- **Lokal:** `python3 -I tool/perf/bundle_budget.py build/web` oder `--apk <Datei>`; Tests: `python -m unittest discover -s test/tool -p "test_bundle_budget.py"`.

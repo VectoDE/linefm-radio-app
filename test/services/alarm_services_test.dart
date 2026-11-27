@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:alarm/alarm.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/alarm/alarm_schedule.dart';
 import 'package:linefm_radio/domain/player_ui_state.dart';
@@ -16,6 +15,8 @@ import 'package:linefm_radio/services/alarm/alarm_ios.dart';
 import 'package:linefm_radio/services/alarm/alarm_permissions.dart';
 import 'package:linefm_radio/services/alarm/alarm_texts.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
+
+import '../support/test_doubles.dart';
 
 class _FakeAlarmApi implements AndroidAlarmApi {
   final Map<int, AlarmSettings> alarms = <int, AlarmSettings>{};

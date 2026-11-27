@@ -252,7 +252,6 @@ class BrowseTree {
       artUri: cover != null && cover.isNotEmpty
           ? Uri.parse(cover)
           : (art ?? defaultArt(station)),
-      playable: true,
       isLive: true,
       extras: <String, dynamic>{'stationId': station.id},
     );

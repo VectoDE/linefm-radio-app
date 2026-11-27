@@ -28,3 +28,17 @@ linter:
     - always_declare_return_types
     - directives_ordering
     - require_trailing_commas
+    - avoid_dynamic_calls
+    - only_throw_errors
+    - prefer_final_fields
+    - prefer_final_locals
+    - prefer_final_in_for_each
+    - unnecessary_lambdas
+    - use_super_parameters
+    - avoid_redundant_argument_values
+    - avoid_unused_constructor_parameters
+    - literal_only_boolean_expressions
+    - sort_child_properties_last
+    - use_enums
+    - use_named_constants
+    - eol_at_end_of_file

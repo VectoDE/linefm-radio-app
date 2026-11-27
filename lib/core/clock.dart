@@ -1,4 +1,4 @@
-/// Uhr-Abstraktion fuer Timer- und Wecker-Logik (Tests nutzen [FakeClock]).
+/// Uhr-Abstraktion fuer Timer- und Wecker-Logik (Tests nutzen eine eigene Uhr).
 abstract interface class Clock {
   DateTime now();
 }
@@ -8,17 +8,4 @@ class SystemClock implements Clock {
 
   @override
   DateTime now() => DateTime.now();
-}
-
-class FakeClock implements Clock {
-  FakeClock(this._now);
-
-  DateTime _now;
-
-  @override
-  DateTime now() => _now;
-
-  void advance(Duration d) => _now = _now.add(d);
-
-  void setTo(DateTime t) => _now = t;
 }

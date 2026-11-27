@@ -105,7 +105,6 @@ class StationArt extends StatelessWidget {
         // vor, in Liste und Ticker reichen 48 dp.
         cacheWidth: cachePx,
         excludeFromSemantics: true,
-        filterQuality: FilterQuality.medium,
         frameBuilder: fade,
         errorBuilder: hide,
       );
@@ -116,7 +115,6 @@ class StationArt extends StatelessWidget {
       fit: BoxFit.cover,
       cacheWidth: cachePx,
       excludeFromSemantics: true,
-      filterQuality: FilterQuality.medium,
       frameBuilder: fade,
       errorBuilder: hide,
     );

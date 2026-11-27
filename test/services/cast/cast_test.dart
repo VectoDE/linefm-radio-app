@@ -21,6 +21,8 @@ import 'package:linefm_radio/services/cast/chrome_cast_service.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../support/test_doubles.dart';
+
 const CastDevice _tv = CastDevice(id: 'tv', name: 'Wohnzimmer');
 const CastDevice _speaker = CastDevice(id: 'sp', name: 'Küche');
 
@@ -453,6 +455,7 @@ void main() {
       final container = ProviderContainer(
         overrides: <Override>[
           prefsProvider.overrideWithValue(InMemoryPrefsStore()),
+          ...offlineDataOverrides(),
           castServiceProvider.overrideWith(createCastService),
         ],
       );
@@ -495,6 +498,7 @@ void main() {
       final container = ProviderContainer(
         overrides: <Override>[
           prefsProvider.overrideWithValue(InMemoryPrefsStore()),
+          ...offlineDataOverrides(),
           castServiceProvider.overrideWith(createCastService),
         ],
       );
@@ -624,6 +628,7 @@ void main() {
         ProviderScope(
           overrides: <Override>[
             prefsProvider.overrideWithValue(InMemoryPrefsStore()),
+            ...offlineDataOverrides(),
             castServiceProvider.overrideWithValue(service),
           ],
           child: MaterialApp(

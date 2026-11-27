@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
-import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/favorite.dart';
 import 'package:linefm_radio/domain/favorites/favorites_export.dart';
@@ -19,6 +18,8 @@ import 'package:linefm_radio/services/share/share_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
+
+import '../../support/test_doubles.dart';
 
 class _RecordingHub extends TelemetryHub {
   _RecordingHub() : super(config: const AppConfig());
@@ -58,11 +59,7 @@ class _RecordingShare implements ShareService {
   ) async {}
 }
 
-const _track = Track(
-  artist: 'James Hype',
-  title: "I Was Lovin' You",
-  artworkUrl: null,
-);
+const _track = Track(artist: 'James Hype', title: "I Was Lovin' You");
 
 class _Harness {
   _Harness() {

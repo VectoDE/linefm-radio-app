@@ -147,10 +147,7 @@ void main() {
         backend: _ThrowingBackend(),
         fetchCover: (url) async => null,
       );
-      await expectLater(
-        sync.update(station: main, track: null, playing: false),
-        completes,
-      );
+      await expectLater(sync.update(station: main, playing: false), completes);
     });
   });
 }

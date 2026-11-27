@@ -9,8 +9,6 @@ import 'package:flutter_localizations/flutter_localizations.dart'
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/providers.dart';
-import 'package:linefm_radio/core/clock.dart';
-import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/favorite.dart';
@@ -25,6 +23,7 @@ import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../golden_support.dart';
+import '../support/test_doubles.dart';
 
 class _Repo extends FakeNowPlayingRepository {
   @override
@@ -57,7 +56,7 @@ Favorite _f(String title, String artist, String slug) => Favorite(
   stationSlug: slug,
   title: title,
   artist: artist,
-  savedAt: DateTime(2026, 11, 18, 20, 0),
+  savedAt: DateTime(2026, 11, 18, 20),
 );
 
 Future<void> _show(

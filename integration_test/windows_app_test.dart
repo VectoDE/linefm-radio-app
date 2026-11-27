@@ -21,7 +21,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:linefm_radio/app/app.dart';
 import 'package:linefm_radio/app/providers.dart';
-import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/data/api/laut_api.dart';
 import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
@@ -44,6 +43,8 @@ import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:window_manager/legacy.dart' show DragToMoveArea, WindowManager;
+
+import '../test/support/test_doubles.dart';
 
 /// Zielordner der Bilder (CI: `--dart-define=ITEST_OUT=...`).
 const String _outDefine = String.fromEnvironment('ITEST_OUT');

@@ -179,9 +179,6 @@ class AndroidAlarmPlatform implements AlarmPlatform {
         AlarmSettings(
           id: id,
           dateTime: at,
-          assetAudioPath: null,
-          loopAudio: true,
-          vibrate: true,
           volumeSettings: const VolumeSettings.fixed(),
           notificationSettings: NotificationSettings(
             title: texts.title,
@@ -192,7 +189,6 @@ class AndroidAlarmPlatform implements AlarmPlatform {
           // Der Ton laeuft weiter, auch wenn die App beendet wird.
           androidStopAlarmOnTermination: false,
           warningNotificationOnKill: false,
-          androidFullScreenIntent: true,
           allowSameSecondScheduling: true,
           androidSnoozeDuration: AlarmSchedule.snooze,
           payload: rule.id,

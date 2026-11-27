@@ -4,9 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/navigation.dart';
 import 'package:linefm_radio/app/providers.dart';
-import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
-import 'package:linefm_radio/data/live/now_playing_repository.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/favorite.dart';
@@ -25,6 +23,8 @@ import 'package:linefm_radio/services/share/share_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
+
+import '../support/test_doubles.dart';
 
 class _Repo extends FakeNowPlayingRepository {
   _Repo(this.entries);
@@ -206,7 +206,7 @@ void main() {
       String f(DateTime t) => formatClock(t, en, alwaysUse24HourFormat: true);
       expect(f(DateTime(2026, 11, 18, 8, 7)), '08:07');
       expect(f(DateTime(2026, 11, 18, 21, 40)), '21:40');
-      expect(f(DateTime(2026, 11, 18, 0, 0)), '00:00');
+      expect(f(DateTime(2026, 11, 18)), '00:00');
     });
     test('Englisch ohne 24-Stunden-Einstellung: 12 Stunden', () {
       expect(formatClock(DateTime(2026, 11, 18, 21, 40), en), '9:40 PM');

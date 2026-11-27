@@ -4,7 +4,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/providers.dart';
-import 'package:linefm_radio/core/clock.dart';
 import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
@@ -14,6 +13,8 @@ import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
 import 'package:linefm_radio/services/alarm/alarm_permissions.dart';
 import 'package:linefm_radio/services/alarm/alarm_wiring.dart';
 import 'package:linefm_radio/services/audio/playback_service.dart';
+
+import '../support/test_doubles.dart';
 
 class _Platform implements AlarmPlatform {
   final StreamController<AlarmRing> controller =
@@ -174,7 +175,6 @@ void main() {
       final ok = await initAndReschedule(
         coordinator(platform),
         () => <AlarmRule>[rule],
-        retryDelay: const Duration(seconds: 30),
         sleep: (d) async => waits.add(d),
       );
       expect(ok, isTrue);

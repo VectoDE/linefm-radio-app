@@ -102,24 +102,3 @@ class HttpLautApi implements LautApi {
 
   void close() => cache.close();
 }
-
-/// Placeholder without network access (tests, previews).
-class StubLautApi implements LautApi {
-  const StubLautApi();
-
-  @override
-  Future<Track?> currentSong(String slug) async => null;
-
-  @override
-  Future<List<Track>> lastSongs(String slug) async => const <Track>[];
-
-  @override
-  Future<int?> listeners(String slug) async => null;
-
-  @override
-  Future<List<ScheduleSlot>> schedule(String slug) async =>
-      const <ScheduleSlot>[];
-
-  @override
-  Future<String?> streamUrl(String slug) async => null;
-}

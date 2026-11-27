@@ -133,7 +133,6 @@ class _SleepTimerRowState extends ConsumerState<SleepTimerRow> {
             child: DropdownButton<SleepTimerMode>(
               value: current,
               isExpanded: expand,
-              itemHeight: LinefmMetrics.minTarget,
               dropdownColor: c.surfaceRaised,
               borderRadius: BorderRadius.circular(LinefmMetrics.radiusPopover),
               iconEnabledColor: c.muted,

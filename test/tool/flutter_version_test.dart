@@ -104,4 +104,16 @@ void main() {
       pinned,
     );
   });
+
+  test('Snap part builds with the pinned Flutter and config/app.json', () {
+    final String snap = _read('packaging/snap/snapcraft.yaml');
+    expect(
+      snap,
+      isNot(matches(RegExp(r'^\s*plugin:\s*flutter', multiLine: true))),
+      reason: 'plugin: flutter ignores the pin and config/app.json',
+    );
+    expect(snap, contains('.fvmrc'));
+    expect(snap, contains('--dart-define-from-file=config/app.json'));
+    expect(snap, contains('flutter pub get --enforce-lockfile'));
+  });
 }

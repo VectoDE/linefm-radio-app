@@ -6,8 +6,8 @@ name: Store Snap
 # skipped cleanly and the expensive build does not run at all. Untested (no Linux build
 # and no Snap Store account during development).
 #
-# Limits (see docs/stores-pipelines.md): snapcraft builds from source with the Flutter plugin
-# and uses neither config/app.json nor the Flutter version pinned in pubspec.yaml.
+# The snap part builds with the Flutter version from .fvmrc and with config/app.json, which
+# the job writes beforehand like the other release builds (packaging/snap/snapcraft.yaml).
 
 on:
   workflow_call:
@@ -39,6 +39,10 @@ on:
           - candidate
           - stable
         default: edge
+      build_only:
+        description: Build only and keep as artifact, no upload (no store account)
+        type: boolean
+        default: false
 
 permissions: {}
 
@@ -80,6 +84,7 @@ jobs:
 
       - name: Gate Snap Store
         id: gate
+        if: ${{ !inputs.build_only }}
         uses: ./.github/actions/secret-gate
         with:
           label: Snap Store upload (${{ inputs.tag }}, channel ${{ inputs.channel }})
@@ -89,7 +94,7 @@ jobs:
   publish:
     name: Build and upload snap
     needs: gate
-    if: needs.gate.outputs.ready == 'true'
+    if: needs.gate.outputs.ready == 'true' || inputs.build_only
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -106,15 +111,43 @@ jobs:
           ref: ${{ inputs.tag }}
           persist-credentials: false
 
-      # N7: snapcraft builds from source, without write-config. So fill in the values
-      # from LEGAL_VALUES_JSON here and check for open mandatory placeholders.
-      # Without config/app.json no telemetry is active in the snap; the check therefore runs
-      # without --providers (provider details stay optional). The check script comes from
-      # the checkout of the tag; older tags without the script fail here (intended).
+      - name: Version from the tag
+        id: version
+        env:
+          TAG: ${{ inputs.tag }}
+        run: echo "label=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      # Same build values as the other release builds; the snap part reads
+      # config/app.json from the source tree.
+      - name: Set up Flutter
+        uses: ./.github/actions/setup-flutter
+        with:
+          pub-get: "false"
+
+      - name: Write config
+        id: cfg
+        uses: ./.github/actions/write-config
+        with:
+          app-env: prod
+          app-version: ${{ steps.version.outputs.label }}
+          legal-values-json: ${{ vars.LEGAL_VALUES_JSON }}
+          web-base-url: ${{ vars.WEB_BASE_URL }}
+          features-json: ${{ vars.FEATURES_JSON }}
+          umami-url: ${{ vars.UMAMI_URL }}
+          umami-website-id: ${{ vars.UMAMI_WEBSITE_ID }}
+          sentry-dsn: ${{ vars.SENTRY_DSN }}
+          sentry-environment: ${{ vars.SENTRY_ENVIRONMENT }}
+
+      # N7: fill the legal texts from LEGAL_VALUES_JSON and fail on open
+      # required placeholders. Providers come from config/app.json, so
+      # telemetry-dependent fields become required once a provider is active.
+      # The check script comes from the tag checkout; older tags without it
+      # fail here on purpose.
       - name: Fill and check legal texts
         env:
           LEGAL_VALUES_JSON: ${{ vars.LEGAL_VALUES_JSON }}
-        run: python3 -I tool/legal_store_check.py --fill
+          PROVIDERS: ${{ steps.cfg.outputs.providers }}
+        run: python3 -I tool/legal_store_check.py --fill --providers="$PROVIDERS"
 
       - name: Copy snapcraft.yaml to snap/
         run: |
@@ -126,7 +159,17 @@ jobs:
         id: build
         uses: snapcore/action-build@3bdaa03e1ba6bf59a65f84a751d943d549a54e79 # v1.3.0
 
+      - name: Store snap as artifact
+        if: ${{ inputs.build_only }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: snap-${{ inputs.tag }}
+          path: ${{ steps.build.outputs.snap }}
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload snap
+        if: ${{ !inputs.build_only }}
         uses: snapcore/action-publish@214b86e5ca036ead1668c79afb81e550e6c54d40 # v1.2.0
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
@@ -135,6 +178,7 @@ jobs:
           release: ${{ inputs.channel }}
 
       - name: Summary
+        if: ${{ !inputs.build_only }}
         env:
           TAG: ${{ inputs.tag }}
           CHANNEL: ${{ inputs.channel }}

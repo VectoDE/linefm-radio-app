@@ -75,6 +75,9 @@ cat > "$work/httpd.conf" <<'CONF'
 ServerRoot "/usr/local/apache2"
 Listen 8082
 ServerName localhost
+LoadModule mpm_event_module modules/mod_mpm_event.so
+LoadModule unixd_module modules/mod_unixd.so
+LoadModule filter_module modules/mod_filter.so
 LoadModule authz_core_module modules/mod_authz_core.so
 LoadModule mime_module modules/mod_mime.so
 LoadModule dir_module modules/mod_dir.so

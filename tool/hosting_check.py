@@ -253,13 +253,14 @@ def consistency(root: Path) -> list[str]:
 
 
 class Client:
-    def __init__(self, host: str, port: int, tls: bool, vhost: str):
-        self.host, self.port, self.tls, self.vhost = host, port, tls, vhost
+    def __init__(self, host: str, port: int, tls: bool, vhost: str, cafile: str | None = None):
+        self.host, self.port, self.tls, self.vhost, self.cafile = host, port, tls, vhost, cafile
 
     def get(self, path: str, headers: dict[str, str] | None = None, method: str = "GET"):
         hdrs = {"Host": self.vhost, "Accept-Encoding": "identity", **(headers or {})}
         if self.tls:
-            ctx = ssl._create_unverified_context()  # self-signed test certificate
+            # Verified connection: the test certificate (SAN includes the IP) is the only trusted CA.
+            ctx = ssl.create_default_context(cafile=self.cafile)
             conn = http.client.HTTPSConnection(self.host, self.port, timeout=20, context=ctx)
         else:
             conn = http.client.HTTPConnection(self.host, self.port, timeout=20)
@@ -284,7 +285,7 @@ def hcount(headers, name: str) -> int:
 def smoke(args) -> list[str]:
     errors: list[str] = []
     web = Path(args.web)
-    client = Client("127.0.0.1", args.port, args.tls, args.host)
+    client = Client("127.0.0.1", args.port, args.tls, args.host, args.cafile)
 
     def check(cond: bool, msg: str) -> None:
         if not cond:
@@ -410,6 +411,7 @@ def main(argv: list[str]) -> int:
     s.add_argument("--port", type=int, required=True)
     s.add_argument("--headers", default="build/hosting/nginx/snippets/linefm-headers.conf")
     s.add_argument("--tls", action="store_true")
+    s.add_argument("--cafile", default=None, help="CA/certificate file trusted for --tls")
     s.add_argument("--host", default="app.linefm.de")
     s.add_argument("--redirect-port", type=int, default=0)
     s.add_argument("--no-healthz", action="store_true")

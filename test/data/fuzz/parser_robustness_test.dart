@@ -31,7 +31,10 @@ import 'random_input.dart';
 const int seed = int.fromEnvironment('FUZZ_SEED', defaultValue: 20261121);
 
 /// Durchlaeufe je synchroner Eigenschaft (lokal per FUZZ_RUNS erhoehbar).
-const int runs = int.fromEnvironment('FUZZ_RUNS', defaultValue: 2000);
+/// Quelle: Umgebungsvariable FUZZ_RUNS (CI), sonst --dart-define, sonst 2000.
+final int runs =
+    int.tryParse(Platform.environment['FUZZ_RUNS'] ?? '') ??
+    const int.fromEnvironment('FUZZ_RUNS', defaultValue: 2000);
 
 const List<String> lautKeys = <String>[
   'artist',
@@ -54,6 +57,12 @@ const List<String> lautKeys = <String>[
   'stream_url',
   'type',
   'id',
+  'day',
+  'hour',
+  'end_time',
+  'description',
+  'color',
+  'shuffled',
 ];
 
 const List<String> itunesKeys = <String>[
@@ -156,6 +165,24 @@ void main() {
           () => LautParsers.parseStreamUrl(input),
         );
         if (url != null) expect(_isHttpUrl(url), isTrue, reason: url);
+      }
+    });
+
+    test('parseSchedule wirft nie und liefert gueltige Bloecke', () {
+      final gen = RandomInput(seed + 40, keys: lautKeys);
+      for (var run = 0; run < runs; run++) {
+        final input = gen.chance(0.7)
+            ? <Object?>[for (var i = gen.nextInt(8); i > 0; i--) gen.map()]
+            : gen.value();
+        final slots = _noThrow('parseSchedule', run, input, () {
+          return LautParsers.parseSchedule(input);
+        });
+        for (final slot in slots) {
+          expect(slot.name, isNotEmpty);
+          expect(slot.startHour, inInclusiveRange(0, 23));
+          final end = slot.endHour;
+          if (end != null) expect(end, inInclusiveRange(0, 24));
+        }
       }
     });
 
@@ -370,6 +397,7 @@ void main() {
           'lastSongs': () => api.lastSongs('linefm'),
           'listeners': () => api.listeners('linefm'),
           'streamUrl': () => api.streamUrl('linefm'),
+          'schedule': () => api.schedule('linefm'),
         };
         for (final MapEntry(:key, :value) in calls.entries) {
           try {

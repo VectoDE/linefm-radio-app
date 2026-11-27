@@ -1,0 +1,7 @@
+# ZAP baseline rule overrides: <rule id>	<IGNORE|INFO|WARN|FAIL>	<reason>
+# Only add a rule here after reviewing the finding.
+10027	IGNORE	Word matches such as 'from' or 'user' in explanatory comments of web/cast.js and in minified Flutter output; reviewed, nothing sensitive.
+10049	IGNORE	Informational: static public assets are meant to be cacheable; Cache-Control and ETag are set per path in web/_headers.
+10096	IGNORE	False positive: numeric constants in compiled Dart output, not server timestamps.
+10109	IGNORE	Informational: the site is a Flutter web app by design.
+90004	IGNORE	No cross-origin isolation needed (no SharedArrayBuffer); require-corp would block station covers and the Cast sender SDK from other origins.

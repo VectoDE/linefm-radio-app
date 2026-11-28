@@ -73,7 +73,9 @@ final class AccessibilityAuditTests: XCTestCase {
       if back.exists {
         back.tap()
       } else {
-        app.buttons["Back"].firstMatch.tap()
+        // Flutter's AppBar back button carries "Back" as its label, not as
+        // an identifier, so match the label.
+        app.buttons.matching(NSPredicate(format: "label == %@", "Back")).firstMatch.tap()
       }
     }
   }

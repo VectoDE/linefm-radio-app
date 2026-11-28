@@ -134,5 +134,11 @@
     "job": "Windows",
     "expires": "2027-02-28",
     "reason": "The post step of step-security/harden-runner v2.23.0 dumps its Windows agent log into the job log; the agent warns each time Windows reuses a process id between its polls (1000+ lines per job, from build tools such as rustc, cmake and git). Process tracking of the third-party agent, not output of our build, and the action has no input to lower its log level. Re-check with the next harden-runner release."
+  },
+  {
+    "pattern": "^w: \\S+ Deprecated 'org\\.jetbrains\\.kotlin\\.android' plugin usage$",
+    "job": "Android",
+    "expires": "2027-02-28",
+    "reason": "Kotlin Gradle plugin deprecation from the Flutter template (android.builtInKotlin=false) and third-party plugins that still apply KGP (alarm, audio_service, audio_session, file_selector_android, flutter_chrome_cast, home_widget). Resolves when these plugins move to built-in Kotlin."
   }
 ]

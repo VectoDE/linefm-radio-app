@@ -73,5 +73,5 @@ flutter {
 
 dependencies {
     // MediaBrowserCompat for the widget play button; same version as audio_service.
-    implementation("androidx.media:media:1.7.0")
+    implementation("androidx.media:media:1.8.0")
 }

@@ -226,8 +226,6 @@ class CastSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final colors = context.linefm;
-    final theme = Theme.of(context);
     final service = ref.read(castServiceProvider);
     final state = ref.watch(castProvider).value ?? service.state;
 
@@ -276,48 +274,7 @@ class CastSheet extends ConsumerWidget {
       }
     }
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          LinefmSpace.gutter,
-          LinefmSpace.md,
-          LinefmSpace.gutter,
-          LinefmSpace.lg,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Center(
-              child: ExcludeSemantics(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colors.line,
-                    borderRadius: BorderRadius.circular(
-                      LinefmMetrics.radiusPill,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: LinefmSpace.lg),
-            Semantics(
-              header: true,
-              child: Text(
-                l10n.castButton,
-                style: theme.textTheme.titleMedium!.copyWith(
-                  color: colors.text,
-                ),
-              ),
-            ),
-            const SizedBox(height: LinefmSpace.sm),
-            ...rows,
-          ],
-        ),
-      ),
-    );
+    return LinefmSheetBody(title: l10n.castButton, rows: rows);
   }
 }
 
@@ -329,58 +286,6 @@ class _SheetRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final colors = context.linefm;
-    final content = ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 56),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: LinefmSpace.sm),
-        child: Row(
-          children: <Widget>[
-            SizedBox(
-              width: 32,
-              child: Center(
-                child: Icon(
-                  icon,
-                  size: 22,
-                  color: onTap == null ? colors.muted : colors.text,
-                ),
-              ),
-            ),
-            const SizedBox(width: LinefmSpace.lg),
-            Expanded(
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                  color: onTap == null ? colors.muted : colors.text,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (onTap == null) return content;
-    return SemanticFocus(
-      builder: (_, focused, onFocus, child) => Semantics(
-        container: true,
-        button: true,
-        label: label,
-        excludeSemantics: true,
-        onTap: onTap,
-        focusable: true,
-        focused: focused,
-        onFocus: onFocus,
-        child: child,
-      ),
-      child: FocusRing(
-        borderRadius: LinefmMetrics.radiusPopover,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(LinefmMetrics.radiusPopover),
-          child: content,
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      LinefmSheetRow(leading: Icon(icon, size: 22), label: label, onTap: onTap);
 }

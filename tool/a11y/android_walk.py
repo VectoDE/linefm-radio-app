@@ -79,7 +79,13 @@ def main():
 
     def tap(label, prefix=False, scrolls=0):
         for attempt in range(scrolls + 1):
-            root = tree_check.parse_dump(dump())
+            text = dump()
+            if out and attempt:
+                slug = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")
+                with open(os.path.join(out, "search-%s-%d.xml" % (slug, attempt)),
+                          "w", encoding="utf-8") as f:
+                    f.write(text)
+            root = tree_check.parse_dump(text)
             for node in root.iter("node"):
                 name = node_name(node)
                 hit = name.startswith(label) if prefix else label in (
@@ -134,7 +140,7 @@ def main():
         parent, _, row = label.partition(">")
         reached = True
         if row:
-            reached = tap(parent) and tap(row, prefix=True, scrolls=4)
+            reached = tap(parent) and tap(row, prefix=True, scrolls=8)
         elif index:
             reached = tap(label)
         if not reached:

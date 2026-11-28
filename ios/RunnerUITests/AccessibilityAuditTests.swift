@@ -49,7 +49,9 @@ final class AccessibilityAuditTests: XCTestCase {
       app.buttons["Settings"].firstMatch.tap()
       let entry = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", row)).firstMatch
       var swipes = 0
-      while !entry.isHittable && swipes < 5 {
+      // Flutter reports its elements as not hittable, so the loop waits for
+      // the row to exist; the lazy list drops rows that scrolled far away.
+      while !entry.exists && swipes < 8 {
         // Slow drag: a normal swipe flings the lazy list past rows in the
         // middle, so only the last row was ever reached.
         app.swipeUp(velocity: .slow)

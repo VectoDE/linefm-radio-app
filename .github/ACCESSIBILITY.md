@@ -10,7 +10,7 @@ Deutsch zuerst, English below ([jump to English](#english)).
 
 LINEFM Radio soll sich mit Tastatur, Screenreader, starker Vergrößerung und bei eingeschränktem Sehen benutzen lassen. Maßstab ist WCAG 2.2 Stufe AA, wo machbar AAA. Für die App kommt EN 301 549 dazu. Das BFSG nennen wir als Maßstab. Ob es für dieses Angebot gilt und eine Erklärung Pflicht ist, wird geprüft; eine Anwaltsprüfung steht aus.
 
-Das ist ein Ziel. Wir behaupten nicht, dass die App WCAG AA erfüllt. Was belegt ist und was fehlt, steht unten.
+Das ist ein Ziel, kein Befund: Dass die App WCAG AA erfüllt, ist nicht belegt. Was belegt ist und was fehlt, steht unten.
 
 ### Stand
 
@@ -24,12 +24,12 @@ Belegt (Stand 22. November 2026):
 
 ### Bekannte Lücken
 
-Diese Punkte sind offen. Nichts davon ist behoben.
+Diese Punkte sind offen und nicht behoben.
 
 | Bereich | Lücke | Verweis |
 |---|---|---|
 | Alle Plattformen | Vorlesen mit echten Screenreadern nicht vollständig geprüft. TalkBack lief im Android-Emulator und fokussiert die App, ein Durchgang mit Wischgesten war per Fernsteuerung nicht möglich. VoiceOver und NVDA sind nicht geprüft. Die Beschriftungen im Zugriffsbaum sind per Test und im Emulator belegt. Bericht: [Gerätetests](../docs/GERAETETESTS.md) | [Freigabe-Checkliste](../docs/FREIGABE-CHECKLISTE.md), B10 |
-| Desktop | Die Schaltflächen der eigenen Titelleiste (Minimieren, Maximieren, Schließen) sind per Tab nicht erreichbar. Das ist so gebaut und per Test festgehalten. Ob Fenster-Aktionen per Tastatur über das Systemmenü zuverlässig gehen, ist nicht geprüft. | Offen, wird geprüft |
+| Desktop | Die Schaltflächen der eigenen Titelleiste (Minimieren, Maximieren, Schließen) sind per Tab nicht erreichbar. Das ist Absicht, ein Test hält es fest. Ob Fenster-Aktionen per Tastatur über das Systemmenü zuverlässig gehen, ist nicht geprüft. | Offen, wird geprüft |
 | Windows-Installer | Die Oberfläche hat Screenreader-Beschriftungen im Code. Mit der UI-Automation-Schnittstelle von Windows oder mit NVDA wurde sie nicht geprüft. | Offen |
 | Desktop, Einstellungen | Bei Fensterbreite 880 bricht die Beschriftung „Systemsprache“ mitten im Wort um. | Offen |
 | Web | Zoom auf 400 Prozent ohne waagerechtes Scrollen ist nicht vollständig geprüft. | [Erklärung](../docs/BARRIEREFREIHEIT.md) |
@@ -46,7 +46,7 @@ Diese Punkte sind offen. Nichts davon ist behoben.
 - Ein Windows-Integrationstest in der CI ist offen und noch nicht auf `main`. Er prüft nach dem Merge die Titelleiste im echten Fenster, aber nicht die Barrierefreiheit insgesamt.
 - Von Hand vor jedem Release: Tastaturdurchlauf, Zoom, Screenreader-Stichprobe ([Freigabe-Checkliste](../docs/FREIGABE-CHECKLISTE.md), B7 und B10). Diese Handprüfung ist noch nicht gelaufen.
 
-Automatische Werkzeuge finden nur einen Teil der Probleme. Ein grüner axe-Lauf sagt nichts über den Screenreader-Ablauf oder die Verständlichkeit.
+Automatische Werkzeuge finden nur einen Teil der Probleme. Ein grüner axe-Lauf sagt weder etwas über den Ablauf mit dem Screenreader noch über die Verständlichkeit.
 
 ### Eine Barriere melden
 
@@ -55,7 +55,7 @@ Automatische Werkzeuge finden nur einen Teil der Probleme. Ein grüner axe-Lauf 
 
 Nenn bitte Gerät, Betriebssystem, App-Version und Hilfstechnik (zum Beispiel NVDA mit Firefox) und was du tun wolltest.
 
-Das Projekt betreut eine einzelne Person. Antworten kommen meist innerhalb einer Woche, ohne feste Zusage (siehe [SUPPORT.md](../SUPPORT.md)). Falls das BFSG gilt, ist die Marktüberwachungsstelle der Länder für die Barrierefreiheit von Produkten und Dienstleistungen (MLBF) in Magdeburg zuständig ([mlbf-barrierefrei.de](https://www.mlbf-barrierefrei.de)). Ob das BFSG für diese kostenlose Radio-App überhaupt gilt (Umfang der Dienstleistung, Ausnahme für Kleinstunternehmen), wird geprüft. Das ist keine Rechtsberatung.
+Eine einzelne Person betreut das Projekt. Antworten kommen meist innerhalb einer Woche, ohne feste Zusage (siehe [SUPPORT.md](../SUPPORT.md)). Falls das BFSG gilt, ist die Marktüberwachungsstelle der Länder für die Barrierefreiheit von Produkten und Dienstleistungen (MLBF) in Magdeburg zuständig ([mlbf-barrierefrei.de](https://www.mlbf-barrierefrei.de)). Ob das BFSG für diese kostenlose App gilt (Umfang der Dienstleistung, Ausnahme für Kleinstunternehmen), ist offen. Das ist keine Rechtsberatung.
 
 ### Mehr
 
@@ -71,7 +71,7 @@ Das Projekt betreut eine einzelne Person. Antworten kommen meist innerhalb einer
 
 LINEFM Radio should work with a keyboard, a screen reader, strong magnification and low vision. The yardstick is WCAG 2.2 level AA, and AAA where feasible. For the app, EN 301 549 applies as well. We name the German BFSG as a yardstick. Whether it applies to this offer and a statement is required is being reviewed; a lawyer's review is pending.
 
-This is a goal. We do not state that the app meets WCAG AA. What is proven and what is missing is listed below.
+This is a goal, not a finding: it is not proven that the app meets WCAG AA. What is proven and what is missing is listed below.
 
 ### Current state
 
@@ -85,13 +85,13 @@ Proven (as of 22 November 2026):
 
 ### Known gaps
 
-These items are open. None of them is fixed.
+These items are open and not fixed.
 
 | Area | Gap | Reference |
 |---|---|---|
 | All platforms | Spoken output not fully tested with real screen readers. TalkBack ran on the Android emulator and focuses the app; a swipe walkthrough could not be driven remotely. VoiceOver and NVDA are not tested. Labels in the accessibility tree are covered by tests and confirmed on the emulator. Report: [Device tests](../docs/GERAETETESTS.md) (German) | [Release checklist](../docs/FREIGABE-CHECKLISTE.md), B10 (German) |
-| Desktop | The buttons of the custom title bar (minimize, maximize, close) cannot be reached with Tab. This is by design and pinned by a test. Whether window actions work reliably from the keyboard through the system menu has not been checked. | Open, to be checked |
-| Windows installer | The UI has screen reader labels in code. It has not been checked with Windows UI Automation or NVDA. | Offen |
+| Desktop | The buttons of the custom title bar (minimize, maximize, close) cannot be reached with Tab. This is deliberate and a test pins it. Whether window actions work reliably from the keyboard through the system menu has not been checked. | Open, to be checked |
+| Windows installer | The UI has screen reader labels in code. It has not been checked with Windows UI Automation or NVDA. | Open |
 | Desktop, Settings | At a window width of 880, the label "Systemsprache" breaks in the middle of the word. | Open |
 | Web | Zoom to 400 percent without horizontal scrolling is not fully checked. | [Statement](../docs/BARRIEREFREIHEIT.md) (German) |
 | Web | Tabbing past the end of the page briefly lands focus on unlabeled Flutter elements. | [Statement](../docs/BARRIEREFREIHEIT.md) (German) |
@@ -107,7 +107,7 @@ These items are open. None of them is fixed.
 - A Windows integration test in CI is open and not on `main` yet. After the merge it checks the title bar in a real window, not accessibility as a whole.
 - By hand before each release: keyboard walkthrough, zoom, screen reader spot check ([release checklist](../docs/FREIGABE-CHECKLISTE.md), B7 and B10, German). This manual check has not been run yet.
 
-Automatic tools find only part of the problems. A green axe run says nothing about screen reader use or readability.
+Automatic tools find only part of the problems. A green axe run tells you nothing about screen reader use or readability.
 
 ### Report a barrier
 
@@ -116,7 +116,7 @@ Automatic tools find only part of the problems. A green axe run says nothing abo
 
 Please include your device, operating system, app version and assistive technology (for example NVDA with Firefox), and what you were trying to do.
 
-One person maintains this project. Replies usually come within a week, with no fixed commitment (see [SUPPORT.md](../SUPPORT.md)). If the BFSG applies, the competent body is the market surveillance authority of the German states for the accessibility of products and services (Marktüberwachungsstelle der Länder für die Barrierefreiheit von Produkten und Dienstleistungen, MLBF) in Magdeburg ([mlbf-barrierefrei.de](https://www.mlbf-barrierefrei.de)). Whether the BFSG applies to this free radio app at all (scope of the service, micro-enterprise exemption) is being reviewed. This is not legal advice.
+A single person maintains this project. Replies usually come within a week, with no fixed commitment (see [SUPPORT.md](../SUPPORT.md)). If the BFSG applies, the competent body is the market surveillance authority of the German states for the accessibility of products and services (Marktüberwachungsstelle der Länder für die Barrierefreiheit von Produkten und Dienstleistungen, MLBF) in Magdeburg ([mlbf-barrierefrei.de](https://www.mlbf-barrierefrei.de)). Whether the BFSG applies to this free app (scope of the service, micro-enterprise exemption) is open. This is not legal advice.
 
 ### More
 

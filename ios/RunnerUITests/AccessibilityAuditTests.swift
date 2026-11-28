@@ -29,6 +29,15 @@ final class AccessibilityAuditTests: XCTestCase {
     app.launchArguments += ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
     app.launch()
 
+    // A fresh install opens the storage notice over the app on first start.
+    // Audit it as a screen of its own, then close it so the areas behind it
+    // can be reached.
+    let dismiss = app.buttons["Got it"].firstMatch
+    if dismiss.waitForExistence(timeout: 30) {
+      try audit(app, screen: "Storage notice")
+      dismiss.tap()
+    }
+
     for area in areas {
       let tab = app.buttons[area].firstMatch
       XCTAssertTrue(tab.waitForExistence(timeout: 30), "navigation target \(area) not found")

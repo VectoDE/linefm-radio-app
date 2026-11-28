@@ -249,7 +249,11 @@ jobs:
         timeout-minutes: 20
         env:
           EMULATOR_TAG: google_apis_playstore
-        run: bash tool/perf/android_emulator.sh tool/a11y/out-android
+        run: |
+          bash tool/perf/android_emulator.sh tool/a11y/out-android
+          # The boot script puts platform-tools on PATH only for itself; the
+          # following steps call adb directly.
+          echo "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/platform-tools" >> "$GITHUB_PATH"
 
       - name: Walk the screens and check the tree
         timeout-minutes: 15

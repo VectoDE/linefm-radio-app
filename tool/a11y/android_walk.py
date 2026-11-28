@@ -37,6 +37,9 @@ DEFAULT_LABELS = ["Stations", "Player", "History", "Favorites", "Settings",
                   "Settings>Alarm", "Settings>About LINEFM Radio"]
 
 
+NOTICE_DISMISS = "Got it"
+
+
 def node_name(node):
     return (node.get("content-desc") or node.get("text") or "").strip()
 
@@ -97,8 +100,34 @@ def main():
                 time.sleep(1)
         return False
 
+    def check_screen(label):
+        text = dump()
+        density = tree_check.density_via_adb(adb, None)
+        problems, total, interactive = tree_check.check(text, PACKAGE, density)
+        print("==", label)
+        print("nodes: %d, interactive: %d, density: %.3f" % (total, interactive, density))
+        for line in problems:
+            print("FAIL", line)
+        entry = {"screen": label, "nodes": total, "interactive": interactive,
+                 "problems": problems}
+        if out:
+            slug = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")
+            with open(os.path.join(out, "tree-%s.xml" % slug), "w", encoding="utf-8") as f:
+                f.write(text)
+            entry["focusStops"] = focus_stops(text)
+        report["screens"].append(entry)
+        return bool(problems)
+
     report = {"package": PACKAGE, "screens": []}
     failed = False
+    # A fresh install opens the storage notice over the app on first start.
+    # It is a screen of its own: check it, then close it so the areas behind
+    # it can be reached.
+    if NOTICE_DISMISS in dump():
+        failed = check_screen("Storage notice") or failed
+        if not tap(NOTICE_DISMISS):
+            print("== Storage notice FAIL: dismiss button not found")
+            failed = True
     for index, label in enumerate(labels):
         parent, _, row = label.partition(">")
         reached = True
@@ -111,22 +140,7 @@ def main():
             report["screens"].append({"screen": label, "error": "navigation target not found"})
             failed = True
             continue
-        text = dump()
-        density = tree_check.density_via_adb(adb, None)
-        problems, total, interactive = tree_check.check(text, PACKAGE, density)
-        print("==", label)
-        print("nodes: %d, interactive: %d, density: %.3f" % (total, interactive, density))
-        for line in problems:
-            print("FAIL", line)
-        failed = failed or bool(problems)
-        entry = {"screen": label, "nodes": total, "interactive": interactive,
-                 "problems": problems}
-        if out:
-            slug = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")
-            with open(os.path.join(out, "tree-%s.xml" % slug), "w", encoding="utf-8") as f:
-                f.write(text)
-            entry["focusStops"] = focus_stops(text)
-        report["screens"].append(entry)
+        failed = check_screen(label) or failed
         if row:
             sh("shell", "input", "keyevent", "KEYCODE_BACK")
             time.sleep(2)

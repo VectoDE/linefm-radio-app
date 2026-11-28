@@ -49,6 +49,7 @@ import 'package:linefm_radio/ui/widgets/cover_image.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:window_manager/legacy.dart' show WindowManager;
 
+import '../test/support/in_memory_prefs_store.dart';
 import '../test/support/service_doubles.dart';
 
 const String _outDefine = String.fromEnvironment('ITEST_OUT');

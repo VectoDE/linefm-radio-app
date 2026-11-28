@@ -1,8 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/data/storage/shared_prefs_store.dart';
 import 'package:linefm_radio/domain/favorite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../support/in_memory_prefs_store.dart';
 
 Future<SharedPrefsStore> _open([Map<String, Object> initial = const {}]) {
   SharedPreferences.setMockInitialValues(initial);

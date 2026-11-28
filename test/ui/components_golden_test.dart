@@ -9,7 +9,6 @@ import 'dart:async' show unawaited;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:linefm_radio/app/providers.dart';
-import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/favorite.dart';
 import 'package:linefm_radio/domain/player_ui_state.dart';
@@ -31,6 +30,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../features/stations/stations_test_host.dart';
 import '../golden_support.dart';
+import '../support/in_memory_prefs_store.dart';
 
 const Size _phone = Size(390, 844);
 

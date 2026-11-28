@@ -12,6 +12,7 @@ import 'package:linefm_radio/domain/schedule_slot.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 
+import '../../support/service_doubles.dart';
 import '../../support/test_doubles.dart';
 
 final _t0 = DateTime.utc(2026, 11, 18, 20);
@@ -453,6 +454,7 @@ void main() {
             for (final s in stationsCatalog) s.slug: _song('${s.slug}-1'),
           });
         final r = LiveNowPlayingRepository(
+          artwork: const NoopArtworkService(),
           api: api,
           clock: clock,
           timer: sched.one,
@@ -518,6 +520,7 @@ void main() {
           for (final s in stationsCatalog) s.slug: _song('${s.slug}-1'),
         });
       final r = LiveNowPlayingRepository(
+        artwork: const NoopArtworkService(),
         api: api,
         clock: clock,
         timer: sched.one,

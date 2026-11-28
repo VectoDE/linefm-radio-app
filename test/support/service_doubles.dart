@@ -21,6 +21,15 @@ import 'package:linefm_radio/services/share/share_service.dart';
 import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
 import 'package:linefm_radio/services/widgets/home_widget_sync.dart';
 
+/// Finds no cover for any track.
+class NoopArtworkService implements ArtworkService {
+  const NoopArtworkService();
+
+  @override
+  Future<ArtworkResult?> lookup(Track track, {bool priority = false}) async =>
+      null;
+}
+
 /// Plays nothing but mirrors the state.
 class NoopPlaybackService implements PlaybackService {
   NoopPlaybackService();

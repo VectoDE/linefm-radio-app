@@ -21,6 +21,7 @@ import 'package:linefm_radio/features/settings/clear_storage.dart';
 import 'package:linefm_radio/ui/widgets/cover_image.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../support/in_memory_prefs_store.dart';
 import '../../support/service_doubles.dart';
 import '../stations/stations_test_host.dart';
 
@@ -135,6 +136,7 @@ Future<InMemoryPrefsStore> _firstRun() async {
   final prefs = InMemoryPrefsStore();
   await prefs.setStorageConsent(value: true);
   final online = LiveNowPlayingRepository(
+    artwork: const NoopArtworkService(),
     api: _OnlineApi(
       current: _song('Now', 0, cover: 'https://cover/now.jpg'),
       last: <Track>[_song('Before', -3, cover: 'https://cover/before.jpg')],
@@ -161,6 +163,7 @@ void main() {
       expect(prefs.readLiveCache(), isNotNull);
 
       final restarted = LiveNowPlayingRepository(
+        artwork: const NoopArtworkService(),
         api: _OfflineApi(),
         foreground: false,
         readSnapshot: prefs.readLiveCache,
@@ -191,6 +194,7 @@ void main() {
           },
       };
       final r = LiveNowPlayingRepository(
+        artwork: const NoopArtworkService(),
         api: _OfflineApi(),
         foreground: false,
         readSnapshot: () =>
@@ -214,6 +218,7 @@ void main() {
     test('live data replaces the restored track', () async {
       final prefs = await _firstRun();
       final r = LiveNowPlayingRepository(
+        artwork: const NoopArtworkService(),
         api: _OnlineApi(
           current: _song('Fresh', 6),
           last: <Track>[_song('Now', 0), _song('Before', -3)],
@@ -241,6 +246,7 @@ void main() {
 
     test('broken snapshot is ignored', () async {
       final r = LiveNowPlayingRepository(
+        artwork: const NoopArtworkService(),
         api: _OfflineApi(),
         foreground: false,
         readSnapshot: () => '{not json',
@@ -260,6 +266,7 @@ void main() {
     CoverImage.diskCache = cache;
     final api = _OfflineApi();
     final repo = LiveNowPlayingRepository(
+      artwork: const NoopArtworkService(),
       api: api,
       foreground: false,
       activeStation: stationsCatalog.first,
@@ -333,6 +340,7 @@ void main() {
   test('forgetRestored keeps live data', () async {
     final prefs = await _firstRun();
     final r = LiveNowPlayingRepository(
+      artwork: const NoopArtworkService(),
       api: _OfflineApi(),
       foreground: false,
       readSnapshot: prefs.readLiveCache,
@@ -348,6 +356,7 @@ void main() {
     await prefs.clearAll();
     expect(prefs.readLiveCache(), isNull);
     final r = LiveNowPlayingRepository(
+      artwork: const NoopArtworkService(),
       api: _OfflineApi(),
       foreground: false,
       readSnapshot: prefs.readLiveCache,

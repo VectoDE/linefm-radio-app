@@ -72,7 +72,7 @@ class LiveNowPlayingRepository implements NowPlayingRepository {
   LiveNowPlayingRepository({
     required this._api,
     this._socket,
-    this._artwork = const NoopArtworkService(),
+    required this._artwork,
     this._clock = const SystemClock(),
     List<Station>? stations,
     Station? activeStation,

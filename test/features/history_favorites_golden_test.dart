@@ -9,7 +9,6 @@ import 'package:flutter_localizations/flutter_localizations.dart'
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/providers.dart';
-import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/favorite.dart';
 import 'package:linefm_radio/domain/history_entry.dart';
@@ -23,6 +22,7 @@ import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../golden_support.dart';
+import '../support/in_memory_prefs_store.dart';
 import '../support/test_doubles.dart';
 
 class _Repo extends FakeNowPlayingRepository {

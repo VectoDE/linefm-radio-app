@@ -48,7 +48,8 @@ final class AccessibilityAuditTests: XCTestCase {
     for row in settingsRows {
       // The Settings button in the header toggles: on the Settings screen it
       // goes back. Tap it only when the screen heading is not shown yet.
-      if !app.descendants(matching: .any)["SETTINGS"].firstMatch.exists {
+      // After Back the page transition is still running, so wait briefly.
+      if !app.descendants(matching: .any)["SETTINGS"].firstMatch.waitForExistence(timeout: 5) {
         app.buttons["Settings"].firstMatch.tap()
       }
       let entry = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", row)).firstMatch

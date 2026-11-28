@@ -249,6 +249,7 @@ jobs:
         timeout-minutes: 20
         env:
           EMULATOR_TAG: google_apis_playstore
+          EMULATOR_BOOT_POLLS: "450"
         run: |
           bash tool/perf/android_emulator.sh tool/a11y/out-android
           # The boot script puts platform-tools on PATH only for itself; the

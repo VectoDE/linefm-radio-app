@@ -56,7 +56,9 @@ emulator_pid=$!
 
 # Bounded wait: an emulator that exits early fails the step instead of
 # leaving "adb wait-for-device" hanging until the job timeout.
-for _ in $(seq 1 240); do
+# The Play Store image boots slower than google_apis; callers can allow more
+# polls (2 s each) with EMULATOR_BOOT_POLLS.
+for _ in $(seq 1 "${EMULATOR_BOOT_POLLS:-240}"); do
   if ! kill -0 "$emulator_pid" 2>/dev/null; then
     echo "The emulator exited during boot, see emulator.log" >&2
     exit 1

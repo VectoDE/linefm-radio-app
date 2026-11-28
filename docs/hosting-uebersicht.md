@@ -6,6 +6,10 @@ Die Web-Variante von LINEFM Radio läuft unter **https://app.linefm.de** und bes
 - [hosting-traefik.md](hosting-traefik.md): Docker Compose hinter Traefik (oder Traefik vor nativem nginx)
 - [hosting-cloudflare.md](hosting-cloudflare.md): Cloudflare Pages
 - [hosting-plesk.md](hosting-plesk.md): Plesk (Apache oder nginx)
+- Netlify und Vercel: fertige Konfiguration in `netlify.toml` und `vercel.json` im Repo-Wurzelverzeichnis (Ausgabeordner `build/web`). Beide tragen denselben Header-Satz und dieselbe Cache-Tabelle wie `deploy/cloudflare/_headers`.
+- GitHub Pages: kann keine eigenen Antwort-Header setzen. `_headers`, `.htaccess` und `netlify.toml` werden dort ignoriert, es gelten nur die Pages-Standardwerte (kein CSP, kein HSTS-Preload, kein COOP, kein `Permissions-Policy`). Für die öffentliche Auslieferung mit voller Absicherung ist GitHub Pages deshalb nicht geeignet; es dient nur dem Messlauf in `pages.yml`. Eine `<meta http-equiv>`-CSP ersetzt die Header nicht: `frame-ancestors` wird dort ignoriert.
+
+Der Workflow `hosting-headers.yml` prüft statisch (ohne Server), dass Cloudflare, Netlify, Vercel, nginx, Plesk-nginx und Plesk-Apache denselben Header-Satz und dieselben Cache-Werte senden. Lokal: `bash tool/check_hosting_config.sh --static`. `tool/web_postbuild.dart` schreibt die Dateien `netlify.toml` und `vercel.json` mit eingesetzten CSP-Platzhaltern nach `build/hosting/`; die Dateien im Repo behalten die Platzhalter. Für Netlify und Vercel ist die Konfiguration aus `build/hosting/` zu verwenden. Der Check schlägt fehl, wenn in `build/hosting` oder `build/web` ein Platzhalter stehen bleibt.
 
 ## Build
 

@@ -881,6 +881,18 @@ List<String> runPostbuild(PostbuildOptions o) {
         written.add('${o.hostingOut}/$rel');
       }
     }
+    // Netlify and Vercel read their config from the repo root, so the rendered
+    // copies go next to the other hosting output; the repo files keep placeholders.
+    final repoRoot = deploy.absolute.parent;
+    for (final n in <String>['netlify.toml', 'vercel.json']) {
+      final src = File('${repoRoot.path}/$n');
+      if (src.existsSync()) {
+        File('${out.path}/$n')
+          ..createSync(recursive: true)
+          ..writeAsStringSync(renderHosting(src.readAsStringSync()));
+        written.add('${o.hostingOut}/$n');
+      }
+    }
   }
 
   // 5. Remove ballast

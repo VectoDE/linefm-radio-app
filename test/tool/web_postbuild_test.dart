@@ -283,6 +283,8 @@ void main() {
       write('deploy/cloudflare/_redirects', '/* /index.html 200');
       write('deploy/plesk/.htaccess', 'h $cspPlaceholder');
       write('deploy/nginx/snippets/linefm-headers.conf', 'n $cspPlaceholder');
+      write('netlify.toml', 'csp = "a $cspPlaceholder"');
+      write('vercel.json', '{"value": "b $cspScriptPlaceholder"}');
 
       final written = runPostbuild(
         PostbuildOptions(
@@ -326,6 +328,18 @@ void main() {
         File('${tmp.path}/hosting/nginx/snippets/linefm-headers.conf')
             .readAsStringSync(),
         'n https://t.example',
+      );
+      expect(
+        File('${tmp.path}/hosting/netlify.toml').readAsStringSync(),
+        'csp = "a https://t.example"',
+      );
+      expect(
+        File('${tmp.path}/hosting/vercel.json').readAsStringSync(),
+        '{"value": "b"}',
+      );
+      expect(
+        File('${tmp.path}/netlify.toml').readAsStringSync(),
+        contains(cspPlaceholder),
       );
       expect(
         File('${tmp.path}/web/sw.js').readAsStringSync(),

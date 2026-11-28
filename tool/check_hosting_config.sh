@@ -6,12 +6,143 @@
 #   - nginx -t: native site config, container config, Plesk directives (wrapped in a server block)
 #   - httpd -t: deploy/plesk/.htaccess inside a Directory block
 # Placeholders such as __CSP_CONNECT_EXTRA__ stay as they are; they are plain text for the parsers.
+#
+# `check_hosting_config.sh --static` runs only the header consistency check (python3 3.11+, no
+# docker, no network; also checks build/hosting and build/web for unrendered CSP placeholders when
+# they exist): the security header set, the Cache-Control table must
+# agree across Cloudflare _headers, netlify.toml, vercel.json, nginx, Plesk nginx and Plesk .htaccess.
 set -euo pipefail
 
 NGINX_IMAGE='nginxinc/nginx-unprivileged:1.31-alpine@sha256:b5047b9b76845eac124358373c6852377c52e4b05834a47647e955dd91cb8f1e'
 HTTPD_IMAGE='httpd:2.4.66-alpine@sha256:968c8b4098fcecb473762b45f6c541a3b2b2cfab2caccb1edbd2cece071ef160'
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+check_header_consistency() {
+  python3 -I - "$root" <<'PY'
+import json, re, sys, tomllib
+from pathlib import Path
+
+root = Path(sys.argv[1])
+SECURITY = ['Content-Security-Policy', 'Strict-Transport-Security', 'X-Content-Type-Options',
+            'Referrer-Policy', 'Permissions-Policy', 'Cross-Origin-Opener-Policy',
+            'Cross-Origin-Resource-Policy', 'X-Frame-Options']
+errors = []
+
+
+def fail(msg):
+    errors.append(msg)
+    print(f'::error::{msg}')
+
+
+def read(rel):
+    return (root / rel).read_text(encoding='utf-8')
+
+
+def norm_path(p):
+    """Same path, different wildcard dialects: Cloudflare/Netlify `*`, Vercel `(.*)`."""
+    return p[:-4] + '*' if p.endswith('(.*)') else p
+
+
+# Cloudflare Pages _headers: path line, indented headers, `! Name` detaches a default header.
+cf, cf_detached, cur = {}, {}, None
+for raw in read('deploy/cloudflare/_headers').splitlines():
+    if not raw.strip() or raw.lstrip().startswith('#'):
+        continue
+    if not raw.startswith((' ', '\t')):
+        cur = raw.strip()
+        cf.setdefault(cur, {})
+        cf_detached.setdefault(cur, set())
+    elif raw.strip().startswith('!'):
+        cf_detached[cur].add(raw.strip()[1:].strip().lower())
+    else:
+        k, v = raw.strip().split(':', 1)
+        cf[cur][k.strip()] = v.strip()
+
+nl = {}
+for block in tomllib.loads(read('netlify.toml')).get('headers', []):
+    nl.setdefault(block['for'], {}).update(block['values'])
+
+vc = {}
+for block in json.loads(read('vercel.json')).get('headers', []):
+    vc.setdefault(norm_path(block['source']), {}).update({h['key']: h['value'] for h in block['headers']})
+
+add_header = re.compile(r'^\s*add_header\s+(\S+)\s+"(.*)"\s+always;', re.M)
+set_header = re.compile(r'^\s*Header always set\s+(\S+)\s+"(.*)"\s*$', re.M)
+nginx = dict(add_header.findall(read('deploy/nginx/snippets/linefm-headers.conf')))
+plesk_nginx = dict(add_header.findall(read('deploy/plesk/nginx-additional.conf')))
+htaccess = dict(set_header.findall(read('deploy/plesk/.htaccess')))
+
+sets = {
+    'deploy/cloudflare/_headers': cf.get('/*', {}),
+    'netlify.toml': nl.get('/*', {}),
+    'vercel.json': vc.get('/*', {}),
+    'deploy/nginx/snippets/linefm-headers.conf': nginx,
+    'deploy/plesk/nginx-additional.conf': plesk_nginx,
+    'deploy/plesk/.htaccess': htaccess,
+}
+for name in SECURITY:
+    ref = sets['deploy/cloudflare/_headers'].get(name)
+    if ref is None:
+        fail(f'deploy/cloudflare/_headers has no {name}')
+        continue
+    for target, headers in sets.items():
+        if headers.get(name) != ref:
+            fail(f'{name} in {target} differs from deploy/cloudflare/_headers')
+
+
+# Cache-Control and Content-Type per path: Cloudflare, Netlify and Vercel carry the same table.
+def table(rules):
+    keep = ('Cache-Control', 'Content-Type')
+    return {p: {k: v for k, v in h.items() if k in keep}
+            for p, h in rules.items() if p != '/*' and any(k in h for k in keep)}
+
+
+ref_table = table(cf)
+for target, rules in (('netlify.toml', nl), ('vercel.json', vc)):
+    other = table(rules)
+    for p in sorted(set(ref_table) | set(other)):
+        if ref_table.get(p) != other.get(p):
+            fail(f'{target}: rule for {p} is {other.get(p)} but deploy/cloudflare/_headers has {ref_table.get(p)}')
+
+# Every Cache-Control value nginx and Apache send must exist in the Cloudflare table.
+allowed = {h['Cache-Control'] for h in ref_table.values() if 'Cache-Control' in h}
+for rel, pattern in (('deploy/nginx/snippets/linefm-locations.conf', r'add_header Cache-Control "([^"]+)"'),
+                     ('deploy/plesk/.htaccess', r'Header always set Cache-Control "([^"]+)"')):
+    for value in set(re.findall(pattern, read(rel))):
+        if value not in allowed:
+            fail(f'{rel}: Cache-Control "{value}" is not in deploy/cloudflare/_headers')
+
+# Rendered output (tool/web_postbuild.dart writes build/hosting, build/web): no placeholder may
+# survive there. Skipped when the directories do not exist (the repo files keep placeholders).
+placeholder = re.compile(r'__CSP_[A-Z_]+__')
+checked = 0
+for rel in ('build/hosting', 'build/web'):
+    base = root / rel
+    if not base.is_dir():
+        continue
+    for f in base.rglob('*'):
+        rendered = f.name in ('_headers', '.htaccess', 'netlify.toml', 'vercel.json') or (
+            f.suffix == '.conf' and rel == 'build/hosting')
+        if f.is_file() and rendered:
+            checked += 1
+            if placeholder.search(f.read_text(encoding='utf-8', errors='replace')):
+                fail(f'{f.relative_to(root).as_posix()}: unrendered CSP placeholder')
+if checked and not errors:
+    print(f'Rendered output: {checked} files without CSP placeholders.')
+
+if errors:
+    sys.exit(1)
+print(f'Header sets agree across {len(sets)} targets; Cache-Control table matches '
+      f'({len(ref_table)} rules).')
+PY
+}
+
+if [ "${1:-}" = '--static' ]; then
+  echo "== static header consistency"
+  check_header_consistency
+  exit 0
+fi
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 chmod 755 "$work"

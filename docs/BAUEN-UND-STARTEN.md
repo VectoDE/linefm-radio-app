@@ -278,14 +278,26 @@ Das DMG ist weder signiert noch von Apple geprüft ("notarisiert"). macOS warnt 
 4. Scrolle zu **Sicherheit**. Dort steht, dass "LINEFM Radio" blockiert wurde. Klicke auf **Dennoch öffnen** und bestätige mit Passwort oder Touch ID.
 5. Ab jetzt startet die App normal.
 
+Bildschirmfotos der Schritte 2 bis 4, automatisch auf einem macOS-Runner der CI erzeugt:
+
+| | Hell | Dunkel |
+|---|---|---|
+| Warnung beim ersten Start (Schritt 2) | ![macOS-Warnung beim ersten Start der unsignierten App LINEFM Radio, helles Erscheinungsbild](assets/macos/gatekeeper-dialog-light.png) | ![macOS-Warnung beim ersten Start der unsignierten App LINEFM Radio, dunkles Erscheinungsbild](assets/macos/gatekeeper-dialog-dark.png) |
+| Systemeinstellungen, Datenschutz & Sicherheit (Schritte 3 und 4) | ![Systemeinstellungen Datenschutz und Sicherheit mit dem Hinweis zu LINEFM Radio, helles Erscheinungsbild](assets/macos/privacy-security-light.png) | ![Systemeinstellungen Datenschutz und Sicherheit mit dem Hinweis zu LINEFM Radio, dunkles Erscheinungsbild](assets/macos/privacy-security-dark.png) |
+
+Ob Gatekeeper auf dem Runner eingeschaltet ist, dokumentiert GitHub nicht. Zeigt ein Bild keinen Warndialog, steht der Grund in `gatekeeper.txt` im Artefakt `desktop-evidence-macos`.
+
+English version of this macOS passage: [docs/en/build-and-run.md](en/build-and-run.md).
+
 Bis macOS 14 reichte Rechtsklick auf die App und **Öffnen**. Ab macOS 15 geht es nur über die Systemeinstellungen. Quelle: [packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt). Auf einem echten Mac wurde das in diesem Projekt noch nicht nachgespielt.
 
 **Bildnachweise aus der CI.** Der Workflow **Widget evidence** (`.github/workflows/widget-evidence.yml`, Job *macOS Gatekeeper, title bar and icon*) baut die App unsigniert, packt sie in ein DMG mit Quarantäne-Markierung wie nach einem Browser-Download, kopiert sie nach Programme und versucht sie zu öffnen. Bevor ein Bild entsteht, schließt der Job die Systemmeldung zur Netzwerk-Erweiterung von Harden-Runner und setzt die Quarantäne-Markierung auf die kopierte App, falls sie beim Kopieren verloren ging. DMG-Fenster, Startversuch, Systemeinstellungen und Titelleisten werden auf die Fenstergrenzen zugeschnitten (über System Events), sonst als ganzer Bildschirm. Das Artefakt `desktop-evidence-macos` enthält Bildschirmfotos von DMG-Fenster, Startversuch, **Datenschutz & Sicherheit**, Titelleiste hell und dunkel sowie Symbol in Dock und Finder. Dazu kommt `gatekeeper.txt` mit `spctl --status` und `spctl --assess`. Ob Gatekeeper auf den GitHub-Runnern eingeschaltet ist, dokumentiert GitHub nicht. Zeigt das Bild keinen Warndialog, steht der Grund in `gatekeeper.txt`. Für Linux liefert der Job *Linux title bar light and dark* das Artefakt `desktop-evidence-linux` (Xvfb mit Openbox).
 
-Die Bilder liegen nicht im Repository, weil sie aus einem echten CI-Lauf stammen müssen. Übernehmen geht so:
+Die vier Gatekeeper-Bilder oben liegen in `docs/assets/macos/`. Sie stammen aus einem echten CI-Lauf (Artefakt `gatekeeper-screenshots`, Lauf 46147813021 vom 28.11.2026). Neu erzeugen und übernehmen geht so:
 
 ```bash
 gh workflow run widget-evidence.yml --ref main
+gh run download <Lauf-ID> -n gatekeeper-screenshots -D docs/assets/macos
 gh run download <Lauf-ID> -n desktop-evidence-macos -D docs/bilder/macos
 gh run download <Lauf-ID> -n desktop-evidence-linux -D docs/bilder/linux
 ```

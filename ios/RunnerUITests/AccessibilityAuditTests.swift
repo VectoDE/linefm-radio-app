@@ -69,14 +69,25 @@ final class AccessibilityAuditTests: XCTestCase {
       XCTAssertTrue(entry.waitForExistence(timeout: 10), "settings row \(row) not found")
       entry.tap()
       try audit(app, screen: row)
-      let back = app.navigationBars.buttons.firstMatch
-      if back.exists {
-        back.tap()
-      } else {
-        // Flutter's AppBar back button carries "Back" as its label, not as
-        // an identifier, so match the label.
-        app.buttons.matching(NSPredicate(format: "label == %@", "Back")).firstMatch.tap()
-      }
+      goBack(app)
+    }
+  }
+
+  /// Leaves a pushed screen with the back button of its app bar: the button
+  /// in the top leading corner (Flutter does not give it a stable
+  /// identifier). Without one, the iOS edge swipe goes back instead.
+  @MainActor
+  private func goBack(_ app: XCUIApplication) {
+    let window = app.frame
+    let back = app.buttons.allElementsBoundByIndex.first { button in
+      let f = button.frame
+      return f.minX < window.minX + 80 && f.minY < window.minY + 140 && f.width > 0
+    }
+    if let back {
+      back.tap()
+    } else {
+      let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.5))
+      start.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5)))
     }
   }
 

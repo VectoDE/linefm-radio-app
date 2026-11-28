@@ -157,6 +157,10 @@ async function check(name) {
     if (after.active === null) result.notes.push('engine has no navigator.userActivation, activation not asserted');
   } catch (e) {
     result.failures.push(String(e.message ?? e).split('\n')[0]);
+    if (page) {
+      await page.screenshot({ path: join(OUT, `autoplay-${name}-failure.png`) }).catch(() => {});
+      result.semantics = await semanticsLabels(page).catch(() => []);
+    }
   } finally {
     await browser.close();
   }

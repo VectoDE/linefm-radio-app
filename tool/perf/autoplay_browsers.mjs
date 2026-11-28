@@ -15,9 +15,9 @@
 //   cd tool/perf && npm ci --ignore-scripts && npx playwright install --with-deps chromium firefox webkit
 //   node autoplay_browsers.mjs --base http://127.0.0.1:8080 --out out --browsers chromium,firefox,webkit,msedge
 //
-// msedge uses the installed Microsoft Edge (Playwright channel "msedge"). When
-// it is not installed the browser is reported as "not installed" and the run
-// continues; the other engines always have to pass.
+// msedge uses the Microsoft Edge of the runner image (Playwright channel
+// "msedge"). A missing Edge is a failure like any other: every engine has to
+// pass.
 import { mkdirSync, writeFileSync, appendFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { chromium, firefox, webkit } from 'playwright';
@@ -61,28 +61,41 @@ const INIT = () => {
   };
   try {
     // Same state as a returning visitor: engine starts on load, storage notice
-    // confirmed. Autoplay stays at its default (on).
+    // confirmed, consent questions answered (declined), so no modal dialog
+    // covers the shell. Autoplay stays at its default (on).
     localStorage.setItem('linefm.started', '1');
     localStorage.setItem('flutter.linefm-storage-notice-dismissed', 'true');
+    localStorage.setItem('flutter.linefm-telemetry-consent', 'false');
+    localStorage.setItem('linefm.googleAnalytics', 'denied');
   } catch {
     /* no storage */
   }
 };
 
-const BUTTON = '^(Start radio|Radio starten)$';
+// Accessible names of the start button (English and German).
+const BUTTON_LABELS = ['start radio', 'radio starten'];
 
 /** Position of the start button in the Flutter semantics tree, or null. */
 const findButton = (page) =>
-  page.evaluate((src) => {
-    const re = new RegExp(src, 'i');
-    for (const el of document.querySelectorAll('flt-semantics')) {
+  page.evaluate((labels) => {
+    const nodes = document.querySelectorAll('flt-semantics, [role="button"], button');
+    for (const el of nodes) {
       const name = (el.getAttribute('aria-label') || el.textContent || '').trim();
-      if (!re.test(name)) continue;
+      if (!labels.includes(name.toLowerCase())) continue;
       const r = el.getBoundingClientRect();
       if (r.width > 0 && r.height > 0) return { x: r.x + r.width / 2, y: r.y + r.height / 2, name };
     }
     return null;
-  }, BUTTON);
+  }, BUTTON_LABELS);
+
+/** Accessible names in the semantics tree, for the result file on failure. */
+const semanticsLabels = (page) =>
+  page.evaluate(() =>
+    [...document.querySelectorAll('flt-semantics[role], flt-semantics [role], flt-semantics[aria-label]')]
+      .map((e) => `${e.getAttribute('role') || '-'}:${(e.getAttribute('aria-label') || e.textContent || '').trim().slice(0, 60)}`)
+      .filter((v, i, a) => a.indexOf(v) === i)
+      .slice(0, 60),
+  );
 
 const state = (page) =>
   page.evaluate(() => ({
@@ -108,13 +121,13 @@ async function check(name) {
   try {
     browser = await LAUNCHERS[name]();
   } catch (e) {
-    if (name === 'msedge') return { ...result, status: 'not installed', notes: [String(e.message).split('\n')[0]] };
-    throw e;
+    return { ...result, status: 'failed', failures: [`browser did not start: ${String(e.message).split('\n')[0]}`] };
   }
+  let page;
   try {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'en-US' });
     await context.addInitScript(INIT);
-    const page = await context.newPage();
+    page = await context.newPage();
     result.version = browser.version();
     await page.goto(`${BASE}/`, { waitUntil: 'load', timeout: 120_000 });
     await page.waitForSelector('flt-semantics-placeholder', { state: 'attached', timeout: 90_000 });

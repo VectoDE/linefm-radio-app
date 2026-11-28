@@ -60,11 +60,13 @@ Nicht dazu gehören Lücken in Diensten Dritter (laut.fm, Apple iTunes Search, G
 | Secrets in der Git-Historie | gitleaks (CLI, Version und SHA-256 fest im Workflow) | `supply-chain.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Schwachstellen, Secrets und Fehlkonfiguration (Dateisystem, Dockerfile) sowie der gebaute Web-Container (`deploy/traefik/Dockerfile`) | Trivy (CLI, Version und SHA-256 fest), Ergebnisse in Code Scanning, HIGH/CRITICAL brechen ab (im Container nur, wenn es eine Korrektur gibt) | `supply-chain.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Sicherheit der Workflows | zizmor (Ergebnisse in Code Scanning) und actionlint | `supply-chain.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
-| Updates für Actions, Pub, Gradle, Docker, Compose und npm | Dependabot | `.github/dependabot.yml` | wöchentlich, mit 7 Tagen Wartezeit |
+| Updates für Actions, Pub, Gradle, Docker, Compose und npm | Dependabot | `.github/dependabot.yml` | wöchentlich, mit 7 Tagen Wartezeit; Sicherheitsupdates sofort und je Ökosystem gebündelt |
 | Statische Analyse | CodeQL (Workflows bei jedem Änderungsvorschlag, Kotlin wöchentlich, Swift von Hand) | `codeql.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Statische Analyse für Kotlin, Swift, JavaScript, Python, Bash, Dockerfile, Compose und Workflows | Semgrep Community Edition (ohne Konto, Image per Digest), Ergebnisse in Code Scanning | `semgrep.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Dart-Code | `flutter analyze --fatal-infos` (CodeQL und Semgrep kennen Dart nicht) | `ci.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Robustheit der Parser (laut.fm, iTunes, Cover-Cache) | zufallsbasierte Tests mit festem Seed, siehe unten | `ci.yml` (`test/data/fuzz/`) | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
+| Abhängigkeiten und Code (SCA, SAST) | Snyk, Ergebnisse in Code Scanning | `snyk.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
+| Code-Qualität und Sicherheits-Hotspots | SonarCloud (Quality Gate) | `sonar.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Repo-Hygiene | OpenSSF Scorecard | `scorecard.yml` | Push auf `main`, wöchentlich |
 | Barrierefreiheit der Web-Version | axe-core mit Playwright | `a11y.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Offene Alerts als Tickets | eigener Abgleich, siehe unten | `security-alerts.yml` | nach jedem Scanner-Lauf auf `main`, wöchentlich |

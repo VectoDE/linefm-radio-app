@@ -158,6 +158,25 @@ async function check(name) {
   try {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'en-US' });
     await context.addInitScript(INIT, { labels: BUTTON_LABELS, ready: READY });
+    if (name === 'webkit') {
+      // The server sends CSP "upgrade-insecure-requests". Chromium and Firefox
+      // exempt loopback addresses from it, WebKit does not and tries
+      // https://127.0.0.1, which this plain HTTP test server cannot answer, so
+      // the engine never loads. Production is HTTPS only, where the directive
+      // changes nothing. For WebKit this one directive is dropped from the
+      // page's CSP; everything else of the policy stays in force.
+      await context.route('**/*', async (route) => {
+        if (route.request().resourceType() !== 'document') return route.continue();
+        const response = await route.fetch();
+        const headers = { ...response.headers() };
+        for (const key of Object.keys(headers)) {
+          if (key.toLowerCase() === 'content-security-policy') {
+            headers[key] = headers[key].replace(/;\s*upgrade-insecure-requests/, '');
+          }
+        }
+        return route.fulfill({ response, headers });
+      });
+    }
     page = await context.newPage();
     page.on('pageerror', (e) => errors.push(`pageerror: ${String(e.message).split('\n')[0]}`));
     page.on('console', (m) => {
@@ -186,7 +205,9 @@ async function check(name) {
     await waitFor(async () => !(await buttonVisible(page)), 'the start button to disappear', 20_000).catch(() => {
       result.failures.push('start button still visible 20 s after the click');
     });
-    await page.waitForTimeout(2000);
+    // just_audio loads the stream first and calls play() once the element is
+    // ready; on a CI runner that can take a few seconds.
+    await waitFor(() => page.evaluate(() => window.__autoplay.playCalls > 0), 'a play() call after the click', 30_000).catch(() => {});
     await page.screenshot({ path: join(OUT, `autoplay-${name}-after.png`) });
     const after = await state(page);
     result.after = after;

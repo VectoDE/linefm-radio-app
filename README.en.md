@@ -69,7 +69,7 @@ Which secret goes where is collected in [docs/secrets.md](docs/secrets.md). How 
 
 Hosting the web version: [overview](docs/hosting-uebersicht.md) with guides for [nginx](docs/hosting-nginx.md), [Traefik](docs/hosting-traefik.md), [Cloudflare Pages](docs/hosting-cloudflare.md) and [Plesk](docs/hosting-plesk.md). Statistics and crash reports: [Telemetry](docs/telemetry.md). All German.
 
-Distribution: Google Play, Microsoft Store, Flathub, Snap Store and GitHub Releases (installer, APK, unsigned macOS DMG with an [opening guide](packaging/macos/LIES-MICH-ZUERST.txt)). The Apple App Store and Mac App Store are postponed on purpose; the code is prepared for them. Overview of the packages: [packaging/README.md](packaging/README.md).
+Distribution: Google Play, Microsoft Store, Flathub, Snap Store and GitHub Releases (installer, APK, unsigned macOS DMG with an [opening guide](packaging/macos/README.txt)). The Apple App Store and Mac App Store are postponed on purpose; the code is prepared for them. Overview of the packages: [packaging/README.md](packaging/README.md).
 
 ## Getting started
 

@@ -68,7 +68,7 @@ Welches Secret wohin gehört, steht gesammelt in [docs/secrets.md](docs/secrets.
 
 Hosting der Web-Version: [Überblick](docs/hosting-uebersicht.md) mit Anleitungen für [nginx](docs/hosting-nginx.md), [Traefik](docs/hosting-traefik.md), [Cloudflare Pages](docs/hosting-cloudflare.md) und [Plesk](docs/hosting-plesk.md). Statistik und Absturzberichte: [Telemetrie](docs/telemetry.md).
 
-Verteilung: Google Play, Microsoft Store, Flathub, Snap Store und GitHub Releases (Installer, APK, unsigniertes macOS-DMG mit [Öffnen-Anleitung](packaging/macos/LIES-MICH-ZUERST.txt)). Apple App Store und Mac App Store sind bewusst zurückgestellt, der Code ist dafür vorbereitet. Übersicht der Pakete: [packaging/README.md](packaging/README.md).
+Verteilung: Google Play, Microsoft Store, Flathub, Snap Store und GitHub Releases (Installer, APK, unsigniertes macOS-DMG mit [Öffnen-Anleitung](packaging/macos/README.txt)). Apple App Store und Mac App Store sind bewusst zurückgestellt, der Code ist dafür vorbereitet. Übersicht der Pakete: [packaging/README.md](packaging/README.md).
 
 ## Erste Schritte
 

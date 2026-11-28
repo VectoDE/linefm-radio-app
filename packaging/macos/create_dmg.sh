@@ -21,7 +21,7 @@ DMG_PATH="$2"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VOLNAME="LINEFM Radio"
 APP_NAME="$(basename "$APP_PATH")"
-README_SRC="$HERE/LIES-MICH-ZUERST.txt"
+README_SRC="$HERE/README.txt"
 BACKGROUND="$HERE/dmg-background.png"
 
 if [ ! -d "$APP_PATH" ]; then
@@ -36,7 +36,7 @@ STAGING="$(mktemp -d)"
 STAGING_BG="$(mktemp -d)"
 trap 'rm -rf "$STAGING" "$STAGING_BG"' EXIT
 cp -R "$APP_PATH" "$STAGING/"
-cp "$README_SRC" "$STAGING/LIES-MICH-ZUERST.txt"
+cp "$README_SRC" "$STAGING/README.txt"
 
 # CI runners have Homebrew but not create-dmg; without it the DMG has no
 # styled window, so install it there. Locally nothing is installed silently.
@@ -53,7 +53,7 @@ if command -v create-dmg >/dev/null 2>&1; then
     --icon "$APP_NAME" 170 170
     --hide-extension "$APP_NAME"
     --app-drop-link 490 170
-    --icon "LIES-MICH-ZUERST.txt" 95 60
+    --icon "README.txt" 95 60
     --no-internet-enable
   )
   if [ -f "$BACKGROUND" ]; then

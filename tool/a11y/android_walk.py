@@ -95,8 +95,10 @@ def main():
             if attempt < scrolls:
                 size = re.findall(r"(\d+)x(\d+)", sh("shell", "wm", "size"))
                 w, h = map(int, size[-1]) if size else (1080, 2400)
-                sh("shell", "input", "swipe", str(w // 2), str(h * 3 // 4),
-                   str(w // 2), str(h // 4), "300")
+                # Slow, short drag: a fast swipe flings the lazy list past
+                # rows in the middle (only the last row was ever reached).
+                sh("shell", "input", "swipe", str(w // 2), str(h * 2 // 3),
+                   str(w // 2), str(h // 3), "1500")
                 time.sleep(1)
         return False
 

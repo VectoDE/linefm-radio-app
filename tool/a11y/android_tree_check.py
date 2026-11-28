@@ -112,6 +112,15 @@ def check(xml_text, package, density, min_dp=48.0):
     if not nodes:
         return ["no node of package %s in the dump" % package], 0, 0
     interactive = 0
+    scroll_bounds = {}
+    for scroller in root.iter("node"):
+        if scroller.get("scrollable") == "true":
+            m = BOUNDS.match(scroller.get("bounds") or "")
+            if m:
+                box = tuple(int(v) for v in m.groups())
+                for inner in scroller.iter("node"):
+                    if inner is not scroller:
+                        scroll_bounds.setdefault(id(inner), []).append(box)
     for node in nodes:
         clickable = node.get("clickable") == "true" or node.get("checkable") == "true"
         if not clickable or node.get("enabled") == "false":
@@ -130,6 +139,15 @@ def check(xml_text, package, density, min_dp=48.0):
         if match:
             x1, y1, x2, y2 = (int(v) for v in match.groups())
             w, h = (x2 - x1) / density, (y2 - y1) / density
+            # uiautomator reports only the visible part of a node. A list item
+            # cut off at the edge of its scroll view looks small although its
+            # real target is not; that axis is not judged. A node inside the
+            # viewport is still checked on both axes.
+            for sx1, sy1, sx2, sy2 in scroll_bounds.get(id(node), []):
+                if y1 == sy1 or y2 == sy2:
+                    h = max(h, min_dp)
+                if x1 == sx1 or x2 == sx2:
+                    w = max(w, min_dp)
             if w < min_dp - 0.5 or h < min_dp - 0.5:
                 problems.append("touch target %.0fx%.0f dp at %s (%s)"
                                 % (w, h, where, name or "no name"))

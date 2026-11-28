@@ -48,6 +48,21 @@ class CheckTest(unittest.TestCase):
         self.assertEqual(len(problems), 1)
         self.assertIn("touch target", problems[0])
 
+    def scroller(self, inner):
+        return ('<node package="%s" class="android.widget.ScrollView" text="" content-desc="" '
+                'clickable="false" checkable="false" enabled="true" scrollable="true" '
+                'bounds="[0,0][1000,1000]">%s</node>' % (PKG, inner))
+
+    def test_item_clipped_at_scroll_edge_is_not_judged_on_that_axis(self):
+        clipped = node(desc="x", bounds="[0,940][200,1000]")
+        problems, _, _ = c.check(tree(self.scroller(clipped)), PKG, 3.5)
+        self.assertEqual(problems, [])
+
+    def test_small_item_inside_scroll_view_still_fails(self):
+        small = node(desc="x", bounds="[0,400][200,460]")
+        problems, _, _ = c.check(tree(self.scroller(small)), PKG, 3.5)
+        self.assertEqual(len(problems), 1)
+
     def test_wrong_package(self):
         problems, _, _ = c.check(tree(node(desc="x")), "other.app", 3.5)
         self.assertEqual(len(problems), 1)

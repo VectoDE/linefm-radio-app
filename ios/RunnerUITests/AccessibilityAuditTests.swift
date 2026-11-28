@@ -50,7 +50,9 @@ final class AccessibilityAuditTests: XCTestCase {
       let entry = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", row)).firstMatch
       var swipes = 0
       while !entry.isHittable && swipes < 5 {
-        app.swipeUp()
+        // Slow drag: a normal swipe flings the lazy list past rows in the
+        // middle, so only the last row was ever reached.
+        app.swipeUp(velocity: .slow)
         swipes += 1
       }
       XCTAssertTrue(entry.waitForExistence(timeout: 10), "settings row \(row) not found")
@@ -75,8 +77,35 @@ final class AccessibilityAuditTests: XCTestCase {
     shot.lifetime = .keepAlways
     add(shot)
     try app.performAccessibilityAudit(for: types) { finding in
+      if Self.isFlutterScrollContainer(finding, in: app) {
+        return true
+      }
       XCTFail("\(screen): \(finding.auditType) \(finding.compactDescription) element: \(finding.element?.debugDescription ?? "none")")
       return true
+    }
+  }
+
+  /// Flutter exposes every scrollable (and the full-screen route that holds
+  /// the player pager) as an unlabelled ScrollView or Other element. Such a
+  /// container is not a control: VoiceOver never stops on it and reads the
+  /// labelled children inside. Only the description audit on exactly these
+  /// containers is skipped; every element inside is still audited, and a
+  /// smaller unlabelled element still fails.
+  @available(iOS 17.0, *)
+  @MainActor
+  private static func isFlutterScrollContainer(
+    _ finding: XCUIAccessibilityAuditIssue, in app: XCUIApplication
+  ) -> Bool {
+    guard finding.auditType == .sufficientElementDescription,
+      let element = finding.element, element.label.isEmpty
+    else { return false }
+    switch element.elementType {
+    case .scrollView:
+      return true
+    case .other:
+      return element.frame == app.frame
+    default:
+      return false
     }
   }
 }

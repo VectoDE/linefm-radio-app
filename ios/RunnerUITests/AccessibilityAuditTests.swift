@@ -46,7 +46,11 @@ final class AccessibilityAuditTests: XCTestCase {
     }
 
     for row in settingsRows {
-      app.buttons["Settings"].firstMatch.tap()
+      // The Settings button in the header toggles: on the Settings screen it
+      // goes back. Tap it only when the screen heading is not shown yet.
+      if !app.descendants(matching: .any)["SETTINGS"].firstMatch.exists {
+        app.buttons["Settings"].firstMatch.tap()
+      }
       let entry = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", row)).firstMatch
       var swipes = 0
       // Flutter reports its elements as not hittable, so the loop waits for

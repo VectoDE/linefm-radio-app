@@ -140,7 +140,11 @@ def main():
         parent, _, row = label.partition(">")
         reached = True
         if row:
-            reached = tap(parent) and tap(row, prefix=True, scrolls=8)
+            # The Settings button in the header toggles: on the Settings
+            # screen it goes back. Tap it only when the screen heading (the
+            # label in capitals) is not shown yet.
+            on_parent = 'content-desc="%s"' % parent.upper() in dump()
+            reached = (on_parent or tap(parent)) and tap(row, prefix=True, scrolls=8)
         elif index:
             reached = tap(label)
         if not reached:

@@ -60,11 +60,13 @@ Nicht dazu gehören Lücken in Diensten Dritter (laut.fm, Apple iTunes Search, G
 | Secrets in der Git-Historie | gitleaks (CLI, Version und SHA-256 fest im Workflow) | `supply-chain.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Schwachstellen, Secrets und Fehlkonfiguration (Dateisystem, Dockerfile) sowie der gebaute Web-Container (`deploy/traefik/Dockerfile`) | Trivy (CLI, Version und SHA-256 fest), Ergebnisse in Code Scanning, HIGH/CRITICAL brechen ab (im Container nur, wenn es eine Korrektur gibt) | `supply-chain.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Sicherheit der Workflows | zizmor (Ergebnisse in Code Scanning) und actionlint | `supply-chain.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
-| Updates für Actions, Pub, Gradle, Docker, Compose und npm | Dependabot | `.github/dependabot.yml` | wöchentlich, mit 7 Tagen Wartezeit |
+| Updates für Actions, Pub, Gradle, Docker, Compose und npm | Dependabot | `.github/dependabot.yml` | wöchentlich, mit 7 Tagen Wartezeit; Sicherheitsupdates sofort und je Ökosystem gebündelt |
 | Statische Analyse | CodeQL (Workflows bei jedem Änderungsvorschlag, Kotlin wöchentlich, Swift von Hand) | `codeql.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Statische Analyse für Kotlin, Swift, JavaScript, Python, Bash, Dockerfile, Compose und Workflows | Semgrep Community Edition (ohne Konto, Image per Digest), Ergebnisse in Code Scanning | `semgrep.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Dart-Code | `flutter analyze --fatal-infos` (CodeQL und Semgrep kennen Dart nicht) | `ci.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Robustheit der Parser (laut.fm, iTunes, Cover-Cache) | zufallsbasierte Tests mit festem Seed, siehe unten | `ci.yml` (`test/data/fuzz/`) | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
+| Abhängigkeiten und Code (SCA, SAST) | Snyk, Ergebnisse in Code Scanning | `snyk.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
+| Code-Qualität und Sicherheits-Hotspots | SonarCloud (Quality Gate) | `sonar.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Repo-Hygiene | OpenSSF Scorecard | `scorecard.yml` | Push auf `main`, wöchentlich |
 | Barrierefreiheit der Web-Version | axe-core mit Playwright | `a11y.yml` | Push auf `main`, jeder Änderungsvorschlag, wöchentlich |
 | Offene Alerts als Tickets | eigener Abgleich, siehe unten | `security-alerts.yml` | nach jedem Scanner-Lauf auf `main`, wöchentlich |
@@ -88,14 +90,14 @@ Dependabot- und Secret-Scanning-Alerts kann der Standard-Token der Actions nicht
 
 ### Branch-Schutz und Merge-Ablauf
 
-Der Branch-Schutz von `main` verlangt keine Pflicht-Freigabe durch eine zweite Person. Das ist eine Entscheidung des Inhabers; das Projekt hat einen einzigen Entwickler. Dependabot-Änderungen werden nach grüner CI zeitnah gemergt (Merge-Wächter). Die Scorecard-Checks Code-Review und Branch-Protection bleiben dadurch teilweise unerreicht (siehe unten).
+Der Branch-Schutz von `main` verlangt keine Pflicht-Freigabe durch eine zweite Person. Das ist eine Entscheidung des Inhabers; das Projekt hat einen einzigen Entwickler. Dependabot-Änderungen werden nach grüner CI zeitnah gemergt (Merge-Wächter). Die Scorecard-Checks Code-Review und Branch-Protection bleiben dadurch teilweise unerreicht (siehe unten). Der Scorecard-Alert zu Branch-Protection ist deshalb als „Won't fix“ verworfen. Begründung im Alert: Projekt mit einem einzigen Betreuer, keine zweite Person für Reviews; jede Änderung läuft über einen Änderungsvorschlag mit voller CI und Pflicht-Statusprüfungen.
 
 ### Scorecard-Checks, die strukturell nicht voll erreichbar sind
 
 - Code-Review: Das Projekt hat einen einzigen Entwickler. Scorecard zählt nur Änderungen, die eine zweite Person freigegeben hat; Selbstfreigaben sind auf GitHub nicht möglich.
 - Fuzzing: Die Parser werden mit zufallsbasierten Tests geprüft (siehe oben). Scorecard erkennt für Dart keine Fuzzing-Integration.
 - CII Best Practices: Der Eintrag bei bestpractices.dev setzt eine Open-Source-Lizenz voraus; die App ist proprietär.
-- Maintained: Scorecard vergibt 0 Punkte, solange das Repository jünger als 90 Tage ist. Das erledigt sich mit der Zeit.
+- Maintained: Scorecard vergibt 0 Punkte, solange das Repository jünger als 90 Tage ist. Das Repository wurde am 18.11.2026 angelegt; ab dem 16.02.2027 wertet Scorecard die tatsächliche Aktivität. Bis dahin ist der Alert als „Won't fix“ verworfen, mit dieser Begründung.
 - SAST und CI-Tests: Scorecard bewertet die letzten 30 Commits bzw. Änderungsvorschläge. Ältere Merges ohne Prüfung fallen nach und nach aus diesem Fenster; laufen CodeQL, Semgrep und die CI bei jedem Änderungsvorschlag.
 
 ## In English

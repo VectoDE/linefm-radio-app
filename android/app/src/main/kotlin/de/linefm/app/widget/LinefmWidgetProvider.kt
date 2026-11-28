@@ -152,9 +152,10 @@ class LinefmWidgetProvider : HomeWidgetProvider() {
 
             override fun onConnectionFailed() = finish()
         }
-        browser = MediaBrowserCompat(app, ComponentName(app, AudioService::class.java), callback, null)
+        val connecting = MediaBrowserCompat(app, ComponentName(app, AudioService::class.java), callback, null)
+        browser = connecting
         main.postDelayed({ finish() }, DEADLINE_MS)
-        browser?.connect()
+        connecting.connect()
     }
 
     private fun buildViews(

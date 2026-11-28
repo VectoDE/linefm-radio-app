@@ -53,10 +53,15 @@ dependencies:
   # On-device cover cache folder (getApplicationCacheDirectory). Already
   # transitive via shared_preferences; official flutter.dev package.
   path_provider: ^2.1.5
-# override-reason(flutter_rust_bridge): smtc_windows 1.1.0 (latest) is generated
-# against flutter_rust_bridge 2.11.1 and pins the Rust crate to =2.11.1; newer
-# Dart versions fail the bridge's runtime content-hash check. Remove once
-# smtc_windows ships FRB 2.13 (fix tracked by the plugin authors).
+# override-reason(flutter_rust_bridge): smtc_windows 1.1.0 (latest on pub.dev,
+# 2025-08-18) is generated against flutter_rust_bridge 2.11.1 and its Rust crate
+# pins flutter_rust_bridge = "=2.11.1" (KRTirtho/frb_plugins,
+# packages/smtc_windows/rust/Cargo.toml). Dart 2.13.x fails the bridge's
+# runtime content-hash check. The upstream FRB 2.13 upgrade is still an
+# unmerged upstream change in KRTirtho/frb_plugins (checked 2026-11-28). The
+# alternatives (vendored, regenerated bindings or a custom SMTC platform
+# channel) add a Rust toolchain or new native C++ code to the build, so the
+# pin is the least risky option. Remove it once smtc_windows ships with FRB 2.13.
 dependency_overrides:
   flutter_rust_bridge: 2.11.1
 

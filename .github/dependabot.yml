@@ -18,6 +18,10 @@ updates:
     groups:
       actions:
         patterns: ["*"]
+        applies-to: version-updates
+      actions-security:
+        patterns: ["*"]
+        applies-to: security-updates
 
   # Main package and optional Firebase package (packages/linefm_firebase has no
   # pubspec.lock of its own, Dependabot reads its pubspec.yaml).
@@ -39,6 +43,9 @@ updates:
     groups:
       pub-minor-patch:
         update-types: [minor, patch]
+      pub-security:
+        patterns: ["*"]
+        applies-to: security-updates
 
   - package-ecosystem: gradle
     directory: /android
@@ -56,6 +63,9 @@ updates:
     groups:
       gradle-minor-patch:
         update-types: [minor, patch]
+      gradle-security:
+        patterns: ["*"]
+        applies-to: security-updates
 
   # Base images of the web container (deploy/traefik/Dockerfile) and the dev container
   # (.devcontainer/Dockerfile), each pinned by digest.
@@ -109,3 +119,7 @@ updates:
     groups:
       a11y-tools:
         patterns: ["*"]
+        applies-to: version-updates
+      a11y-tools-security:
+        patterns: ["*"]
+        applies-to: security-updates

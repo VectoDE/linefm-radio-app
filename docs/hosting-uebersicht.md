@@ -6,6 +6,10 @@ Die Web-Variante von LINEFM Radio läuft unter **https://app.linefm.de** und bes
 - [hosting-traefik.md](hosting-traefik.md): Docker Compose hinter Traefik (oder Traefik vor nativem nginx)
 - [hosting-cloudflare.md](hosting-cloudflare.md): Cloudflare Pages
 - [hosting-plesk.md](hosting-plesk.md): Plesk (Apache oder nginx)
+- Netlify und Vercel: fertige Konfiguration in `netlify.toml` und `vercel.json` im Repo-Wurzelverzeichnis (Ausgabeordner `build/web`). Beide tragen denselben Header-Satz und dieselbe Cache-Tabelle wie `deploy/cloudflare/_headers`.
+- GitHub Pages: kann keine eigenen Antwort-Header setzen. `_headers`, `.htaccess` und `netlify.toml` werden dort ignoriert, es gelten nur die Pages-Standardwerte (kein CSP, kein HSTS-Preload, kein COOP, kein `Permissions-Policy`). Für die öffentliche Auslieferung mit voller Absicherung ist GitHub Pages deshalb nicht geeignet; es dient nur dem Messlauf in `pages.yml`. Eine `<meta http-equiv>`-CSP ersetzt die Header nicht: `frame-ancestors` wird dort ignoriert.
+
+Der Workflow `hosting-headers.yml` prüft statisch (ohne Server), dass Cloudflare, Netlify, Vercel, nginx, Plesk-nginx und Plesk-Apache denselben Header-Satz und dieselben Cache-Werte senden. Lokal: `bash tool/check_hosting_config.sh --static`. Dazu gehört die CORS-Regel: Cloudflare Pages setzt von sich aus `Access-Control-Allow-Origin: *`, `_headers` entfernt das mit `! Access-Control-Allow-Origin`, und kein Ziel darf den Header senden. Der Livetest auf der echten Pages-Auslieferung liegt beim Betreiber.
 
 ## Build
 

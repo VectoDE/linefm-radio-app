@@ -15,7 +15,7 @@ void main() {
   };
 
   for (final locale in labels.keys) {
-    for (final width in <double>[320, 390, 600, 1280]) {
+    for (final width in <double>[320, 390, 600, 880, 1280]) {
       for (final scale in <double>[1, 1.3, 2]) {
         testWidgets('$locale ${width.toInt()} dp at ${scale}x', (tester) async {
           tester.view.physicalSize = Size(width, 2400);
@@ -32,6 +32,7 @@ void main() {
             ),
           );
           await tester.pump();
+          expect(tester.takeException(), isNull);
           for (final label in labels[locale]!) {
             final finder = find.descendant(
               of: find.byWidgetPredicate((w) => w is SegmentedButton),

@@ -1,5 +1,7 @@
 # LINEFM Radio
 
+Deutsch | [English](README.en.md)
+
 Die App zum Live-Hören der LINEFM-Sender: LineFM +MAIN, +RAP, +GAMING, +LOFI sowie Radio3FM und FobFM. LineFM ist ein Angebot der RadioGruppe Deutschland im Auftrag der LINEFM Gruppe. LineFM Studios gehört Julian Gebauer. Gebaut mit Flutter (ein Framework von Google) für Android, iOS, Windows, macOS, Linux und das Web.
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/VectoDE/linefm-radio-app/badge)](https://scorecard.dev/viewer/?uri=github.com/VectoDE/linefm-radio-app)
@@ -148,6 +150,7 @@ Stand: 22. November 2026. Status heißt: **erfüllt** = die Prüfung läuft in d
 
 | Dokument | Inhalt |
 |---|---|
+| [docs/de/README.md](docs/de/README.md) | Dokumentation nach Zielgruppe und Thema ([Bestandsaufnahme](docs/de/bestandsaufnahme.md), [Architektur](docs/de/architektur.md), [Release-Fluss](docs/de/release-fluss.md), [Glossar](docs/de/glossar.md)); englisch: [docs/en](docs/en/README.md) |
 | [docs/EINRICHTUNG.md](docs/EINRICHTUNG.md) | Konten und Secrets für den Betreiber |
 | [docs/FREIGABE-CHECKLISTE.md](docs/FREIGABE-CHECKLISTE.md) | Freigaben, Rechtsprüfung, Gerätetests, Store-Texte |
 | [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md) | Bauen, Testen, Architektur |
@@ -182,30 +185,4 @@ LINEFM, die Logos, das App-Icon und die Sendernamen sind Marken und Eigentum des
 
 ## English
 
-LINEFM Radio is a Flutter app for listening to the LINEFM radio stations live (Android, iOS, Windows, macOS, Linux, web). It is under development and not yet published in any store. Operators start with [docs/EINRICHTUNG.md](docs/EINRICHTUNG.md) and [docs/FREIGABE-CHECKLISTE.md](docs/FREIGABE-CHECKLISTE.md), developers with [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md) (all in German). Linux packages (.deb, .rpm, AppImage) are described in English in [packaging/linux/README.md](packaging/linux/README.md). Developed by [Tim Hauke](https://github.com/VectoDE) for LineFM Studios. LINEFM and this app belong to LineFM Studios. All rights reserved, no open-source license.
-
-### Standards and compliance
-
-As of 22 November 2026. Status: **met** = the check runs in CI and was green, **partly met** = part is proven and the rest is listed as open, **target** = aimed for, not proven yet. Nothing is marked met without proof. This is neither legal advice nor a certification. Most evidence files are in German.
-
-| Area | Standard or practice | Status | Evidence and open points |
-|---|---|---|---|
-| Accessibility | WCAG 2.2 AA | partly met | axe-core on every proposed change with no violations ([a11y.yml](.github/workflows/a11y.yml)). Screen reader testing and 400 % zoom are missing, see [ACCESSIBILITY.md](.github/ACCESSIBILITY.md) |
-| Accessibility | EN 301 549 | target | Yardstick, no proof ([ACCESSIBILITY.md](.github/ACCESSIBILITY.md)) |
-| Accessibility | BFSG | target | Whether the BFSG applies to this app and a statement is mandatory is being reviewed; draft in [docs/BARRIEREFREIHEIT.md](docs/BARRIEREFREIHEIT.md). If it applies, the MLBF in Magdeburg is the competent body ([mlbf-barrierefrei.de](https://www.mlbf-barrierefrei.de)) |
-| Security | OpenSSF Scorecard | partly met | Runs weekly and on every push to `main` ([scorecard.yml](.github/workflows/scorecard.yml)); some checks cannot score fully, see the German section "OpenSSF und Prüfsiegel" |
-| Security | Signed releases (cosign, Sigstore) | target | The flow is in [release.yml](.github/workflows/release.yml), but no release exists yet; verification guide: [docs/RELEASE-VERIFIZIEREN.md](docs/RELEASE-VERIFIZIEREN.md) |
-| Security | Provenance (GitHub attestation, SLSA build provenance) | target | As above: provable only with the first release. We do not claim a SLSA level |
-| Security | SBOM (SPDX, CycloneDX) | target | Produced in the release flow ([release.yml](.github/workflows/release.yml)), no release yet |
-| Security | CodeQL | partly met | GitHub Actions workflows on every proposed change, Kotlin and Java weekly; CodeQL does not support Dart ([codeql.yml](.github/workflows/codeql.yml)) |
-| Security | Semgrep CE | partly met | Runs on every proposed change; Dart is not covered, `flutter analyze` covers it ([semgrep.yml](.github/workflows/semgrep.yml)) |
-| Security | Trivy, OSV, gitleaks | met | Dependencies, configuration and git history, on every proposed change ([supply-chain.yml](.github/workflows/supply-chain.yml)) |
-| Security | zizmor (workflow audit) | met | On every proposed change ([supply-chain.yml](.github/workflows/supply-chain.yml), rules in [zizmor.yml](.github/zizmor.yml)) |
-| Privacy | GDPR | partly met | Favorites, history and settings stay on the device ([ADR 0001](docs/adr/0001-kein-backend-keine-konten.md)). The privacy policy is a draft with open placeholders; review by a lawyer is pending |
-| Privacy | TDDDG, consent | partly met | Statistics and reach measurement start only after consent, withdrawal stops them ([docs/telemetry.md](docs/telemetry.md), tests `test/features/consent_storage_test.dart`, `google_consent_test.dart`). Legal review is pending |
-| Legal | DDG (legal notice) | target | Draft text exists, the operator details are not filled in yet; the release build fails until then |
-| Legal | MStV | target | The responsible person is planned as a required field but still open; a lawyer decides whether it applies |
-| Quality | Tests and required checks | met | Test suite, format and analysis on every proposed change ([ci.yml](.github/workflows/ci.yml)); `main` is protected by a ruleset |
-| Quality | Coverage | partly met | Measured in CI, no fixed threshold yet; target 100 % in `lib/` |
-| Quality | Golden tests | partly met | Core components and some views in light and dark; all screens and widths are open im Tracker |
-| Quality | Load tests | target | None yet; planned against our own endpoints |
+The full English version is in [README.en.md](README.en.md), with the standards and compliance table. English documentation entry: [docs/en](docs/en/README.md).

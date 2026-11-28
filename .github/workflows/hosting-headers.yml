@@ -1,0 +1,50 @@
+name: Hosting headers
+
+# Static check that every hosting target sends the same header set: Cloudflare Pages, Netlify,
+# Vercel, nginx, Plesk (nginx and Apache). No server is started and nothing is fetched.
+# The container based syntax checks stay in tool/check_hosting_config.sh without --static.
+
+on:
+  pull_request:
+    paths:
+      - deploy/**
+      - netlify.toml
+      - vercel.json
+      - tool/check_hosting_config.sh
+      - .github/workflows/hosting-headers.yml
+  push:
+    branches: [main]
+    paths:
+      - deploy/**
+      - netlify.toml
+      - vercel.json
+      - tool/check_hosting_config.sh
+      - .github/workflows/hosting-headers.yml
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: hosting-headers-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  consistency:
+    name: Header consistency
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check header sets of all hosting targets
+        run: bash tool/check_hosting_config.sh --static

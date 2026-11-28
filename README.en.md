@@ -140,7 +140,7 @@ As of 22 November 2026. Status: **met** = the check runs in CI and was green, **
 | Security | Trivy, OSV, gitleaks | met | Dependencies, configuration and git history, on every proposed change ([supply-chain.yml](.github/workflows/supply-chain.yml)) |
 | Security | zizmor (workflow audit) | met | On every proposed change ([supply-chain.yml](.github/workflows/supply-chain.yml), rules in [zizmor.yml](.github/zizmor.yml)) |
 | Privacy | GDPR | partly met | Favorites, history and settings stay on the device ([ADR 0001](docs/adr/0001-kein-backend-keine-konten.md)). The privacy policy is a draft with open placeholders; review by a lawyer is pending |
-| Privacy | TDDDG, consent | partly met | Statistics and reach measurement start only after consent, withdrawal stops them ([docs/telemetry.md](docs/telemetry.md), tests `test/features/consent_storage_test.dart`, `google_consent_test.dart`). Legal review is pending. Flow: [Consent data flow](docs/en/consent-data-flow.md) |
+| Privacy | TDDDG, consent | partly met | Statistics and reach measurement start only after consent, withdrawal stops them ([docs/telemetry.md](docs/telemetry.md), tests `test/features/consent_storage_dialog_banner_test.dart`, `google_consent_test.dart`). Legal review is pending. Flow: [Consent data flow](docs/en/consent-data-flow.md) |
 | Legal | DDG (legal notice) | target | Draft text exists, the operator details are not filled in yet; the release build fails until then |
 | Legal | MStV | target | The responsible person is planned as a required field but still open; a lawyer decides whether it applies |
 | Quality | Tests and required checks | met | Test suite, format and analysis on every proposed change ([ci.yml](.github/workflows/ci.yml)); `main` is protected by a ruleset |

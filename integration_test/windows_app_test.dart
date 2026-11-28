@@ -1,6 +1,6 @@
 // Integrationstest auf Windows : die echte App in
 // einem echten Fenster, mit Netzwerk-Fakes fuer laut.fm (wie in
-// test/data/live/now_playing_repository_test.dart) und ohne Audio.
+// test/data/live/now_playing_repository_engine_test.dart) und ohne Audio.
 //
 // Lauf nur in der CI (Workflow itest-windows.yml):
 //   flutter test integration_test/windows_app_test.dart -d windows

@@ -7,6 +7,8 @@ import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/favorite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../support/in_memory_prefs_store.dart';
+
 /// Echter Auszug der Web-App (Schluessel und Werte wie von localStorage).
 const Map<String, Object> webAppValues = <String, Object>{
   'linefm-favorites':

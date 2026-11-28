@@ -59,6 +59,7 @@ jobs:
   upload:
     name: Google Play (${{ inputs.track }})
     runs-on: ubuntu-latest
+    environment: store-google
     timeout-minutes: 20
     permissions:
       contents: read

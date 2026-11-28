@@ -4,7 +4,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/providers.dart';
-import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/features/alarm/alarm_bootstrap.dart';
@@ -13,6 +12,7 @@ import 'package:linefm_radio/services/alarm/alarm_coordinator.dart';
 import 'package:linefm_radio/services/alarm/alarm_permissions.dart';
 import 'package:linefm_radio/services/alarm/alarm_wiring.dart';
 
+import '../support/in_memory_prefs_store.dart';
 import '../support/service_doubles.dart';
 import '../support/test_doubles.dart';
 

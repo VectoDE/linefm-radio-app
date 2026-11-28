@@ -10,6 +10,8 @@ import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/stations_config.dart';
 
+import '../../support/in_memory_prefs_store.dart';
+
 /// MockClient that also serves SHA256SUMS.txt next to every file: the line
 /// holds the SHA-256 of whatever [handler] returns for that file.
 MockClient checked(Future<http.Response> Function(http.Request) handler) =>

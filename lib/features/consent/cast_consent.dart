@@ -1,12 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:linefm_radio/features/legal/legal_document.dart';
-import 'package:linefm_radio/features/legal/legal_screen.dart';
+import 'package:linefm_radio/features/consent/consent_dialog_frame.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/services/cast/browser_cast.dart';
 import 'package:linefm_radio/services/cast/browser_cast_bridge.dart';
-import 'package:linefm_radio/ui/theme/tokens.dart';
-import 'package:linefm_radio/ui/theme/typography.dart';
-import 'package:linefm_radio/ui/widgets/named_dialog.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Bridge to web/cast.js; tests override it.
@@ -64,63 +60,9 @@ class CastConsentDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final c = context.linefm;
-    return NamedDialog(
-      label: l10n.castConsentTitle,
-      child: AlertDialog(
-        semanticLabel: l10n.castConsentTitle,
-        scrollable: true,
-        title: Semantics(header: true, child: Text(l10n.castConsentTitle)),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                castConsentText(l10n),
-                style: LinefmText.listTitle.copyWith(
-                  color: c.text,
-                  height: 1.55,
-                ),
-              ),
-              const SizedBox(height: LinefmSpace.sm),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: () => openLegal(context, LegalKind.privacy),
-                  child: Text(l10n.consentPrivacyLink),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(
-          LinefmSpace.xl,
-          0,
-          LinefmSpace.xl,
-          LinefmSpace.gutter,
-        ),
-        actions: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text(l10n.consentDecline),
-                ),
-              ),
-              const SizedBox(width: LinefmSpace.md),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: Text(l10n.consentAllow),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+    return ConsentDialogFrame(
+      title: l10n.castConsentTitle,
+      text: castConsentText(l10n),
     );
   }
 }

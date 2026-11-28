@@ -39,14 +39,6 @@ abstract interface class ArtworkService {
   Future<ArtworkResult?> lookup(Track track, {bool priority = false});
 }
 
-class NoopArtworkService implements ArtworkService {
-  const NoopArtworkService();
-
-  @override
-  Future<ArtworkResult?> lookup(Track track, {bool priority = false}) async =>
-      null;
-}
-
 /// Ohne iTunes-Suche: nur ein Cover, das die laut.fm-API schon mitliefert
 /// (Einstellung "Cover laden" aus).
 class ApiCoverOnlyArtworkService implements ArtworkService {

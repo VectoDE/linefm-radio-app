@@ -110,6 +110,7 @@ jobs:
     needs: gate
     if: needs.gate.outputs.ready == 'true'
     runs-on: windows-latest
+    environment: store-microsoft
     timeout-minutes: 60
     permissions:
       contents: read

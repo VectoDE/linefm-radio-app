@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/navigation.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
-import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/favorite.dart';
 import 'package:linefm_radio/domain/favorites/favorites_export.dart';
@@ -23,6 +22,7 @@ import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../support/in_memory_prefs_store.dart';
 import '../support/service_doubles.dart';
 import '../support/test_doubles.dart';
 

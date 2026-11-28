@@ -8,13 +8,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/app.dart';
 import 'package:linefm_radio/app/navigation.dart';
 import 'package:linefm_radio/app/providers.dart';
-import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/features/settings/settings_screen.dart';
 import 'package:linefm_radio/l10n/system_l10n.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../support/in_memory_prefs_store.dart';
 import '../support/service_doubles.dart';
 import 'app_host.dart';
 

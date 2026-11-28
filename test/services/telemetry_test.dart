@@ -4,12 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:linefm_radio/core/config/app_config.dart';
-import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/services/telemetry/sentry_sink.dart';
 import 'package:linefm_radio/services/telemetry/telemetry.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/services/telemetry/umami_sink.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+
+import '../support/in_memory_prefs_store.dart';
 
 class _FakeAnalytics implements AnalyticsSink {
   int inits = 0;

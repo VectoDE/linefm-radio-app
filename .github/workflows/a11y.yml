@@ -196,12 +196,208 @@ jobs:
         timeout-minutes: 5
         run: node analytics_net.mjs --web ../../build/web_ga --mode ids
 
+  # Android accessibility tree in the emulator: the same tree TalkBack reads.
+  # Walks the five areas plus Alarm and About and fails on an unlabelled
+  # interactive node or a touch target under 48 x 48 dp
+  # (tool/a11y/android_walk.py). The image is google_apis_playstore; when it
+  # carries TalkBack, the job turns TalkBack on, checks that the service is
+  # bound while the app runs and records the tree. Spoken output is not
+  # captured (TalkBack has no supported speech log); that stays a device check.
+  android-tree:
+    name: Android accessibility tree and TalkBack (emulator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost \
+            /usr/share/swift /opt/hostedtoolcache/CodeQL \
+            /opt/hostedtoolcache/PyPy /opt/hostedtoolcache/go /usr/local/julia* || true
+          df -h /
+
+      - name: Java 17
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Write config
+        uses: ./.github/actions/write-config
+        with:
+          app-env: dev
+
+      # Debug builds carry the debug signature, so the emulator installs them.
+      - name: Build APK (x86_64, debug)
+        run: flutter build apk --debug --target-platform android-x64 --dart-define-from-file=config/app.json
+
+      - name: Boot emulator
+        timeout-minutes: 30
+        env:
+          EMULATOR_TAG: google_apis_playstore
+          EMULATOR_BOOT_POLLS: "360"
+        run: |
+          bash tool/perf/android_emulator.sh tool/a11y/out-android
+          # The boot script puts platform-tools on PATH only for itself; the
+          # following steps call adb directly.
+          echo "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/platform-tools" >> "$GITHUB_PATH"
+
+      - name: Walk the screens and check the tree
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          adb install -r build/app/outputs/flutter-apk/app-debug.apk >/dev/null
+          adb shell am start -W -n de.linefm.app/.MainActivity >/dev/null
+          sleep 20
+          python3 -I tool/a11y/android_walk.py "$(command -v adb)" --out tool/a11y/out-android
+
+      - name: TalkBack on the running app
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          out=tool/a11y/out-android
+          service="com.google.android.marvin.talkback/com.google.android.marvin.talkback.TalkBackService"
+          if ! adb shell pm list packages com.google.android.marvin.talkback | grep -q talkback; then
+            echo "absent" > "$out/talkback.txt"
+            echo "TalkBack is not installed on this system image; tree check only."
+            exit 0
+          fi
+          adb shell settings put secure enabled_accessibility_services "$service"
+          adb shell settings put secure accessibility_enabled 1
+          sleep 10
+          adb shell am start -W -n de.linefm.app/.MainActivity >/dev/null
+          sleep 10
+          adb shell dumpsys accessibility > "$out/talkback-dumpsys.txt"
+          adb shell uiautomator dump /sdcard/talkback.xml >/dev/null
+          adb exec-out cat /sdcard/talkback.xml > "$out/tree-with-talkback.xml"
+          adb shell settings delete secure enabled_accessibility_services >/dev/null
+          adb shell settings put secure accessibility_enabled 0
+          if ! grep -q "TalkBackService" "$out/talkback-dumpsys.txt"; then
+            echo "::error::TalkBack is installed but its service did not bind"
+            exit 1
+          fi
+          grep -q 'package="de.linefm.app"' "$out/tree-with-talkback.xml"
+          echo "bound" > "$out/talkback.txt"
+
+      - name: Summary
+        if: ${{ always() }}
+        run: |
+          out=tool/a11y/out-android
+          if [ -f "$out/walk.json" ]; then
+            jq -r '"**Android tree:** \(.screens | length) screens, \([.screens[] | (.problems // []) | length] | add) findings, \([.screens[] | select(.error)] | length) unreachable"' "$out/walk.json" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**Android tree:** no report generated" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "**TalkBack:** $(cat "$out/talkback.txt" 2>/dev/null || echo 'not checked')" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-a11y-tree-${{ github.sha }}
+          path: tool/a11y/out-android/
+          retention-days: 30
+          if-no-files-found: warn
+
+  # Apple's accessibility audit (performAccessibilityAudit, iOS 17) on the
+  # main screens in the simulator, from ios/RunnerUITests. It checks the tree
+  # VoiceOver reads (labels, hit regions, contrast, clipped text, reachable
+  # elements); it is not spoken VoiceOver output.
+  ios-audit:
+    name: iOS accessibility audit (simulator)
+    runs-on: macos-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Write config
+        uses: ./.github/actions/write-config
+        with:
+          app-env: dev
+
+      - name: Pick a simulator and start booting it
+        id: sim
+        shell: bash
+        run: |
+          set -euo pipefail
+          udid=$(xcrun simctl list devices available -j \
+            | jq -r '[.devices | to_entries[] | select(.key | test("iOS")) | .value[]
+                      | select(.name | startswith("iPhone"))] | last | .udid')
+          test -n "$udid" && test "$udid" != "null"
+          xcrun simctl boot "$udid"
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+
+      - name: Configure the iOS project
+        run: |
+          flutter precache --ios
+          flutter build ios --config-only --simulator --debug --dart-define-from-file=config/app.json
+
+      - name: Run the accessibility audit
+        shell: bash
+        env:
+          UDID: ${{ steps.sim.outputs.udid }}
+        run: |
+          set -euo pipefail
+          xcodebuild test -quiet \
+            -workspace ios/Runner.xcworkspace -scheme Runner \
+            -destination "platform=iOS Simulator,id=$UDID,arch=arm64" \
+            -derivedDataPath build/derived-data \
+            -resultBundlePath "$RUNNER_TEMP/ios-a11y/audit.xcresult" \
+            -parallel-testing-enabled NO -disable-concurrent-destination-testing \
+            -only-testing:RunnerUITests/AccessibilityAuditTests \
+            CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO
+
+      - name: Summary
+        if: ${{ always() }}
+        run: |
+          if [ -d "$RUNNER_TEMP/ios-a11y/audit.xcresult" ]; then
+            echo "**iOS accessibility audit:** result bundle in artifact ios-a11y-audit" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**iOS accessibility audit:** no result bundle" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload result bundle
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ios-a11y-audit-${{ github.sha }}
+          path: ${{ runner.temp }}/ios-a11y/
+          retention-days: 30
+          if-no-files-found: warn
+
   # Zero-warning rule: any warning or error in a job log or a check-run
   # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
   # holds the few documented upstream exceptions, each with an expiry date.
   log-gate:
     name: Log gate
-    needs: [axe, analytics]
+    needs: [axe, analytics, android-tree, ios-audit]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -123,6 +123,8 @@ jobs:
     needs: gate
     if: needs.gate.outputs.ready == 'true' || inputs.build_only || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    # Builds for proposed changes and build-only runs never touch store credentials, so they skip the protected environment.
+    environment: ${{ (github.event_name != 'pull_request' && !inputs.build_only) && 'store-snap' || '' }}
     timeout-minutes: 60
     permissions:
       contents: read

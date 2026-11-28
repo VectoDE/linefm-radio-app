@@ -2,11 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/app.dart';
 import 'package:linefm_radio/app/providers.dart';
-import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/features/loader/app_loader.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'support/in_memory_prefs_store.dart';
 import 'support/service_doubles.dart';
 
 /// The very first frame after runApp must be the branded loading screen and

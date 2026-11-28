@@ -4,12 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/providers.dart';
 import 'package:linefm_radio/data/api/laut_api.dart';
-import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/schedule_slot.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/services/audio/audio_handler.dart';
 import 'package:linefm_radio/services/audio/radio_player.dart';
+
+import '../support/in_memory_prefs_store.dart';
 
 /// Player ohne Ton.
 class _SilentPlayer implements RadioPlayer {

@@ -7,13 +7,13 @@ import 'package:linefm_radio/core/config/app_config.dart';
 import 'package:linefm_radio/data/api/laut_api.dart';
 import 'package:linefm_radio/data/artwork/itunes_artwork.dart';
 import 'package:linefm_radio/data/live/now_playing_repository.dart';
-import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/services/cast/cast_backend.dart';
 import 'package:linefm_radio/services/cast/cast_service.dart';
 import 'package:linefm_radio/services/share/system_share_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 
+import '../support/in_memory_prefs_store.dart';
 import '../support/service_doubles.dart';
 
 /// Die Release-Verdrahtung (`productionOverrides`) laeuft in keinem

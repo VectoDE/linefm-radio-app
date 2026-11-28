@@ -83,8 +83,9 @@ final stationScheduleProvider =
       }
     });
 
+/// Set by productionOverrides(); tests use their own doubles.
 final artworkProvider = Provider<ArtworkService>(
-  (ref) => const NoopArtworkService(),
+  (ref) => throw UnimplementedError('artworkProvider must be overridden'),
 );
 
 /// Set by productionOverrides(); tests use their own doubles.

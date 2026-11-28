@@ -42,6 +42,7 @@ import 'package:linefm_radio/platform/desktop/title_bar.dart';
 import 'package:linefm_radio/platform/desktop/window_caption.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tray_manager/legacy.dart' show TrayListener;
 import 'package:window_manager/legacy.dart' show DragToMoveArea, WindowManager;
 
 import '../test/support/in_memory_prefs_store.dart';
@@ -412,6 +413,89 @@ void main() {
     expect(await _wm.isAlwaysOnTop(), isFalse);
     expect(find.byType(DesktopTitleBar), findsOneWidget);
     await _shot(tester, '60-04-zurueck-aus-mini-fenster');
+
+    expect(tester.takeException(), isNull);
+    await _disposeWorld(tester, world);
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
+  // Every tray menu entry calls one of these controller methods (see
+  // TrayManagerTrayController.refresh); the left click is the real listener
+  // callback. The native pop-up menu itself cannot be clicked from a test.
+  testWidgets('tray menu actions and mini window', (tester) async {
+    final desktop = DesktopController.instance;
+    expect(
+      desktop.tray.isAvailable,
+      isTrue,
+      reason: 'tray not available on the runner',
+    );
+    final listener = desktop.tray as TrayListener;
+    await _setWindowSize(tester, const Size(1000, 680));
+    final world = _World(settings: _settings(AppLanguage.en));
+    await _pumpWorld(tester, world);
+
+    // Play / Stop entry.
+    expect(world.playback.state.isPlaying, isFalse);
+    await desktop.togglePlayback();
+    await _pumpUntil(
+      tester,
+      () => world.playback.state.isPlaying,
+      'playback started from the tray',
+    );
+    await desktop.tray.refresh();
+    await desktop.togglePlayback();
+    await _pumpUntil(
+      tester,
+      () => !world.playback.state.isPlaying,
+      'playback stopped from the tray',
+    );
+
+    // Stations submenu entry.
+    final target = stationsCatalog[2];
+    await desktop.startStation(target);
+    await _pumpUntil(
+      tester,
+      () =>
+          world.container.read(activeStationProvider) == target &&
+          world.playback.state.isPlaying,
+      'station ${target.slug} started from the tray',
+    );
+    await _shot(tester, '60-05-tray-station');
+
+    // Always on top entry.
+    expect(await _wm.isAlwaysOnTop(), isFalse);
+    await desktop.toggleAlwaysOnTop();
+    await _waitWindow(() async => _wm.isAlwaysOnTop(), 'always on top');
+    expect(desktop.alwaysOnTop.value, isTrue);
+    await desktop.toggleAlwaysOnTop();
+    await _waitWindow(() async => !await _wm.isAlwaysOnTop(), 'normal layer');
+
+    // Mini player entry: 360 x 120, then back with the left click.
+    await desktop.toggleMini();
+    await _waitWindow(() async {
+      final size = await _wm.getSize();
+      return (size.width - 360).abs() <= 2 && (size.height - 120).abs() <= 2;
+    }, 'mini window 360 x 120');
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(desktop.miniMode.value, isTrue);
+    expect(world.playback.state.isPlaying, isTrue);
+    await _shot(tester, '60-06-tray-mini-window');
+    listener.onTrayIconMouseUp();
+    await _waitWindow(() async {
+      final size = await _wm.getSize();
+      return size.width > 500 && size.height > 300;
+    }, 'normal window after the tray click');
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(desktop.miniMode.value, isFalse);
+
+    // Show window entry after closing into the tray.
+    await tester.tap(_caption(CaptionButtonKind.close));
+    await _waitWindow(() async => !await _wm.isVisible(), 'window in the tray');
+    expect(desktop.tray.isAvailable, isTrue);
+    listener.onTrayIconMouseUp();
+    await _waitWindow(() async => _wm.isVisible(), 'window shown by the tray');
+    await _pumpFor(tester, const Duration(milliseconds: 600));
+    expect(find.byType(DesktopTitleBar), findsOneWidget);
+    await _shot(tester, '60-07-tray-window-shown');
 
     expect(tester.takeException(), isNull);
     await _disposeWorld(tester, world);

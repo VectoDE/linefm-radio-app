@@ -12,7 +12,10 @@ set -euo pipefail
 
 log_dir="${1:-tool/perf/out}"
 api="${EMULATOR_API:-34}"
-image="system-images;android-${api};google_apis;x86_64"
+# google_apis (default) has no TalkBack; the accessibility job uses
+# google_apis_playstore and checks at runtime whether TalkBack is installed.
+tag="${EMULATOR_TAG:-google_apis}"
+image="system-images;android-${api};${tag};x86_64"
 sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
 if [ -z "$sdk" ]; then
   echo "ANDROID_HOME is not set" >&2

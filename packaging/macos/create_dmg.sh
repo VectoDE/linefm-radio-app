@@ -53,7 +53,7 @@ if command -v create-dmg >/dev/null 2>&1; then
     --icon "$APP_NAME" 170 170
     --hide-extension "$APP_NAME"
     --app-drop-link 490 170
-    --icon "LIES-MICH-ZUERST.txt" 560 60
+    --icon "LIES-MICH-ZUERST.txt" 95 60
     --no-internet-enable
   )
   if [ -f "$BACKGROUND" ]; then

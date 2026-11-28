@@ -43,7 +43,8 @@ try {
 
   if ($Stage -in 'prepare', 'all') {
     Write-Host "== Engine bauen ($numeric)"
-    & cmake -S installer/windows/engine -B $engineBuild -A x64 "-DLF_VERSION=$numeric"
+    # -Werror=dev/-Werror=deprecated: CMake's own warnings fail the configure step.
+    & cmake -S installer/windows/engine -B $engineBuild -A x64 -Werror=dev -Werror=deprecated "-DLF_VERSION=$numeric"
     if ($LASTEXITCODE -ne 0) { throw 'cmake configure fehlgeschlagen' }
     & cmake --build $engineBuild --config Release --parallel
     if ($LASTEXITCODE -ne 0) { throw 'cmake build fehlgeschlagen' }

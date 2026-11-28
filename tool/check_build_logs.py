@@ -61,7 +61,10 @@ RULES: list[tuple[str, re.Pattern[str]]] = [
     ("warn", re.compile(r"^\[?(WARN|WARNING|ERROR)\]?[: ]")),
     ("perl", re.compile(r"^(Use of uninitialized value|.+ is deprecated)\b.* at \S+ line \d+\b")),
     ("apt", re.compile(r"^[EW]: ")),
-    ("warning-mid-line", re.compile(r"\b(Warning|WARNING|DeprecationWarning|UserWarning):\s")),
+    # Python and Node warning classes: DeprecationWarning, ResourceWarning, ...
+    ("warning-mid-line", re.compile(r"\b(\w*Warning|WARNING):\s")),
+    # Structured agent logs (logfmt), such as the harden-runner agent dump.
+    ("structured-log", re.compile(r"\blevel=(WARN|WARNING|ERROR)\b")),
     # Not for quoted JSON values: SARIF dumps quote rule help texts.
     ("deprecated", re.compile(
         r"^(?!\s*\")(?=.*(\b(is|are|has been|was) deprecated\b|\bDEPRECATED\b|\bdeprecation warning\b))",

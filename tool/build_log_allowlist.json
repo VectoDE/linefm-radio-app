@@ -128,5 +128,11 @@
     "job": "^macOS.(setup.UI|Gatekeeper)",
     "expires": "2027-02-28",
     "reason": "Printed by the post step of step-security/harden-runner v2.23.0 on macOS runners (setup UI and Gatekeeper evidence jobs): after the job it dumps the agent's unified log via a spawnSync shell call with a fixed timeout, which can time out on a busy runner. Purely diagnostic output of a third-party action, not of the build; the action documents no input that turns it off."
+  },
+  {
+    "pattern": "\\blevel=WARN msg=\"(pid reused|existing process not stopped, resetting it|Process event is older than \\d+ seconds)",
+    "job": "Windows",
+    "expires": "2027-02-28",
+    "reason": "The post step of step-security/harden-runner v2.23.0 dumps its Windows agent log into the job log; the agent warns each time Windows reuses a process id between its polls (1000+ lines per job, from build tools such as rustc, cmake and git). Process tracking of the third-party agent, not output of our build, and the action has no input to lower its log level. Re-check with the next harden-runner release."
   }
 ]

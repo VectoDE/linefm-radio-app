@@ -90,6 +90,9 @@ def fetch(url: str, opener=urllib.request.urlopen, sleep=time.sleep) -> tuple[st
                 charset = response.headers.get_content_charset() or "utf-8"
                 return "ok", body.decode(charset, errors="replace")
         except urllib.error.HTTPError as error:
+            # An HTTPError is also the response object; close it so no
+            # connection or temp file is left to the garbage collector.
+            error.close()
             if error.code not in TRANSIENT_CODES:
                 return "broken", f"HTTP {error.code}"
             last = f"HTTP {error.code}"

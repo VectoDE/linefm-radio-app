@@ -62,6 +62,8 @@ android {
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        // Zero-warning rule for the app's own Kotlin sources.
+        allWarningsAsErrors = true
     }
 }
 

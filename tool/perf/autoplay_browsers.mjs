@@ -13,7 +13,7 @@
 //
 // Usage (server running, see performance.yml):
 //   cd tool/perf && npm ci --ignore-scripts && npx playwright install --with-deps chromium firefox webkit
-//   node autoplay_browsers.mjs --base http://127.0.0.1:8080 --out out --browsers chromium,firefox,webkit,msedge
+//   node autoplay_browsers.mjs --base https://127.0.0.1:8443 --out out --browsers chromium,firefox,webkit,msedge
 //
 // msedge uses the Microsoft Edge of the runner image (Playwright channel
 // "msedge"). A missing Edge is a failure like any other: every engine has to
@@ -23,7 +23,7 @@ import { join, resolve } from 'node:path';
 import { chromium, firefox, webkit } from 'playwright';
 
 function parseArgs(argv) {
-  const out = { base: 'http://127.0.0.1:8080', out: 'out', browsers: 'chromium,firefox,webkit,msedge' };
+  const out = { base: 'https://127.0.0.1:8443', out: 'out', browsers: 'chromium,firefox,webkit,msedge' };
   for (let i = 0; i < argv.length; i += 2) {
     const key = argv[i]?.replace(/^--/, '');
     if (key in out) out[key] = argv[i + 1];
@@ -34,6 +34,8 @@ function parseArgs(argv) {
 const args = parseArgs(process.argv.slice(2));
 const OUT = resolve(args.out);
 const BASE = args.base.replace(/\/$/, '');
+const BASE_URL = new URL(BASE);
+const LOOPBACK_HTTPS = BASE_URL.protocol === 'https:' && ['127.0.0.1', 'localhost'].includes(BASE_URL.hostname);
 
 const LAUNCHERS = {
   chromium: () => chromium.launch(),
@@ -156,27 +158,14 @@ async function check(name) {
   let page;
   const errors = [];
   try {
-    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'en-US' });
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 800 },
+      locale: 'en-US',
+      // CI serves a self-signed loopback certificate (tls_proxy.mjs); only
+      // accepted when the base URL is HTTPS on 127.0.0.1 or localhost.
+      ignoreHTTPSErrors: LOOPBACK_HTTPS,
+    });
     await context.addInitScript(INIT, { labels: BUTTON_LABELS, ready: READY });
-    if (name === 'webkit') {
-      // The server sends CSP "upgrade-insecure-requests". Chromium and Firefox
-      // exempt loopback addresses from it, WebKit does not and tries
-      // https://127.0.0.1, which this plain HTTP test server cannot answer, so
-      // the engine never loads. Production is HTTPS only, where the directive
-      // changes nothing. For WebKit this one directive is dropped from the
-      // page's CSP; everything else of the policy stays in force.
-      await context.route('**/*', async (route) => {
-        if (route.request().resourceType() !== 'document') return route.continue();
-        const response = await route.fetch();
-        const headers = { ...response.headers() };
-        for (const key of Object.keys(headers)) {
-          if (key.toLowerCase() === 'content-security-policy') {
-            headers[key] = headers[key].replace(/;\s*upgrade-insecure-requests/, '');
-          }
-        }
-        return route.fulfill({ response, headers });
-      });
-    }
     page = await context.newPage();
     page.on('pageerror', (e) => errors.push(`pageerror: ${String(e.message).split('\n')[0]}`));
     page.on('console', (m) => {

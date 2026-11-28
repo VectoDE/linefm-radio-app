@@ -121,6 +121,48 @@ jobs:
             test -s "$GITHUB_WORKSPACE/out/$f" || { echo "::error::nikto wrote no $f"; exit 1; }
           done
 
+      # Cloudflare Pages answers unknown paths with index.html (no 404.html,
+      # see deploy/cloudflare/_redirects), so nikto's file probes (.htpasswd,
+      # composer.json, *.json, ...) all return 200 and look like exposures.
+      # Fetch every reported path and compare the body with the start page:
+      # an identical body is the single-page fallback (false positive); any
+      # other 200 response is real content and fails the job.
+      - name: Triage nikto findings
+        if: ${{ always() }}
+        run: |
+          set -uo pipefail
+          [ -s out/nikto.json ] || { echo "**nikto triage:** no report" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          base=http://127.0.0.1:8788
+          if ! curl -fsS -o "$RUNNER_TEMP/index.html" "$base/"; then
+            echo "**nikto triage:** server no longer reachable, skipped" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          real=0 fallback=0 gone=0 other=0
+          : > "$RUNNER_TEMP/triage.md"
+          while IFS=$'\t' read -r id path msg; do
+            case "$path" in
+              ""|/|/robots.txt|/sitemap.xml) other=$((other + 1)); continue ;;
+            esac
+            code=$(curl -sS -o "$RUNNER_TEMP/probe" -w '%{http_code}' "$base$path" || echo 000)
+            if [ "$code" = 200 ] && cmp -s "$RUNNER_TEMP/probe" "$RUNNER_TEMP/index.html"; then
+              fallback=$((fallback + 1))
+            elif [ "$code" = 404 ] || [ "$code" = 403 ]; then
+              gone=$((gone + 1))
+            else
+              real=$((real + 1))
+              echo "- $path ($id): HTTP $code, body differs from the start page: $msg" >> "$RUNNER_TEMP/triage.md"
+            fi
+          done < <(jq -r '.. | objects | select(has("msg")) | [(.id // ""), (.url // ""), (.msg // "")] | @tsv' out/nikto.json)
+          {
+            echo "**nikto triage:** $fallback single-page fallback (false positives), $gone not served, $other informational (start page, robots.txt, sitemap.xml), $real real"
+            echo "- Header \`x-server-env\` (id 999100) comes from \`wrangler pages dev\`, not from the deployed headers."
+            cat "$RUNNER_TEMP/triage.md"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$real" -gt 0 ]; then
+            echo "::error::nikto reported $real path(s) that serve real content, see the job summary"
+            exit 1
+          fi
+
       - name: Summary
         if: ${{ always() }}
         run: |

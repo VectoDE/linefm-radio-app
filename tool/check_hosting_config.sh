@@ -9,7 +9,7 @@
 #
 # `check_hosting_config.sh --static` runs only the header consistency check (python3 3.11+, no
 # docker, no network; also checks build/hosting and build/web for unrendered CSP placeholders when
-# they exist): the security header set, the Cache-Control table must
+# they exist): the security header set, the Cache-Control table and the CORS rule must
 # agree across Cloudflare _headers, netlify.toml, vercel.json, nginx, Plesk nginx and Plesk .htaccess.
 set -euo pipefail
 
@@ -113,6 +113,21 @@ for rel, pattern in (('deploy/nginx/snippets/linefm-locations.conf', r'add_heade
         if value not in allowed:
             fail(f'{rel}: Cache-Control "{value}" is not in deploy/cloudflare/_headers')
 
+# CORS: Cloudflare Pages adds Access-Control-Allow-Origin: * by default; no target may send it.
+if 'access-control-allow-origin' not in cf_detached.get('/*', set()):
+    fail('deploy/cloudflare/_headers: the /* rule must detach the default Access-Control-Allow-Origin '
+         '("! Access-Control-Allow-Origin")')
+for target, rules in (('deploy/cloudflare/_headers', cf), ('netlify.toml', nl), ('vercel.json', vc)):
+    for p, headers in rules.items():
+        if any(k.lower() == 'access-control-allow-origin' for k in headers):
+            fail(f'{target}: {p} sets Access-Control-Allow-Origin')
+for rel in ('deploy/nginx/snippets/linefm-headers.conf', 'deploy/nginx/snippets/linefm-locations.conf',
+            'deploy/nginx/linefm-app.conf', 'deploy/plesk/nginx-additional.conf', 'deploy/plesk/.htaccess',
+            'deploy/traefik/nginx.conf'):
+    for line in read(rel).splitlines():
+        if re.search(r'access-control-allow-origin', line, re.I) and not line.lstrip().startswith('#'):
+            fail(f'{rel}: sets Access-Control-Allow-Origin: {line.strip()}')
+
 # Rendered output (tool/web_postbuild.dart writes build/hosting, build/web): no placeholder may
 # survive there. Skipped when the directories do not exist (the repo files keep placeholders).
 placeholder = re.compile(r'__CSP_[A-Z_]+__')
@@ -134,7 +149,7 @@ if checked and not errors:
 if errors:
     sys.exit(1)
 print(f'Header sets agree across {len(sets)} targets; Cache-Control table matches '
-      f'({len(ref_table)} rules).')
+      f'({len(ref_table)} rules); no CORS header.')
 PY
 }
 

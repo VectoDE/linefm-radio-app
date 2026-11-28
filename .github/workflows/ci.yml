@@ -45,6 +45,10 @@ jobs:
       - name: Branding
         run: python3 tool/check_branding.py
 
+      # Dart files under lib/ and test/ stay at 400 lines or fewer.
+      - name: File length limit
+        run: python3 tool/check_file_lines.py
+
       # GitHub Actions files are English only.
       - name: English GitHub Actions
         run: python3 tool/check_english_ci.py

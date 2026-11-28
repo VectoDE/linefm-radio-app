@@ -13,6 +13,8 @@ name: Performance
 #             measures in four parallel slices on separate runners (Lighthouse,
 #             mobile load, mobile interaction, desktop with audio), each slice
 #             serial; web merges the partial results into web-perf.json.
+# - web-autoplay: start button and click-to-play in Chromium, Firefox, WebKit and
+#             Edge (tool/perf/autoplay_browsers.mjs); a check that fails the run.
 # - windows:  Release build, start to first frame, idle memory/CPU,
 #             audio start via deep link, package size (tool/perf/windows_start.ps1).
 # - android:  APK (arm64, with --analyze-size) and AAB, sizes only.
@@ -330,6 +332,85 @@ jobs:
           name: perf-web-${{ github.sha }}
           path: tool/perf/out/
           retention-days: 30
+          if-no-files-found: warn
+
+  # Autoplay in real browser engines: the app must stay silent, show its start
+  # button and play only after a real click (tool/perf/autoplay_browsers.mjs).
+  # Fails when an engine breaks that behaviour; it is a check, not a measurement.
+  web-autoplay:
+    name: Web autoplay (${{ matrix.browser }})
+    needs: web-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit, msedge]
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Fetch build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: webbuild-${{ github.sha }}
+          path: perf-build
+
+      - name: Start nginx container (deploy/traefik)
+        run: |
+          set -euo pipefail
+          tar -xzf perf-build/web.tar.gz
+          gunzip -c perf-build/image.tar.gz | docker load
+          docker run -d --name linefm-perf-web --read-only --tmpfs /tmp -p 127.0.0.1:8080:8080 linefm-perf-web
+          for _ in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8080/healthz >/dev/null && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8080/healthz
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tool/perf/package-lock.json
+
+      # Edge comes with the runner image; the other engines are Playwright builds.
+      - name: Install browser
+        working-directory: tool/perf
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund
+          if [ "$BROWSER" = msedge ]; then
+            npx --no-install playwright install-deps chromium
+          else
+            npx --no-install playwright install --with-deps "$BROWSER"
+          fi
+
+      - name: Autoplay check
+        working-directory: tool/perf
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: node autoplay_browsers.mjs --base http://127.0.0.1:8080 --out out/autoplay-"$BROWSER" --browsers "$BROWSER"
+
+      - name: Upload result
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: autoplay-${{ matrix.browser }}-${{ github.sha }}
+          path: tool/perf/out/
+          retention-days: 14
           if-no-files-found: warn
 
   windows:
@@ -653,7 +734,7 @@ jobs:
   # holds the few documented upstream exceptions, each with an expiry date.
   log-gate:
     name: Log gate
-    needs: [web-build, web-measure, web, windows, android, android-start, report, budget]
+    needs: [web-build, web-measure, web, web-autoplay, windows, android, android-start, report, budget]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10

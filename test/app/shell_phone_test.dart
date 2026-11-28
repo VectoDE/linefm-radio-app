@@ -1,0 +1,283 @@
+import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:linefm_radio/app/app.dart';
+import 'package:linefm_radio/app/navigation.dart';
+import 'package:linefm_radio/app/providers.dart';
+import 'package:linefm_radio/domain/stations_catalog.dart';
+import 'package:linefm_radio/features/mini_player/mini_player.dart';
+import 'package:linefm_radio/features/player/player_screen.dart';
+import 'package:linefm_radio/features/settings/platform_info.dart';
+import 'package:linefm_radio/features/settings/settings_screen.dart';
+import 'package:linefm_radio/features/storage_notice/storage_notice.dart';
+import 'package:material_ui/material_ui.dart';
+
+import 'app_host.dart';
+import 'shell_helpers.dart';
+
+void main() {
+  group('Sprache', () {
+    test('?lang= setzt die Sprache, sonst System', () {
+      expect(localeFromQuery(Uri.parse('/?lang=en')), const Locale('en'));
+      expect(localeFromQuery(Uri.parse('/?lang=de')), const Locale('de'));
+      expect(localeFromQuery(Uri.parse('/?lang=fr')), isNull);
+      expect(localeFromQuery(Uri.parse('/')), isNull);
+    });
+
+    test('Deutsch bleibt Deutsch, alles andere Englisch', () {
+      expect(resolveAppLocale(const Locale('de', 'AT')), const Locale('de'));
+      expect(resolveAppLocale(const Locale('fr')), const Locale('en'));
+      expect(resolveAppLocale(null), const Locale('en'));
+    });
+
+    testWidgets('?lang=en schaltet die Oberflaeche auf Englisch', (
+      tester,
+    ) async {
+      useSize(tester, 390, 844);
+      final host = AppHost(settings: noAutoplay);
+      await pumpApp(tester, host, uri: Uri.parse('https://x/?lang=en'));
+      expect(find.text('All stations'.toUpperCase()), findsOneWidget);
+      expect(find.text('STATIONS'), findsOneWidget);
+      await disposeApp(tester, host);
+    });
+  });
+
+  group('Handy', () {
+    testWidgets('Header, Navigation, Mini-Player und Speicher-Hinweis', (
+      tester,
+    ) async {
+      useSize(tester, 390, 844);
+      final host = AppHost(
+        settings: noAutoplay,
+        platform: const PlatformInfo(
+          isWeb: true,
+          platform: TargetPlatform.android,
+        ),
+        storageConfirmed: false,
+      );
+      await pumpApp(tester, host);
+
+      expect(find.text('LINEFM'), findsOneWidget);
+      expect(byQuietTooltip('Einstellungen'), findsOneWidget);
+      for (final label in <String>['SENDER', 'PLAYER', 'VERLAUF']) {
+        expect(find.text(label), findsOneWidget);
+      }
+      expect(find.byType(MiniPlayer), findsOneWidget);
+      expect(find.byType(StorageNotice), findsOneWidget);
+      expect(find.text('ALLE SENDER'), findsOneWidget);
+      expect(host.sink.events, contains('screen:stations'));
+      await disposeApp(tester, host);
+    });
+
+    testWidgets('Sender waehlen: Player zeigt Titel aus der Fake-API', (
+      tester,
+    ) async {
+      useSize(tester, 390, 844);
+      final host = AppHost(settings: noAutoplay);
+      await pumpApp(tester, host);
+
+      await tester.tap(find.text('LINEFM +RAP'));
+      await settleApp(tester);
+
+      expect(host.container.read(navigationProvider), AppScreen.player);
+      expect(find.byType(PlayerScreen), findsOneWidget);
+      expect(find.text('ERFOLG IST KEIN GLÜCK'), findsWidgets);
+      expect(find.byType(MiniPlayer), findsNothing);
+      expect(host.playback.state.isPlaying, isTrue);
+      expect(host.active.slug, 'linefmrap');
+      // Genau ein play-Ereignis (keine Doppelmeldung aus Liste + Controller).
+      expect(host.sink.names.where((n) => n == 'play'), hasLength(1));
+      expect(host.sink.events, contains('screen:player'));
+      await disposeApp(tester, host);
+    });
+
+    testWidgets('Navigation und Zurueck fuehren zu den Stationen', (
+      tester,
+    ) async {
+      useSize(tester, 390, 844);
+      final host = AppHost(settings: noAutoplay);
+      await pumpApp(tester, host);
+
+      await tester.tap(find.text('VERLAUF'));
+      await settleApp(tester);
+      expect(find.text('ZULETZT GESPIELT'), findsOneWidget);
+      // Verlauf meldet sich selbst, die Shell nicht doppelt.
+      expect(
+        host.sink.events.where((e) => e == 'screen:history'),
+        hasLength(1),
+      );
+
+      await tester.tap(byQuietTooltip('Einstellungen'));
+      await settleApp(tester);
+      expect(find.byType(SettingsScreen), findsOneWidget);
+
+      await tester.tap(find.bySemanticsLabel('Favoriten').first);
+      await settleApp(tester);
+      expect(host.container.read(navigationProvider), AppScreen.favorites);
+
+      final handled = await tester.binding.handlePopRoute();
+      await settleApp(tester);
+      expect(handled, isTrue);
+      expect(host.container.read(navigationProvider), AppScreen.stations);
+      await disposeApp(tester, host);
+    });
+
+    testWidgets('Einstellungen-Knopf: Rolle, Label einmal, Semantik-Tap', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      useSize(tester, 390, 844);
+      final host = AppHost(settings: noAutoplay);
+      await pumpApp(tester, host);
+
+      // Genau ein Knoten mit dem Label (Blase ohne eigenen Knoten).
+      expect(find.semantics.byLabel('Einstellungen'), findsOneWidget);
+      final data = tester
+          .getSemantics(find.bySemanticsLabel('Einstellungen'))
+          .getSemanticsData();
+      expect(data.flagsCollection.isButton, isTrue);
+      expect(data.hasAction(SemanticsAction.tap), isTrue);
+
+      tester.semantics.tap(find.semantics.byLabel('Einstellungen'));
+      await settleApp(tester);
+      expect(host.container.read(navigationProvider), AppScreen.settings);
+      await disposeApp(tester, host);
+      handle.dispose();
+    });
+
+    testWidgets('Untere Leiste: Semantik-Tap wechselt die Ansicht', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      useSize(tester, 390, 844);
+      final host = AppHost(settings: noAutoplay);
+      await pumpApp(tester, host);
+
+      for (final (label, screen) in <(String, AppScreen)>[
+        ('Verlauf', AppScreen.history),
+        ('Player', AppScreen.player),
+        ('Sender', AppScreen.stations),
+      ]) {
+        final finder = find.semantics.byPredicate(
+          (node) => node.label == label && node.flagsCollection.isButton,
+        );
+        expect(finder, findsOneWidget, reason: label);
+        tester.semantics.tap(finder);
+        await settleApp(tester);
+        expect(host.container.read(navigationProvider), screen, reason: label);
+      }
+      await disposeApp(tester, host);
+      handle.dispose();
+    });
+
+    testWidgets('Vorhersagbares Zurueck (Android) fuehrt wie Zurueck', (
+      tester,
+    ) async {
+      useSize(tester, 390, 844);
+      final host = AppHost(settings: noAutoplay);
+      await pumpApp(tester, host);
+
+      Future<void> gesture(String method, [Object? args]) async {
+        await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+          SystemChannels.backGesture.name,
+          SystemChannels.backGesture.codec.encodeMethodCall(
+            MethodCall(method, args),
+          ),
+          (_) {},
+        );
+        await settleApp(tester);
+      }
+
+      await tester.tap(find.text('VERLAUF'));
+      await settleApp(tester);
+      expect(host.container.read(navigationProvider), AppScreen.history);
+
+      // Wie OnBackInvokedCallback mit enableOnBackInvokedCallback="true".
+      await gesture('startBackGesture', <String, Object?>{
+        'touchOffset': <double>[5, 400],
+        'progress': 0.0,
+        'swipeEdge': 0,
+      });
+      await gesture('updateBackGestureProgress', <String, Object?>{
+        'touchOffset': <double>[120, 400],
+        'progress': 0.6,
+        'swipeEdge': 0,
+      });
+      await gesture('commitBackGesture');
+      expect(host.container.read(navigationProvider), AppScreen.stations);
+
+      // Abgebrochene Geste aendert nichts.
+      await tester.tap(find.text('VERLAUF'));
+      await settleApp(tester);
+      await gesture('startBackGesture', <String, Object?>{
+        'touchOffset': <double>[5, 400],
+        'progress': 0.0,
+        'swipeEdge': 0,
+      });
+      await gesture('cancelBackGesture');
+      expect(host.container.read(navigationProvider), AppScreen.history);
+      await disposeApp(tester, host);
+    });
+
+    testWidgets('Offline-Leiste, wenn laut.fm nicht erreichbar ist', (
+      tester,
+    ) async {
+      useSize(tester, 390, 844);
+      final host = AppHost(
+        settings: noAutoplay,
+        repository: TestRepository(online: false),
+      );
+      await pumpApp(tester, host);
+      expect(
+        find.text('Keine Verbindung. LINEFM versucht es weiter.'),
+        findsOneWidget,
+      );
+      await disposeApp(tester, host);
+    });
+
+    testWidgets('Autoplay startet die letzte Station', (tester) async {
+      useSize(tester, 390, 844);
+      final host = AppHost();
+      await host.prefs.writeLastStation('linefmlofi');
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await pumpApp(tester, host);
+      expect(host.playback.state.isPlaying, isTrue);
+      expect(host.playback.state.station?.slug, 'linefmlofi');
+      await disposeApp(tester, host);
+    });
+
+    testWidgets('Autoplay waits while Android Auto runs the app headless', (
+      tester,
+    ) async {
+      useSize(tester, 390, 844);
+      final host = AppHost();
+      await host.prefs.writeLastStation('linefmlofi');
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.detached);
+      await pumpApp(tester, host);
+      expect(host.playback.state.isPlaying, isFalse);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await settleApp(tester);
+      expect(host.playback.state.station?.slug, 'linefmlofi');
+      expect(host.playback.state.isPlaying, isTrue);
+      await disposeApp(tester, host);
+    });
+
+    testWidgets('Tastenkuerzel: Ziffer startet Sender, Leertaste stoppt', (
+      tester,
+    ) async {
+      useSize(tester, 390, 844);
+      final host = AppHost(settings: noAutoplay);
+      await pumpApp(tester, host);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.digit3);
+      await settleApp(tester);
+      expect(host.active, stationsCatalog[2]);
+      expect(host.playback.state.isPlaying, isTrue);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await settleApp(tester);
+      expect(host.playback.state.isPlaying, isFalse);
+      await disposeApp(tester, host);
+    });
+  });
+}

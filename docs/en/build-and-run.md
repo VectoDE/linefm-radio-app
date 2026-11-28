@@ -4,7 +4,7 @@ This page is the English counterpart of the macOS passage in [BAUEN-UND-STARTEN.
 
 ## macOS
 
-The DMG is neither signed nor checked by Apple ("notarized"). For this reason macOS warns at the first launch. This is expected. The same instructions are also inside the DMG as `LIES-MICH-ZUERST.txt`.
+The DMG is neither signed nor checked by Apple ("notarized"). For this reason macOS warns at the first launch. This is expected. The same instructions are also inside the DMG as `README.txt`.
 
 1. Open the DMG with a double click and drag **LINEFM Radio** into **Applications**. The background of the DMG window shows these steps as a picture ([source](../../packaging/macos/dmg-background.svg)).
 2. Start the app from the Applications folder. A warning appears. Close it with **Done**.
@@ -21,7 +21,7 @@ Screenshots of steps 2 to 4, created automatically on a macOS runner of the CI:
 
 GitHub does not document whether Gatekeeper is switched on for the runner. If an image shows no warning dialog, the reason is in `gatekeeper.txt` in the artifact `desktop-evidence-macos`.
 
-Up to macOS 14, a right click on the app and **Open** was enough. From macOS 15 on, it only works through System Settings. Source: [packaging/macos/LIES-MICH-ZUERST.txt](../../packaging/macos/LIES-MICH-ZUERST.txt). This has not yet been replayed on a real Mac in this project.
+Up to macOS 14, a right click on the app and **Open** was enough. From macOS 15 on, it only works through System Settings. Source: [packaging/macos/README.txt](../../packaging/macos/README.txt). This has not yet been replayed on a real Mac in this project.
 
 ## Fetching the screenshots from the CI
 

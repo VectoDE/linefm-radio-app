@@ -4,7 +4,9 @@ name: Windows integration test
 # - Fast station switching with delayed laut.fm responses (network fakes),
 # - Language de/en, rail width stays 104,
 # - Custom title bar (maximize, double-click, minimize, close to tray, set size)
-#   in the real window.
+#   in the real window,
+# - Tray menu actions (play/stop, stations, always on top, mini player, show
+#   window) and the mini window (360 x 120).
 # Screenshots per step as the artifact "windows-itest-screens" (Flutter view and
 # screen capture including the window frame). Cannot be tested: dragging, docking,
 # snap layouts (real mouse input from the operating system).

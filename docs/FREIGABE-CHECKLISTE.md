@@ -127,7 +127,7 @@ Stand: Die folgenden Tests sind noch **nicht** gelaufen. Bei der bisherigen Entw
 
 ### B6. macOS
 
-- [ ] DMG öffnen, App starten laut [Anleitung](../packaging/macos/LIES-MICH-ZUERST.txt) (macOS 15 verlangt den Weg über Systemeinstellungen).
+- [ ] DMG öffnen, App starten laut [Anleitung](../packaging/macos/README.txt) (macOS 15 verlangt den Weg über Systemeinstellungen).
 - [ ] Wiedergabe, Medientasten, Tray-Symbol in der Menüleiste, Mini-Fenster.
 - [ ] Titelleiste in App-Farbe, Ampeln links mittig, Logo und Name überlappen sie nicht; Ziehen und Doppelklick (laut Systemeinstellung), Vollbild über die grüne Ampel.
 

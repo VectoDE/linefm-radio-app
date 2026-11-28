@@ -270,7 +270,7 @@ Was die CI bei jedem Bau prüft: Das .deb wird in einem frischen Ubuntu-24.04-Co
 
 #### macOS
 
-Das DMG ist weder signiert noch von Apple geprüft ("notarisiert"). macOS warnt deshalb beim ersten Start. Das ist erwartet. Die Anleitung dazu steht auch im DMG selbst als `LIES-MICH-ZUERST.txt`.
+Das DMG ist weder signiert noch von Apple geprüft ("notarisiert"). macOS warnt deshalb beim ersten Start. Das ist erwartet. Die Anleitung dazu steht auch im DMG selbst als `README.txt`.
 
 1. Öffne das DMG per Doppelklick und ziehe **LINEFM Radio** in **Programme**. Der Hintergrund des DMG-Fensters zeigt diese Schritte als Bild ([Quelle](../packaging/macos/dmg-background.svg)).
 2. Starte die App aus dem Ordner Programme. Es erscheint eine Warnung. Schließe sie mit **Fertig**.
@@ -289,7 +289,7 @@ Ob Gatekeeper auf dem Runner eingeschaltet ist, dokumentiert GitHub nicht. Zeigt
 
 English version of this macOS passage: [docs/en/build-and-run.md](en/build-and-run.md).
 
-Bis macOS 14 reichte Rechtsklick auf die App und **Öffnen**. Ab macOS 15 geht es nur über die Systemeinstellungen. Quelle: [packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt). Auf einem echten Mac wurde das in diesem Projekt noch nicht nachgespielt.
+Bis macOS 14 reichte Rechtsklick auf die App und **Öffnen**. Ab macOS 15 geht es nur über die Systemeinstellungen. Quelle: [packaging/macos/README.txt](../packaging/macos/README.txt). Auf einem echten Mac wurde das in diesem Projekt noch nicht nachgespielt.
 
 **Bildnachweise aus der CI.** Der Workflow **Widget evidence** (`.github/workflows/widget-evidence.yml`, Job *macOS Gatekeeper, title bar and icon*) baut die App unsigniert, packt sie in ein DMG mit Quarantäne-Markierung wie nach einem Browser-Download, kopiert sie nach Programme und versucht sie zu öffnen. Bevor ein Bild entsteht, schließt der Job die Systemmeldung zur Netzwerk-Erweiterung von Harden-Runner und setzt die Quarantäne-Markierung auf die kopierte App, falls sie beim Kopieren verloren ging. DMG-Fenster, Startversuch, Systemeinstellungen und Titelleisten werden auf die Fenstergrenzen zugeschnitten (über System Events), sonst als ganzer Bildschirm. Das Artefakt `desktop-evidence-macos` enthält Bildschirmfotos von DMG-Fenster, Startversuch, **Datenschutz & Sicherheit**, Titelleiste hell und dunkel sowie Symbol in Dock und Finder. Dazu kommt `gatekeeper.txt` mit `spctl --status` und `spctl --assess`. Ob Gatekeeper auf den GitHub-Runnern eingeschaltet ist, dokumentiert GitHub nicht. Zeigt das Bild keinen Warndialog, steht der Grund in `gatekeeper.txt`. Für Linux liefert der Job *Linux title bar light and dark* das Artefakt `desktop-evidence-linux` (Xvfb mit Openbox).
 

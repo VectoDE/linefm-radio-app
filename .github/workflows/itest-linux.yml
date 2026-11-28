@@ -1,0 +1,122 @@
+name: Linux integration test
+
+# Keyboard shortcuts in the real Linux build (integration_test/linux_keyboard_test.dart
+# wraps test/a11y/keyboard_shortcuts_linux_test.dart) under Xvfb with the
+# Openbox window manager: digits 1 to 6, space, Ctrl+comma, Esc, F, S, single
+# character shortcuts off (WCAG 2.1.4), Alt left to the window manager.
+# Not covered: a full GNOME or KDE session (tray, input method, global keys).
+# Change proposals that touch the app, the Linux runner or the tests, nightly
+# on main and manually; no access to secrets.
+
+on:
+  pull_request:
+    paths:
+      - lib/**
+      - linux/**
+      - integration_test/**
+      - test/a11y/keyboard_shortcuts_linux_test.dart
+      - pubspec.yaml
+      - pubspec.lock
+      - .github/workflows/itest-linux.yml
+      - .github/actions/**
+  schedule:
+    - cron: "41 1 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: itest-linux-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  linux-keyboard:
+    name: Linux keyboard shortcuts (Xvfb)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: System packages
+        uses: ./.github/actions/linux-deps
+
+      - name: Display server packages
+        run: sudo apt-get install -y -q --no-install-recommends xvfb xauth openbox
+
+      - name: Set up Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Integration test under Xvfb
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p itest-logs
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1280x900x24 &
+          xvfb_pid=$!
+          trap 'kill "$xvfb_pid" 2>/dev/null || true' EXIT
+          sleep 2
+          openbox &
+          sleep 2
+          flutter test integration_test/linux_keyboard_test.dart -d linux \
+            --reporter=expanded 2>&1 | tee itest-logs/flutter-test.log
+
+      - name: Summary
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          {
+            echo "### Linux keyboard shortcuts (Xvfb, Openbox)"
+            echo '```'
+            tail -n 40 itest-logs/flutter-test.log 2>/dev/null || echo "No log."
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload log
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux-itest-log
+          path: itest-logs/
+          retention-days: 14
+          if-no-files-found: warn
+
+  # Zero-warning rule: any warning or error in a job log or a check-run
+  # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json
+  # holds the few documented upstream exceptions, each with an expiry date.
+  log-gate:
+    name: Log gate
+    needs: [linux-keyboard]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan job logs and annotations
+        uses: ./.github/actions/log-gate
+        with:
+          job-name: Log gate
+          token: ${{ github.token }}

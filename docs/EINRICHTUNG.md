@@ -1752,7 +1752,7 @@ iOS, macOS, CarPlay (die App im Auto-Display von Apple) und AirPlay (Übertragun
 - macOS ohne Apple-Konto (so wird derzeit ausgeliefert):
   1. Das DMG (die Installationsdatei für den Mac) auf GitHub Releases ist weder signiert noch von Apple notarisiert. Notarisierung ist Apples Prüfstempel für Programme außerhalb des Stores.
   2. Beim ersten Start blockiert Gatekeeper (der macOS-Schutz vor unbekannter Software) die App. Nutzer öffnen sie so: App in "Programme" ziehen, einmal starten und die Warnung schließen, dann "Systemeinstellungen" > "Datenschutz & Sicherheit" > bei "Sicherheit" auf "Trotzdem öffnen" klicken und mit Passwort oder Touch ID bestätigen. Ab macOS 15 geht Rechtsklick > "Öffnen" nicht mehr.
-  3. Die ausführliche Anleitung liegt dem DMG bei ([packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt)). Lege sie zusätzlich zu den Downloads auf der Release-Seite (<https://github.com/VectoDE/linefm-radio-app/releases>) ab.
+  3. Die ausführliche Anleitung liegt dem DMG bei ([packaging/macos/README.txt](../packaging/macos/README.txt)). Lege sie zusätzlich zu den Downloads auf der Release-Seite (<https://github.com/VectoDE/linefm-radio-app/releases>) ab.
   4. Signierung und Notarisierung kommen mit der Apple-Runde.
 - Review-Risiko: Apple lehnt reine Webseiten-Hüllen ab (Richtlinien 4.2 und 4.3). Die App bringt Favoriten, Verlauf, Sleeptimer, Wecker, Sperrbildschirm-Steuerung und CarPlay als Mehrwert mit.
 - Wenn es nicht klappt: Datei wird mit Weiterleitung oder falschem Typ ausgeliefert: Die Hosting-Konfiguration prüfen (hosting-uebersicht.md).

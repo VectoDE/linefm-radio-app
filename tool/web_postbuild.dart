@@ -174,7 +174,7 @@ String sha256Hex(List<int> data) {
 }
 
 // ---------------------------------------------------------------------------
-// Reine Funktionen (getestet in test/tool/web_postbuild_test.dart)
+// Reine Funktionen (getestet in test/tool/web_postbuild_*_test.dart)
 // ---------------------------------------------------------------------------
 
 /// Derives the additional connect-src sources from the app configuration.

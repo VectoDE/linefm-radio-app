@@ -6,7 +6,7 @@
        dmg-background@2x.png. No double hyphen may appear inside an XML
        comment, or the renderer shows a parse error page instead.
        Icon positions come from create_dmg.sh: app 170,170, Applications 490,170,
-       guide file 590,350. -->
+       readme file 95,60. -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#595990"/>
@@ -36,7 +36,7 @@
       <text x="58" y="373" fill-opacity="0.75">Systemeinstellungen › Datenschutz &amp; Sicherheit › „Dennoch öffnen“.</text>
       <circle cx="40" cy="393" r="10" fill="#FFFFFF"/>
       <text x="40" y="397" text-anchor="middle" fill="#2F2F53" font-weight="bold">3</text>
-      <text x="58" y="397">Confirm with password or Touch ID. Details: LIES-MICH-ZUERST.txt</text>
+      <text x="58" y="397">Confirm with password or Touch ID. Details: README.txt</text>
     </g>
   </g>
 </svg>

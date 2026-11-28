@@ -90,7 +90,7 @@ Dependabot- und Secret-Scanning-Alerts kann der Standard-Token der Actions nicht
 
 ### Branch-Schutz und Merge-Ablauf
 
-Der Branch-Schutz von `main` verlangt keine Pflicht-Freigabe durch eine zweite Person. Das ist eine Entscheidung des Inhabers; das Projekt hat einen einzigen Entwickler. Dependabot-Änderungen werden nach grüner CI zeitnah gemergt (Merge-Wächter). Die Scorecard-Checks Code-Review und Branch-Protection bleiben dadurch teilweise unerreicht (siehe unten).
+Der Branch-Schutz von `main` verlangt keine Pflicht-Freigabe durch eine zweite Person. Das ist eine Entscheidung des Inhabers; das Projekt hat einen einzigen Entwickler. Dependabot-Änderungen werden nach grüner CI zeitnah gemergt (Merge-Wächter). Die Scorecard-Checks Code-Review und Branch-Protection bleiben dadurch teilweise unerreicht (siehe unten). Der Scorecard-Alert zu Branch-Protection ist deshalb als „Won't fix“ verworfen. Begründung im Alert: Projekt mit einem einzigen Betreuer, keine zweite Person für Reviews; jede Änderung läuft über einen Änderungsvorschlag mit voller CI und Pflicht-Statusprüfungen.
 
 ### Scorecard-Checks, die strukturell nicht voll erreichbar sind
 

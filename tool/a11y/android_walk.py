@@ -27,6 +27,8 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 _SPEC = importlib.util.spec_from_file_location(
     "android_tree_check", os.path.join(HERE, "android_tree_check.py"))
+if _SPEC is None or _SPEC.loader is None:
+    raise ImportError("cannot load android_tree_check.py")
 tree_check = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(tree_check)
 BOUNDS = re.compile(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]")
@@ -80,7 +82,10 @@ def main():
                 hit = name.startswith(label) if prefix else label in (
                     node.get("content-desc"), node.get("text"))
                 if hit and node.get("clickable") == "true":
-                    x1, y1, x2, y2 = map(int, BOUNDS.match(node.get("bounds")).groups())
+                    match = BOUNDS.match(node.get("bounds") or "")
+                    if match is None:
+                        continue
+                    x1, y1, x2, y2 = map(int, match.groups())
                     sh("shell", "input", "tap", str((x1 + x2) // 2), str((y1 + y2) // 2))
                     time.sleep(2)
                     return True

@@ -65,8 +65,8 @@ final class AccessibilityAuditTests: XCTestCase {
     shot.name = "screen-\(screen)"
     shot.lifetime = .keepAlways
     add(shot)
-    try app.performAccessibilityAudit(for: types) { issue in
-      XCTFail("\(screen): \(issue.auditType) \(issue.compactDescription) element: \(issue.element?.debugDescription ?? "none")")
+    try app.performAccessibilityAudit(for: types) { finding in
+      XCTFail("\(screen): \(finding.auditType) \(finding.compactDescription) element: \(finding.element?.debugDescription ?? "none")")
       return true
     }
   }

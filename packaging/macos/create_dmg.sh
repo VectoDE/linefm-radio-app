@@ -48,12 +48,12 @@ if command -v create-dmg >/dev/null 2>&1; then
   args=(
     --volname "$VOLNAME"
     --window-pos 200 120
-    --window-size 660 420
+    --window-size 660 448
     --icon-size 110
     --icon "$APP_NAME" 170 170
     --hide-extension "$APP_NAME"
     --app-drop-link 490 170
-    --icon "LIES-MICH-ZUERST.txt" 590 350
+    --icon "LIES-MICH-ZUERST.txt" 560 60
     --no-internet-enable
   )
   if [ -f "$BACKGROUND" ]; then

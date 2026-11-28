@@ -72,6 +72,40 @@ class AuditIdTest(unittest.TestCase):
         self.assertEqual(cr.main(), 0)
 
 
+class QuotedTabNameTest(unittest.TestCase):
+    def test_quoted_tab_names_are_allowed(self) -> None:
+        for line in (
+            'Open the tab "Iss~ues" next to "Code".',
+            "Reiter „Iss~ues“ und „Pull req~uests“ (Tickets)",
+            "Reiter “Iss~ues” oeffnen",
+            'Click "New iss~ue" at the top right.',
+            'Tabs "Iss~ues", "Pull req~uests" and "Actions".',
+        ):
+            self.assertFalse(cr.forbidden_word(_j(line)), line)
+
+    def test_real_references_stay_forbidden(self) -> None:
+        for line in (
+            "Siehe iss~ue 12 im Tracker.",
+            "Merged in P~R 5.",
+            "Open the iss~ues tab without quotes.",
+            "Reiter Pull req~uests ohne Anfuehrungszeichen",
+            'Quoted but with a number: "Iss~ues" and iss~ue 7.',
+            "Details: https://github.com/VectoDE/linefm-radio-app/iss~ues/12",
+            "Details: https://github.com/VectoDE/linefm-radio-app/pu~ll/5",
+        ):
+            self.assertTrue(
+                cr.forbidden_word(_j(line))
+                or any(p.search(_j(line)) for p in cr.PATTERNS.values()),
+                line,
+            )
+
+    def test_numbered_references_match_patterns_even_next_to_quotes(self) -> None:
+        for line in ('"Iss~ues" #~12', "Fix~es #~3", "Siehe #~123"):
+            self.assertTrue(
+                any(p.search(_j(line)) for p in cr.PATTERNS.values()), line
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
 

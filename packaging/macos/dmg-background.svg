@@ -1,9 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="660" height="420" viewBox="0 0 660 420">
   <!-- Source of dmg-background.png (660x420) and dmg-background@2x.png.
        Regenerate with a browser renderer (ImageMagick's own SVG renderer drops
-       the gradient), e.g. msedge --headless --window-size=660,420
-       --screenshot=dmg-background.png dmg-background.svg, and with
-       --force-device-scale-factor=2 for dmg-background@2x.png.
+       the gradient), e.g. Edge or Chrome headless with window size 660x420 and the
+       screenshot switch, and with device scale factor 2 for
+       dmg-background@2x.png. No double hyphen may appear inside an XML
+       comment, or the renderer shows a parse error page instead.
        Icon positions come from create_dmg.sh: app 170,170, Applications 490,170,
        guide file 590,350. -->
   <defs>

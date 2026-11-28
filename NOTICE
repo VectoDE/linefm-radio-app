@@ -11,20 +11,28 @@ hat. Die Datei LICENSE bleibt von diesem Entwurf unberuehrt.
 
 DEUTSCH
 
-Rechteinhaber und Herausgeber: LineFM Studios.
-Hersteller der App (Entwickler): Tim Hauke (VectoDE).
+Hersteller und Herausgeber: LineFM Studios.
+Entwickler und Urheber: Tim Hauke (VectoDE).
 
 Wer die Software oder Teile davon mit Erlaubnis nach der Datei LICENSE nutzt,
 weitergibt oder oeffentlich zeigt, muss den Entwickler an gut sichtbarer Stelle
 nennen, und zwar mit dem Namen "Tim Hauke (VectoDE)" und einem Link auf
-https://github.com/VectoDE. Ohne diese Nennung ist die Nutzung nicht erlaubt.
+https://github.com/VectoDE, und LineFM Studios als Hersteller angeben. Ohne
+diese Nennung ist die Nutzung nicht erlaubt.
+
+Die Nutzungsrechte von LineFM Studios regelt ein gesonderter Vertrag
+(Entwurf: docs/legal/usage-rights-agreement-draft.de.md).
 
 ENGLISH
 
-Rights holder and publisher: LineFM Studios.
-Manufacturer of the app (developer): Tim Hauke (VectoDE).
+Manufacturer and publisher: LineFM Studios.
+Developer and author: Tim Hauke (VectoDE).
 
 Anyone who uses, distributes or publicly displays the software or parts of it
 with permission under the LICENSE file must credit the developer in a clearly
 visible place, with the name "Tim Hauke (VectoDE)" and a link to
-https://github.com/VectoDE. Use without this credit is not permitted.
+https://github.com/VectoDE, and name LineFM Studios as the manufacturer. Use
+without this credit is not permitted.
+
+The usage rights of LineFM Studios are governed by a separate agreement
+(draft, German version for signing: docs/legal/usage-rights-agreement-draft.de.md; English reading aid: docs/legal/usage-rights-agreement-draft.en.md).

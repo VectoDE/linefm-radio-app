@@ -4,6 +4,8 @@ Diese Liste enthält alles, was du als Betreiber wissen, besorgen und eintragen 
 
 Die App selbst bauen, herunterladen und öffnen, ohne den Entwickler zu fragen: [BAUEN-UND-STARTEN.md](BAUEN-UND-STARTEN.md).
 
+English summary of the introduction, the first day and the glossary additions: [docs/en/setup-guide.md](en/setup-guide.md).
+
 Kurz gesagt:
 
 - Du legst Konten an und klickst dich durch die Formulare der Stores.
@@ -11,7 +13,9 @@ Kurz gesagt:
 - Du holst schriftliche Zustimmungen ein.
 - Alles, was Befehle braucht, macht auf Weg A der Entwickler und auf Weg B du selbst. Das steht gesammelt in Anhang G, in den Schritten bleibt dazu nur ein Verweis.
 
-Fang bei Abschnitt 1 an und arbeite die Tabelle "Arbeitsreihenfolge" weiter unten von oben nach unten ab. Unbekannte Wörter stehen alphabetisch in Anhang F.
+Fang bei Abschnitt 1 an und arbeite die Tabelle "Arbeitsreihenfolge" weiter unten von oben nach unten ab. Heute anfangen heißt: Schritt 1.1 (GitHub-Konto anlegen), dann 1.7 (Postfächer) und 1.2 (Passwortmanager).
+
+GitHub ist die Webseite, auf der der Code der App liegt und automatisch gebaut wird. Das Repository (kurz Repo) ist der Projektordner der App dort: <https://github.com/VectoDE/linefm-radio-app>. Unbekannte Wörter stehen alphabetisch in Anhang F. Die Anhänge A bis D und F sind Nachschlagelisten für dich. Anhang G ist für den Entwickler. Anhang E steht ganz am Ende der Datei und belegt nur die Quellen.
 
 ## So liest du diese Liste
 
@@ -51,7 +55,11 @@ Die Versionsnummer zählt der Ablauf bei jeder Änderung selbst hoch:
 - `-rc`: Es sind nur noch Aufgaben für LineFM Studios offen.
 - `1.0.0`: Es ist nichts mehr offen, wobei die Ausnahmen aus dem Absatz davor gelten (Apple, "entfällt" und Prüfungen, die erst nach 1.0.0 möglich sind).
 
-Du löst die Version nicht aus. Du machst sie möglich, indem du deine offenen Aufgaben erledigst. "Offen" heißt: Es gibt noch Tickets im Repository, die diese Aufgaben beschreiben. Du findest sie auf der Startseite des Repositorys im Reiter direkt neben "Code" (bei GitHub englisch beschriftet). Den aktuellen Stand erklärt dir der Entwickler. Apple zählt nicht zum ersten Umfang (Abschnitt 15).
+Du löst die Version nicht aus. Du machst sie möglich, indem du deine offenen Aufgaben erledigst. "Offen" heißt: Es gibt noch Tickets im Repository, die diese Aufgaben beschreiben. Du findest sie auf der Startseite des Repositorys im Reiter „Issues“ (die Tickets, also die Liste der Aufgaben und Fehler), dem zweiten von links direkt neben "Code". Den aktuellen Stand erklärt dir der Entwickler. Apple zählt nicht zum ersten Umfang (Abschnitt 15).
+
+![Reiterleiste des Repositorys auf GitHub: Code, „Issues“ (Tickets), „Pull requests“ (Änderungsvorschläge), Discussions, Actions, Projects, Wiki, Security and quality und Insights](assets/setup/tab-bar.png)
+
+So sieht die Leiste ohne Anmeldung aus. Mit Anmeldung und Rechten am Repository kommt rechts der Reiter "Settings" dazu.
 
 Erste Veröffentlichung auslösen: Vor Version 1.0.0 läuft kein Store-Ablauf von selbst. Um deine Einträge trotzdem zu testen, startest du den jeweiligen Ablauf einmal von Hand (Schritt 1.5, Punkt 2, "Run workflow"). Ein roter Lauf ist dabei normal, wenn die Zusammenfassung des Laufs einen fehlenden Namen nennt: entweder einen Rechtsplatzhalter (eine noch leere Stelle in den Rechtstexten, zum Beispiel `{{BETREIBER_NAME}}`, siehe Schritt 3.1) oder ein fehlendes Secret (Schritt 1.3).
 
@@ -218,7 +226,7 @@ Die Schrittnummern bleiben stabil. In dieser Reihenfolge arbeitest du sie ab, we
 
 - Wer: Betreiber (Konto anlegen, Benutzernamen an den Entwickler mailen), Repo-Eigentümer (lädt ein).
 - Was: Du brauchst ein GitHub-Konto und die Einladung zum Repository. Drei Teilschritte:
-  1. Konto anlegen (kostenlos, <https://github.com/signup>). Danach die Zwei-Faktor-Anmeldung einschalten: oben rechts auf dein Profilbild klicken, dann "Settings" > "Password and authentication".
+  1. Konto anlegen (kostenlos, <https://github.com/signup>). Danach die Zwei-Faktor-Anmeldung einschalten (beim Einloggen fragt GitHub zusätzlich nach einem Code aus einer App auf deinem Handy): oben rechts auf dein Profilbild klicken, dann "Settings" > "Password and authentication".
   2. Schick Tim Hauke vorab deinen GitHub-Benutzernamen (oder die Mail-Adresse des Kontos), sonst kann er dich nicht einladen. Die Einladung geht an die Mail-Adresse dieses Kontos.
   3. Die Einladung zum Repository `VectoDE/linefm-radio-app` nimmst du an: Mail öffnen, auf den Link klicken, dann auf "Accept invitation". Deine Rolle heißt Collaborator (Mitarbeiter). Sie genügt, damit du Secrets und Variablen anlegen darfst: Laut GitHub-Doku muss man dafür bei einem persönlichen Repository Collaborator sein. Außerdem darfst du damit Abläufe von Hand starten.
 - Wozu: Ohne Schreibrecht kannst du keine Secrets eintragen und keinen Ablauf von Hand starten (Schritte 1.3 und 1.5).
@@ -234,7 +242,7 @@ Die Schrittnummern bleiben stabil. In dieser Reihenfolge arbeitest du sie ab, we
 - Wer: Betreiber.
 - Was: Drei Teilschritte.
   1. Einen Passwortmanager bereithalten, also ein Programm, das Passwörter und Schlüssel verschlüsselt speichert. Kostenlos sind Bitwarden Free (<https://bitwarden.com/pricing/>) und KeePassXC (<https://keepassxc.org/>). Bitwarden Free ist ein Konto für Einzelpersonen mit unbegrenzten Passwörtern und Geräten, laut Anbieter immer kostenlos. Empfehlung: Bitwarden Free, weil du damit auf Weg A geheime Werte über die Funktion "Send" sicher an den Entwickler weitergeben kannst. KeePassXC ist quelloffen unter GPLv3, die Datenbank ist eine verschlüsselte Datei auf deinem Rechner (beide abgerufen 27.11.2026).
-  2. Eine Offline-Kopie anlegen: Exportiere den Tresor verschlüsselt (bei Bitwarden "Tools" > "Export vault", Format "Encrypted") und lege die Datei auf einen USB-Stick. Drucke die Notfall-Codes aus. Bewahre beides an einem zweiten Ort auf, zum Beispiel im Tresor oder in einer abschließbaren Schublade.
+  2. Eine Offline-Kopie anlegen: Exportiere den Tresor verschlüsselt (bei Bitwarden "Tools" > "Export vault", Format "Encrypted") und lege die Datei auf einen USB-Stick. Drucke außerdem die Notfall-Codes aus (Ersatz-Codes, mit denen du dich anmeldest, wenn dein Handy fehlt). In Bitwarden richtest du zuerst die zweite Anmeldestufe ein, dann findest du den Code im Web-Tresor unter "Settings" > "Security" > "Two-step login" > "View recovery code" (Master-Passwort eingeben, "Continue"; Quelle: <https://bitwarden.com/help/two-step-recovery-code/>). Bewahre beides an einem zweiten Ort auf, zum Beispiel im Tresor oder in einer abschließbaren Schublade.
   3. Dem App-Namen "LINEFM Radio" und der Paket-ID `de.linefm.app` zustimmen. Die Paket-ID ist die technische Kennung der App, wie eine Hausnummer: Nutzer sehen sie nie, sie lässt sich aber nicht mehr ändern. Du stimmst gegenüber dem Entwickler zu: Setze in der Freigabe-Checkliste bei Teil A2 den Haken und trag das Datum ein, er sieht das dort.
 - Wozu: Die Paket-ID lässt sich im Play Store später nicht mehr ändern. Schlüssel und Passwörter brauchen einen sicheren Ort.
 - Wo eintragen: Zustimmung schriftlich in der [Freigabe-Checkliste](FREIGABE-CHECKLISTE.md), Teil A2.
@@ -383,7 +391,7 @@ Alle Punkte hier sind Vorprüfung, keine Rechtsberatung. Lass Wortlaut und Folge
   Die Mail ist ein Vorschlag und ersetzt keine Rechtsberatung. Prüfe sie vor dem Versand und lege die Antwort mit Datum ab.
 - Woher: Du holst die schriftliche Bestätigung zu GEMA und GVL bei laut.fm ein, weil die Vereinbarung bei dir liegt (Adresse laut Freigabe-Checkliste: `team@laut.fm`. Prüfe sie vor dem Versand im Impressum auf <https://laut.fm>. Weicht sie ab, nimm die Adresse aus dem Impressum und sag es dem Entwickler). Gefragt wird, ob die Wiedergabe der Streams in einer eigenen App eines Dritten unter die Lizenzverträge von laut.fm mit GEMA und GVL fällt.
 - Prüfschritt: Es liegt eine schriftliche Antwort vor, die zur Aussage im Impressum passt.
-- Wenn es nicht klappt: Keine Antwort nach zwei Wochen: freundlich nachfassen und das Datum notieren. Ohne Antwort bleibt die Freigabesperre bestehen: Telemetrie und Store-Einreichung bleiben gesperrt. Hast du auch nach dem Nachfassen keine Antwort, sag es dem Entwickler und bring die Frage zum Anwaltstermin (Anhang D).
+- Wenn es nicht klappt: Keine Antwort nach zwei Wochen: freundlich nachfassen und das Datum notieren. Ohne Antwort bleibt die Freigabesperre bestehen (eine Regel in der Freigabe-Checkliste: Solange eine Voraussetzung fehlt, wird nichts veröffentlicht): Telemetrie und Store-Einreichung bleiben gesperrt. Hast du auch nach dem Nachfassen keine Antwort, sag es dem Entwickler und bring die Frage zum Anwaltstermin (Anhang D).
 - [ ] erledigt
 
 ### 2.2 Radio3FM und FobFM
@@ -497,7 +505,7 @@ Die Rechtstexte liegen als Entwurf in der App und als Webseiten vor. Die Betreib
 
 - Wer: Betreiber liefert die Werte per Mail, Entwickler trägt sie in `docs/BARRIEREFREIHEIT.md` ein.
 - Was: Drei Angaben stehen nicht in `legal_values.json`, sondern direkt in `docs/BARRIEREFREIHEIT.md`: `{{BARRIEREFREIHEIT_KONTAKT}}` (eine E-Mail-Adresse für Rückmeldungen zur Barrierefreiheit, zum Beispiel `support@linefm.de`), `{{BARRIEREFREIHEIT_ANTWORTFRIST}}` (in wie vielen Werktagen du antwortest, die Frist legst du fest) und `{{SCHLICHTUNGS_BZW_MARKTUEBERWACHUNGSSTELLE}}` (die Behörde, an die sich Nutzer beschweren können).
-- Wozu: Die Erklärung zur Barrierefreiheit braucht einen Kontakt, eine Antwortfrist und die zuständige Beschwerdestelle. Mit `--strict` prüft der Generator die Datei auf offene Platzhalter.
+- Wozu: Die Erklärung zur Barrierefreiheit braucht einen Kontakt, eine Antwortfrist und die zuständige Beschwerdestelle. Der Generator (das Programm des Entwicklers, das die Rechtstexte erzeugt) prüft die Datei im Strengmodus `--strict` auf offene Platzhalter.
 - Wo eintragen: Direkt in `docs/BARRIEREFREIHEIT.md`, Abschnitt "Feedback und Kontakt". Das trägt der Entwickler ein, du schickst ihm die Werte per Mail.
 - Woher: Du lieferst Kontakt und Frist. Welche Stelle als Beschwerdestelle einzutragen ist und ob die Erklärung für dein Angebot Pflicht ist (BFSG), klärt der Anwalt (Anhang D, Frage 4).
 - Prüfschritt: In der Datei steht kein `{{` mehr.
@@ -511,7 +519,7 @@ Die Rechtstexte liegen als Entwurf in der App und als Webseiten vor. Die Betreib
 - Wozu: Sicherheitslücken lassen sich vertraulich melden.
 - Wo eintragen: nichts zu tun.
 - Woher: entfällt.
-- Prüfschritt: Mit `--strict` meldet der Generator für diese Dateien keinen offenen Platzhalter mehr. Der Punkt gilt als erledigt.
+- Prüfschritt: Im Strengmodus meldet der Generator für diese Dateien keinen offenen Platzhalter mehr. Der Punkt gilt als erledigt.
 - Wenn es nicht klappt: Der Generator meldet trotzdem einen offenen Platzhalter: In den drei Dateien steht noch `{{SECURITY_KONTAKT}}`, den Entwickler fragen. Das Meldeformular lässt sich nicht öffnen: In GitHub angemeldet sein und beim Entwickler nachfragen, ob "Private vulnerability reporting" im Repository aktiv ist.
 - [x] vom Entwickler bestätigt
 
@@ -625,8 +633,8 @@ Die Rechtstexte liegen als Entwurf in der App und als Webseiten vor. Die Betreib
 ### 4.5 SPF und DMARC für Mails von linefm.de
 
 - Wer: Entwickler legt die Einträge an, wenn er Zugang zum DNS hat. Sonst bittet der Betreiber den Hoster darum (Plesk-Zugang und Ansprechpartner stehen in Schritt 1.7).
-- Was: Zwei Einträge im DNS von `linefm.de` anlegen. Sie sagen Empfängern, welcher Server Mails für `@linefm.de` senden darf und was sie mit unechten Mails tun sollen. Stand 27.11.2026: Es gibt weder einen TXT-Eintrag am Apex noch `_dmarc.linefm.de`. DKIM ist offen (Plesk-Mail-Einstellungen, siehe unten).
-  1. SPF: Typ TXT, Name `@` (die Domain selbst, `linefm.de`), Wert: `v=spf1 mx a ip4:37.114.59.23 ~all`. Das heißt: Erlaubt sind die Mailserver aus dem MX-Eintrag (`webmail.linefm.de`), die Adresse von `linefm.de` und die IP 37.114.59.23. Alles andere gilt als verdächtig, wird aber nicht abgewiesen (`~all`).
+- Was: Zwei Einträge im DNS von `linefm.de` anlegen. Sie sagen Empfängern, welcher Server Mails für `@linefm.de` senden darf und was sie mit unechten Mails tun sollen. Stand 27.11.2026: Es gibt weder einen TXT-Eintrag für die Hauptdomain noch `_dmarc.linefm.de`. DKIM ist offen (Plesk-Mail-Einstellungen, siehe unten).
+  1. SPF: Typ TXT, Name `@` (die Domain selbst, `linefm.de`), Wert: `v=spf1 mx a ip4:37.114.59.23 ~all`. Das heißt: Erlaubt sind die Mailserver aus dem MX-Eintrag (der Eintrag, der sagt, welcher Server die Post der Domain annimmt, hier `webmail.linefm.de`), die Adresse von `linefm.de` und die IP 37.114.59.23. Alles andere gilt als verdächtig, wird aber nicht abgewiesen (`~all`).
   2. DMARC: Typ TXT, Name `_dmarc`, Wert: `v=DMARC1; p=none; rua=mailto:betrieb@linefm.de`. Das heißt: Noch keine Maßnahmen gegen unechte Mails, aber Berichte an `betrieb@linefm.de`.
   3. Es darf nur einen SPF-Eintrag je Domain geben. Findet der Entwickler später schon einen, führt er beide zu einem zusammen, sonst ist SPF ungültig.
   4. Verschärfen kommt später und nur nach Auswertung der Berichte: erst `p=quarantine`, dann `p=reject`, bei SPF `-all` statt `~all`. Das Auswerten ist ein eigener Termin, nicht Teil dieses Schritts.
@@ -1781,7 +1789,7 @@ iOS, macOS, CarPlay (die App im Auto-Display von Apple) und AirPlay (Übertragun
 
 - Wer: Betreiber.
 - Was: Frag im Repository nach.
-  1. Öffne den Reiter für Tickets auf der Startseite des Repositorys und nutze den Knopf für ein neues Ticket, oder gehe zu "Discussions" (<https://github.com/VectoDE/linefm-radio-app/discussions>, Knopf "New discussion").
+  1. Öffne auf der Startseite des Repositorys den Reiter „Issues“ (die Tickets, zweiter von links, direkt neben "Code") und klicke auf den grünen Knopf „New issue“ (neues Ticket), oder gehe zu "Discussions" (<https://github.com/VectoDE/linefm-radio-app/discussions>, Knopf "New discussion").
   2. Das Repository ist öffentlich, schreib dort keine vertraulichen Angaben.
   3. Beschreibe, welchen Schritt du gerade machst und was du siehst.
   4. Bei Fehlermeldungen von Stores: Meldung kopieren, Screenshot anhängen, keine Passwörter.
@@ -2763,6 +2771,7 @@ Alphabetisch sortiert. Findest du einen Begriff nicht, frag den Entwickler.
 | MSIX | Paketformat der Windows-App |
 | msstore, Client-Secret, Globaler Administrator | Kommandozeile für den Microsoft Store, Passwort einer registrierten Anwendung, Rolle mit allen Rechten im Microsoft-Verzeichnis |
 | MStV, Bagatellrundfunk | Medienstaatsvertrag der Länder, und die Ausnahme für kleine Angebote, die keine Rundfunklizenz brauchen |
+| MX-Eintrag, Nameserver | MX-Eintrag: DNS-Eintrag, der sagt, welcher Server die Post einer Domain annimmt. Nameserver: die Server, die alle DNS-Einträge einer Domain beantworten |
 | Netzwerkmitschnitt | Browser-Entwicklertools (Taste F12) > Reiter "Netzwerk": zeigt, welche Server die Seite anfragt |
 | noindex | Anweisung an Suchmaschinen, die Seite noch nicht aufzunehmen |
 | Notarisierung | Prüfung durch Apple, ohne die macOS-Programme außerhalb des App Stores nur mit Warnung starten (spätere Runde) |
@@ -2801,6 +2810,7 @@ Alphabetisch sortiert. Findest du einen Begriff nicht, frag den Entwickler.
 | Sitemap, robots.txt, Meta-Tag, `<head>` | Seitenverzeichnis für Suchmaschinen, Datei mit Zugangsregeln für Suchmaschinen, unsichtbarer Hinweis im Kopf einer Webseite, Kopfbereich der Webseite |
 | SmartScreen, PFX | Windows-Schutz, der unbekannte Installer warnt, bzw. Datei mit Zertifikat und Schlüssel |
 | SonarCloud, Snyk | zwei Prüfdienste für Code-Qualität und unsichere Bibliotheken, Abläufe liegen bereit (Schritt 12.6) |
+| SPF, DKIM, DMARC | drei Absender-Prüfungen für E-Mail: SPF legt fest, welche Server Mails einer Domain senden dürfen, DKIM ist eine digitale Unterschrift der Mails, DMARC sagt Empfängern, was sie mit unechten Mails tun sollen |
 | Spur (Track), Entwurf | Veröffentlichungsstufe in Google Play (internal, closed, production) bzw. noch nicht abgeschickte Einreichung |
 | SSH | verschlüsselter Fernzugang zu einem Server, mit dem der Entwickler dort arbeitet |
 | Staging | eine Testumgebung vor dem Betrieb |
@@ -2812,7 +2822,7 @@ Alphabetisch sortiert. Findest du einen Begriff nicht, frag den Entwickler.
 | Telemetrie | Statistik und Absturzberichte der App, nur nach Einwilligung (Abschnitt 9) |
 | Tenant (Verzeichnis, Mandant) | das Firmenverzeichnis bei Microsoft (Entra ID, früher Azure AD), in dem Anwendungen und Nutzer liegen. Alle drei Wörter meinen in dieser Anleitung dasselbe |
 | Terminal | ein Fenster, in das man Befehle tippt (unter Windows PowerShell). Du brauchst es für diese Liste nicht, es ist für den Entwickler |
-| Tickets | Einträge in der Fehler- und Aufgabenliste des Repositorys auf GitHub |
+| Tickets | Einträge in der Fehler- und Aufgabenliste des Repositorys auf GitHub, erreichbar über den zweiten Reiter von links |
 | TLS, HSTS | Verschlüsselung der Verbindung (das Schloss im Browser) bzw. die Anweisung, nur noch verschlüsselt zu verbinden |
 | Token | ein langes Passwort für Programme statt für Menschen |
 | TRANSIT | Übergangszustand einer .de-Domain beim Umzug zu einem anderen Anbieter (Schritt 19.1) |

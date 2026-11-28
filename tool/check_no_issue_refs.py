@@ -41,6 +41,11 @@ Allow-list (false positives, each with its reason):
     catalog's own item names, usable in any Markdown file
   - lib/l10n/gen/: output of the localizations tool, text comes from Flutter
   - LICENSE files of third parties (verbatim legal text)
+  - word: the plain GitHub tab and button names when they appear in quotes
+    exactly as the UI shows them: "Issues", "Pull requests", "New issue"
+    (also in German quotation marks). They name what the reader clicks and
+    cannot be renamed. Real references (#<n>, "issue 12", "PR 5", links to
+    /issues/<n> or /pull/<n>) stay forbidden.
   - machine-required GitHub identifiers, matched per line (see WORD_ALLOW):
     the "issues:" and "pull-requests:" permission keys and "issues:" trigger,
     "gh issue ..." and "gh api ..." calls, "github.event.issue", API paths
@@ -80,6 +85,10 @@ WORD_ALLOW = [
         r"open-pull-requests-limit",
     )
 ]
+# Quoted GitHub UI labels, e.g. the tab "Issues" or the button "New issue".
+QUOTED_UI_LABEL = re.compile(
+    r'[„"“](?:Issues|Pull requests|New issue)[“"”]'
+)
 # This file documents the words it forbids.
 WORD_SKIP_PREFIXES = ("lib/l10n/gen/", "tool/check_no_issue_refs.py")
 AUDIT_HYPHEN = re.compile(
@@ -119,6 +128,14 @@ def audit_ids(line, local_ids=frozenset()):
                 continue
             found.append(token)
     return found
+
+
+def forbidden_word(line):
+    """True if [line] uses the concept words outside the allowed forms."""
+    if any(a.search(line) for a in WORD_ALLOW):
+        return False
+    scrubbed = QUOTED_UI_LABEL.sub("", line)
+    return bool(WORD_NOCASE.search(scrubbed) or WORD_CASE.search(scrubbed))
 
 
 SHORTHAND_COLOR = re.compile(r"#(\d)\1\1\b")
@@ -174,8 +191,7 @@ def main():
             if (
                 not path.startswith(WORD_SKIP_PREFIXES)
                 and "LICENSE" not in path
-                and not any(a.search(line) for a in WORD_ALLOW)
-                and (WORD_NOCASE.search(line) or WORD_CASE.search(line))
+                and forbidden_word(line)
             ):
                 print(f"{path}:{number}: [word] {line.strip()[:120]}")
                 findings += 1

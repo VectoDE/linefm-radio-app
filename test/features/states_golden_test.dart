@@ -49,12 +49,13 @@ Future<void> _pump(
   required Size size,
   FeatureHost? host,
   bool scaffold = true,
+  Locale locale = const Locale('de'),
 }) async {
   useGoldenSize(tester, size);
   final h = host ?? FeatureHost();
   await h.prefs.writeSettings(const AppSettings(marquee: false));
   await tester.pumpWidget(
-    h.app(screen, brightness: brightness, scaffold: scaffold),
+    h.app(screen, brightness: brightness, scaffold: scaffold, locale: locale),
   );
   await tester.pump();
   await tester.pump(const Duration(seconds: 1));
@@ -148,6 +149,32 @@ void main() {
         await tester.pump();
         await _matches('settings_390', brightness);
       });
+
+      // Desktop width: the language label must stay whole in both languages.
+      for (final locale in <String>['de', 'en']) {
+        testWidgets('settings desktop 880 $locale', (tester) async {
+          await _pump(
+            tester,
+            const SettingsScreen(),
+            brightness: brightness,
+            size: const Size(880, 1800),
+            locale: Locale(locale),
+          );
+          final credit = tester.element(find.byType(RadioGruppeCredit));
+          await tester.runAsync(
+            () => precacheImage(
+              AssetImage(
+                brightness == Brightness.light
+                    ? radioGruppeLogoAssetLight
+                    : radioGruppeLogoAssetDark,
+              ),
+              credit,
+            ),
+          );
+          await tester.pump();
+          await _matches('settings_880_$locale', brightness);
+        });
+      }
     });
   }
 }

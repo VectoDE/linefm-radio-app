@@ -42,18 +42,29 @@ const LAUNCHERS = {
   msedge: () => chromium.launch({ channel: 'msedge' }),
 };
 
-// Counts play() calls and the rejections the browser answers them with.
-const INIT = () => {
-  window.__autoplay = { playCalls: 0, rejected: 0, rejections: [] };
+// Accessible names of the start button (English and German).
+const BUTTON_LABELS = ['start radio', 'radio starten'];
+// Console line the page prints once the start button is found.
+const READY = 'linefm-autoplay:ready';
+
+// Runs inside the page before the app. Playwright sends page.evaluate() as a
+// user gesture, which activates the page and would defeat the check. So
+// everything up to the real click happens here, without Playwright touching
+// the page: count play() calls and their rejections, enable the Flutter
+// semantics tree with a script click (not a user action), find the start
+// button, take the "before" snapshot and report it on the console.
+const INIT = ({ labels, ready }) => {
+  const state = { playCalls: 0, rejected: 0, rejections: [], button: null, before: null };
+  window.__autoplay = state;
   const play = HTMLMediaElement.prototype.play;
   HTMLMediaElement.prototype.play = function (...a) {
-    window.__autoplay.playCalls++;
+    state.playCalls++;
     const result = play.apply(this, a);
     if (result && typeof result.catch === 'function') {
       result.catch((e) => {
         if (e && e.name === 'NotAllowedError') {
-          window.__autoplay.rejected++;
-          window.__autoplay.rejections.push(String(e.message).slice(0, 120));
+          state.rejected++;
+          state.rejections.push(String(e.message).slice(0, 120));
         }
       });
     }
@@ -70,22 +81,39 @@ const INIT = () => {
   } catch {
     /* no storage */
   }
-};
-
-// Accessible names of the start button (English and German).
-const BUTTON_LABELS = ['start radio', 'radio starten'];
-
-/** Position of the start button in the Flutter semantics tree, or null. */
-const findButton = (page) =>
-  page.evaluate((labels) => {
-    const nodes = document.querySelectorAll('flt-semantics, [role="button"], button');
-    for (const el of nodes) {
+  const media = () => [...document.querySelectorAll('audio,video')];
+  const timer = setInterval(() => {
+    document.querySelector('flt-semantics-placeholder')?.click();
+    for (const el of document.querySelectorAll('flt-semantics, [role="button"], button')) {
       const name = (el.getAttribute('aria-label') || el.textContent || '').trim();
       if (!labels.includes(name.toLowerCase())) continue;
       const r = el.getBoundingClientRect();
-      if (r.width > 0 && r.height > 0) return { x: r.x + r.width / 2, y: r.y + r.height / 2, name };
+      if (r.width <= 0 || r.height <= 0) continue;
+      clearInterval(timer);
+      state.button = { x: r.x + r.width / 2, y: r.y + r.height / 2, name };
+      state.before = {
+        active: 'userActivation' in navigator ? navigator.userActivation.hasBeenActive : null,
+        playing: media().filter((m) => !m.paused).length,
+        mediaElements: media().length,
+        playCalls: state.playCalls,
+        rejected: state.rejected,
+        rejections: [...state.rejections],
+      };
+      console.log(ready);
+      return;
     }
-    return null;
+  }, 250);
+};
+
+/** Is the start button still shown? Only used after the real click. */
+const buttonVisible = (page) =>
+  page.evaluate((labels) => {
+    for (const el of document.querySelectorAll('flt-semantics, [role="button"], button')) {
+      const name = (el.getAttribute('aria-label') || el.textContent || '').trim();
+      const r = el.getBoundingClientRect();
+      if (labels.includes(name.toLowerCase()) && r.width > 0 && r.height > 0) return true;
+    }
+    return false;
   }, BUTTON_LABELS);
 
 /** Accessible names in the semantics tree, for the result file on failure. */
@@ -102,7 +130,9 @@ const state = (page) =>
     active: 'userActivation' in navigator ? navigator.userActivation.hasBeenActive : null,
     playing: [...document.querySelectorAll('audio,video')].filter((m) => !m.paused).length,
     mediaElements: document.querySelectorAll('audio,video').length,
-    ...window.__autoplay,
+    playCalls: window.__autoplay.playCalls,
+    rejected: window.__autoplay.rejected,
+    rejections: window.__autoplay.rejections,
   }));
 
 async function waitFor(fn, what, timeout = 60_000) {
@@ -124,27 +154,36 @@ async function check(name) {
     return { ...result, status: 'failed', failures: [`browser did not start: ${String(e.message).split('\n')[0]}`] };
   }
   let page;
+  const errors = [];
   try {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'en-US' });
-    await context.addInitScript(INIT);
+    await context.addInitScript(INIT, { labels: BUTTON_LABELS, ready: READY });
     page = await context.newPage();
+    page.on('pageerror', (e) => errors.push(`pageerror: ${String(e.message).split('\n')[0]}`));
+    page.on('console', (m) => {
+      if (m.type() === 'error') errors.push(`console: ${m.text().split('\n')[0].slice(0, 200)}`);
+    });
     result.version = browser.version();
+    const ready = page.waitForEvent('console', { predicate: (m) => m.text() === READY, timeout: 180_000 });
+    ready.catch(() => {});
     await page.goto(`${BASE}/`, { waitUntil: 'load', timeout: 120_000 });
-    await page.waitForSelector('flt-semantics-placeholder', { state: 'attached', timeout: 90_000 });
-    // A script click does not count as a user action for the autoplay rules.
-    await page.evaluate(() => document.querySelector('flt-semantics-placeholder')?.click());
-    const button = await waitFor(() => findButton(page), 'the start button before any click', 90_000);
+    await ready.catch(() => {
+      throw new Error('timeout waiting for the start button before any click');
+    });
+    const { button, before } = await page.evaluate(() => ({
+      button: window.__autoplay.button,
+      before: window.__autoplay.before,
+    }));
     result.notes.push(`button "${button.name}" found`);
     await page.screenshot({ path: join(OUT, `autoplay-${name}-before.png`) });
 
-    const before = await state(page);
     result.before = before;
     if (before.active === true) result.failures.push('page was user-activated before the click');
     if (before.playing > 0) result.failures.push(`${before.playing} media element(s) playing before the click`);
     if (before.rejected > 0) result.failures.push(`browser rejected play() ${before.rejected} time(s): ${before.rejections.join('; ')}`);
 
     await page.mouse.click(button.x, button.y);
-    await waitFor(async () => !(await findButton(page)), 'the start button to disappear', 20_000).catch(() => {
+    await waitFor(async () => !(await buttonVisible(page)), 'the start button to disappear', 20_000).catch(() => {
       result.failures.push('start button still visible 20 s after the click');
     });
     await page.waitForTimeout(2000);
@@ -164,6 +203,7 @@ async function check(name) {
   } finally {
     await browser.close();
   }
+  if (errors.length) result.errors = errors.slice(0, 20);
   if (result.failures.length) result.status = 'failed';
   return result;
 }

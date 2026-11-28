@@ -226,7 +226,7 @@ Windows, Linux und macOS zeigen statt der Systemleiste eine eigene Leiste im App
 - macOS: Titelzeile transparent und ausgeblendet, die Ampeln bleiben nativ links. Die Leiste ist 28 pt hoch (Systemhöhe, damit die Ampeln mittig stehen), Logo und Name beginnen bei 78 pt. Doppelklick folgt der Systemeinstellung (Zoomen/Minimieren).
 - Vollbild und Mini-Fenster: Im Vollbild entfällt die Leiste. Das Mini-Fenster (rahmenlos) zeigt keine Leiste; beim Zurückwechseln stellt `exitMini` den versteckten Stil wieder her.
 - Tastatur und Screenreader: Tab läuft wie bei nativen Titelleisten nur durch die App (der Navigator hält den Fokus in seinem Bereich), die Leiste steht also nie vor dem Hauptinhalt. Fenster-Aktionen per Tastatur gehen über das System: Alt+Leertaste (Systemmenü), Win+Pfeiltasten, Alt+F4. Screenreader erreichen die Schaltflächen über ihre Semantik (Knopf mit Namen), die Schaltflächen reagieren auch auf Enter und Leertaste, wenn sie den Fokus haben. Namen und Hinweisblasen kommen aus den ARB-Schlüsseln `windowMinimize`, `windowMaximize`, `windowRestore`, `windowClose` und folgen der gewählten App-Sprache. Logo und Name sind für Screenreader ausgeblendet, den Fenstertitel liest das System vor.
-- Tests: `test/platform/desktop/title_bar_test.dart`.
+- Tests: `test/platform/desktop/title_bar_windows_linux_test.dart`, `test/platform/desktop/title_bar_macos_host_test.dart`.
 
 ## Deep Links: Wege pro Plattform
 
@@ -247,7 +247,7 @@ Tests: `test/platform/deep_links_test.dart`, `android_deep_links_test.dart`, `we
 
 - targetSdk kommt aus Flutter (`flutter.targetSdkVersion`, mit Flutter 3.50 also API 36), `compileSdk` steht fest auf 37 (`android/app/build.gradle.kts`). Nach einem Flutter-Update prüfen, ob sich der Wert geändert hat, und die Punkte unten neu ansehen.
 - Edge-to-Edge: Ab targetSdk 35 zeichnet Android jede App unter Status- und Navigationsleiste; ab API 36 lässt sich das nicht mehr abschalten. Flutter zeichnet ohnehin randlos, die Shell hält Inhalte mit `SafeArea` von den Leisten fern. Neue Bildschirme brauchen das ebenfalls, sonst liegen Knöpfe unter der Gestenleiste.
-- Vorhersagbares Zurück: `android:enableOnBackInvokedCallback="true"` im Manifest. Die Shell nutzt `PopScope` (`canPop` nur auf der Senderliste), das mit der Geste zusammenarbeitet. Der Test „Vorhersagbares Zurueck“ in `test/app/shell_test.dart` spielt die Geste über den Kanal `flutter/backgesture` nach. Kein `WillPopScope` verwenden, das bricht die Geste.
+- Vorhersagbares Zurück: `android:enableOnBackInvokedCallback="true"` im Manifest. Die Shell nutzt `PopScope` (`canPop` nur auf der Senderliste), das mit der Geste zusammenarbeitet. Der Test „Vorhersagbares Zurueck“ in `test/app/shell_phone_test.dart` spielt die Geste über den Kanal `flutter/backgesture` nach. Kein `WillPopScope` verwenden, das bricht die Geste.
 - Sprachen pro App: `res/xml/locales_config.xml` nennt de und en (Android 13+, Einstellungen > Apps > Sprache). Kommt eine Sprache unter `lib/l10n/` dazu, dort ergänzen. Die Sprachwahl in der App (Einstellungen) ist unabhängig davon: Ohne eigene Wahl gilt die Systemsprache bzw. die Per-App-Sprache des Systems, die Wahl in der App geht der Systemsprache vor.
 
 ## laut.fm: WebSocket bewusst aus

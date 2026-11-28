@@ -4,24 +4,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:linefm_radio/app/app.dart';
 import 'package:linefm_radio/app/navigation.dart';
 import 'package:linefm_radio/app/providers.dart';
-import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/features/mini_player/mini_player.dart';
 import 'package:linefm_radio/features/player/player_screen.dart';
 import 'package:linefm_radio/features/settings/platform_info.dart';
 import 'package:linefm_radio/features/settings/settings_screen.dart';
 import 'package:linefm_radio/features/storage_notice/storage_notice.dart';
-import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'app_host.dart';
-
-const _noAutoplay = AppSettings(autoplay: false);
-
-/// Knopf mit [QuietTooltip] (der Material-Finder `byTooltip` kennt nur
-/// Tooltips mit Semantik).
-Finder _byQuietTooltip(String message) =>
-    find.byWidgetPredicate((w) => w is QuietTooltip && w.message == message);
+import 'shell_helpers.dart';
 
 void main() {
   group('Sprache', () {
@@ -42,7 +34,7 @@ void main() {
       tester,
     ) async {
       useSize(tester, 390, 844);
-      final host = AppHost(settings: _noAutoplay);
+      final host = AppHost(settings: noAutoplay);
       await pumpApp(tester, host, uri: Uri.parse('https://x/?lang=en'));
       expect(find.text('All stations'.toUpperCase()), findsOneWidget);
       expect(find.text('STATIONS'), findsOneWidget);
@@ -56,7 +48,7 @@ void main() {
     ) async {
       useSize(tester, 390, 844);
       final host = AppHost(
-        settings: _noAutoplay,
+        settings: noAutoplay,
         platform: const PlatformInfo(
           isWeb: true,
           platform: TargetPlatform.android,
@@ -66,7 +58,7 @@ void main() {
       await pumpApp(tester, host);
 
       expect(find.text('LINEFM'), findsOneWidget);
-      expect(_byQuietTooltip('Einstellungen'), findsOneWidget);
+      expect(byQuietTooltip('Einstellungen'), findsOneWidget);
       for (final label in <String>['SENDER', 'PLAYER', 'VERLAUF']) {
         expect(find.text(label), findsOneWidget);
       }
@@ -81,7 +73,7 @@ void main() {
       tester,
     ) async {
       useSize(tester, 390, 844);
-      final host = AppHost(settings: _noAutoplay);
+      final host = AppHost(settings: noAutoplay);
       await pumpApp(tester, host);
 
       await tester.tap(find.text('LINEFM +RAP'));
@@ -103,7 +95,7 @@ void main() {
       tester,
     ) async {
       useSize(tester, 390, 844);
-      final host = AppHost(settings: _noAutoplay);
+      final host = AppHost(settings: noAutoplay);
       await pumpApp(tester, host);
 
       await tester.tap(find.text('VERLAUF'));
@@ -115,7 +107,7 @@ void main() {
         hasLength(1),
       );
 
-      await tester.tap(_byQuietTooltip('Einstellungen'));
+      await tester.tap(byQuietTooltip('Einstellungen'));
       await settleApp(tester);
       expect(find.byType(SettingsScreen), findsOneWidget);
 
@@ -135,7 +127,7 @@ void main() {
     ) async {
       final handle = tester.ensureSemantics();
       useSize(tester, 390, 844);
-      final host = AppHost(settings: _noAutoplay);
+      final host = AppHost(settings: noAutoplay);
       await pumpApp(tester, host);
 
       // Genau ein Knoten mit dem Label (Blase ohne eigenen Knoten).
@@ -158,7 +150,7 @@ void main() {
     ) async {
       final handle = tester.ensureSemantics();
       useSize(tester, 390, 844);
-      final host = AppHost(settings: _noAutoplay);
+      final host = AppHost(settings: noAutoplay);
       await pumpApp(tester, host);
 
       for (final (label, screen) in <(String, AppScreen)>[
@@ -182,7 +174,7 @@ void main() {
       tester,
     ) async {
       useSize(tester, 390, 844);
-      final host = AppHost(settings: _noAutoplay);
+      final host = AppHost(settings: noAutoplay);
       await pumpApp(tester, host);
 
       Future<void> gesture(String method, [Object? args]) async {
@@ -232,7 +224,7 @@ void main() {
     ) async {
       useSize(tester, 390, 844);
       final host = AppHost(
-        settings: _noAutoplay,
+        settings: noAutoplay,
         repository: TestRepository(online: false),
       );
       await pumpApp(tester, host);
@@ -274,7 +266,7 @@ void main() {
       tester,
     ) async {
       useSize(tester, 390, 844);
-      final host = AppHost(settings: _noAutoplay);
+      final host = AppHost(settings: noAutoplay);
       await pumpApp(tester, host);
 
       await tester.sendKeyEvent(LogicalKeyboardKey.digit3);
@@ -288,147 +280,4 @@ void main() {
       await disposeApp(tester, host);
     });
   });
-
-  group('Tastatur-Reihenfolge', () {
-    testWidgets('Kompakt: Header, Inhalt, Hinweise, Mini-Player, Navigation', (
-      tester,
-    ) async {
-      useSize(tester, 412, 860);
-      final host = AppHost(settings: _noAutoplay);
-      await pumpApp(tester, host);
-
-      final forward = await _tabRegions(tester, LogicalKeyboardKey.tab, 60);
-      // Ein voller Durchlauf: jeder Bereich kommt vor, keiner kehrt nach
-      // einem spaeteren Bereich zurueck (keine Falle im unteren Stapel).
-      final firstPass = _untilWrap(forward);
-      expect(firstPass.toSet(), containsAll(<int>[1, 2, 4, 5]));
-      expect(_isSorted(firstPass), isTrue, reason: '$firstPass');
-      expect(firstPass.last, 5);
-      // Danach verlaesst Tab die Bereiche (Shell selbst) oder beginnt
-      // wieder beim Header.
-      expect(forward[firstPass.length], anyOf(0, 1));
-
-      final backward = await _tabRegions(
-        tester,
-        LogicalKeyboardKey.tab,
-        40,
-        shift: true,
-      );
-      final backPass = _untilWrap(backward, reverse: true);
-      expect(
-        _isSorted(backPass.reversed.toList()),
-        isTrue,
-        reason: '$backPass',
-      );
-      await disposeApp(tester, host);
-    });
-
-    testWidgets('Kompakt: Favoriten und Einstellungen per Tab erreichbar', (
-      tester,
-    ) async {
-      useSize(tester, 412, 860);
-      final host = AppHost(settings: _noAutoplay);
-      await pumpApp(tester, host);
-
-      final tooltips = <String>{};
-      for (var i = 0; i < 4; i++) {
-        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-        await tester.pump();
-        final context = FocusManager.instance.primaryFocus?.context;
-        final tooltip = context?.findAncestorWidgetOfExactType<QuietTooltip>();
-        if (tooltip != null) tooltips.add(tooltip.message);
-      }
-      expect(tooltips, contains('Einstellungen'));
-      await disposeApp(tester, host);
-    });
-  });
-
-  group('Tablet/Desktop', () {
-    testWidgets('zweispaltig: Rail, Liste und eingebetteter Player', (
-      tester,
-    ) async {
-      useSize(tester, 1280, 800);
-      final host = AppHost(settings: _noAutoplay);
-      await pumpApp(tester, host);
-
-      expect(find.byType(NavigationRail), findsOneWidget);
-      expect(find.byType(PlayerScreen), findsOneWidget);
-      expect(find.text('ALLE SENDER'), findsOneWidget);
-      expect(find.byType(MiniPlayer), findsNothing);
-      expect(find.text('PLAYER'), findsNothing);
-
-      // Sender antippen: kein Wechsel weg von der Liste.
-      await tester.tap(find.text('LINEFM +GAMING'));
-      await settleApp(tester);
-      expect(host.container.read(navigationProvider), AppScreen.stations);
-      expect(host.active.slug, 'linefmgaming');
-      await disposeApp(tester, host);
-    });
-
-    testWidgets('Wechsel der Fensterbreite wechselt das Layout', (
-      tester,
-    ) async {
-      useSize(tester, 1280, 800);
-      final host = AppHost(settings: _noAutoplay);
-      await pumpApp(tester, host);
-      expect(find.byType(NavigationRail), findsOneWidget);
-
-      tester.view.physicalSize = const Size(700, 900);
-      await settleApp(tester);
-      expect(find.byType(NavigationRail), findsNothing);
-      expect(find.text('VERLAUF'), findsOneWidget);
-      await disposeApp(tester, host);
-    });
-  });
-}
-
-/// Drueckt [count] mal (Shift+)Tab und liefert je Schritt den Shell-Bereich
-/// des fokussierten Elements (1 Header ... 5 Navigation, 0 ausserhalb).
-Future<List<int>> _tabRegions(
-  WidgetTester tester,
-  LogicalKeyboardKey key,
-  int count, {
-  bool shift = false,
-}) async {
-  final regions = <int>[];
-  for (var i = 0; i < count; i++) {
-    if (shift) await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
-    await tester.sendKeyEvent(key);
-    if (shift) await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
-    await tester.pump(const Duration(milliseconds: 50));
-    regions.add(_regionOf(FocusManager.instance.primaryFocus?.context));
-  }
-  return regions;
-}
-
-/// Aeusserste [FocusTraversalOrder] ueber [context] = Bereich der Shell.
-int _regionOf(BuildContext? context) {
-  if (context == null) return 0;
-  var region = 0;
-  context.visitAncestorElements((element) {
-    final widget = element.widget;
-    if (widget is FocusTraversalOrder) {
-      final order = widget.order;
-      if (order is NumericFocusOrder) region = order.order.toInt();
-    }
-    return true;
-  });
-  return region;
-}
-
-/// Erster Durchlauf bis zum Umbruch (Bereich faellt bzw. steigt wieder).
-List<int> _untilWrap(List<int> regions, {bool reverse = false}) {
-  final out = <int>[];
-  for (final r in regions) {
-    if (out.isNotEmpty && (reverse ? r > out.last : r < out.last)) break;
-    out.add(r);
-  }
-  return out;
-}
-
-bool _isSorted(List<int> values) {
-  for (var i = 1; i < values.length; i++) {
-    if (values[i] < values[i - 1]) return false;
-  }
-  return true;
 }

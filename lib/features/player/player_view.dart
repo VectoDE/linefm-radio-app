@@ -117,6 +117,13 @@ class PlayerView extends StatelessWidget {
   static const double _swipeVelocity = 300;
   static const double _closeVelocity = 700;
 
+  /// Height of everything below the cover in the full-screen player (labels,
+  /// controls, action row and gaps), used to fit the cover.
+  static const double _chromeHeight = 330;
+
+  /// Smallest cover the full-screen player shrinks to; below that it scrolls.
+  static const double _minCover = 120;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.linefm;
@@ -139,7 +146,15 @@ class PlayerView extends StatelessWidget {
         // Cover size depends on the panel width only: same width, same
         // cover, whatever page is open next to it.
         final coverMax = width >= 600 ? 380.0 : 310.0;
-        final coverSize = math.min(width * 0.68, coverMax);
+        // Full-screen player: the cover also yields to the height left
+        // between header and bottom stack (notice, navigation), so the action
+        // row is never hidden behind the storage notice. The embedded panel
+        // keeps the width rule only.
+        final available = height - topInset - bottomInset;
+        final byHeight = embedded
+            ? double.infinity
+            : math.max(_minCover, available - _chromeHeight);
+        final coverSize = math.min(math.min(width * 0.68, coverMax), byHeight);
         final radius = width < 600
             ? LinefmMetrics.radiusCoverCompact
             : LinefmMetrics.radiusCover;

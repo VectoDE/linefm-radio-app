@@ -8,14 +8,14 @@ import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Hintergrund des Ladebildschirms, identisch zum nativen Splash.
+/// Background of the loading screen, identical to the native splash.
 const Color loaderBackground = LinefmPalette.ink;
 
-/// Ladebildschirm der Web-App: Wortmarke auf weisser Kachel, um -7 Grad
-/// geneigt, drei pulsierende Punkte und die Zeile "Made by Tim Hauke with ♥".
+/// Loading screen of the web app: word mark on a white tile, tilted by -7
+/// degrees, three pulsing dots and the line "Made by Tim Hauke with ♥".
 ///
-/// Immer dunkel, weil der native Splash davor ebenfalls `#0f1221` ist. Bei
-/// "Animationen reduzieren" stehen die Punkte still.
+/// Always dark, because the native splash before it is also `#0f1221`. With
+/// "reduce animations" the dots stand still.
 class AppLoader extends StatelessWidget {
   const AppLoader({super.key});
 
@@ -50,7 +50,7 @@ class AppLoader extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: <Widget>[
-              // Dunkles Band links hinten (`.app-loader::before`).
+              // Dark band at the back left (`.app-loader::before`).
               LayoutBuilder(
                 builder: (context, box) => Stack(
                   children: <Widget>[
@@ -70,39 +70,58 @@ class AppLoader extends StatelessWidget {
                 ),
               ),
               Center(
-                child: Transform(
-                  transform: Matrix4.skewY(-7 * math.pi / 180),
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      ColoredBox(
-                        color: LinefmPalette.paper,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: LinefmSpace.md,
-                          ),
-                          child: Text(
-                            l10n.brandName.toUpperCase(),
-                            style: LinefmText.loaderBrand(compact: compact)
-                                .copyWith(color: loaderBackground),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 75),
-                      Transform(
-                        transform: Matrix4.skewY(7 * math.pi / 180),
-                        alignment: Alignment.center,
-                        child: _Dots(animate: !reduce),
-                      ),
-                    ],
-                  ),
-                ),
+                child: LoaderMark(compact: compact, animate: !reduce),
               ),
               Positioned(left: 0, right: 0, bottom: 20 + bottom, child: credit),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Word mark on the white tile, tilted by -7 degrees, with the three dots
+/// below. Centred on screen by [AppLoader]; the native splash images
+/// (Android before 12, iOS) are rendered from this widget by
+/// `tool/splash/render_splash_test.dart`, so the hand-over from the native
+/// splash to the first Flutter frame does not move or change anything.
+class LoaderMark extends StatelessWidget {
+  const LoaderMark({super.key, required this.compact, required this.animate});
+
+  /// Phones (up to 480 dp): larger word mark.
+  final bool compact;
+
+  /// Pulse the dots; off with "reduce motion".
+  final bool animate;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Transform(
+      transform: Matrix4.skewY(-7 * math.pi / 180),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          ColoredBox(
+            color: LinefmPalette.paper,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: LinefmSpace.md),
+              child: Text(
+                l10n.brandName.toUpperCase(),
+                style: LinefmText.loaderBrand(compact: compact)
+                    .copyWith(color: loaderBackground),
+              ),
+            ),
+          ),
+          const SizedBox(height: 75),
+          Transform(
+            transform: Matrix4.skewY(7 * math.pi / 180),
+            alignment: Alignment.center,
+            child: _Dots(animate: animate),
+          ),
+        ],
       ),
     );
   }
@@ -145,8 +164,8 @@ class _DotsState extends State<_Dots> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
-  /// Verlauf wie `@keyframes app-loader-pulse`: 0-80 % und 100 % klein und
-  /// blass, bei 40 % gross und hell.
+  /// Curve like `@keyframes app-loader-pulse`: 0-80 % and 100 % small and
+  /// faint, at 40 % large and bright.
   static double _phase(double t) {
     final x = t % 1;
     if (x < 0.4) return x / 0.4;
@@ -194,18 +213,18 @@ class _DotsState extends State<_Dots> with SingleTickerProviderStateMixin {
   }
 }
 
-/// Merkt sich, dass der Ladebildschirm in diesem Prozess schon lief
-/// (Warmstart ohne Loader). Tests setzen den Wert zurueck.
+/// Remembers that the loading screen already ran in this process
+/// (warm start without loader). Tests reset the value.
 @visibleForTesting
 bool loaderShownThisProcess = false;
 
-/// Zeigt den Ladebildschirm beim Kaltstart ueber [child], nur so lange wie
-/// noetig: Nach dem ersten gezeichneten Bild (bzw. nach dem Aufdecken des
-/// Desktop-Fensters) blendet er in [fadeDuration] aus. Es gibt keine feste
-/// Mindestzeit mehr; [minDuration] bleibt nur fuer Tests und Sonderfaelle.
-/// Das Kind baut sich im Hintergrund schon auf, ist aber fuer Bedienung und
-/// Screenreader gesperrt, solange der Loader deckend steht. Ein Neuaufbau im
-/// selben Prozess (Warmstart) zeigt keinen Loader.
+/// Shows the loading screen over [child] on a cold start, only as long as
+/// necessary: after the first painted frame (or after the desktop window is
+/// revealed) it fades out over [fadeDuration]. There is no fixed minimum
+/// time any more; [minDuration] remains only for tests and special cases.
+/// The child already builds in the background, but is blocked for input and
+/// screen readers while the loader is opaque. A rebuild in the same
+/// process (warm start) shows no loader.
 class LoaderGate extends StatefulWidget {
   const LoaderGate({
     super.key,
@@ -215,7 +234,7 @@ class LoaderGate extends StatefulWidget {
 
   final Widget child;
 
-  /// Zusaetzliche Haltezeit nach dem ersten Bild, standardmaessig keine.
+  /// Additional hold time after the first frame, none by default.
   final Duration minDuration;
 
   static const Duration fadeDuration = Duration(milliseconds: 150);
@@ -229,18 +248,27 @@ class _LoaderGateState extends State<LoaderGate> {
   bool _visible = false;
   bool _fading = false;
 
+  /// False during the cold-start frame: the opaque loader covers the child,
+  /// so the first frame paints only the loader and the child builds in the
+  /// next frame. Keeps the shell's build and layout off the path to the
+  /// first frame.
+  bool _childReady = true;
+
   @override
   void initState() {
     super.initState();
     if (loaderShownThisProcess) return;
     loaderShownThisProcess = true;
     _visible = true;
+    _childReady = false;
     final reveal = pendingWindowReveal;
-    if (reveal == null) {
-      _startTimer();
-    } else {
-      unawaited(reveal.then((_) => _startTimer()));
-    }
+    // The fade starts only once the child has been built behind the loader.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _childReady = true);
+      if (reveal == null) _startTimer();
+    });
+    if (reveal != null) unawaited(reveal.then((_) => _startTimer()));
   }
 
   void _startTimer() {
@@ -277,7 +305,10 @@ class _LoaderGateState extends State<LoaderGate> {
       children: <Widget>[
         ExcludeSemantics(
           excluding: !_fading,
-          child: IgnorePointer(ignoring: !_fading, child: widget.child),
+          child: IgnorePointer(
+            ignoring: !_fading,
+            child: _childReady ? widget.child : const SizedBox.shrink(),
+          ),
         ),
         Positioned.fill(
           child: IgnorePointer(

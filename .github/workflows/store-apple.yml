@@ -88,10 +88,27 @@ jobs:
       ios: ${{ steps.ios.outputs.ready == 'true' && inputs.ios }}
       macos: ${{ steps.macos.outputs.ready == 'true' && inputs.macos }}
     steps:
+      - name: Validate release tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # Only an existing version tag may be checked out; branch names and
+          # commit SHAs are rejected before any repository code runs.
+          if ! [[ "$INPUT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)\.[0-9]+)?$ ]]; then
+            echo "::error::Tag '$INPUT_TAG' is not a version tag (vX.Y.Z or vX.Y.Z-(alpha|beta|rc).N)"
+            exit 1
+          fi
+          if ! git ls-remote --exit-code --tags "https://github.com/$REPO.git" "refs/tags/$INPUT_TAG" > /dev/null; then
+            echo "::error::Tag '$INPUT_TAG' does not exist"
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.tag }}
+          ref: refs/tags/${{ inputs.tag }}
           persist-credentials: false
 
       # Even on a manual start (workflow_dispatch) the tag must match pubspec.yaml,
@@ -149,10 +166,27 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Validate release tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # Only an existing version tag may be checked out; branch names and
+          # commit SHAs are rejected before any repository code runs.
+          if ! [[ "$INPUT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)\.[0-9]+)?$ ]]; then
+            echo "::error::Tag '$INPUT_TAG' is not a version tag (vX.Y.Z or vX.Y.Z-(alpha|beta|rc).N)"
+            exit 1
+          fi
+          if ! git ls-remote --exit-code --tags "https://github.com/$REPO.git" "refs/tags/$INPUT_TAG" > /dev/null; then
+            echo "::error::Tag '$INPUT_TAG' does not exist"
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.tag }}
+          ref: refs/tags/${{ inputs.tag }}
           persist-credentials: false
 
       - name: Determine version
@@ -271,10 +305,27 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Validate release tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # Only an existing version tag may be checked out; branch names and
+          # commit SHAs are rejected before any repository code runs.
+          if ! [[ "$INPUT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)\.[0-9]+)?$ ]]; then
+            echo "::error::Tag '$INPUT_TAG' is not a version tag (vX.Y.Z or vX.Y.Z-(alpha|beta|rc).N)"
+            exit 1
+          fi
+          if ! git ls-remote --exit-code --tags "https://github.com/$REPO.git" "refs/tags/$INPUT_TAG" > /dev/null; then
+            echo "::error::Tag '$INPUT_TAG' does not exist"
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.tag }}
+          ref: refs/tags/${{ inputs.tag }}
           persist-credentials: false
 
       - name: Determine version

@@ -21,6 +21,7 @@ import 'package:linefm_radio/services/cast/chrome_cast_service.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../support/service_doubles.dart';
 import '../../support/test_doubles.dart';
 
 const CastDevice _tv = CastDevice(id: 'tv', name: 'Wohnzimmer');
@@ -437,6 +438,7 @@ void main() {
         castBackend = null;
         final container = ProviderContainer(
           overrides: <Override>[
+            ...noopServiceOverrides(cast: false),
             castServiceProvider.overrideWith(createCastService),
           ],
         );
@@ -454,6 +456,7 @@ void main() {
       addTearDown(() => castBackend = null);
       final container = ProviderContainer(
         overrides: <Override>[
+          ...noopServiceOverrides(cast: false),
           prefsProvider.overrideWithValue(InMemoryPrefsStore()),
           ...offlineDataOverrides(),
           castServiceProvider.overrideWith(createCastService),
@@ -497,6 +500,7 @@ void main() {
       };
       final container = ProviderContainer(
         overrides: <Override>[
+          ...noopServiceOverrides(cast: false),
           prefsProvider.overrideWithValue(InMemoryPrefsStore()),
           ...offlineDataOverrides(),
           castServiceProvider.overrideWith(createCastService),
@@ -532,6 +536,7 @@ void main() {
     Future<ProviderContainer> pumpButton(WidgetTester tester) async {
       final container = ProviderContainer(
         overrides: <Override>[
+          ...noopServiceOverrides(cast: false),
           prefsProvider.overrideWithValue(InMemoryPrefsStore()),
           castServiceProvider.overrideWith(createCastService),
         ],
@@ -627,6 +632,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: <Override>[
+            ...noopServiceOverrides(cast: false),
             prefsProvider.overrideWithValue(InMemoryPrefsStore()),
             ...offlineDataOverrides(),
             castServiceProvider.overrideWithValue(service),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -43,5 +44,16 @@ void main() {
     addTearDown(() => dir.deleteSync(recursive: true));
     // Ein Ordner laesst sich nicht als Datei oeffnen.
     expect(() => io_marks.writeMarkTo(dir.path, 'main'), returnsNormally);
+  });
+
+  test('IO: logMark prints the line the Android measurement run parses', () {
+    final lines = <String>[];
+    runZoned(
+      () => io_marks.logMark('first-frame', 1764000000123456),
+      zoneSpecification: ZoneSpecification(
+        print: (self, parent, zone, line) => lines.add(line),
+      ),
+    );
+    expect(lines, <String>['LINEFM_PERF first-frame 1764000000123456']);
   });
 }

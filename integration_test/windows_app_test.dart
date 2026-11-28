@@ -41,11 +41,11 @@ import 'package:linefm_radio/platform/desktop/desktop_controller.dart';
 import 'package:linefm_radio/platform/desktop/desktop_init.dart';
 import 'package:linefm_radio/platform/desktop/title_bar.dart';
 import 'package:linefm_radio/platform/desktop/window_caption.dart';
-import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:window_manager/legacy.dart' show DragToMoveArea, WindowManager;
 
+import '../test/support/service_doubles.dart';
 import '../test/support/test_doubles.dart';
 
 /// Zielordner der Bilder (CI: `--dart-define=ITEST_OUT=...`).
@@ -199,23 +199,23 @@ void main() {
       expect(rail, findsOneWidget);
       await tester.tap(find.byIcon(FontAwesomeIcons.gear.data));
       await _pumpFor(tester, const Duration(milliseconds: 600));
-      await _reveal(tester, find.text('Sprache'));
+      await _reveal(tester, 'Sprache');
       expect(find.text('Sprache'), findsOneWidget);
       _expectRail104(tester, 'de, Fensterbreite $width');
       await _shot(tester, '101-de-${width.round()}');
 
       // Deutsch -> Englisch: Breite je Frame des Wechsels pruefen.
-      await _reveal(tester, find.text('English'));
+      await _reveal(tester, 'English');
       await tester.tap(find.text('English'));
       final widths = <double>[];
       for (var i = 0; i < 12; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         widths.add(tester.getSize(rail).width);
       }
-      await _reveal(tester, find.text('Language'));
+      await _reveal(tester, 'Language');
       expect(find.text('Language'), findsOneWidget);
       expect(
-        find.descendant(of: rail, matching: find.text('SETTINGS')),
+        find.descendant(of: rail, matching: find.text('HISTORY')),
         findsOneWidget,
       );
       expect(widths.toSet(), <double>{
@@ -225,10 +225,10 @@ void main() {
       await _shot(tester, '101-en-${width.round()}');
 
       // Und zurueck.
-      await _reveal(tester, find.text('Deutsch'));
+      await _reveal(tester, 'Deutsch');
       await tester.tap(find.text('Deutsch'));
       await _pumpFor(tester, const Duration(milliseconds: 600));
-      await _reveal(tester, find.text('Sprache'));
+      await _reveal(tester, 'Sprache');
       expect(find.text('Sprache'), findsOneWidget);
       _expectRail104(tester, 'de nach Rueckwechsel, Breite $width');
       expect(tester.takeException(), isNull);
@@ -492,6 +492,7 @@ class _World {
       overrides: <Override>[
         prefsProvider.overrideWithValue(prefs),
         playbackServiceProvider.overrideWithValue(playback),
+        ...noopServiceOverrides(playback: false),
         lautApiProvider.overrideWithValue(api),
         telemetryConsentProvider.overrideWith(_ConsentGiven.new),
         nowPlayingRepositoryProvider.overrideWith((ref) {
@@ -613,15 +614,24 @@ Finder _caption(CaptionButtonKind kind) => find.byWidgetPredicate(
   description: 'CaptionButton(${kind.name})',
 );
 
-/// Scrollt die Einstellungen, bis [target] gebaut und sichtbar ist.
-Future<void> _reveal(WidgetTester tester, Finder target) async {
-  final scrollable = find
-      .descendant(
-        of: find.byType(SettingsScreen),
-        matching: find.byType(Scrollable),
-      )
-      .first;
-  await tester.scrollUntilVisible(target, 120, scrollable: scrollable);
+/// Scrolls the settings until the text [label] is built and visible.
+///
+/// Already built entries (also above the viewport, for example after a
+/// language switch made the rows above shorter) are scrolled into view
+/// directly; otherwise the list is dragged towards its end until the entry
+/// appears.
+Future<void> _reveal(WidgetTester tester, String label) async {
+  final built = find.text(label, skipOffstage: false);
+  if (built.evaluate().isEmpty) {
+    final scrollable = find
+        .descendant(
+          of: find.byType(SettingsScreen),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    await tester.scrollUntilVisible(built, 120, scrollable: scrollable);
+  }
+  await Scrollable.ensureVisible(tester.element(built), alignment: 0.5);
   await tester.pump(const Duration(milliseconds: 100));
 }
 

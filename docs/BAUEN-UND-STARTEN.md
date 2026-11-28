@@ -98,6 +98,28 @@ Jeder Merge zählt die letzte Zahl hoch. Eine Stufe fällt nie zurück, auch wen
 
 Alpha-, Beta- und RC-Versionen sind GitHub-Vorabversionen und gehen in keinen Store. Erst ab `1.0.0` laden die Store-Abläufe zu Google Play, Snap, Microsoft, Apple und Flathub hoch und die Web-Version wird aktualisiert, soweit eingerichtet. Der Windows-Installer kommt später dazu.
 
+**Welche Datei für welches Gerät.** Jedes Release enthält diese Dateien (`X.Y.Z` steht für die Version). Zu jeder Datei gehört eine cosign-Signatur `<Datei>.sigstore.json`, alle Prüfsummen stehen in `SHA256SUMS.txt` (selbst signiert als `SHA256SUMS.txt.sigstore.json`).
+
+| Gerät | Datei | Weg |
+| --- | --- | --- |
+| Windows | `linefm-radio-X.Y.Z-windows-x64-setup.exe` | Installer mit eigener Oberfläche, empfohlen |
+| Windows | `linefm-radio-X.Y.Z-windows-x64.msix` | Paket für den Microsoft Store, lokal nur mit vertrautem Zertifikat |
+| Windows | `linefm-radio-X.Y.Z-windows-x64.zip` | Ohne Installation entpacken und starten |
+| macOS | `linefm-radio-X.Y.Z-macos-setup.dmg` | Installer mit eigener Oberfläche, auch für alle Benutzer |
+| macOS | `linefm-radio-X.Y.Z-macos.dmg` | App ins Fenster „Programme“ ziehen, Anleitung im DMG-Hintergrund |
+| Linux | `linefm-radio-X.Y.Z-linux-x64-setup.AppImage` | Installer mit eigener Oberfläche |
+| Linux | `linefm-radio-X.Y.Z-linux-x64.deb` | Debian, Ubuntu, Linux Mint |
+| Linux | `linefm-radio-X.Y.Z-linux-x64.rpm` | Fedora, openSUSE, RHEL |
+| Linux | `linefm-radio-X.Y.Z-linux-x64.AppImage` | Jede Distribution, ohne Installation |
+| Linux | `linefm-radio-X.Y.Z-linux-x64.tar.gz` | Archiv zum Entpacken |
+| Android | `linefm-radio-X.Y.Z-android.apk` | Direkt aufs Handy (siehe A5); regulär über Google Play |
+| Android | `linefm-radio-X.Y.Z-android.aab` | Nur für den Upload in die Play Console |
+| iOS | keine Datei | Nur über den App Store (siehe A5, iOS) |
+| Web | `linefm-radio-X.Y.Z-web.zip`, `...-web-hosting.zip` | Auf einen Webserver legen (siehe A5, Web) |
+| alle | `linefm-radio-X.Y.Z-sbom.spdx.json`, `...-sbom.cdx.json` | Stückliste der Abhängigkeiten |
+
+Flatpak (Flathub) und Snap kommen über die jeweiligen Stores, nicht als Release-Datei. Der Ablauf bricht ab, wenn einer der drei Installer oder eines der Linux-Pakete fehlt.
+
 Eine selbst gebaute App (A2) zeigt unter „Über“ statt einer Nummer „Entwicklungsversion“ mit der Kurz-ID des Commits.
 
 ### A5 Die Ergebnisse öffnen und nutzen
@@ -250,7 +272,7 @@ Was die CI bei jedem Bau prüft: Das .deb wird in einem frischen Ubuntu-24.04-Co
 
 Das DMG ist weder signiert noch von Apple geprüft ("notarisiert"). macOS warnt deshalb beim ersten Start. Das ist erwartet. Die Anleitung dazu steht auch im DMG selbst als `LIES-MICH-ZUERST.txt`.
 
-1. Öffne das DMG per Doppelklick und ziehe **LINEFM Radio** in **Programme**.
+1. Öffne das DMG per Doppelklick und ziehe **LINEFM Radio** in **Programme**. Der Hintergrund des DMG-Fensters zeigt diese Schritte als Bild ([Quelle](../packaging/macos/dmg-background.svg)).
 2. Starte die App aus dem Ordner Programme. Es erscheint eine Warnung. Schließe sie mit **Fertig**.
 3. Öffne **Systemeinstellungen > Datenschutz & Sicherheit**.
 4. Scrolle zu **Sicherheit**. Dort steht, dass "LINEFM Radio" blockiert wurde. Klicke auf **Dennoch öffnen** und bestätige mit Passwort oder Touch ID.
@@ -258,7 +280,7 @@ Das DMG ist weder signiert noch von Apple geprüft ("notarisiert"). macOS warnt 
 
 Bis macOS 14 reichte Rechtsklick auf die App und **Öffnen**. Ab macOS 15 geht es nur über die Systemeinstellungen. Quelle: [packaging/macos/LIES-MICH-ZUERST.txt](../packaging/macos/LIES-MICH-ZUERST.txt). Auf einem echten Mac wurde das in diesem Projekt noch nicht nachgespielt.
 
-**Bildnachweise aus der CI.** Der Workflow **Widget evidence** (`.github/workflows/widget-evidence.yml`, Job *macOS Gatekeeper, title bar and icon*) baut die App unsigniert, packt sie in ein DMG mit Quarantäne-Markierung wie nach einem Browser-Download, kopiert sie nach Programme und versucht sie zu öffnen. Das Artefakt `desktop-evidence-macos` enthält Bildschirmfotos von DMG-Fenster, Startversuch, **Datenschutz & Sicherheit**, Titelleiste hell und dunkel sowie Symbol in Dock und Finder. Dazu kommt `gatekeeper.txt` mit `spctl --status` und `spctl --assess`. Ob Gatekeeper auf den GitHub-Runnern eingeschaltet ist, dokumentiert GitHub nicht. Zeigt das Bild keinen Warndialog, steht der Grund in `gatekeeper.txt`. Für Linux liefert der Job *Linux title bar light and dark* das Artefakt `desktop-evidence-linux` (Xvfb mit Openbox).
+**Bildnachweise aus der CI.** Der Workflow **Widget evidence** (`.github/workflows/widget-evidence.yml`, Job *macOS Gatekeeper, title bar and icon*) baut die App unsigniert, packt sie in ein DMG mit Quarantäne-Markierung wie nach einem Browser-Download, kopiert sie nach Programme und versucht sie zu öffnen. Bevor ein Bild entsteht, schließt der Job die Systemmeldung zur Netzwerk-Erweiterung von Harden-Runner und setzt die Quarantäne-Markierung auf die kopierte App, falls sie beim Kopieren verloren ging. DMG-Fenster, Startversuch, Systemeinstellungen und Titelleisten werden auf die Fenstergrenzen zugeschnitten (über System Events), sonst als ganzer Bildschirm. Das Artefakt `desktop-evidence-macos` enthält Bildschirmfotos von DMG-Fenster, Startversuch, **Datenschutz & Sicherheit**, Titelleiste hell und dunkel sowie Symbol in Dock und Finder. Dazu kommt `gatekeeper.txt` mit `spctl --status` und `spctl --assess`. Ob Gatekeeper auf den GitHub-Runnern eingeschaltet ist, dokumentiert GitHub nicht. Zeigt das Bild keinen Warndialog, steht der Grund in `gatekeeper.txt`. Für Linux liefert der Job *Linux title bar light and dark* das Artefakt `desktop-evidence-linux` (Xvfb mit Openbox).
 
 Die Bilder liegen nicht im Repository, weil sie aus einem echten CI-Lauf stammen müssen. Übernehmen geht so:
 

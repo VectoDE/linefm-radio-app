@@ -12,6 +12,7 @@ import 'package:linefm_radio/domain/alarm/alarm_rule.dart';
 import 'package:linefm_radio/domain/app_settings.dart';
 import 'package:linefm_radio/domain/history_entry.dart';
 import 'package:linefm_radio/domain/station.dart';
+import 'package:linefm_radio/features/about/radiogruppe_logo.dart';
 import 'package:linefm_radio/features/alarm/alarm_screen.dart';
 import 'package:linefm_radio/features/history/history_screen.dart';
 import 'package:linefm_radio/features/settings/settings_screen.dart';
@@ -131,6 +132,20 @@ void main() {
           brightness: brightness,
           size: const Size(390, 1800),
         );
+        // The bundled logo decodes asynchronously; wait for it so the
+        // reference shows the image, not an empty box.
+        final credit = tester.element(find.byType(RadioGruppeCredit));
+        await tester.runAsync(
+          () => precacheImage(
+            AssetImage(
+              brightness == Brightness.light
+                  ? radioGruppeLogoAssetLight
+                  : radioGruppeLogoAssetDark,
+            ),
+            credit,
+          ),
+        );
+        await tester.pump();
         await _matches('settings_390', brightness);
       });
     });

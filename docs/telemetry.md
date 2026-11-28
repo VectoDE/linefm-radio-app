@@ -103,13 +103,25 @@ Sichere Defaults:
 
 ```bash
 # in .env: UMAMI_HOST, GLITCHTIP_HOST, GLITCHTIP_DOMAIN=https://<host>,
-#          TRAEFIK_NETWORK, TRAEFIK_ENTRYPOINT, TRAEFIK_CERT_RESOLVER
+#          TRAEFIK_NETWORK, TRAEFIK_ENTRYPOINT, TRAEFIK_CERT_RESOLVER,
+#          TELEMETRY_ADMIN_SOURCES (CIDR-Liste der Admin-Zugänge)
 docker compose -f compose.yml -f compose.traefik.yml up -d
 ```
 
 Das Override entfernt die lokalen Ports und hängt Umami und GlitchTip an das
 vorhandene Traefik-Netz. Der Proxy muss die Namen des Netzes, des Entrypoints
 und des Certresolvers kennen.
+
+Öffentlich erreichbar sind danach nur die Annahme-Endpunkte, die die App
+nutzt: Umami `POST /api/send`, GlitchTip `/api/<id>/envelope/` und
+`/api/<id>/store/`. Alle anderen Pfade (Anmeldung, Dashboards, API) lässt
+Traefik nur aus `TELEMETRY_ADMIN_SOURCES` durch, sonst `403`.
+
+Pflichtreihenfolge: zuerst nur mit `compose.yml` starten, über
+`http://127.0.0.1:3000` anmelden und das Umami-Standardpasswort ändern,
+erst dann das Override zuschalten. Prüfung von außerhalb der Admin-Netze:
+`curl -s -o /dev/null -w '%{http_code}' https://<UMAMI_HOST>/login` muss `403`
+liefern.
 
 Hinter nginx stattdessen `proxy_pass http://127.0.0.1:3000;` bzw. `:8000`
 mit `proxy_set_header Host $host;` und `X-Forwarded-Proto $scheme` setzen und

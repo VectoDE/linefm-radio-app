@@ -23,22 +23,3 @@ abstract interface class ShareService {
   /// Oeffnet einen Link ausserhalb der App (Musikdienste).
   Future<void> openUrl(Uri uri);
 }
-
-class NoopShareService implements ShareService {
-  const NoopShareService();
-
-  @override
-  Future<void> shareSong(Station station, Track track) async {}
-
-  @override
-  Future<void> shareText(String text) async {}
-
-  @override
-  Future<void> exportFavorites(
-    List<Favorite> favorites,
-    ExportFormat format,
-  ) async {}
-
-  @override
-  Future<void> openUrl(Uri uri) async {}
-}

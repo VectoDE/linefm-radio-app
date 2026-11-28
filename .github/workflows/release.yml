@@ -248,7 +248,10 @@ jobs:
           missing=0
           for f in "linefm-radio-${LABEL}-windows-x64-setup.exe" \
                    "linefm-radio-${LABEL}-macos-setup.dmg" \
-                   "linefm-radio-${LABEL}-linux-x64-setup.AppImage"                    "linefm-radio-${LABEL}-linux-x64.deb"                    "linefm-radio-${LABEL}-linux-x64.rpm"                    "linefm-radio-${LABEL}-linux-x64.AppImage"; do
+                   "linefm-radio-${LABEL}-linux-x64-setup.AppImage" \
+                   "linefm-radio-${LABEL}-linux-x64.deb" \
+                   "linefm-radio-${LABEL}-linux-x64.rpm" \
+                   "linefm-radio-${LABEL}-linux-x64.AppImage"; do
             if [ -s "dist/$f" ]; then echo "found: $f"; else echo "::error::installer or package missing: $f"; missing=1; fi
           done
           exit "$missing"
@@ -487,6 +490,8 @@ jobs:
       # The log gate of the called workflow reads job logs and annotations.
       actions: read
       checks: read
+      # fetch-release verifies the build provenance attestation.
+      attestations: read
 
   snap-store:
     name: Snap Store
@@ -534,6 +539,8 @@ jobs:
       # The log gate of the called workflow reads job logs and annotations.
       actions: read
       checks: read
+      # fetch-release verifies the build provenance attestation.
+      attestations: read
 
   apple-stores:
     name: Apple (TestFlight, Mac App Store)
@@ -583,6 +590,8 @@ jobs:
       # The log gate of the called workflow reads job logs and annotations.
       actions: read
       checks: read
+      # fetch-release verifies the build provenance attestation.
+      attestations: read
 
   # Zero-warning rule: any warning or error in a job log or a check-run
   # annotation of this run fails it. Fix the cause; tool/build_log_allowlist.json

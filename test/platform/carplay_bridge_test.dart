@@ -8,7 +8,8 @@ import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/platform/carplay_bridge.dart';
 import 'package:linefm_radio/services/audio/browse_tree.dart';
-import 'package:linefm_radio/services/audio/playback_service.dart';
+
+import '../support/service_doubles.dart';
 
 class _FakeHost implements CarPlayHost {
   List<Station> favorites = <Station>[];

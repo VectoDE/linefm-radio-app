@@ -3,6 +3,9 @@
 # Setzt voraus: externes Docker-Netz ${TRAEFIK_NETWORK} (Standard "traefik"),
 # Entrypoint ${TRAEFIK_ENTRYPOINT} (Standard "websecure") und Certresolver
 # ${TRAEFIK_CERT_RESOLVER}. Die lokalen Ports werden entfernt.
+# Je Dienst zwei Router: oeffentlich nur die Annahme-Endpunkte, die die App braucht;
+# die Admin-Oberflaeche nur aus ${TELEMETRY_ADMIN_SOURCES} (CIDR-Liste, Pflicht).
+# Vorher ohne Override starten und das Umami-Standardpasswort aendern.
 
 services:
   umami:
@@ -11,9 +14,16 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: ${TRAEFIK_NETWORK:-traefik}
-      traefik.http.routers.umami.rule: Host(`${UMAMI_HOST:?UMAMI_HOST in .env setzen}`)
+      traefik.http.routers.umami-ingest.rule: Host(`${UMAMI_HOST:?UMAMI_HOST in .env setzen}`) && Path(`/api/send`)
+      traefik.http.routers.umami-ingest.entrypoints: ${TRAEFIK_ENTRYPOINT:-websecure}
+      traefik.http.routers.umami-ingest.tls.certresolver: ${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      traefik.http.routers.umami-ingest.service: umami
+      traefik.http.routers.umami.rule: Host(`${UMAMI_HOST}`)
       traefik.http.routers.umami.entrypoints: ${TRAEFIK_ENTRYPOINT:-websecure}
       traefik.http.routers.umami.tls.certresolver: ${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      traefik.http.routers.umami.middlewares: umami-admin-only
+      traefik.http.routers.umami.service: umami
+      traefik.http.middlewares.umami-admin-only.ipallowlist.sourcerange: ${TELEMETRY_ADMIN_SOURCES:?TELEMETRY_ADMIN_SOURCES in .env setzen (z. B. 203.0.113.10/32)}
       traefik.http.services.umami.loadbalancer.server.port: "3000"
 
   glitchtip:
@@ -22,9 +32,16 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: ${TRAEFIK_NETWORK:-traefik}
-      traefik.http.routers.glitchtip.rule: Host(`${GLITCHTIP_HOST:?GLITCHTIP_HOST in .env setzen}`)
+      traefik.http.routers.glitchtip-ingest.rule: Host(`${GLITCHTIP_HOST:?GLITCHTIP_HOST in .env setzen}`) && PathRegexp(`^/api/[0-9]+/(envelope|store)/$`)
+      traefik.http.routers.glitchtip-ingest.entrypoints: ${TRAEFIK_ENTRYPOINT:-websecure}
+      traefik.http.routers.glitchtip-ingest.tls.certresolver: ${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      traefik.http.routers.glitchtip-ingest.service: glitchtip
+      traefik.http.routers.glitchtip.rule: Host(`${GLITCHTIP_HOST}`)
       traefik.http.routers.glitchtip.entrypoints: ${TRAEFIK_ENTRYPOINT:-websecure}
       traefik.http.routers.glitchtip.tls.certresolver: ${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      traefik.http.routers.glitchtip.middlewares: glitchtip-admin-only
+      traefik.http.routers.glitchtip.service: glitchtip
+      traefik.http.middlewares.glitchtip-admin-only.ipallowlist.sourcerange: ${TELEMETRY_ADMIN_SOURCES}
       traefik.http.services.glitchtip.loadbalancer.server.port: "8000"
 
 networks:

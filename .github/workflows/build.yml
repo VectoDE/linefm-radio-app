@@ -1,31 +1,19 @@
 name: Build
 
 # Builds all six platforms and stores the results as artifacts "dist-<platform>".
-# macOS/iOS only run for release tags, on manual start with apple=true, or in
-# change proposals with the label "ci:apple" (public repo: Actions minutes are free).
+# Change proposals build every platform including macOS/iOS, exactly as the
+# release on main does, so no build or log-gate failure first shows up on main
+# (public repo: Actions minutes are free). Manual starts include macOS/iOS only
+# with apple=true. Documentation-only changes skip the build.
 # Signing steps only run outside change proposals and only when the secrets are set;
 # without secrets the artifacts are unsigned and the summary lists what is missing.
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled]
-    paths:
-      - android/**
-      - ios/**
-      - macos/**
-      - windows/**
-      - linux/**
-      - web/**
-      # Window behavior (title bar, tray, mini window) depends on the
-      # native window and only counts as verified with a green desktop build.
-      - lib/platform/desktop/**
-      - pubspec.yaml
-      - pubspec.lock
-      - packaging/**
-      - installer/**
-      - LICENSE
-      - .github/workflows/build.yml
-      - .github/actions/**
+    paths-ignore:
+      - "**/*.md"
+      - docs/**
   workflow_dispatch:
     inputs:
       apple:
@@ -152,10 +140,12 @@ jobs:
           build_number=$(( RUN_NUMBER + offset ))
 
           apple=false
-          if [ "$INPUT_APPLE" = "true" ] || [ "$HAS_APPLE_LABEL" = "true" ]; then apple=true; fi
+          if [ "$INPUT_APPLE" = "true" ] || [ "$HAS_APPLE_LABEL" = "true" ] || [ "$EVENT_NAME" = "pull_request" ]; then apple=true; fi
 
           may_sign=false
-          if [ "$EVENT_NAME" != "pull_request" ]; then may_sign=true; fi
+          # Only a release (version passed in by release.yml) or a v* tag may sign;
+          # change proposals and manual starts from any branch stay unsigned.
+          if [ "$EVENT_NAME" != "pull_request" ] && { [ -n "$INPUT_VERSION" ] || [[ "$GITHUB_REF" == refs/tags/v* ]]; }; then may_sign=true; fi
 
           # Every tag build (prod) needs complete legal texts: release.yml
           # also uploads pre-releases (vX.Y.Z-rc.N) to Google Play and Snap, so
@@ -185,7 +175,7 @@ jobs:
             echo "### Build $label"
             echo "- build-name: \`$build_name\`, build-number: \`$build_number\`, APP_ENV: \`$app_env\`"
             echo "- macOS/iOS: $apple"
-            echo "- Signing allowed (not a change proposal): $may_sign"
+            echo "- Signing allowed (release or v* tag only): $may_sign"
             echo "- Legal texts strict (required placeholders must be filled): $legal_strict"
             echo "- Build caches restored: $cache"
             echo ""

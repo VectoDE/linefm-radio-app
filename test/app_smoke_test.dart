@@ -7,6 +7,8 @@ import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/features/loader/app_loader.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'support/service_doubles.dart';
+
 void main() {
   testWidgets('App startet mit Stub-Providern, Loader, Shell und 6 Sendern', (
     tester,
@@ -18,7 +20,10 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [prefsProvider.overrideWithValue(InMemoryPrefsStore())],
+        overrides: [
+          ...noopServiceOverrides(),
+          prefsProvider.overrideWithValue(InMemoryPrefsStore()),
+        ],
         child: const LinefmApp(),
       ),
     );

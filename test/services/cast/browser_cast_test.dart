@@ -16,6 +16,7 @@ import 'package:linefm_radio/services/cast/chrome_cast_service.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../support/service_doubles.dart';
 import '../../support/test_doubles.dart';
 
 /// Fake for web/cast.js: no real Google script, no real Cast device.
@@ -315,6 +316,7 @@ void main() {
     test('null when the browser cannot cast', () {
       final c = ProviderContainer(
         overrides: <Override>[
+          ...noopServiceOverrides(),
           browserCastBridgeProvider.overrideWithValue(
             FakeBrowserCastBridge(supported: false, decision: true),
           ),
@@ -330,6 +332,7 @@ void main() {
       final bridge = FakeBrowserCastBridge();
       final c = ProviderContainer(
         overrides: <Override>[
+          ...noopServiceOverrides(),
           browserCastBridgeProvider.overrideWithValue(bridge),
         ],
       );
@@ -368,6 +371,7 @@ void main() {
       };
       final container = ProviderContainer(
         overrides: <Override>[
+          ...noopServiceOverrides(cast: false),
           prefsProvider.overrideWithValue(InMemoryPrefsStore()),
           ...offlineDataOverrides(),
           browserCastBridgeProvider.overrideWithValue(bridge),
@@ -445,6 +449,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: <Override>[
+            ...noopServiceOverrides(),
             prefsProvider.overrideWithValue(InMemoryPrefsStore()),
             ...offlineDataOverrides(),
             browserCastBridgeProvider.overrideWithValue(

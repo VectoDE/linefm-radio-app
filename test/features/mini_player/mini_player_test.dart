@@ -7,11 +7,11 @@ import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/sleep_timer/sleep_timer_logic.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/features/mini_player/mini_player.dart';
-import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/volume_steps.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../support/service_doubles.dart';
 import '../stations/stations_test_host.dart';
 
 void setSize(WidgetTester tester, double width) {
@@ -159,6 +159,7 @@ void main() {
     setSize(tester, 390);
     final service = _FakeSleepTimer();
     final h = Harness(
+      noopSleepTimer: false,
       extra: <Override>[sleepTimerServiceProvider.overrideWithValue(service)],
     );
     addTearDown(h.container.dispose);

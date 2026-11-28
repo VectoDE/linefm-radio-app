@@ -10,7 +10,7 @@ runs:
     - name: Install apt packages
       shell: bash
       run: |
-        sudo apt-get update -q
+        bash "$GITHUB_WORKSPACE/tool/ci/apt_update.sh" -q
         sudo apt-get install -y -q --no-install-recommends \
           clang cmake ninja-build pkg-config libgtk-3-dev libx11-dev libxi-dev \
           libmpv-dev libayatana-appindicator3-dev libkeybinder-3.0-dev libcurl4-openssl-dev

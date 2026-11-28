@@ -140,7 +140,7 @@ void main() {
         find.text(
           'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt '
           'gehörten Sender sowie zuletzt gespielte Titel in diesem Browser, damit die App sie beim nächsten '
-          'Start kennt.',
+          'Start kennt. Eine selbst gewählte Sprache bleibt immer gespeichert.',
         ),
         findsOneWidget,
       );
@@ -247,7 +247,7 @@ void main() {
           find.text(
             'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt '
             'gehörten Sender sowie zuletzt gespielte Titel auf diesem Gerät, damit die App sie beim '
-            'nächsten Start kennt.',
+            'nächsten Start kennt. Eine selbst gewählte Sprache bleibt immer gespeichert.',
           ),
           findsOneWidget,
         );

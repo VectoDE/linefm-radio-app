@@ -5,8 +5,8 @@ wird für Apple vorerst nicht (Entscheidung 21); alles ist so vorbereitet, dass
 später nur Konto, Profile und Freigaben eingetragen werden müssen.
 
 Hinweis: Entwickelt wurde ohne Mac. iOS und macOS sind nicht lokal gebaut
-worden; Abnahme über den macOS-Job in CI (`build.yml`, `apple=true` bzw.
-dem Label `ci:apple` am Änderungsvorschlag) oder einen Mac. Der iOS-Job prüft nach dem Build das
+worden; Abnahme über den macOS-Job in CI (`build.yml`, läuft in jedem
+Änderungsvorschlag, manuell mit `apple=true`) oder einen Mac. Der iOS-Job prüft nach dem Build das
 fertige Bundle (Widget eingebettet, Info.plist-Schlüssel, Privacy-Manifeste,
 native Kanäle im Binary).
 

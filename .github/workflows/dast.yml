@@ -101,7 +101,7 @@ jobs:
       # $LW2::_SSL_LIBRARY undefined without one, which Perl warns about.
       - name: Install nikto Perl modules
         run: |
-          sudo apt-get update -qq
+          bash tool/ci/apt_update.sh -qq
           sudo apt-get install -y -qq --no-install-recommends libxml-writer-perl libnet-ssleay-perl
 
       - name: nikto

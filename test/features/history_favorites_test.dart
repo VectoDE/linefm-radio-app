@@ -19,11 +19,11 @@ import 'package:linefm_radio/features/history/history_format.dart';
 import 'package:linefm_radio/features/history/history_screen.dart';
 import 'package:linefm_radio/features/history/icon_action.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
-import 'package:linefm_radio/services/share/share_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../support/service_doubles.dart';
 import '../support/test_doubles.dart';
 
 class _Repo extends FakeNowPlayingRepository {

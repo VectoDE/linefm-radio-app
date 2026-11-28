@@ -11,7 +11,7 @@ offiziellen Release.
 2. Starte die App aus dem Ordner "Programme". Die Warnung erscheint, schließe sie mit "Fertig".
 3. Öffne Systemeinstellungen > Datenschutz & Sicherheit.
 4. Scrolle zu "Sicherheit". Dort steht, dass "LINEFM Radio" blockiert wurde.
-   Klicke auf "Trotzdem öffnen" und bestätige mit deinem Passwort oder Touch ID.
+   Klicke auf "Dennoch öffnen" und bestätige mit deinem Passwort oder Touch ID.
 5. Ab jetzt startet die App normal.
 
 Hinweis: Bis macOS 14 reichte Rechtsklick > "Öffnen". Ab macOS 15 (Sequoia)

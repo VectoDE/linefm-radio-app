@@ -12,12 +12,12 @@ import 'package:linefm_radio/data/storage/prefs_store.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/features/stations/station_actions.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
-import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/ui/theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../support/service_doubles.dart';
 import '../../support/test_doubles.dart';
 
 const Track trackMain = Track(artist: 'James Hype', title: "I Was Lovin' You");
@@ -53,7 +53,10 @@ class Harness {
     this.brightness = Brightness.dark,
     this.locale = const Locale('de'),
     this.extra = const <Override>[],
+    this.noopSleepTimer = true,
   });
+
+  final bool noopSleepTimer;
 
   final List<Override> extra;
   final Brightness brightness;
@@ -66,6 +69,7 @@ class Harness {
   );
 
   List<Override> get overrides => <Override>[
+    ...noopServiceOverrides(playback: false, sleepTimer: noopSleepTimer),
     prefsProvider.overrideWithValue(InMemoryPrefsStore()),
     nowPlayingRepositoryProvider.overrideWithValue(
       FakeNowPlayingRepository(

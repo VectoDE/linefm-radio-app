@@ -27,8 +27,10 @@ import 'package:linefm_radio/features/settings/settings_screen.dart';
 import 'package:linefm_radio/features/stations/favorite_stations.dart';
 import 'package:linefm_radio/features/stations/stations_screen.dart';
 import 'package:linefm_radio/features/storage_notice/storage_notice.dart';
+import 'package:linefm_radio/features/storage_notice/storage_notice_dialog.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
 import 'package:linefm_radio/ui/theme/breakpoints.dart';
+import 'package:linefm_radio/ui/theme/page_insets.dart';
 import 'package:linefm_radio/ui/theme/station_style.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
@@ -37,23 +39,23 @@ import 'package:linefm_radio/ui/widgets/quiet_tooltip.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Hoehe des Mini-Players samt Abstand darueber (Web: 90 + 12).
+/// Height of the mini player including the gap above it (web: 90 + 12).
 const double _miniReserve = 102;
 
-/// App-Rahmen wie die Web-App (Spec 4.1, 4.3):
+/// App frame like the web app (spec 4.1, 4.3):
 ///
-/// - Kompakt/Mittel (< 840 dp): Header mit Wortmarke, Favoriten-Herz und
-///   Zahnrad (im Player ohne Hintergrund), Inhalt, unten Speicher-Hinweis,
-///   Mini-Player und Navigation STATIONEN/PLAYER/VERLAUF.
-/// - Breit (ab 840 dp): Navigation-Rail links (Stationen, Verlauf,
-///   Favoriten, Einstellungen), Inhalt, rechts feste Player-Spalte
-///   (380-460 dp). Kein Mini-Player, kein Player-Tab.
+/// - Compact/medium (< 840 dp): header with word mark, favorites heart and
+///   gear (without background on the player), content, storage notice at the
+///   bottom, mini player and navigation STATIONS/PLAYER/HISTORY.
+/// - Wide (from 840 dp): navigation rail on the left (stations, history,
+///   favorites; settings via the gear in the header), content, fixed player
+///   column on the right (380-460 dp). No mini player, no player tab.
 ///
-/// Ausserdem: Lebenszyklus an den Live-Daten-Motor, Start (Lautstaerke,
-/// Link, Autoplay), `screen_*`-Ereignisse fuer Stationen, Player und
-/// Einstellungen (Verlauf und Favoriten melden sich selbst), Hinweise bei
-/// Neuverbindung und Stream-Fehler, Offline-Leiste, Tastenkuerzel
-/// (Spec 4.6), Zurueck fuehrt zu den Stationen.
+/// Also: lifecycle hooks into the live-data engine, startup (volume, link,
+/// autoplay), `screen_*` events for stations, player and settings (history
+/// and favorites report themselves), notices on reconnect and stream
+/// errors, offline bar, keyboard shortcuts (spec 4.6), Back returns to the
+/// stations.
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
@@ -72,18 +74,18 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   void initState() {
     super.initState();
-    // Dauerhaft abonnieren: ein nur gelesener Provider wird in Riverpod 3
-    // pausiert, dann liefen Titel-Updates an Benachrichtigung/Widget nicht.
+    // Subscribe permanently: a provider that is only read is paused in
+    // Riverpod 3, so title updates to the notification/widget would stop.
     final controller = ref
         .listenManual(playerControllerProvider, (_, _) {})
         .read();
     ref
       ..listenManual(nowPlayingRepositoryProvider, (_, _) {})
-      // Cast-Dienst dauerhaft abonnieren: haelt die Uebergabe lokal/Cast
-      // aktiv, auch ohne geoeffneten Player. Das SDK selbst startet erst
-      // beim ersten Tippen auf den Cast-Knopf (initCast).
+      // Subscribe to the cast service permanently: keeps the local/cast handover
+      // active even without an open player. The SDK itself only starts on the
+      // first tap on the cast button (initCast).
       ..listenManual(castServiceProvider, (_, _) {})
-      // Favoriten-Sender fuer das Auto-Menue, auch nach "Speicher loeschen".
+      // Favorite stations for the car menu, also after "Clear storage".
       ..listenManual(favoriteStationsProvider, (_, _) {});
     _lifecycle = AppLifecycleListener(
       onStateChange: (state) {
@@ -99,11 +101,33 @@ class _AppShellState extends ConsumerState<AppShell> {
         WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
       _foreground.complete();
     }
+    // Native apps on first start: playback waits for "Got it" in the storage
+    // notice instead of starting behind the open popup. Later starts (notice
+    // already confirmed) play at once.
+    final noticeConfirmed = Completer<void>();
+    void checkNotice(bool confirmed) {
+      final pending = shouldShowStorageNoticeDialog(
+        platform: ref.read(platformInfoProvider),
+        confirmed: confirmed,
+      );
+      if (!pending && !noticeConfirmed.isCompleted) noticeConfirmed.complete();
+    }
+
+    checkNotice(ref.read(storageConsentProvider));
+    if (!noticeConfirmed.isCompleted) {
+      ref.listenManual<bool>(
+        storageConsentProvider,
+        (_, confirmed) => checkNotice(confirmed),
+      );
+    }
     unawaited(
       controller.startup(
         launchUri: kIsWeb ? Uri.base : null,
         web: kIsWeb,
-        untilForeground: _foreground.future,
+        untilForeground: Future.wait<void>(<Future<void>>[
+          _foreground.future,
+          noticeConfirmed.future,
+        ]),
       ),
     );
     _screenEvent(ref.read(navigationProvider));
@@ -118,8 +142,8 @@ class _AppShellState extends ConsumerState<AppShell> {
           }
           return;
         }
-        // Wecker, Ueber, Recht: eigene Route, Shell bleibt beim letzten
-        // Bereich.
+        // Alarm, About, Legal: own route, the shell stays on the last
+        // area.
         ref.read(navigationProvider.notifier).go(_lastShellScreen);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) unawaited(_openRoute(next));
@@ -159,7 +183,7 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 
   void _screenEvent(AppScreen screen) {
-    // Verlauf und Favoriten senden `screen_*` selbst.
+    // History and favorites send `screen_*` themselves.
     if (screen == AppScreen.history || screen == AppScreen.favorites) return;
     unawaited(ref.read(telemetryProvider).screen(screen.telemetryName));
   }
@@ -171,8 +195,8 @@ class _AppShellState extends ConsumerState<AppShell> {
     _ => Future<void>.value(),
   };
 
-  /// SnackBar bei Neuverbindung und Fehler, solange der Player nicht zu
-  /// sehen ist (der Player zeigt den Zustand selbst).
+  /// SnackBar on reconnect and error while the player is not
+  /// visible (the player shows the state itself).
   void _onPlayerState(PlayerUiState? previous, PlayerUiState? next) {
     if (next == null || !mounted) return;
     final status = next.status;
@@ -224,7 +248,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     }
   }
 
-  // ---------------------------------------------------------- Tastatur
+  // ---------------------------------------------------------- Keyboard
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
@@ -246,8 +270,8 @@ class _AppShellState extends ConsumerState<AppShell> {
       return KeyEventResult.ignored;
     }
     if (event is KeyDownEvent) {
-      // Leertaste und Pfeile nur, wenn kein Bedienelement den Fokus hat
-      // (sonst aktivieren bzw. bewegen sie den Fokus wie gewohnt).
+      // Space and arrows only if no control has focus
+      // (otherwise they activate or move the focus as usual).
       if (key == LogicalKeyboardKey.space && ownFocus) {
         unawaited(actions.togglePlayback());
         return KeyEventResult.handled;
@@ -257,8 +281,8 @@ class _AppShellState extends ConsumerState<AppShell> {
             ? KeyEventResult.handled
             : KeyEventResult.ignored;
       }
-      // Ein-Zeichen-Kuerzel (F, S, 1-6) lassen sich in den Einstellungen
-      // abschalten (WCAG 2.1.4).
+      // Single-character shortcuts (F, S, 1-6) can be switched off in the
+      // settings (WCAG 2.1.4).
       if (!ref.read(settingsProvider).keyboardShortcuts) {
         return KeyEventResult.ignored;
       }
@@ -307,7 +331,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     LogicalKeyboardKey.digit6,
   ];
 
-  // -------------------------------------------------------------- Aufbau
+  // -------------------------------------------------------------- Layout
 
   @override
   Widget build(BuildContext context) {
@@ -342,17 +366,17 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 }
 
-/// Ein Bereich der Shell mit fester Tab- und Screenreader-Position.
+/// One area of the shell with a fixed tab and screen reader position.
 ///
-/// Jeder Bereich ist eine eigene [FocusTraversalGroup]: Tab laeuft erst
-/// durch den ganzen Bereich, dann zum naechsten. Ohne diese Ordnung sortiert
-/// Flutter nach Lage auf dem Schirm; im Kompakt-Layout liegen Karten hinter
-/// Mini-Player und Navigation, und der Fokus sprang zwischen beiden hin
-/// und her.
+/// Each area is its own [FocusTraversalGroup]: Tab runs through the whole
+/// area first, then to the next one. Without this order Flutter sorts by
+/// position on screen; in the compact layout cards sit behind the mini
+/// player and navigation, and the focus used to jump back and forth
+/// between them.
 ///
-/// [role] und [label] machen den Bereich zur Landmarke (main, navigation,
-/// complementary, region), damit Screenreader direkt hinspringen koennen
-/// und alle Inhalte in einer Landmarke liegen (axe `region`).
+/// [role] and [label] turn the area into a landmark (main, navigation,
+/// complementary, region) so screen readers can jump straight to it and
+/// all content lies inside a landmark (axe `region`).
 Widget _ordered(
   int order,
   Widget child, {
@@ -372,13 +396,13 @@ Widget _ordered(
   ),
 );
 
-/// Bereich fuer Hinweise (Offline, Speicher, Autoplay). Landmarke nur,
-/// solange wirklich ein Hinweis steht; sonst gaebe es eine leere Region.
+/// Area for notices (offline, storage, autoplay). A landmark only while a
+/// notice is actually shown; otherwise there would be an empty region.
 class _NoticesRegion extends ConsumerWidget {
   const _NoticesRegion({required this.compact, required this.child});
 
-  /// Kompakt-Layout: Autoplay-Leiste steht im Mini-Player-Platz und laesst
-  /// den Speicher-Hinweis warten (siehe [_StorageNoticeSlot]).
+  /// Compact layout: the autoplay bar takes the mini player's space and lets
+  /// the storage notice wait (see [_StorageNoticeSlot]).
   final bool compact;
   final Widget child;
 
@@ -403,7 +427,7 @@ class _NoticesRegion extends ConsumerWidget {
   }
 }
 
-/// Inhalt eines Bereichs der Shell (ohne Player).
+/// Content of a shell area (without the player).
 Widget _content(AppScreen screen, {required EdgeInsets stationsPadding}) =>
     switch (screen) {
       AppScreen.history => const HistoryScreen(),
@@ -412,7 +436,7 @@ Widget _content(AppScreen screen, {required EdgeInsets stationsPadding}) =>
       _ => StationsScreen(padding: stationsPadding),
     };
 
-// ------------------------------------------------------------ Kompakt
+// ------------------------------------------------------------ Compact
 
 class _CompactLayout extends StatefulWidget {
   const _CompactLayout({required this.screen});
@@ -424,9 +448,9 @@ class _CompactLayout extends StatefulWidget {
 }
 
 class _CompactLayoutState extends State<_CompactLayout> {
-  /// Gemessene Hoehe des unteren Stapels (Hinweise, Mini-Player,
-  /// Navigation). Der Inhalt haelt so viel Platz frei, damit z. B. der
-  /// Speicher-Hinweis keine Player-Knoepfe verdeckt.
+  /// Measured height of the bottom stack (notices, mini player,
+  /// navigation). The content keeps that much space free so that, for
+  /// example, the storage notice does not cover player buttons.
   double _bottomStack = 0;
 
   void _onBottomStack(Size size) {
@@ -458,11 +482,16 @@ class _CompactLayoutState extends State<_CompactLayout> {
     } else {
       final inner = _content(
         screen,
-        stationsPadding: EdgeInsets.fromLTRB(20, 20, 20, bottom),
+        stationsPadding: EdgeInsets.fromLTRB(
+          PageInsets.compact,
+          LinefmSpace.gutter,
+          PageInsets.compact,
+          bottom,
+        ),
       );
       content = Padding(
         padding: EdgeInsets.only(top: top),
-        // Einstellungen haben keinen eigenen Platzhalter unten.
+        // Settings have no placeholder of their own at the bottom.
         child: screen == AppScreen.settings
             ? Padding(
                 padding: EdgeInsets.only(bottom: bottom - 24),
@@ -472,9 +501,9 @@ class _CompactLayoutState extends State<_CompactLayout> {
       );
     }
 
-    // Reihenfolge fuer Tab und Screenreader: Header, Inhalt, Hinweise,
-    // Mini-Player, Navigation. Kein umlaufender Bereich: nach der
-    // Navigation verlaesst Tab die App wie gewohnt.
+    // Order for Tab and screen readers: header, content, notices,
+    // mini player, navigation. No wrap-around: after the navigation Tab
+    // leaves the app as usual.
     return FocusTraversalGroup(
       policy: OrderedTraversalPolicy(),
       child: Stack(
@@ -522,9 +551,9 @@ class _CompactLayoutState extends State<_CompactLayout> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
                           _OfflineBanner(),
-                          // Handy: nur ein Hinweis zur Zeit. Steht die
-                          // Start-Leiste, wartet der Speicher-Hinweis, damit
-                          // bei 320 x 640 Inhalt sichtbar bleibt.
+                          // Phone: only one notice at a time. While the start bar
+                          // is shown, the storage notice waits so that content stays
+                          // visible at 320 x 640.
                           _StorageNoticeSlot(yieldToAutoplay: true),
                         ],
                       ),
@@ -555,7 +584,7 @@ class _CompactLayoutState extends State<_CompactLayout> {
   }
 }
 
-/// Meldet die Groesse des Kindes nach jedem Layout, wenn sie sich aendert.
+/// Reports the size of the child after each layout when it changes.
 class _SizeReporter extends SingleChildRenderObjectWidget {
   const _SizeReporter({required this.onSize, required super.child});
 
@@ -588,7 +617,7 @@ class _RenderSizeReporter extends RenderProxyBox {
   }
 }
 
-// --------------------------------------------------------------- Breit
+// --------------------------------------------------------------- Wide
 
 class _ExpandedLayout extends ConsumerWidget {
   const _ExpandedLayout({required this.screen});
@@ -610,9 +639,9 @@ class _ExpandedLayout extends ConsumerWidget {
     final index = railScreens.indexOf(shown);
     final favorites = ref.watch(favoritesProvider.select((f) => f.length));
 
-    // Tab- und Screenreader-Reihenfolge wie die Optik: Navigation, Header,
-    // Inhalt, Hinweise, Player. Ohne feste Ordnung kam der Header
-    // erst nach den Karten.
+    // Tab and screen reader order like the visuals: navigation, header,
+    // content, notices, player. Without a fixed order the header came
+    // only after the cards.
     return SafeArea(
       child: FocusTraversalGroup(
         policy: OrderedTraversalPolicy(),
@@ -629,8 +658,8 @@ class _ExpandedLayout extends ConsumerWidget {
                 child: SizedBox(
                   key: const ValueKey<String>('shell-rail'),
                   width: LinefmMetrics.railWidth,
-                  // Das erste Ziel sitzt auf der Mittellinie des Headers, die
-                  // Wortmarke bleibt im Header.
+                  // The first destination sits on the center line of the header, the
+                  // word mark stays in the header.
                   child: Padding(
                     padding: const EdgeInsets.only(
                       top: LinefmMetrics.railTopInset,
@@ -681,16 +710,16 @@ class _ExpandedLayout extends ConsumerWidget {
                       _content(
                         shown,
                         stationsPadding: const EdgeInsets.fromLTRB(
-                          24,
-                          20,
-                          24,
-                          32,
+                          PageInsets.expanded,
+                          LinefmSpace.gutter,
+                          PageInsets.expanded,
+                          LinefmSpace.xxl,
                         ),
                       ),
                     ),
                   ),
-                  // Im Fluss unter dem Inhalt statt als Overlay: verdeckt
-                  // nichts und liegt nicht ueber der ganzen App.
+                  // In the flow below the content instead of an overlay: covers
+                  // nothing and does not lie over the whole app.
                   _ordered(
                     4,
                     const _NoticesRegion(
@@ -737,9 +766,9 @@ class _ExpandedLayout extends ConsumerWidget {
     icon: ExcludeSemantics(
       child: _NavIcon(icon: icon, badge: badge),
     ),
-    // Feste Breite: Lange Woerter (z. B. "EINSTELLUNGEN") werden
-    // verkleinert statt die Leiste zu verbreitern oder abgeschnitten zu
-    // werden. Der Screenreader liest immer den vollen Text.
+    // Fixed width: long words (e.g. "EINSTELLUNGEN") are shrunk
+    // instead of widening the bar or being cut off. The screen reader
+    // always reads the full text.
     label: Semantics(
       label: semanticLabel ?? label,
       excludeSemantics: true,
@@ -761,15 +790,15 @@ class _ExpandedLayout extends ConsumerWidget {
 
 // -------------------------------------------------------------- Header
 
-/// Header der Web-App: Wortmarke "LINEFM" (Syncopate 2rem) links, rechts
-/// Favoriten-Herz mit Zaehler und Zahnrad. Im Player ohne Hintergrund und
-/// mit Schriftfarbe nach Kontrast zum Senderverlauf.
+/// Header of the web app: word mark "LINEFM" (Syncopate 2rem) on the left,
+/// on the right favorites heart with counter and gear. On the player without
+/// background and with a text color chosen by contrast to the station gradient.
 class _Header extends ConsumerWidget {
   const _Header({required this.transparent, this.inset = true});
 
   final bool transparent;
 
-  /// Statusleiste beruecksichtigen (Kompakt-Layout, Header ueber Inhalt).
+  /// Take the status bar into account (compact layout, header above content).
   final bool inset;
 
   @override
@@ -777,6 +806,11 @@ class _Header extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final c = context.linefm;
     final top = inset ? MediaQuery.paddingOf(context).top : 0.0;
+    final gutter = PageInsets.gutter(context);
+    final gearEnd = math.max(
+      0.0,
+      gutter - (LinefmMetrics.minTarget - LinefmMetrics.navIcon) / 2,
+    );
     final station = ref.watch(activeStationProvider);
     final onSettings = ref.watch(navigationProvider) == AppScreen.settings;
     final tint = transparent
@@ -792,7 +826,9 @@ class _Header extends ConsumerWidget {
           ? Duration.zero
           : LinefmMetrics.fast,
       height: top + LinefmMetrics.headerHeight,
-      padding: EdgeInsets.fromLTRB(20, top, 12, 0),
+      // Same left edge as the page content; the gear glyph ends on the
+      // content's right edge (its 48 dp target overhangs into the margin).
+      padding: EdgeInsets.fromLTRB(gutter, top, gearEnd, 0),
       decoration: BoxDecoration(
         color: transparent ? Colors.transparent : c.background,
         boxShadow: transparent
@@ -818,14 +854,11 @@ class _Header extends ConsumerWidget {
                 container: true,
                 label: l10n.brandName,
                 excludeSemantics: true,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      l10n.brandName,
-                      style: LinefmText.brandHeader.copyWith(color: tint),
-                    ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    l10n.brandName,
+                    style: LinefmText.brandHeader.copyWith(color: tint),
                   ),
                 ),
               ),
@@ -861,10 +894,10 @@ class _Header extends ConsumerWidget {
 
 // ---------------------------------------------------------- Navigation
 
-/// Untere Navigation: SENDER (play) · PLAYER (headphones) · VERLAUF
-/// (clock-rotate-left) · FAVORITEN (heart). Gleiche Ziele und Reihenfolge wie
-/// die Seitenleiste, dazu der Player, der breit immer sichtbar ist. Die
-/// Einstellungen liegen auf jeder Breite im Header.
+/// Bottom navigation: STATIONS (play) · PLAYER (headphones) · HISTORY
+/// (clock-rotate-left) · FAVORITES (heart). Same destinations and order as
+/// the side rail, plus the player, which is always visible when wide. The
+/// settings sit in the header at every width.
 class _BottomNav extends ConsumerWidget {
   const _BottomNav({required this.screen});
 
@@ -882,7 +915,7 @@ class _BottomNav extends ConsumerWidget {
       (AppScreen.favorites, FontAwesomeIcons.heart, l10n.navFavorites),
     ];
     final favorites = ref.watch(favoritesProvider.select((f) => f.length));
-    // Landmarke und Name setzt die Shell (_ordered).
+    // Landmark and name are set by the shell (_ordered).
     return Semantics(
       container: true,
       explicitChildNodes: true,
@@ -893,8 +926,8 @@ class _BottomNav extends ConsumerWidget {
           border: Border(top: BorderSide(color: c.line)),
         ),
         child: Padding(
-          // Schmaler Rand: Vier Ziele passen ab 360 dp ohne verkleinerte
-          // Beschriftung.
+          // Narrow margin: four destinations fit from 360 dp without a shrunken
+          // label.
           padding: EdgeInsets.fromLTRB(
             LinefmSpace.sm,
             0,
@@ -928,10 +961,10 @@ class _BottomNav extends ConsumerWidget {
   }
 }
 
-/// Eintrag der Bottom-Navigation: Pill-Indikator hinter dem Icon wie in der
-/// Seitenleiste, Hover-Flaeche und sichtbarer Fokusring (2 dp, accent).
-/// Feste Hoehe: Die Beschriftung wird verkleinert, nie umbrochen, damit die
-/// Leiste in jeder Sprache gleich hoch bleibt.
+/// Bottom navigation entry: pill indicator behind the icon like in the
+/// side rail, hover surface and visible focus ring (2 dp, accent).
+/// Fixed height: the label is shrunk, never wrapped, so the
+/// bar stays the same height in every language.
 class _NavItem extends StatelessWidget {
   const _NavItem({
     required this.icon,
@@ -944,13 +977,13 @@ class _NavItem extends StatelessWidget {
 
   final FaIconData icon;
 
-  /// Name fuer den Screenreader (bei Favoriten mit Anzahl).
+  /// Name for the screen reader (with the count for favorites).
   final String label;
 
-  /// Sichtbare Beschriftung.
+  /// Visible label.
   final String text;
 
-  /// Zaehler am Icon, 0 blendet ihn aus.
+  /// Counter on the icon, 0 hides it.
   final int badge;
   final bool selected;
   final VoidCallback onTap;
@@ -969,9 +1002,9 @@ class _NavItem extends StatelessWidget {
         focusable: true,
         focused: focused,
         onFocus: onFocus,
-        // excludeSemantics verwirft auch die Tap-Aktion des InkResponse; ohne
-        // eigenes onTap liess sich die Leiste per Screenreader nicht bedienen
-        // (Web: Klick auf den Knopf ohne Wirkung, gefunden mit tool/a11y).
+        // excludeSemantics also discards the InkResponse's tap action; without
+        // its own onTap the bar could not be operated with a screen reader
+        // (web: click on the button had no effect, found with tool/a11y).
         onTap: onTap,
         child: child,
       ),
@@ -988,10 +1021,10 @@ class _NavItem extends StatelessWidget {
             highlightShape: BoxShape.rectangle,
             borderRadius: BorderRadius.circular(LinefmMetrics.radiusCard),
             hoverColor: c.accent.withValues(alpha: 0.08),
-            // Der Fokus zeigt sich ueber den Ring, nicht ueber eine Flaeche.
+            // Focus is shown by the ring, not by a surface.
             focusColor: Colors.transparent,
-            // Volle Zellenbreite: Tippflaeche, Hover und Ring haengen nicht
-            // von der Laenge der Beschriftung ab.
+            // Full cell width: tap target, hover and ring do not depend
+            // on the length of the label.
             child: SizedBox.expand(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1015,8 +1048,8 @@ class _NavItem extends StatelessWidget {
                     child: _NavIcon(icon: icon, badge: badge, color: color),
                   ),
                   const SizedBox(height: LinefmSpace.xs),
-                  // Verkleinern statt Ausblenden, falls eine Sprache laenger ist
-                  // als der feste Platz.
+                  // Shrink instead of hiding if a language is longer
+                  // than the fixed space.
                   // Flexible bounds the height too: at large text scale the
                   // label shrinks instead of overflowing the fixed bar.
                   // The side inset keeps a visible gap between neighbouring
@@ -1049,20 +1082,20 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-// ------------------------------------------------------- Hinweisleisten
+// ------------------------------------------------------- Notice bars
 
-/// Speicher-Hinweis-Banner (nur Web) unten ueber Mini-Player und Navigation
-/// (16 dp Rand, max. 760 dp breit).
+/// Storage notice banner (web only) at the bottom above mini player and
+/// navigation (16 dp margin, max. 760 dp wide).
 class _StorageNoticeSlot extends ConsumerWidget {
   const _StorageNoticeSlot({this.yieldToAutoplay = false});
 
-  /// Ausblenden, solange die Autoplay-Leiste steht (Kompakt-Layout).
+  /// Hide while the autoplay bar is shown (compact layout).
   final bool yieldToAutoplay;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final confirmed = ref.watch(storageConsentProvider);
-    // Banner nur im Browser; App und Desktop zeigen ein Popup (Gate).
+    // Banner only in the browser; app and desktop show a popup (gate).
     if (confirmed || !ref.watch(platformInfoProvider).isWeb) {
       return const SizedBox.shrink();
     }
@@ -1078,9 +1111,9 @@ class _StorageNoticeSlot extends ConsumerWidget {
   }
 }
 
-/// Kompakt-Layout: Im Platz des Mini-Players steht bei Autoplay-Sperre die
-/// Start-Leiste. So ueberdeckt sie keine Karte und der Inhalt
-/// bleibt auch bei 320 x 640 sichtbar.
+/// Compact layout: in the mini player's place the start bar is shown when
+/// autoplay is blocked. That way it covers no card and the content
+/// stays visible even at 320 x 640.
 class _MiniPlayerOrStart extends ConsumerWidget {
   const _MiniPlayerOrStart();
 
@@ -1097,12 +1130,12 @@ class _MiniPlayerOrStart extends ConsumerWidget {
   }
 }
 
-/// Web-Autoplay-Sperre (Spec 2.2): Ein Start ohne vorherige Nutzeraktion
-/// (Autoplay, Wecker, Link) waere stumm geblieben. Die Leiste erklaert das
-/// und startet den gewaehlten Sender mit dem Klick als Nutzeraktion.
+/// Web autoplay block (spec 2.2): a start without a prior user action
+/// (autoplay, alarm, link) would have stayed silent. The bar explains this
+/// and starts the chosen station with the click as the user action.
 ///
-/// Nur der Hinweistext ist Live-Region; der Knopf ist ein eigener, normaler
-/// Knopf ohne umschliessenden Semantik-Knoten.
+/// Only the hint text is a live region; the button is its own regular
+/// button without an enclosing semantics node.
 class AutoplayStartButton extends ConsumerWidget {
   const AutoplayStartButton({super.key, this.padding = EdgeInsets.zero});
 
@@ -1190,7 +1223,7 @@ class AutoplayStartButton extends ConsumerWidget {
   }
 }
 
-/// "Keine Verbindung. LINEFM versucht es weiter." (Spec 4.2 Nr. 14).
+/// "No connection. LINEFM keeps trying." (spec 4.2 no. 14).
 class _OfflineBanner extends ConsumerWidget {
   const _OfflineBanner();
 
@@ -1241,7 +1274,7 @@ class _OfflineBanner extends ConsumerWidget {
   }
 }
 
-/// Navigations-Icon mit optionalem Zaehler (Favoriten), ab 100 "99+".
+/// Navigation icon with an optional counter (favorites), from 100 "99+".
 class _NavIcon extends StatelessWidget {
   const _NavIcon({required this.icon, this.badge = 0, this.color});
 

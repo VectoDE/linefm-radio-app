@@ -1,10 +1,11 @@
 // Summarizes the measurement results into a Markdown table:
-// metric | median | spread | target (= median / 3 for times) | method.
+// metric | median | spread | target (= median / 2 for times) | method.
 //
 //   node summarize.mjs --in <folder with the artifacts> --out perf-summary.md
 //
 // Reads whatever is present: web-perf.json, lighthouse/summary.json,
-// sizes.json, windows-perf.json, android-sizes.json (at any depth in the folder).
+// sizes.json, windows-perf.json, android-sizes.json, android-start-baseline.json and
+// android-start-current.json (at any depth in the folder).
 // Node standard library only.
 
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
@@ -45,6 +46,7 @@ const lh = load('summary.json');
 const sizes = load('sizes.json');
 const win = load('windows-perf.json');
 const android = load('android-sizes.json');
+const androidStart = { baseline: load('android-start-baseline.json'), current: load('android-start-current.json') };
 
 const de = (x, digits = 0) => (x === null || x === undefined || Number.isNaN(x) ? '–' : x.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: digits }));
 const ms = (x) => (x === null || x === undefined ? '–' : x >= 1000 ? `${de(x / 1000, 2)} s` : `${de(x)} ms`);
@@ -58,7 +60,7 @@ function row(area, name, s, kind, method, link) {
     return;
   }
   const f = { time: ms, bytes: mb, score: (x) => de(x), cls: (x) => de(x, 3), count: (x) => de(x), pct: (x) => `${de(x, 1)} %`, mib: (x) => `${de(x, 1)} MB` }[kind];
-  const target = { time: ms(s.median / 3), bytes: mb(s.median / 3), score: '100', cls: '≤ 0.1 (target ≤ 0.02)', count: '–', pct: '–', mib: '–' }[kind];
+  const target = { time: ms(s.median / 2), bytes: mb(s.median / 2), score: '100', cls: '≤ 0.1 (target ≤ 0.02)', count: '–', pct: '–', mib: '–' }[kind];
   rows.push({
     area,
     name,
@@ -167,6 +169,18 @@ if (android) {
   row('Android', 'AAB (Release)', stats([android.aabBytes]), 'bytes', 'flutter build appbundle', L);
 }
 
+for (const [which, data] of Object.entries(androidStart)) {
+  if (!data) continue;
+  const L = data.environment?.runUrl ?? null;
+  const runs = (data.results ?? []).filter((r) => !r.warmup);
+  const meth = `x86_64 emulator (${data.environment?.device?.model ?? '?'}, API ${data.environment?.device?.api ?? '?'}), ${which === 'baseline' ? 'state before the performance work' : 'build under test'}, ${runs.length} runs after warm-up`;
+  const A = `Android cold start (${which})`;
+  row(A, 'Launch to first Flutter frame', stats(runs.map((r) => r.marksMs?.['first-frame'])), 'time', `${meth}; mark first-frame via logcat`, L);
+  row(A, 'Launch to Dart main()', stats(runs.map((r) => r.marksMs?.main)), 'time', meth, L);
+  row(A, 'Launch to runApp', stats(runs.map((r) => r.marksMs?.['run-app'])), 'time', meth, L);
+  row(A, 'am start -W TotalTime (activity window shown)', stats(runs.map((r) => r.totalTimeMs)), 'time', meth, L);
+}
+
 if (sizes) {
   const g = sizes.groups;
   for (const name of ['main.dart.wasm', 'main.dart.mjs', 'skwasm (Wasm renderer)', 'Fonts (app)', 'Images']) {
@@ -188,7 +202,7 @@ lines.push(`Commit \`${env.commit ?? '?'}\`${env.runUrl ? `, run ${env.runUrl}` 
 if (web) lines.push(`Web: ${web.environment.runner.os} ${web.environment.runner.image ?? ''} ${web.environment.runner.imageVersion ?? ''}, ${web.environment.cpu.model} (${web.environment.cpu.cores} cores), Node ${web.environment.node}, Playwright's Chromium, server: nginx container from deploy/traefik (gzip 5, cache headers from deploy/nginx/snippets), HTTP/1.1 without TLS.`);
 if (win) lines.push(`Windows: ${win.environment.os}, ${win.environment.cpu.model} (${win.environment.cpu.cores} cores), ${win.environment.memGiB} GiB.`);
 lines.push('');
-lines.push('Target = median / 3 (requirement: three times as fast). Spread = minimum – maximum, n, coefficient of variation. Lab values, not field data.');
+lines.push('Target = median / 2 (requirement: at least halved against the baseline in docs/PERFORMANCE.md; here relative to this run). Spread = minimum – maximum, n, coefficient of variation. Lab values, not field data.');
 lines.push('');
 lines.push('| Area | Metric | Median | Spread | Target | Method |');
 lines.push('|---|---|---|---|---|---|');

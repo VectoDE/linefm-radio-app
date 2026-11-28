@@ -5,9 +5,9 @@ import 'package:linefm_radio/domain/player_ui_state.dart';
 import 'package:linefm_radio/domain/sleep_timer/sleep_timer_logic.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
-import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/sleep_timer/sleep_timer_service.dart';
 
+import '../support/service_doubles.dart';
 import '../support/test_doubles.dart';
 
 /// Merkt jede Lautstaerke und jeden Stop.

@@ -5,7 +5,7 @@ import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/track.dart';
 
 /// Vertrag zwischen App-Logik und Audio-Dienst. LinefmAudioHandler
-/// implementiert ihn; Tests und Stubs nutzen [NoopPlaybackService].
+/// implementiert ihn; Tests nutzen einen Double aus test/support.
 abstract interface class PlaybackService {
   PlayerUiState get state;
 
@@ -24,42 +24,4 @@ abstract interface class PlaybackService {
   Future<void> updateNowPlaying(Station station, Track? track);
 
   Future<void> dispose();
-}
-
-/// Spielt nichts, spiegelt aber den Zustand (fuer Stubs und Tests).
-class NoopPlaybackService implements PlaybackService {
-  NoopPlaybackService();
-
-  PlayerUiState _state = const PlayerUiState();
-  final StreamController<PlayerUiState> _controller =
-      StreamController<PlayerUiState>.broadcast();
-
-  @override
-  PlayerUiState get state => _state;
-
-  @override
-  Stream<PlayerUiState> get stateStream => _controller.stream;
-
-  void _emit(PlayerUiState s) {
-    _state = s;
-    if (!_controller.isClosed) _controller.add(s);
-  }
-
-  @override
-  Future<void> playStation(Station station) async =>
-      _emit(_state.copyWith(status: PlayerStatus.playing, station: station));
-
-  @override
-  Future<void> stopPlayback() async =>
-      _emit(_state.copyWith(status: PlayerStatus.idle));
-
-  @override
-  Future<void> setVolume(double volume) async =>
-      _emit(_state.copyWith(volume: volume));
-
-  @override
-  Future<void> updateNowPlaying(Station station, Track? track) async {}
-
-  @override
-  Future<void> dispose() => _controller.close();
 }

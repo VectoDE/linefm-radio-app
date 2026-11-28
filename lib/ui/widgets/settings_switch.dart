@@ -3,16 +3,16 @@ import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Einstellungszeile mit Titel, Beschreibung und Schalter wie `.settings-row`
-/// der Web-App (Schalter 46x26, Knopf 20, 180 ms).
+/// Settings row with title, description and switch like `.settings-row` of
+/// the web app (switch 46x26, thumb 20, 180 ms).
 ///
-/// Die ganze Zeile ist die Tippflaeche (mindestens 48 dp hoch), per Tastatur
-/// mit Leertaste/Enter schaltbar und zeigt bei Tastaturfokus den Fokusring.
-/// Screenreader erhalten ein einziges Schalter-Element (Titel + Beschreibung,
-/// Zustand an/aus). [onChanged] null deaktiviert die Zeile.
+/// The whole row is the tap target (at least 48 dp high), can be toggled by
+/// keyboard with Space/Enter and shows the focus ring on keyboard focus.
+/// Screen readers get a single switch element (title + description, on/off
+/// state). A null [onChanged] disables the row.
 ///
-/// Der ausgeschaltete Schalter hat einen `muted`-Rahmen, damit er den
-/// Mindestkontrast fuer Bedienelemente (3:1, WCAG 1.4.11) erreicht.
+/// The switched-off switch has a `muted` border so that it reaches the
+/// minimum contrast for controls (3:1, WCAG 1.4.11).
 class SettingsSwitch extends StatefulWidget {
   const SettingsSwitch({
     super.key,
@@ -28,7 +28,7 @@ class SettingsSwitch extends StatefulWidget {
   final bool value;
   final ValueChanged<bool>? onChanged;
 
-  /// Trennlinie unter der Zeile (`border-bottom` der Web-App).
+  /// Divider under the row (`border-bottom` of the web app).
   final bool showDivider;
 
   @override
@@ -149,13 +149,14 @@ class _Track extends StatelessWidget {
             width: 1.5,
           ),
         ),
-        child: const SizedBox.square(
+        child: SizedBox.square(
           dimension: 20,
           child: DecoratedBox(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: LinefmPalette.paper,
-              boxShadow: <BoxShadow>[
+              // On: thumb in the colour on the accent track.
+              color: value ? colors.onAccent : LinefmPalette.paper,
+              boxShadow: const <BoxShadow>[
                 BoxShadow(
                   color: LinefmPalette.knobShadow,
                   blurRadius: 3,

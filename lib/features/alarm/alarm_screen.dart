@@ -11,6 +11,7 @@ import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/features/alarm/alarm_hooks.dart';
 import 'package:linefm_radio/features/settings/platform_info.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/ui/theme/page_insets.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:linefm_radio/ui/widgets/named_dialog.dart';
@@ -23,11 +24,11 @@ import 'package:material_ui/material_ui.dart';
 part 'alarm_card.dart';
 part 'alarm_notes.dart';
 
-/// Oeffnet den Wecker-Screen (aus den Einstellungen).
+/// Opens the alarm screen (from the settings).
 Future<void> openAlarm(BuildContext context) => Navigator.of(context)
     .push<void>(MaterialPageRoute<void>(builder: (_) => const AlarmScreen()));
 
-/// Kurzer Wochentag, 1 = Montag.
+/// Short weekday, 1 = Monday.
 String weekdayShort(AppLocalizations l10n, int isoWeekday) =>
     switch (isoWeekday) {
       1 => l10n.weekdayShort1,
@@ -39,7 +40,7 @@ String weekdayShort(AppLocalizations l10n, int isoWeekday) =>
       _ => l10n.weekdayShort7,
     };
 
-/// "07:30" fuer heute, sonst "Mo, 07:30" (Uhrzeit nach Geraeteeinstellung).
+/// "07:30" for today, otherwise "Mo, 07:30" (time per device settings).
 String formatAlarmTime(
   BuildContext context,
   AppLocalizations l10n,
@@ -55,7 +56,7 @@ String formatAlarmTime(
   return sameDay ? time : '${weekdayShort(l10n, when.weekday)}, $time';
 }
 
-/// Zusammenfassung der Wiederholung: Einmalig, Jeden Tag oder "Mo, Mi, Fr".
+/// Summary of the repeat: once, every day or "Mo, Mi, Fr".
 String alarmRepeatSummary(AppLocalizations l10n, Set<int> weekdays) {
   if (weekdays.isEmpty) return l10n.alarmOnce;
   if (weekdays.length == 7) return l10n.alarmEveryDay;
@@ -63,14 +64,14 @@ String alarmRepeatSummary(AppLocalizations l10n, Set<int> weekdays) {
   return days.map((d) => weekdayShort(l10n, d)).join(', ');
 }
 
-/// Radiowecker: mehrere Weckzeiten mit Uhrzeit, Wochentagen, Sender,
-/// Lautstaerke und festem Schlummern (9 Minuten). Aenderungen gelten sofort
-/// und werden an den Wecker-Dienst weitergegeben.
+/// Radio alarm: several alarm times with time, weekdays, station,
+/// volume and fixed snooze (9 minutes). Changes apply immediately
+/// and are passed on to the alarm service.
 class AlarmScreen extends ConsumerWidget {
   const AlarmScreen({super.key});
 
-  /// Neuer Wecker: zuerst die Uhrzeit waehlen. Abbrechen legt nichts
-  /// an; erst danach entsteht der Wecker fuer den aktuellen Sender.
+  /// New alarm: pick the time first. Cancelling creates nothing;
+  /// only afterwards the alarm for the current station is created.
   Future<void> _add(BuildContext context, WidgetRef ref) async {
     final picked = await showTimePicker(
       context: context,
@@ -106,7 +107,7 @@ class AlarmScreen extends ConsumerWidget {
     final now = ref.watch(clockProvider).now();
     final next = AlarmSchedule.nextOf(rules, now);
     final width = MediaQuery.sizeOf(context).width;
-    final side = width > 760 ? (width - 720) / 2 : 20.0;
+    final side = PageInsets.side(context, width);
 
     final note = platform.isWeb
         ? l10n.alarmNoteWeb
@@ -116,7 +117,7 @@ class AlarmScreen extends ConsumerWidget {
         ? l10n.alarmNoteDesktop
         : l10n.alarmNoteAndroid;
 
-    // Eigene Seite: als Hauptinhalt kennzeichnen (Landmarke).
+    // Own page: mark as main content (landmark).
     return Semantics(
       container: true,
       explicitChildNodes: true,
@@ -192,28 +193,28 @@ class AlarmScreen extends ConsumerWidget {
   }
 }
 
-/// Eingabeart des Uhrzeit-Dialogs. Im Web nur Texteingabe: Die Ziffernblatt-
-/// Ansicht von Flutter legt Stunde und Minute als Schieberegler ohne Namen an
-/// (`<input type="range">` nur mit `aria-valuetext`, axe `label`, kritisch);
-/// das laesst sich von aussen nicht beschriften. Die Felder der Texteingabe
-/// tragen Namen und sind per Tastatur ohnehin schneller. Auf Geraeten bleibt
-/// das Ziffernblatt (Bedienung per Touch).
+/// Input mode of the time dialog. On the web text input only: Flutter's
+/// dial view creates hour and minute as sliders without a name
+/// (`<input type="range">` only with `aria-valuetext`, axe `label`, critical);
+/// this cannot be labelled from the outside. The text input fields
+/// carry names and are faster by keyboard anyway. On devices the
+/// dial stays (touch operation).
 const TimePickerEntryMode timeEntryMode = kIsWeb
     ? TimePickerEntryMode.inputOnly
     : TimePickerEntryMode.dial;
 
-/// Uhrzeit-Dialog mit zugaenglichem Namen (sonst meldet axe
-/// `aria-dialog-name`): derselbe Text wie die Ueberschrift im Dialog.
+/// Time dialog with an accessible name (otherwise axe reports
+/// `aria-dialog-name`): the same text as the heading in the dialog.
 Widget _namedTimePicker(BuildContext context, Widget? child) => NamedDialog(
-  // Gleicher Text wie die sichtbare Ueberschrift der jeweiligen Eingabeart.
+  // Same text as the visible heading of the respective input mode.
   label: timeEntryMode == TimePickerEntryMode.dial
       ? MaterialLocalizations.of(context).timePickerDialHelpText
       : MaterialLocalizations.of(context).timePickerInputHelpText,
   child: child!,
 );
 
-/// Fragt die Plattform nach der Wecker-Freigabe; fehlt sie, erklaert ein Dialog
-/// den Grund und fuehrt in die Systemeinstellungen.
+/// Asks the platform for the alarm permission; if it is missing, a dialog explains
+/// the reason and leads to the system settings.
 Future<void> _ensurePermission(BuildContext context, WidgetRef ref) async {
   final granted = await ref.read(alarmPermissionCheckProvider)();
   if (granted || !context.mounted) return;

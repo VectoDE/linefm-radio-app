@@ -24,7 +24,6 @@ Gerät des Nutzers (App / Browser)
    |-- HTTPS --> *.stream.laut.fm       (Audio, fremd)
    |-- HTTPS --> itunes.apple.com       (Cover-Suche, fremd)
    |-- HTTPS --> cdn.linefm.de          (Senderlogos, Web, Betreiber)
-   |-- HTTPS --> radiogruppe.de         (Logo, fremd)
    |-- HTTPS --> Telemetrie-Server      (nur mit Einwilligung, Betreiber oder Dienst)
    |-- lokales Netz --> Cast-Gerät      (nach Tipp auf Cast)
    |<-- Deep Link / Teilen-Link / Widget (andere Apps und Systemteile)
@@ -64,12 +63,12 @@ Die Spalte "Vorhanden" nennt Maßnahmen, die im Repository belegt sind. "Rest" i
 | I | Apple erhält Künstler, Titel und IP | Schalter "Cover laden", Datenschutzerklärung Abschnitt 5 | bei eingeschaltetem Schalter nicht vermeidbar | S4 |
 | D | Dienst fällt aus oder begrenzt Anfragen | Cache für Cover, Fallback aufs Logo | Kein Cover | S4 |
 
-### Logos: `cdn.linefm.de` und `radiogruppe.de`
+### Logos: `cdn.linefm.de` (Senderlogos) und gebündeltes RadioGruppe-Logo
 
 | STRIDE | Bedrohung | Vorhanden | Rest | Stufe |
 |---|---|---|---|---|
-| T | Austausch des Logos durch Dritte (Übernahme des CDN oder der Domain) | HTTPS, CSP im Web. Senderlogos der Apps liegen als Asset im Paket (`assets/images/stations/`) | Das RadioGruppe-Logo wird zur Laufzeit geladen und ist nicht gepinnt. Bei Übernahme der Domain könnte ein anderes Bild erscheinen. | S3 |
-| I | Betreiber der Seite sieht IP und Zeitpunkt | Datenschutzerklärung nennt es (Art. 6 Abs. 1 Buchst. f) | nicht vermeidbar, solange das Logo nachgeladen wird | S4 |
+| T | Austausch des Logos durch Dritte (Übernahme des CDN oder der Domain) | HTTPS, CSP im Web. Senderlogos der Apps liegen als Asset im Paket (`assets/images/stations/`) | Das RadioGruppe-Logo liegt unverändert als Asset im Paket (`assets/brand/radiogruppe/`) und wird nicht nachgeladen. | S3 |
+| I | Betreiber der Seite sieht IP und Zeitpunkt | Datenschutzerklärung nennt es (Art. 6 Abs. 1 Buchst. f) | nur für `cdn.linefm.de`; das RadioGruppe-Logo erzeugt keinen Abruf | S4 |
 | D | Seite offline | Logo fehlt, App funktioniert | | S4 |
 
 ### Telemetrie-Anbieter (Umami, GlitchTip, Sentry, optional Firebase)

@@ -19,26 +19,6 @@ abstract interface class SleepTimerService {
   Future<void> dispose();
 }
 
-class NoopSleepTimerService implements SleepTimerService {
-  const NoopSleepTimerService();
-
-  @override
-  SleepTimerState get state => const SleepTimerState();
-
-  @override
-  Stream<SleepTimerState> get states =>
-      Stream<SleepTimerState>.value(const SleepTimerState());
-
-  @override
-  Future<void> start(SleepTimerMode mode, {Track? currentTrack}) async {}
-
-  @override
-  Future<void> cancel() async {}
-
-  @override
-  Future<void> dispose() async {}
-}
-
 /// Ist "Ende des Songs" moeglich? Nur, wenn der laufende Titel ein bekanntes
 /// Ende in der Zukunft hat. Bei Live-Sendungen (`live: true`) kennt laut.fm
 /// die Laenge nicht; der Parser verwirft dort den Platzhalter-`ends_at`, der

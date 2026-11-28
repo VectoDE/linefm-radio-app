@@ -43,7 +43,7 @@ Jeder Punkt nennt die Stelle, an der der heutige Text oder die Umsetzung steht.
 ### Urheberrecht, Marken, Lizenzen
 
 13. **Proprietäre Lizenz bei öffentlichem Quellcode:** [LICENSE](../LICENSE), Begründung in [adr/0005-proprietaere-lizenz-bei-oeffentlichem-code.md](adr/0005-proprietaere-lizenz-bei-oeffentlichem-code.md). Rechteinhaber ist nach Entscheidung von LineFM Studios vom 27.11.2026 in beiden Sprachen LineFM Studios; der Wortlaut steht bis zur Prüfung unter Vorbehalt.
-14. **Entwurf der Nennungsklausel** in der `LICENSE` (Abschnitt „ENTWURF … NENNUNG DES ENTWICKLERS“ bzw. „DRAFT … DEVELOPER ATTRIBUTION“): Nutzung nur mit Nennung von Tim Hauke (VectoDE) und Link, Hersteller Tim Hauke, Herausgeber LineFM Studios. Wirksamkeit, Verhältnis zum Satz „keine Lizenz wird erteilt“, Formulierung.
+14. **Entwurf der Nennungsklausel** in der Datei [NOTICE](../NOTICE) (die `LICENSE` bleibt unverändert, damit die Lizenz-Erkennung nicht leidet): Nutzung nur mit Nennung von Tim Hauke (VectoDE) und Link, Hersteller Tim Hauke, Herausgeber LineFM Studios. Wirksamkeit, Verhältnis der `NOTICE` zum Satz „keine Lizenz wird erteilt“ in der `LICENSE`, Formulierung.
 15. **Nutzungsrechtevertrag Code** zwischen Entwickler und LineFM Studios: Urheberrecht bleibt beim Entwickler, Nutzungsrechte übertragbar. Vertrag liegt noch nicht vor.
 16. **libmpv und FFmpeg (LGPL)** in den Windows- und Linux-Paketen: Windows-Build ist nachweislich LGPL 3, Flatpak laut Manifest LGPL 2.1, der Snap baut mpv und FFmpeg jetzt selbst als LGPL (Nachweis nur über die CI-Prüfung, Snap-Bau noch nicht gelaufen). Lizenztexte und ein Quellcode-Angebot liegen bei (`assets/licenses/NATIVE-LIBRARIES.txt`): Wortlaut und Frist des Angebots prüfen. Pflichten aus LGPL 3, insbesondere ob die `LICENSE` das nach LGPL 3 Abschnitt 4 nötige Reverse Engineering zur Fehlersuche erlaubt. Belege und Stand: [LIZENZEN-DRITTE.md](LIZENZEN-DRITTE.md).
 17. **Albumcover aus der iTunes Search API** (Apple): Darf die App sie anzeigen und an Cast-Geräte weitergeben? Hinweis im Impressum unter „Rechte an Namen, Logos und Covern“.
@@ -65,4 +65,4 @@ Jeder Punkt nennt die Stelle, an der der heutige Text oder die Umsetzung steht.
 
 ## Ergebnis zurückmelden
 
-Bitte je Prüfpunkt kurz: in Ordnung, Änderung (mit Wortlaut) oder offene Frage an LineFM Studios. Nach der Prüfung entfernt die Entwicklung die Entwurfshinweise in Impressum und `LICENSE`.
+Bitte je Prüfpunkt kurz: in Ordnung, Änderung (mit Wortlaut) oder offene Frage an LineFM Studios. Nach der Prüfung entfernt die Entwicklung die Entwurfshinweise in Impressum und `NOTICE`.

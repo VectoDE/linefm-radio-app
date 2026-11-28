@@ -80,6 +80,7 @@ flutter:
     - config/stations.yaml
     - assets/images/stations/
     - assets/images/brand/
+    - assets/brand/radiogruppe/
     - assets/audio/
     - assets/legal/de/
     - assets/legal/en/
@@ -90,7 +91,7 @@ flutter:
     # LGPL/GPL texts and source notice for libmpv/FFmpeg (registerNativeLicenses).
     - assets/licenses/
     # assets/branding/ wird zur Laufzeit nicht gebraucht (Icons entstehen beim
-    # Build, das RadioGruppe-Logo laedt von radiogruppe.de, Entscheidung 47).
+    # Build). Das RadioGruppe-Logo liegt unveraendert in assets/brand/radiogruppe/.
   fonts:
     - family: Poppins
       fonts:

@@ -227,13 +227,13 @@ abstract class AppLocalizations {
   /// No description provided for @storageNoticeBodyWeb.
   ///
   /// In de, this message translates to:
-  /// **'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel in diesem Browser, damit die App sie beim nächsten Start kennt.'**
+  /// **'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel in diesem Browser, damit die App sie beim nächsten Start kennt. Eine selbst gewählte Sprache bleibt immer gespeichert.'**
   String get storageNoticeBodyWeb;
 
   /// No description provided for @storageNoticeBodyDevice.
   ///
   /// In de, this message translates to:
-  /// **'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel auf diesem Gerät, damit die App sie beim nächsten Start kennt.'**
+  /// **'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel auf diesem Gerät, damit die App sie beim nächsten Start kennt. Eine selbst gewählte Sprache bleibt immer gespeichert.'**
   String get storageNoticeBodyDevice;
 
   /// No description provided for @storageNoticePrivacy.

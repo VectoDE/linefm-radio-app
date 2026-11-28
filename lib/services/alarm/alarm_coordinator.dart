@@ -116,25 +116,6 @@ abstract interface class AlarmCoordinator {
   Future<void> dismiss(String ruleId);
 }
 
-class NoopAlarmCoordinator implements AlarmCoordinator {
-  const NoopAlarmCoordinator();
-
-  static final ValueNotifier<AlarmRinging?> _none =
-      ValueNotifier<AlarmRinging?>(null);
-
-  @override
-  ValueListenable<AlarmRinging?> get ringing => _none;
-
-  @override
-  Future<void> rescheduleAll(List<AlarmRule> rules) async {}
-
-  @override
-  Future<void> snooze(String ruleId) async {}
-
-  @override
-  Future<void> dismiss(String ruleId) async {}
-}
-
 /// Initialisiert die Plattform-Seite des Weckers vor `runApp` (Android:
 /// Paket `alarm`; sonst nichts).
 Future<void> initAlarm() => platforms.initAlarmPlatform();

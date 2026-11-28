@@ -12,12 +12,12 @@ import 'package:linefm_radio/domain/station.dart';
 import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/platform/deep_links.dart';
-import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/cast/cast_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:linefm_radio/services/widgets/home_widget_sync.dart';
 
+import '../support/service_doubles.dart';
 import 'app_host.dart';
 
 /// Wiedergabe mit steuerbarem Fehler.

@@ -1,15 +1,16 @@
+import 'package:linefm_radio/ui/theme/page_insets.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/widgets/section_heading.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Gemeinsamer Rahmen fuer Verlauf und Favoriten: scrollbare Liste mit
-/// Ueberschrift als erstem Eintrag, seitlichem Rand wie die Web-App
-/// (`clamp(22px, 6vw, 88px)`) und auf breiten Fenstern auf [maxContentWidth]
-/// begrenzter, zentrierter Inhaltsbreite. Die Liste selbst nutzt die volle
-/// Breite, damit Mausrad und Wischen ueberall greifen.
+/// Shared frame for history and favorites: scrollable list with the
+/// heading as first entry, side margin like the web app
+/// (`clamp(22px, 6vw, 88px)`) and, on wide windows, centered content width
+/// limited to [maxContentWidth]. The list itself uses the full width so
+/// that mouse wheel and swipe work everywhere.
 ///
-/// [bottomInset] haelt Platz fuer Mini-Player und Navigation frei (Web: 170).
-/// Optional zieht [onRefresh] per Pull-to-refresh nach.
+/// [bottomInset] keeps space free for mini player and navigation (web: 170).
+/// Optionally [onRefresh] reloads via pull-to-refresh.
 class ListScreen extends StatelessWidget {
   const ListScreen({
     super.key,
@@ -21,16 +22,16 @@ class ListScreen extends StatelessWidget {
     this.emptyState,
     this.onRefresh,
     this.bottomInset = 170,
-    this.maxContentWidth = 760,
+    this.maxContentWidth = PageInsets.maxContentWidth,
   });
 
   final String title;
   final Widget? trailing;
 
-  /// Zusaetzlich unter der Ueberschrift (z. B. Hinweis), optional.
+  /// Additionally below the heading (e.g. a notice), optional.
   final Widget? header;
 
-  /// Ersetzt die Zeilen, wenn [itemCount] 0 ist.
+  /// Replaces the rows when [itemCount] is 0.
   final Widget? emptyState;
   final int itemCount;
   final IndexedWidgetBuilder itemBuilder;
@@ -43,15 +44,13 @@ class ListScreen extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final base = (width * 0.06).clamp(22.0, 88.0);
-        final centered = (width - maxContentWidth) / 2;
-        final side = centered > base ? centered : base;
+        final side = PageInsets.side(context, width, maxWidth: maxContentWidth);
         final empty = itemCount == 0 && emptyState != null;
         final extra = header == null ? 0 : 1;
         final count = 1 + extra + (empty ? 1 : itemCount);
 
         final list = ListView.builder(
-          // Immer scrollbar, damit Pull-to-refresh auch bei kurzer Liste geht.
+          // Always scrollable so that pull-to-refresh also works with a short list.
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
             side,

@@ -1,0 +1,16 @@
+# TLS options for app.linefm.de, Mozilla "intermediate" (https://ssl-config.mozilla.org/guidelines/latest.json,
+# version 6.0, retrieved 2026-11-27, list identical). Copy into the directory of the Traefik file provider
+# (providers.file.directory); the routers reference it as "linefm@file".
+# TLS 1.3 cipher suites are fixed by Go and need no list.
+tls:
+  options:
+    linefm:
+      minVersion: VersionTLS12
+      sniStrict: true
+      cipherSuites:
+        - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256

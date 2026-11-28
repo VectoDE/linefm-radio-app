@@ -6,18 +6,19 @@ import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:linefm_radio/ui/widgets/semantic_focus.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Adresse des RadioGruppe-Logos. Wird wie in der Web-App zur Laufzeit von
-/// radiogruppe.de geladen und nicht gebuendelt (Entscheidung 47).
-const String radioGruppeLogoUrl =
-    'https://radiogruppe.de/assets/img/rgd-logo-dark.png';
+/// Bundled originals of the RadioGruppe logo, exactly as RadioGruppe
+/// publishes them (1400x400 PNG, not re-encoded). The dark-text variant is for
+/// light surfaces, the light-text variant for dark surfaces.
+const String radioGruppeLogoAssetLight =
+    'assets/brand/radiogruppe/rgd-logo.png';
+const String radioGruppeLogoAssetDark =
+    'assets/brand/radiogruppe/rgd-logo-dark.png';
 
 const String radioGruppeUrl = 'https://radiogruppe.de';
 
 /// "Ein Angebot von" + RadioGruppe-Logo mit Link auf radiogruppe.de.
 ///
-/// Das Logo ist die helle Fassung fuer dunkle Flaechen. Im Hellmodus liegt es
-/// deshalb auf einer dunklen Kachel. Schlaegt das Laden fehl (offline,
-/// blockiert), erscheint der Name als Text.
+/// Shows the original logo bundled with the app, picked per theme.
 class RadioGruppeCredit extends ConsumerWidget {
   const RadioGruppeCredit({super.key, this.center = false});
 
@@ -67,7 +68,7 @@ class RadioGruppeCredit extends ConsumerWidget {
                 child: Align(
                   alignment: center ? Alignment.center : Alignment.centerLeft,
                   widthFactor: 1,
-                  child: _Logo(name: l10n.radioGruppeName),
+                  child: const _Logo(),
                 ),
               ),
             ),
@@ -79,50 +80,20 @@ class RadioGruppeCredit extends ConsumerWidget {
 }
 
 class _Logo extends StatelessWidget {
-  const _Logo({required this.name});
-
-  final String name;
+  const _Logo();
 
   @override
   Widget build(BuildContext context) {
-    final c = context.linefm;
     final light = Theme.of(context).brightness == Brightness.light;
-    final fallback = Text(
-      name,
-      style: LinefmText.settingTitle.copyWith(
-        color: light ? LinefmPalette.paper : c.text,
-        fontSize: LinefmType.bodyLarge,
-      ),
-    );
-    // Im Web kann das Bild als <img>-Plattformansicht landen, und die hat
-    // einen eigenen Fokusknoten: ein zweiter, unsichtbarer Tab-Stopp im Link.
-    // Das Logo ist Dekoration, der Link drumherum traegt Fokus und Label.
-    final image = ExcludeFocus(
-      child: Image.network(
-        radioGruppeLogoUrl,
+    // The logo is decoration: the surrounding link carries focus and label.
+    return ExcludeFocus(
+      child: Image.asset(
+        light ? radioGruppeLogoAssetLight : radioGruppeLogoAssetDark,
         width: 190,
         height: 48,
         fit: BoxFit.contain,
         alignment: Alignment.centerLeft,
         excludeFromSemantics: true,
-        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
-        loadingBuilder: (context, child, progress) =>
-            progress == null ? child : const SizedBox(width: 190, height: 48),
-        errorBuilder: (context, error, stack) => fallback,
-      ),
-    );
-    if (!light) return image;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: LinefmPalette.ink,
-        borderRadius: BorderRadius.circular(LinefmMetrics.radiusLogo),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: LinefmSpace.md,
-          vertical: LinefmSpace.sm,
-        ),
-        child: image,
       ),
     );
   }

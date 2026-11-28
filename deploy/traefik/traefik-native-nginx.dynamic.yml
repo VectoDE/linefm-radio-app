@@ -11,6 +11,8 @@ http:
         - websecure
       tls:
         certResolver: letsencrypt
+        # Defined in linefm-tls.dynamic.yml (same file provider).
+        options: linefm
       service: linefm-app-nginx
     linefm-app-http:
       rule: Host(`app.linefm.de`)

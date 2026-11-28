@@ -15,6 +15,7 @@ import 'package:linefm_radio/features/settings/clear_storage.dart';
 import 'package:linefm_radio/features/settings/platform_info.dart';
 import 'package:linefm_radio/features/settings/sleep_timer_row.dart';
 import 'package:linefm_radio/l10n/gen/app_localizations.dart';
+import 'package:linefm_radio/ui/theme/page_insets.dart';
 import 'package:linefm_radio/ui/theme/tokens.dart';
 import 'package:linefm_radio/ui/theme/typography.dart';
 import 'package:linefm_radio/ui/widgets/named_dialog.dart';
@@ -26,13 +27,13 @@ import 'package:material_ui/material_ui.dart';
 part 'settings_rows.dart';
 part 'settings_sections.dart';
 
-/// Einstellungen (Spec 4.1, Web-Wortlaut) mit den nativen Ergaenzungen:
-/// Lauftext, Lautstaerke merken, Beim Start abspielen, Darstellung (System /
-/// Hell / Dunkel), Tray (nur Desktop), Sleeptimer, Wecker, Statistik und
-/// Fehlerberichte (nur bei konfigurierter Telemetrie), Speicher loeschen,
-/// Ueber-Bereich und Footer mit "Ein Angebot von" + RadioGruppe-Logo.
+/// Settings (spec 4.1, web wording) with the native additions:
+/// marquee, remember volume, play on start, appearance (system /
+/// light / dark), tray (desktop only), sleep timer, alarm, statistics and
+/// error reports (only with configured telemetry), clear storage,
+/// About section and footer with "Ein Angebot von" + RadioGruppe logo.
 ///
-/// Reiner Inhalt ohne eigenes Scaffold; die Shell setzt ihn in den Rahmen.
+/// Pure content without its own scaffold; the shell puts it into the frame.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -44,8 +45,8 @@ class SettingsScreen extends ConsumerWidget {
     final platform = ref.watch(platformInfoProvider);
     final telemetry = ref.watch(telemetryProvider);
     final consent = ref.watch(telemetryConsentProvider);
-    // Breite der Inhaltsflaeche, nicht des Fensters: im breiten Layout
-    // stehen links die Navigation und rechts der Player.
+    // Width of the content area, not of the window: in the wide layout
+    // the navigation sits on the left and the player on the right.
     return LayoutBuilder(
       builder: (context, box) => _list(context, ref, box.maxWidth, <Widget>[
         SectionHeading(l10n.settingsTitle),
@@ -117,8 +118,8 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ],
         ),
-        // Sprachnamen in ihrer eigenen Sprache (Endonyme, in beiden ARB-
-        // Dateien gleich).
+        // Language names in their own language (endonyms, identical in both ARB
+        // files).
         _ChoiceRow<AppLanguage>(
           title: l10n.settingLanguageTitle,
           body: l10n.settingLanguageBody,
@@ -202,10 +203,10 @@ class SettingsScreen extends ConsumerWidget {
     double width,
     List<Widget> children,
   ) {
-    final side = width > 760 ? (width - 720) / 2 : 20.0;
+    final side = PageInsets.side(context, width);
     return ListView(
-      // Oben 20 dp wie die Stationsliste, damit die Ueberschrift auf allen
-      // Screens gleich weit unter dem Header sitzt.
+      // 20 dp at the top like the station list, so that the heading sits
+      // equally far below the header on all screens.
       padding: EdgeInsets.fromLTRB(
         side,
         LinefmSpace.gutter,

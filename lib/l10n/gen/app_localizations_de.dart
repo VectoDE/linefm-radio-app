@@ -75,11 +75,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get storageNoticeBodyWeb =>
-      'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel in diesem Browser, damit die App sie beim nächsten Start kennt.';
+      'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel in diesem Browser, damit die App sie beim nächsten Start kennt. Eine selbst gewählte Sprache bleibt immer gespeichert.';
 
   @override
   String get storageNoticeBodyDevice =>
-      'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel auf diesem Gerät, damit die App sie beim nächsten Start kennt.';
+      'LINEFM Radio speichert Einstellungen, Favoriten, den zuletzt gehörten Sender sowie zuletzt gespielte Titel auf diesem Gerät, damit die App sie beim nächsten Start kennt. Eine selbst gewählte Sprache bleibt immer gespeichert.';
 
   @override
   String get storageNoticePrivacy => 'Datenschutz';

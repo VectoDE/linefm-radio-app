@@ -1,8 +1,8 @@
 # Performance: Messung, Ausgangswerte, Engpässe
 
-Stand 21.11.2026. Vorgabe des Inhabers: App-Start, Laden im Browser, Bedienung und Ton nach Klick sollen dreimal so schnell werden (gemessene Zeiten auf ein Drittel).
+Stand 27.11.2026. Vorgabe des Inhabers vom 21.11.2026: App-Start, Laden im Browser, Bedienung und Ton nach Klick sollen dreimal so schnell werden (gemessene Zeiten auf ein Drittel). Entscheidung vom 27.11.2026: Maßgeblich sind die drei Kernzeiten Web-LCP, Windows bis zum ersten Bild und Android-Kaltstart; jede muss gegenüber dem Stand vor der Arbeit mindestens halbiert sein (Abschnitt „Halbierung der Kernzeiten“).
 
-Dieses Dokument hält den Ausgangsstand fest. Größenbudgets prüft die CI seit der Einführung von `tool/perf/bundle_budget.json` (siehe Abschnitt Größenbudget); weitere Budgets folgen, wenn die Maßnahmen umgesetzt und nachgemessen sind.
+Dieses Dokument hält den Ausgangsstand fest. Größenbudgets prüft die CI mit `tool/perf/bundle_budget.json` (Abschnitt Größenbudget), Startzeiten mit `tool/perf/start_budget.json` (Abschnitt Startzeit-Budget).
 
 ## Wie gemessen wird
 
@@ -12,7 +12,9 @@ Workflow [`.github/workflows/performance.yml`](../.github/workflows/performance.
 |---|---|---|
 | Web | Lighthouse mobil und Desktop, je 5 Läufe; Playwright: Erstaufruf und Wiederaufruf, Scrollen, Seitenwechsel, Klick bis Ton | Wasm-Release-Build hinter dem nginx-Container aus `deploy/traefik` (gzip 5, Cache-Header aus `deploy/nginx/snippets`), HTTP/1.1 ohne TLS. Mobil: Slow-4G und CPU 4x per DevTools-Drosselung |
 | Windows | Start bis erstes Bild, Speicher und CPU im Leerlauf, Ton per Deep Link, Paketgröße | `tool/perf/windows_start.ps1`, Release-Build, 5 Läufe nach einem Aufwärmlauf |
-| Android | APK arm64 (mit `--analyze-size`) und AAB | nur Größen; Kaltstart und Bildrate im Emulator sind noch offen |
+| Android Größen | APK arm64 (mit `--analyze-size`) und AAB | nur Größen |
+| Android Kaltstart | Emulator (x86_64, KVM): Stand vor der Arbeit (Eingabe `baseline-ref`) und aktueller Stand, beide mit Messpunkten gebaut, nacheinander auf demselben Emulator, 5 Läufe nach einem Aufwärmlauf | `tool/perf/android_start.sh`, `tool/perf/android_emulator.sh`; Messpunkte aus logcat (`LINEFM_PERF <Name> <µs>`), Startzeit = Gerätezeit vor `am start -W` |
+| Startzeit-Budget | Median gegen Grenzwerte, Job „Start-time budget“ | `tool/perf/start_budget.py` |
 | Bericht | Tabelle aus allen Ergebnissen | `tool/perf/summarize.mjs`, in der Zusammenfassung des Laufs und als Artefakt `perf-report-*` |
 
 Messpunkte im Code: [`lib/core/perf/perf_marks.dart`](../lib/core/perf/perf_marks.dart). Sie sind nur mit `--dart-define=LINEFM_PERF_MARKS=true` aktiv. Ohne den Schalter entfernt der Compiler sie, Nutzer-Builds enthalten keinen Messcode.
@@ -31,7 +33,7 @@ Lauf [44950025363](https://github.com/VectoDE/linefm-radio-app/actions/runs/4495
 | Windows: Prozessstart bis `runApp` | 139 ms | 137 – 248 ms | 46 ms |
 | Windows: `runApp` bis erstes Bild gerastert | ca. 0,93 s | aus den Marken abgeleitet | 310 ms |
 | Windows: Speicher nach 30 s Leerlauf (Working Set / Private Bytes) | 211 / 179 MB | 211 – 213 MB | kein Zeitziel |
-| Windows: CPU im Leerlauf (% eines Kerns) | 350 % | 343 – 351 % | kein Zeitziel, siehe Engpass 2 |
+| Windows: CPU im Leerlauf (% eines Kerns) | 350 % | 343 – 351 % | kein Zeitziel, siehe Engpass 2 (lokal nach Behebung: 115–119 % → 15–19 %, minimiert 0,5 %) |
 | Android: Kaltstart | nicht gemessen | – | – |
 
 ### Laden im Browser
@@ -87,6 +89,49 @@ Der Verlauf ist der trägste Wechsel (mobil 18 Bilder über 33 ms, längstes 317
 
 Der Senderwechsel im Web erreichte in keinem Lauf `playing`; an der Senderwahl wird noch gearbeitet.
 
+## Halbierung der Kernzeiten
+
+Entscheidung des Inhabers vom 27.11.2026: Mit „200 %“ ist gemeint, dass die drei Kernzeiten gegenüber dem Stand vor der Arbeit mindestens halbiert werden, gemessen in der CI und hier dokumentiert. Stand vor der Arbeit = Ausgangswerte oben (Lauf [44950025363](https://github.com/VectoDE/linefm-radio-app/actions/runs/44950025363)). „Nachher“ = der jüngste Lauf auf dem Stand der Optimierungen, [46021774529](https://github.com/VectoDE/linefm-radio-app/actions/runs/46021774529) (Commit `25f5900`). Beide Läufe: Median aus 5 Läufen auf GitHub-Runnern gleicher Art, gleiche Skripte.
+
+| Kernzeit | Vorher | Nachher | Veränderung | Ziel (halbiert) | Stand |
+|---|---|---|---|---|---|
+| Windows: Prozessstart bis erstes Bild | 1,07 s (0,75 – 1,09 s) | 424 ms (378 – 462 ms) | −60 % | ≤ 535 ms | erreicht |
+| Web mobil (Slow-4G, CPU 4x): LCP | 680 ms | 664 ms | −2 % | ≤ 340 ms | nicht erreichbar, siehe unten |
+| Web Desktop: LCP | 112 ms | 92 ms | −18 % | ≤ 56 ms | nicht erreichbar, siehe unten |
+| Lighthouse mobil: LCP (simuliert) | 658 ms | 1,17 s | +78 % | ≤ 329 ms | Rückschritt, Ursache behoben (siehe unten), Nachmessung steht aus |
+| Android: Kaltstart bis erstes Flutter-Bild | nicht gemessen | Messung im Job „Android (cold start, emulator)“ | – | halber Wert des Stands davor | Messung eingerichtet, Werte folgen im ersten Lauf |
+
+Zwischenwert Windows: Lauf [45985625088](https://github.com/VectoDE/linefm-radio-app/actions/runs/45985625088) (Stand vor dem Optimierungs-Commit) lag bei 623 ms. Die Spanne zwischen Läufen auf verschiedenen Runnern beträgt also rund 20 %; die Grenze von 535 ms hat deshalb nur rund 20 % Luft.
+
+### Web-LCP: warum die Halbierung nicht erreichbar ist
+
+- Der LCP ist die statische Hülle in `web/index.html` (ein Dokument von 13,8 KB, ohne blockierende Unterdateien, CSS inline). Auf dem Handy-Profil trägt die DevTools-Drosselung 562,5 ms Latenz pro Anfrage ein; das Dokument braucht genau eine. 664 ms bestehen aus 562,5 ms Latenz plus gut 100 ms für Übertragung und Zeichnen. Unter 562,5 ms kommt kein Bild, ein Ziel von 340 ms liegt unter der Netzgrenze des Messverfahrens.
+- Auf dem Desktop (ohne Drosselung) liegt der Wert bei 92 ms (Spanne 84 – 112 ms); das Ziel von 56 ms läge im Bereich der Messauflösung von Chromium-Zeitmarken und einer lokalen Anfrage.
+- Was sich tun lässt: Rückschritte vermeiden. Der Lighthouse-LCP stieg von 658 ms auf 1,17 s, weil ein Textstück der Fußzeile (rechtliche Hinweise) erst per Skript sichtbar wurde und damit zum größten Element wurde. Seit dieser Änderung steht der Text schon im ersten Bild; das Element ist dann das erste gezeichnete und der LCP fällt mit dem FCP zusammen. Nachgemessen ist das noch nicht (Messläufe laufen nur in der CI). Auch der Lighthouse-FCP stieg von 658 auf rund 850 ms; die Ursache ist nicht geklärt (Verdacht: das synchrone `cast.js` am Ende des Dokuments im Lantern-Simulator) und wird im nächsten Lauf anhand des Berichts „Main-thread work“ geprüft.
+- Das Budget (`start_budget.json`) begrenzt den Web-LCP deshalb nach oben (mobil 750 ms, Desktop 150 ms), statt eine Halbierung zu verlangen. Offen für den Inhaber: ob „Web-LCP halbiert“ durch eine andere Kennzahl ersetzt wird (zum Beispiel „erstes Flutter-Bild“ oder „bedienbar“).
+
+### Web: erstes Flutter-Bild mobil (zur Einordnung)
+
+Mobil stieg „Dart `main()` startet“ von 13,3 s auf 21,1 s und „erstes Flutter-Bild“ von 15,1 s auf 23,1 s. Die Bytes für `main.dart.wasm` (1,48 MB übertragen) zählt CDP erst seit dem Optimierungs-Commit mit; im Ausgangslauf standen dort 0 Byte. Bei 1,4 Mbit/s sind 1,48 MB rund 8 s, genau der Unterschied. Vermutung (nicht belegt): Der Abruf der Wasm-Datei läuft jetzt durch die Drosselung, vorher nicht. Dann war der frühere Wert zu optimistisch und der jetzige ist der reale. Ein Vergleich mit dem Ausgangswert gilt für diese Kennzahl nicht, bis das geklärt ist. Der Lauf [45985625088](https://github.com/VectoDE/linefm-radio-app/actions/runs/45985625088) vor dem Optimierungs-Commit zeigt bereits 23,8 s.
+
+### Android-Kaltstart
+
+Der Job „Android (cold start, emulator)“ baut den Stand vor der Arbeit (`7fe8bc8`, Eingabe `baseline-ref`) und den Stand unter Test mit denselben Optionen (Release, x86_64, `LINEFM_PERF_MARKS`), bootet einen Emulator (API 34, `google_apis`) und misst beide nacheinander: Gerätezeit vor dem Start, `am start -W`, Messpunkte `main`, `run-app` und `first-frame` aus logcat, jeweils nach Beenden des Prozesses und `drop_caches` (kalt). Der Messpunkt `first-frame` ist die Kaltstartzeit; sie enthält die Latenz des einen `adb`-Aufrufs, die bei beiden Ständen gleich ist. `am start -W` (TotalTime) zeigt nur, wann das Aktivitätsfenster erscheint (Startbild), nicht das erste Flutter-Bild; der Wert steht als Zusatz im Bericht. Beide Stände bekommen dieselbe `perf_marks_io.dart`, damit die Messpunkte ohne weitere Änderung am alten Stand auftauchen. Emulator-Werte sind Vergleichswerte zwischen Ständen, keine Telefonwerte.
+
+### Startzeit-Budget
+
+`tool/perf/start_budget.json`, geprüft von `tool/perf/start_budget.py` im Job „Start-time budget“ (schlägt bei Überschreitung fehl):
+
+| Grenze | Wert | Herleitung |
+|---|---|---|
+| Windows: Start bis erstes Bild (Median) | 535 ms | Hälfte des Ausgangswerts 1,07 s |
+| Web mobil: LCP | 750 ms | Ausgangswert 680 ms plus rund 10 % |
+| Web Desktop: LCP | 150 ms | Spanne des Ausgangswerts bis 136 ms plus Reserve |
+| Android: erstes Bild gegenüber dem Stand davor | höchstens 1,1x | kein Rückschritt, gleiche Läufe, gleicher Emulator |
+| Android: halbiert (Ziel) | 0,5x | steht im Bericht als „goal reached“ oder „goal not reached“ und bricht den Lauf nicht ab, bis der erste Messwert vorliegt; danach wird die Grenze fest eingetragen |
+
+Grenzen heben nur mit Begründung in der Commit-Nachricht.
+
 ## Engpässe (Fundliste)
 
 Nach erwarteter Wirkung sortiert. Belegt heißt: Messwert aus dem Lauf oben und Codestelle.
@@ -107,7 +152,7 @@ Nach erwarteter Wirkung sortiert. Belegt heißt: Messwert aus dem Lauf oben und 
 
 ## Messlücken
 
-- Android Kaltstart und Bildrate (Emulator-Job) fehlen.
+- Android Bildrate beim Scrollen und Seitenwechsel im Emulator fehlt. Der Kaltstart ist seit dem Job „Android (cold start, emulator)“ erfasst; der erste Lauf mit Werten steht aus (siehe unten).
 - Seitenwechsel im ersten Lauf nicht gemessen (behoben, siehe oben).
 - Übertragene Bytes für `main.dart.wasm` zeigt CDP mit 0 (Streaming-Kompilierung); Größe stammt aus dem Build.
 - Kein INP aus Feldern, nur Event-Timing im Labor.
@@ -123,7 +168,28 @@ Je Maßnahme ein eigener Änderungsvorschlag mit Vorher/Nachher aus diesem Workf
 4. Engpässe 1 und 5: Start-Profil per Trace, Arbeit nach dem ersten Bild verschieben.
 5. Engpass 4: Vorwärmen der Stream-Verbindung, Puffer prüfen.
 6. Engpässe 9 bis 11.
-7. Danach Budgets in der CI (Lighthouse-Assertions, Größenbudget, Startzeit).
+7. Danach Budgets in der CI: Größenbudget und Startzeit-Budget sind umgesetzt, Lighthouse-Assertions stehen noch aus (der Mobil-LCP muss zuerst wieder auf den Ausgangswert, siehe unten).
+
+### Engpass 2: Stand nach der Behebung
+
+Ursache waren die Laufschriften (`lib/ui/widgets/marquee_text.dart`): jede lief mit eigenem Ticker und zeichnete bei jedem VSync neu, obwohl sich der Text pro Bild nur um Bruchteile eines Pixels bewegt. Bei sechs bis sieben Laufschriften im Senderraster kam so fast jedes Bild zustande.
+
+Umsetzung:
+
+- Alle Laufschriften laufen an einer gemeinsamen Uhr, die nur so oft tickt, wie das schnellste Band einen ganzen physischen Pixel weiterrückt (höchstens einmal pro Bild). Ein Band baut nur neu, wenn sich seine Pixelposition ändert. Das Bild bleibt gleich, die Zahl der Bilder sinkt stark.
+- Ein Band steht still und plant nichts, wenn es nicht sichtbar ist: App nicht im Vordergrund, `TickerMode` aus (verdeckte Routen, Mini-Fenster) oder aus dem sichtbaren Bereich der Liste gescrollt.
+- `LifecycleTickerMode` um die ganze App schaltet alle Ticker (Lade-Punkte, Wiedergabe-Balken, Spinner) ab, solange das Fenster minimiert oder die App im Hintergrund ist.
+- Tests: `test/ui/widgets/marquee_text_test.dart`, `test/app/idle_frames_test.dart` (kein geplantes Bild im Leerlauf, keine Ticker im Zustand `hidden`).
+
+Messung lokal (Windows 11, Release-Build mit GPU, Wiedergabe nach Start per Leertaste gestoppt, 20 s nach 13 s Anlauf, `TotalProcessorTime`):
+
+| Zustand | Vorher | Nachher |
+|---|---|---|
+| Leerlauf ohne Ton, Fenster sichtbar | 114 – 119 % | 15 – 19 % |
+| Minimiert | 2,4 % | 0,5 % |
+| Während der Wiedergabe (Ton, Balken) | 115 – 118 % | 115 % (nicht Teil dieser Änderung) |
+
+Die verbleibenden 15 bis 19 % sind die sichtbare Bewegung der Laufschriften. Der CI-Wert (Software-Rendering) ist neu zu messen.
 
 ## Ist Faktor 3 erreichbar?
 

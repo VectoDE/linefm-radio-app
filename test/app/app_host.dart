@@ -12,11 +12,11 @@ import 'package:linefm_radio/domain/stations_catalog.dart';
 import 'package:linefm_radio/domain/track.dart';
 import 'package:linefm_radio/features/loader/app_loader.dart';
 import 'package:linefm_radio/features/settings/platform_info.dart';
-import 'package:linefm_radio/services/audio/playback_service.dart';
 import 'package:linefm_radio/services/telemetry/telemetry.dart';
 import 'package:linefm_radio/services/telemetry/telemetry_hub.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../support/service_doubles.dart';
 import '../support/test_doubles.dart';
 
 const Track trackMain = Track(artist: 'James Hype', title: "I Was Lovin' You");
@@ -104,6 +104,7 @@ class AppHost {
 
   late final ProviderContainer container = ProviderContainer(
     overrides: <Override>[
+      ...noopServiceOverrides(playback: false),
       prefsProvider.overrideWithValue(prefs),
       playbackServiceProvider.overrideWithValue(playback),
       nowPlayingRepositoryProvider.overrideWith((ref) {

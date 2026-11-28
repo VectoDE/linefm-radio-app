@@ -21,6 +21,7 @@ import 'package:linefm_radio/features/settings/clear_storage.dart';
 import 'package:linefm_radio/ui/widgets/cover_image.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../support/service_doubles.dart';
 import '../stations/stations_test_host.dart';
 
 /// laut.fm unreachable: every call fails like a device without network.
@@ -106,7 +107,8 @@ class _OfflineHarness extends Harness {
   /// Same as [Harness], with the given storage and live data engine.
   @override
   List<Override> get overrides => <Override>[
-    ...super.overrides.skip(2),
+    ...noopServiceOverrides(playback: false),
+    ...super.overrides.skip(noopServiceOverrides(playback: false).length + 2),
     prefsProvider.overrideWithValue(prefs),
     nowPlayingRepositoryProvider.overrideWithValue(repo),
   ];

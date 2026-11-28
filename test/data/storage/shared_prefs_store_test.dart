@@ -414,4 +414,61 @@ void main() {
       expect(settings.marquee, const AppSettings().marquee);
     });
   });
+
+  group('Sprachwahl ohne Speicher-Bestaetigung', () {
+    test('wird sofort gespeichert und gilt nach Neustart', () async {
+      final store = await open();
+      expect(store.storageConsent, isFalse);
+      await store.writeSettings(const AppSettings(language: AppLanguage.en));
+      expect(store.readSettings().language, AppLanguage.en);
+
+      final again = await reopen();
+      expect(again.storageConsent, isFalse);
+      expect(again.readSettings().language, AppLanguage.en);
+    });
+
+    test('alle anderen Einstellungen bleiben beim Standard', () async {
+      final store = await open();
+      await store.writeSettings(
+        const AppSettings(language: AppLanguage.de, marquee: false),
+      );
+      final settings = (await reopen()).readSettings();
+      expect(settings.language, AppLanguage.de);
+      expect(settings.marquee, const AppSettings().marquee);
+      expect((await SharedPreferences.getInstance()).getKeys(), <String>{
+        PrefsKeys.language,
+      });
+    });
+
+    test('Systemsprache entfernt den Eintrag', () async {
+      final store = await open();
+      await store.writeSettings(const AppSettings(language: AppLanguage.en));
+      await store.writeSettings(const AppSettings());
+      expect(
+        (await SharedPreferences.getInstance()).containsKey(PrefsKeys.language),
+        isFalse,
+      );
+    });
+
+    test('Speicher loeschen setzt die Sprache zurueck', () async {
+      final store = await openConsented();
+      await store.writeSettings(const AppSettings(language: AppLanguage.en));
+      await store.clearAll();
+      expect((await SharedPreferences.getInstance()).getKeys(), isEmpty);
+      expect((await reopen()).readSettings().language, AppLanguage.system);
+    });
+
+    test('Widerruf der Bestaetigung behaelt die Sprache', () async {
+      final store = await openConsented();
+      await store.writeSettings(const AppSettings(language: AppLanguage.en));
+      await store.setStorageConsent(value: false);
+      expect((await reopen()).readSettings().language, AppLanguage.en);
+    });
+
+    test('mit Bestaetigung bleibt die Wahl wie bisher erhalten', () async {
+      final store = await openConsented();
+      await store.writeSettings(const AppSettings(language: AppLanguage.de));
+      expect((await reopen()).readSettings().language, AppLanguage.de);
+    });
+  });
 }

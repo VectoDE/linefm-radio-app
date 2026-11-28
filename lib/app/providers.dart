@@ -46,8 +46,8 @@ import 'package:linefm_radio/services/widgets/home_widget_sync.dart';
 // Zentrale Provider-Definitionen (Spec 3.4). Gemeinsame Datei: Besitz P01,
 // danach P11/P28. Aenderungswuensche anderer Pakete laufen ueber den Bericht.
 //
-// Die Standardwerte sind Stubs ohne Netzwerk (Tests, Previews). main() setzt
-// die echten Dienste ueber [productionOverrides].
+// Services without a safe built-in fallback throw until overridden; main()
+// sets the real ones via [productionOverrides], tests via test/support.
 
 // ---------------------------------------------------------------- Konfig/Kern
 
@@ -199,31 +199,35 @@ final autoplayBlockedProvider = NotifierProvider<AutoplayBlockedNotifier, bool>(
   AutoplayBlockedNotifier.new,
 );
 
-/// Audio-Dienst; main() setzt das Ergebnis von initAudio().
-final playbackServiceProvider = Provider<PlaybackService>((ref) {
-  final service = NoopPlaybackService();
-  ref.onDispose(service.dispose);
-  return service;
-});
+/// Set by productionOverrides(); tests use their own doubles.
+final playbackServiceProvider = Provider<PlaybackService>(
+  (ref) =>
+      throw UnimplementedError('playbackServiceProvider must be overridden'),
+);
 
 final castServiceProvider = Provider<CastService>(
   (ref) => const NoopCastService(),
 );
 
+/// Set by productionOverrides(); tests use their own doubles.
 final shareServiceProvider = Provider<ShareService>(
-  (ref) => const NoopShareService(),
+  (ref) => throw UnimplementedError('shareServiceProvider must be overridden'),
 );
 
 final homeWidgetSyncProvider = Provider<HomeWidgetSync>(
   (ref) => const NoopHomeWidgetSync(),
 );
 
+/// Set by productionOverrides(); tests use their own doubles.
 final sleepTimerServiceProvider = Provider<SleepTimerService>(
-  (ref) => const NoopSleepTimerService(),
+  (ref) =>
+      throw UnimplementedError('sleepTimerServiceProvider must be overridden'),
 );
 
+/// Set by productionOverrides(); tests use their own doubles.
 final alarmCoordinatorProvider = Provider<AlarmCoordinator>(
-  (ref) => const NoopAlarmCoordinator(),
+  (ref) =>
+      throw UnimplementedError('alarmCoordinatorProvider must be overridden'),
 );
 
 final playerControllerProvider = Provider<PlayerController>(

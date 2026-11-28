@@ -48,29 +48,44 @@ if ! emulator -list-avds 2>/dev/null | grep -qx perf; then
   exit 1
 fi
 
-echo "Starting the emulator"
-nohup emulator -avd perf -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics \
-  -gpu swiftshader_indirect -memory 4096 -cores 3 -accel on \
-  >"$log_dir/emulator.log" 2>&1 &
-emulator_pid=$!
+booted() {
+  [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '')" = "1" ]
+}
 
-# Bounded wait: an emulator that exits early fails the step instead of
-# leaving "adb wait-for-device" hanging until the job timeout.
-# The Play Store image boots slower than google_apis; callers can allow more
-# polls (2 s each) with EMULATOR_BOOT_POLLS.
-for _ in $(seq 1 "${EMULATOR_BOOT_POLLS:-240}"); do
-  if ! kill -0 "$emulator_pid" 2>/dev/null; then
-    echo "The emulator exited during boot, see emulator.log" >&2
+# Starts the emulator and waits a bounded time for the boot to complete.
+# An emulator that exits early fails the attempt instead of leaving
+# "adb wait-for-device" hanging until the job timeout. The Play Store image
+# boots slower than google_apis; callers can allow more polls (2 s each)
+# with EMULATOR_BOOT_POLLS.
+start_and_wait() {
+  nohup emulator -avd perf -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics     -gpu swiftshader_indirect -memory 4096 -cores 3 -accel on "$@"     >>"$log_dir/emulator.log" 2>&1 &
+  emulator_pid=$!
+  for _ in $(seq 1 "${EMULATOR_BOOT_POLLS:-240}"); do
+    if ! kill -0 "$emulator_pid" 2>/dev/null; then
+      echo "The emulator exited during boot, see emulator.log" >&2
+      return 1
+    fi
+    if booted; then
+      return 0
+    fi
+    sleep 2
+  done
+  return 1
+}
+
+# A cold boot of the system image occasionally stalls before
+# sys.boot_completed (seen with the Play Store image on hosted runners).
+# One more attempt on wiped data recovers it; a second stall fails.
+echo "Starting the emulator"
+if ! start_and_wait; then
+  echo "The emulator did not finish booting, retrying once on wiped data"
+  kill "$emulator_pid" 2>/dev/null || true
+  wait "$emulator_pid" 2>/dev/null || true
+  adb kill-server >/dev/null 2>&1 || true
+  if ! start_and_wait -wipe-data || ! booted; then
+    echo "The emulator did not finish booting" >&2
     exit 1
   fi
-  if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; then
-    break
-  fi
-  sleep 2
-done
-if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" != "1" ]; then
-  echo "The emulator did not finish booting" >&2
-  exit 1
 fi
 
 # Fewer moving parts while measuring: no animations, no first-boot noise.

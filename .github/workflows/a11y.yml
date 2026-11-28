@@ -246,10 +246,10 @@ jobs:
         run: flutter build apk --debug --target-platform android-x64 --dart-define-from-file=config/app.json
 
       - name: Boot emulator
-        timeout-minutes: 20
+        timeout-minutes: 30
         env:
           EMULATOR_TAG: google_apis_playstore
-          EMULATOR_BOOT_POLLS: "450"
+          EMULATOR_BOOT_POLLS: "360"
         run: |
           bash tool/perf/android_emulator.sh tool/a11y/out-android
           # The boot script puts platform-tools on PATH only for itself; the

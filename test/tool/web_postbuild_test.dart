@@ -335,7 +335,7 @@ void main() {
       );
       expect(
         File('${tmp.path}/hosting/vercel.json').readAsStringSync(),
-        '{"value": "b"}',
+        '{"value": "b $googleCastScriptSources"}',
       );
       expect(
         File('${tmp.path}/netlify.toml').readAsStringSync(),

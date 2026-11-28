@@ -46,12 +46,16 @@ final class AccessibilityAuditTests: XCTestCase {
     }
 
     for row in settingsRows {
-      // The Settings button in the header toggles: on the Settings screen it
-      // goes back. Tap it only when the screen heading is not shown yet.
-      // After Back the page transition is still running, so wait briefly.
-      if !app.descendants(matching: .any)["SETTINGS"].firstMatch.waitForExistence(timeout: 5) {
-        app.buttons["Settings"].firstMatch.tap()
-      }
+      // Start every row from the same state: the Settings button in the
+      // header toggles (on the Settings screen it goes back), so open
+      // Stations first and Settings from there.
+      app.buttons["Stations"].firstMatch.tap()
+      let settings = app.buttons["Settings"].firstMatch
+      XCTAssertTrue(settings.waitForExistence(timeout: 10), "Settings button not found")
+      settings.tap()
+      XCTAssertTrue(
+        app.descendants(matching: .any)["SETTINGS"].firstMatch.waitForExistence(timeout: 10),
+        "Settings screen did not open")
       let entry = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", row)).firstMatch
       var swipes = 0
       // Flutter reports its elements as not hittable, so the loop waits for
@@ -83,6 +87,23 @@ final class AccessibilityAuditTests: XCTestCase {
     shot.name = "screen-\(screen)"
     shot.lifetime = .keepAlways
     add(shot)
+    do {
+      try runAudit(app, types: types, screen: screen)
+    } catch let error as NSError
+      where error.domain == "com.apple.xcode.xctest.accessibilityAudit" && error.code == -56
+    {
+      // "Audit failed to complete in time" comes from the audit daemon on a
+      // busy simulator, not from a finding. Run it once more; a second
+      // timeout or any other error still fails the test.
+      try runAudit(app, types: types, screen: screen)
+    }
+  }
+
+  @available(iOS 17.0, *)
+  @MainActor
+  private func runAudit(
+    _ app: XCUIApplication, types: XCUIAccessibilityAuditType, screen: String
+  ) throws {
     try app.performAccessibilityAudit(for: types) { finding in
       if Self.isFlutterScrollContainer(finding, in: app) {
         return true
